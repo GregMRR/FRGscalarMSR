@@ -501,6 +501,15 @@ conditions. `EquationOf[equations, comb]` returns the equation record.
 - HEQ ≡ 0;
 - assembly takes about 35 s, most of it (20 s) on D2phi.
 
+**LPA acceptance** (`tests/acceptance/ShallowWaterLPA.wl`). The LPA ansatz, DE4plus without the Kk, g2k and D2phik terms,
+is derived from scratch, with those three flows reported as Neglected. Its equations equal the old notebooks' exactly:
+- `flowsDE4plus_agreed` /. {K, D2ϕ, g2 → 0}, for g, Dϕ, N, Dh and A. This is the input of
+  `LPA_KPZ_thermal_forcing/AdimensionalFlowEQGenericReg.nb`.
+- `flowsLPAold` with λ = 1, A = 0 and no H-noise regulator, for g, Dϕ, N and Dh, with the LHS factors of
+  `shallow_water_DE4plus.nb` §14.
+
+The old-notation map and the provenance are in `tests/reference/legacyLPA/README.md`.
+
 ---
 
 ## Oracle (`Kernel/Oracle.wl`) — `RunOracle`

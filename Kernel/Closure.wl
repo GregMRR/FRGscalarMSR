@@ -15,7 +15,7 @@ ShowClosureReport::usage = "ShowClosureReport[closure] prints, for every monomia
 Begin["`Private`"];
 
 monomialString[r_] := "(I w)^" <> ToString[r["Frequency"]] <> " (q^2)^" <> ToString[r["Momentum"]];
-numString[x_] := ToString[NumberForm[N[x], 4]];
+numString[x_] := ToString[CForm[N[x]]];
 recordString[r_] := ToString[r["Pair"]] <> " " <> monomialString[r];
 
 (* numeric content (sign included) and flowing combination: -2 Dhk aDhk -> {-2, Dhk aDhk} *)
