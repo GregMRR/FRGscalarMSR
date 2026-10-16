@@ -8,6 +8,8 @@ stageFile = FileNameJoin[{$TemporaryDirectory, "FRGscalarMSR-test-" <> ToString[
 quiet[SaveStage[kpzClosure, stageFile]];
 loaded = quiet[LoadStage[stageFile, "Expect" -> {kpzTheory, kpzAnsatz, kpzRegulator, kpzSymmetries}]];
 test["round trip: same stage", loaded === kpzClosure, True];
+quiet[SaveStage[kpzEquations, stageFile]];
+test["round trip of an Equations stage", quiet[LoadStage[stageFile, "Expect" -> {kpzAnsatz}]] === kpzEquations, True];
 test["round trip: equations usable downstream", Length[quiet[AssembleEquations[loaded]]["Equations"]], 2];
 
 (* a different ansatz (an extra coupling) makes the saved stage stale *)

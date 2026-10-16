@@ -38,7 +38,7 @@ BuildLoopIntegrands[vertices_, prop_, regulator_] := Block[{$FRGModule = "Loops"
    g4 = AnyTrue[Keys[vertices["VertexTable"]], Length[#] == 4 &];
    If[g4, AppendTo[warns, infoCheck["WARN", "Loops.tadpole", "Gamma4 != 0: tadpole term -1/2 Tr[d_sR G Gamma4 G] included; hand-derived, untested"]]];
    AppendTo[warns, infoCheck["ASSUMPTION", "Loops.normalisation",
-     "loop prefactor 1, tadpole -1/2 and 1/(2 Pi) hand-derived (docs/MODULES.md); the oracle and DE4plus_fast.wl share this formula, so neither verifies it"]];
+     "loop prefactor 1, tadpole -1/2 and 1/(2 Pi) hand-derived (docs/MODULES.md); bubble checked against Canet's KPZ flow (tests/acceptance/KPZ.wl), tadpole untested"]];
    stage = stampStage[<|"Stage" -> "Loops", "Pipeline" -> "DerivativeExpansion",
       "Upstream" -> {vertices["Fingerprint"], prop["Fingerprint"], regulator["Fingerprint"]},
       "Vertices" -> vertices, "Propagator" -> prop, "Regulator" -> regulator, "Fields" -> vertices["Fields"], "DsR" -> dsr, "HasGamma4" -> g4,

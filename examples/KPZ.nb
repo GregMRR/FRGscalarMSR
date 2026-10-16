@@ -1,0 +1,143 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 15.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[      6244,        134]
+NotebookOptionsPosition[      4781,        109]
+NotebookOutlinePosition[      5095,        123]
+CellTagsIndexPosition[      5052,        120]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["KPZ, one loop, dimensionful", "Title",ExpressionUUID->"8b3b313b-5d65-43eb-9ddf-2ca2bbd474e4"],
+
+Cell["\<\
+The KPZ equation dt h = nu lap h + lambda/2 (grad h)^2 + noise, with noise \
+variance 2 D, written as an MSR action. The ansatz has the form of the bare \
+action. The Galilean symmetry protects the coefficient 1 of dt h (Ward \
+identity) and the non-linearity lambda (not checkable in v1: that needs d_s \
+Gamma3, so it is declared NonRenormalised).\
+\>", "Text",ExpressionUUID->"6b1f4999-b990-41d5-b318-0f09e15cf6ac"],
+
+Cell["Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"]", "Input",ExpressionUUID->"039e33d8-d906-4a1a-b909-1414bea6fadf"],
+
+Cell["\<\
+theory = DefineTheory[\"Scalars\" -> {h}, \"Dimension\" -> Dim];
+ansatz = DefineAnsatz[theory, \"Density\" -> hbar (dt[h] - nuk lap[h] - \
+lamk/2 grad[h].grad[h]) - Dk hbar^2,
+  \"Couplings\" -> {nuk, lamk, Dk}];\
+\>", "Input",ExpressionUUID->"d8720be0-c95c-4156-a5c8-3cfa5c58e704"],
+
+Cell["\<\
+symmetries = DeclareSymmetries[ansatz,
+  Protected[{hbar, h}, \"Frequency\" -> 1, \"Momentum\" -> 0, \"Reason\" -> \
+\"Galilean Ward identity\"],
+  Protected[{h, hbar}, \"Frequency\" -> 0, \"Momentum\" -> 0, \"Reason\" -> \
+\"h -> h + c (shift symmetry)\"],
+  Neglected[_, \"Reason\" -> \"beyond the ansatz\"], NonRenormalised[lamk, \
+\"Reason\" -> \"Galilean invariance\"],
+  \"TruncationOrders\" -> <|\"Frequency\" -> 2, \"Momentum\" -> 1|>];\
+\>", "Input",ExpressionUUID->"df8b9fb4-7819-43b8-a094-4b862ac4fe09"],
+
+Cell["\<\
+vertices = BuildVertices[ansatz];
+regulator = DefineRegulator[ansatz, {hbar, h} -> nuk q^2 rn[q^2/k^2], {hbar, \
+hbar} -> -2 Dk rd[q^2/k^2], \"Shapes\" -> {rn, rd}];
+prop = BuildPropagator[vertices, regulator];\
+\>", "Input",ExpressionUUID->"4025f4fc-6839-4d91-9408-553ac39c0e73"],
+
+Cell["\<\
+flows = CheckClosure[IntegrateFrequencies[ProjectOnMonomials[\
+BuildLoopIntegrands[vertices, prop, regulator], symmetries]], symmetries];\
+\>", "Input",ExpressionUUID->"186c5a21-67ce-4791-888f-6ed4fd3894e9"],
+
+Cell["\<\
+equations = AssembleEquations[flows];
+ShowEquation[equations, nuk]
+ShowEquation[equations, Dk]\
+\>", "Input",ExpressionUUID->"9dd1c6d6-8656-468d-a59d-baaf47a8d73f"],
+
+Cell["oracle = RunOracle[equations, \"ZeroFlows\" -> True];", "Input",ExpressionUUID->"9262bb5c-7edd-464f-b24a-2f8812c77379"],
+
+Cell["Check of the loop normalisation against Canet's flow", "Section",ExpressionUUID->"6d6bfe65-4d4b-4c16-8195-e30fe9ae1452"],
+
+Cell["\<\
+L. Canet, arXiv:2509.01472, Eq. (20): with the Litim cutoff r(y) = (1/y - 1) \
+theta(1 - y) in both sectors, the dimensionless coupling g = v_d k^(d-2) \
+lambda^2 D/nu^3 flows as d_s g = g (d - 2 - eta_D + 3 eta_nu), with d_s nu = \
+-eta_nu nu, d_s D = -eta_D D. We integrate our two equations over q with the \
+Litim shape (Int d^dq/(2 Pi)^d f = v_d k^d/2 Int_0^1 y^(d/2-1) f dy), solve \
+the linear system for eta_nu and eta_D, and compare. The difference is \
+exactly 0 for every d: this checks the prefactor, sign and 2 Pi of the loop \
+formula (not the Gamma4 tadpole, absent here).\
+\>", "Text",ExpressionUUID->"2c6407d1-97b6-45e8-ad3e-d54bfa01e696"],
+
+Cell["\<\
+litim = {rn -> Function[y, 1/y - 1], rd -> Function[y, 1/y - 1]};
+litimIntegral[f_] := Module[{g = Expand[Together[f /. q -> k Sqrt[y] /. \
+litim] y^(d/2 - 1)], terms},
+  terms = If[Head[g] === Plus, List @@ g, {g}];
+  vd k^d/2 Total[(# /. y -> 1)/(Exponent[#, y] + 1) & /@ terms]];
+flowOf[c_] := litimIntegral[EquationOf[equations, c][\"Integrand\"] /. Dim -> \
+d];\
+\>", "Input",ExpressionUUID->"49d38c08-4912-480d-bc7d-99e164fffda4"],
+
+Cell["\<\
+etas = First[Solve[{-etanu nuk == (flowOf[nuk] /. {dsCoupling[nuk] -> -etanu \
+nuk, dsCoupling[Dk] -> -etaD Dk}),
+     -etaD Dk == (flowOf[Dk] /. {dsCoupling[nuk] -> -etanu nuk, \
+dsCoupling[Dk] -> -etaD Dk})}, {etanu, etaD}]];
+bracket = Together[(d - 2 - etaD + 3 etanu) /. etas /. lamk -> Sqrt[g \
+nuk^3/(vd k^(d - 2) Dk)]]\
+\>", "Input",ExpressionUUID->"cb58fdec-7e5a-416d-ba0b-07b30b595e9f"],
+
+Cell["\<\
+canet = (2 d^6 + 4 d^5 - d^4 (7 g + 8) - 2 d^3 (3 g + 8) + d^2 g (3 g + 20) - \
+d (g - 8) g - 2 g^2)/
+   (2 d^5 + 8 d^4 + d^3 (8 - 3 g) - 2 d^2 g + d g (g + 8) - g^2);
+Together[bracket - canet]\
+\>", "Input",ExpressionUUID->"f8fada25-6130-425e-a05c-6469e54047d4"]
+},
+FrontEndVersion->"15.0 for Linux x86 (64-bit) (May 19, 2026)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"35bd4129-e727-49b9-9312-04bf0716d16f"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 99, 0, 70, "Title",ExpressionUUID->"8b3b313b-5d65-43eb-9ddf-2ca2bbd474e4"],
+Cell[656, 22, 428, 6, 70, "Text",ExpressionUUID->"6b1f4999-b990-41d5-b318-0f09e15cf6ac"],
+Cell[1087, 30, 119, 0, 70, "Input",ExpressionUUID->"039e33d8-d906-4a1a-b909-1414bea6fadf"],
+Cell[1209, 32, 292, 5, 70, "Input",ExpressionUUID->"d8720be0-c95c-4156-a5c8-3cfa5c58e704"],
+Cell[1504, 39, 524, 9, 70, "Input",ExpressionUUID->"df8b9fb4-7819-43b8-a094-4b862ac4fe09"],
+Cell[2031, 50, 290, 5, 70, "Input",ExpressionUUID->"4025f4fc-6839-4d91-9408-553ac39c0e73"],
+Cell[2324, 57, 217, 3, 70, "Input",ExpressionUUID->"186c5a21-67ce-4791-888f-6ed4fd3894e9"],
+Cell[2544, 62, 174, 4, 70, "Input",ExpressionUUID->"9dd1c6d6-8656-468d-a59d-baaf47a8d73f"],
+Cell[2721, 68, 125, 0, 70, "Input",ExpressionUUID->"9262bb5c-7edd-464f-b24a-2f8812c77379"],
+Cell[2849, 70, 126, 0, 70, "Section",ExpressionUUID->"6d6bfe65-4d4b-4c16-8195-e30fe9ae1452"],
+Cell[2978, 72, 666, 9, 70, "Text",ExpressionUUID->"2c6407d1-97b6-45e8-ad3e-d54bfa01e696"],
+Cell[3647, 83, 446, 8, 70, "Input",ExpressionUUID->"49d38c08-4912-480d-bc7d-99e164fffda4"],
+Cell[4096, 93, 405, 7, 70, "Input",ExpressionUUID->"cb58fdec-7e5a-416d-ba0b-07b30b595e9f"],
+Cell[4504, 102, 273, 5, 70, "Input",ExpressionUUID->"f8fada25-6130-425e-a05c-6469e54047d4"]
+}
+]
+*)
+
+(* End of internal cache information *)

@@ -128,7 +128,7 @@ AssembleEquations[closure_] := Block[{$FRGModule = "Assemble"},
       "shapes " <> inputForm[shapes] <> " of y = " <> ToString[qU] <> "^2/" <> ToString[k] <> "^2 with derivatives, " <> ToString[closure["Symmetries"]["Dimension"]] <> " symbolic"]];
 
    stage = stampStage[<|"Stage" -> "Equations", "Pipeline" -> "DerivativeExpansion", "Upstream" -> {closure["Fingerprint"]},
-      "Closure" -> closure, "Equations" -> eqs, "Atoms" -> Association[atomVals], "AtomForms" -> (forms /. toQ),
+      "Closure" -> closure, "Equations" -> eqs, "Atoms" -> Association[atomVals], "AtomForms" -> Association[KeyValueMap[#1 -> (#2 /. toQ) &, forms]],
       "ValidityConditions" -> <|"Atoms" -> validity, "Explicit" -> explicitAtoms|>, "DsRRules" -> dsrRules,
       "LoopMomentum" -> qU, "Scale" -> k, "Shapes" -> shapes, "Couplings" -> cps, "Dimension" -> closure["Symmetries"]["Dimension"],
       "Checks" -> checks, "Warnings" -> warns, "Timing" -> AbsoluteTime[] - t0|>];

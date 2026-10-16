@@ -1,0 +1,225 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 15.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[     11597,        216]
+NotebookOptionsPosition[      8366,        172]
+NotebookOutlinePosition[      8680,        186]
+CellTagsIndexPosition[      8637,        183]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["Shallow water, DE4plus ansatz", "Title",ExpressionUUID->"af9d743a-6f08-4577-b547-5d0faaac4c5d"],
+
+Cell["\<\
+This notebook derives the 9 flow equations of the shallow-water DE4plus \
+ansatz (two scalars H, Psi with response fields Hbar, Psibar), the case \
+DE4plus_fast.wl was written for. Every step returns an immutable stage and \
+prints a summary card: one PASS line per check, the warnings and the \
+assumptions. A failed check prints a red FAIL block and stops the evaluation. \
+Full expressions are shown only on request, with the Show... commands. The \
+modules are described in docs/MODULES.md, the conventions in \
+docs/CONVENTIONS.md.\
+\>", "Text",ExpressionUUID->"2310f70e-4b83-4e70-87ca-04ed9db6645f"],
+
+Cell["Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"]", "Input",ExpressionUUID->"e4c4d928-18f3-4e27-8c36-85d514fb0874"],
+
+Cell["1. Fields and ansatz", "Section",ExpressionUUID->"718bdd37-7432-4a8a-bd4a-679e102e54f8"],
+
+Cell["\<\
+DefineTheory creates a response field <name>bar for each scalar. The ansatz \
+is the action density, written with the package's own derivatives dt, grad, \
+div, lap (not the System Dt, Grad: Dt[nk H] would add Dt[nk] terms). The \
+parser prints the table of parsed monomials so that you can check it.\
+\>", "Text",ExpressionUUID->"864be0d1-04de-4563-978f-2234c09e260d"],
+
+Cell["\<\
+theory = DefineTheory[\"Scalars\" -> {H, Psi}, \"Dimension\" -> Dim]\
+\>", "Input",ExpressionUUID->"a323394d-78c2-4f49-9039-23e2e5feaef6"],
+
+Cell["\<\
+ansatz = DefineAnsatz[theory, \"Density\" ->
+    Hbar (dt[H] - nk Ak lap[H] + Hk lk lap[Psi] + lk div[H grad[Psi]])
+  + Psibar (dt[Psi] - nk ank lap[Psi] + gk H - g2k lap[H] + lk/2 \
+grad[Psi].grad[Psi])
+  - Dhk aDhk grad[Hbar].grad[Hbar] - Dphik aDphik Psibar^2 - Dphik D2phik \
+grad[Psibar].grad[Psibar] + Kk grad[Hbar].grad[Psibar],
+  \"Couplings\" -> {nk, Ak, Hk, lk, ank, gk, g2k, Dhk, aDhk, Dphik, aDphik, \
+D2phik, Kk}]\
+\>", "Input",ExpressionUUID->"629e10e1-4997-45be-842e-35ef90aa4f8e"],
+
+Cell["2. Vertices, regulator, propagator", "Section",ExpressionUUID->"0b2544fc-51f1-4d5b-b309-cc26008aacf5"],
+
+Cell["\<\
+BuildVertices prints every Fourier vertex under the convention header (dt -> \
++I w, grad -> -I q, all momenta incoming, last leg = minus the sum of the \
+others). The regulator entries are the amounts added to Gamma2_ab, including \
+the 2 of a diagonal pair; the shapes stay abstract functions of y = q^2/k^2. \
+The propagator is inverted in abstract atoms; Delta is the determinant whose \
+roots are the poles, and its validity conditions say when they are causal \
+(upper half w-plane).\
+\>", "Text",ExpressionUUID->"72d7d7ad-1437-45ed-8f31-645041c97c42"],
+
+Cell["vertices = BuildVertices[ansatz];", "Input",ExpressionUUID->"125fa3a6-6ed1-4434-9c4d-1e8843e22dce"],
+
+Cell["\<\
+regulator = DefineRegulator[ansatz,
+  {Hbar, H} -> nk q^2 arnh[q^2/k^2], {Psibar, Psi} -> nk q^2 arnphi[q^2/k^2],
+  {Hbar, Hbar} -> -2 Dhk q^2 armh[q^2/k^2], {Psibar, Psibar} -> -2 Dphik \
+armphi[q^2/k^2],
+  \"Shapes\" -> {arnh, arnphi, armh, armphi}];\
+\>", "Input",ExpressionUUID->"0e278bf5-4020-4465-b92a-266280abff21"],
+
+Cell["prop = BuildPropagator[vertices, regulator];", "Input",ExpressionUUID->"8ecfda79-aabb-440c-8c91-a755d0f837d2"],
+
+Cell["3. Symmetries: what flows, what must not, what is dropped", "Section",ExpressionUUID->"5767813f-d97c-4d9d-808e-faca78cc2138"],
+
+Cell["\<\
+Every monomial (I w)^m (q^2)^n of every Gamma2 entry up to the truncation \
+orders gets a class: declared in the ansatz (it gets an equation), Protected \
+(a symmetry forbids it, so its flow is checked to vanish), Neglected \
+(computed, reported, dropped), or zero by structure. An untagged monomial \
+stops the evaluation. Ward identities are assumed through the Protected tags, \
+not derived.\
+\>", "Text",ExpressionUUID->"b0e7905a-94c5-4ac5-bf2c-1dc3caec72cc"],
+
+Cell["\<\
+symmetries = DeclareSymmetries[ansatz,
+  Protected[{Hbar, _}, \"Momentum\" -> 0, \"Reason\" -> \"Hbar -> Hbar + c(t) \
+(mass conservation)\"],
+  Protected[{Psi, _}, \"Momentum\" -> 0, \"Reason\" -> \"Psi -> Psi + \
+c(t)\"],
+  Neglected[{H, Psibar}, \"Frequency\" -> {1, 2}, \"Momentum\" -> 0, \"Reason\
+\" -> \"truncation, z = 1 power counting\"],
+  Neglected[{Psibar, Psibar}, \"Frequency\" -> 2, \"Momentum\" -> 0, \"Reason\
+\" -> \"coloured forcing, dropped\"],
+  Neglected[_, \"Frequency\" -> {1, 2}, \"Momentum\" -> 1, \"Reason\" -> \
+\"mixed i w q^2 / w^2 q^2 terms, dropped\"],
+  NonRenormalised[lk, \"Reason\" -> \"Galilean invariance\"],
+  \"TruncationOrders\" -> <|\"Frequency\" -> 2, \"Momentum\" -> 1|>];\
+\>", "Input",ExpressionUUID->"32c23dfa-76a1-4ffc-874d-47458d46570c"],
+
+Cell["4. Loops, projection, frequency integrals, closure", "Section",ExpressionUUID->"13e9691c-0a53-437f-82e3-17eece11979c"],
+
+Cell["\<\
+The one-loop integrand of d_s Gamma2 is projected on each monomial at zero \
+external frequency and momentum, then integrated over the loop frequency \
+exactly by residues (no square roots: the result is rational in the \
+coefficients of Delta). CheckClosure asserts the vanishing flows and turns \
+each declared monomial into d_s(combination) = RHS, the number in front of \
+the coefficient (e.g. the -2 of -2 Dhk aDhk) being divided out.\
+\>", "Text",ExpressionUUID->"7b599c62-5b30-424e-8a8f-bfa6823e5ded"],
+
+Cell["loops = BuildLoopIntegrands[vertices, prop, regulator];", "Input",ExpressionUUID->"b19b2ce2-8872-4641-924a-e324c95b2d7f"],
+
+Cell["projected = ProjectOnMonomials[loops, symmetries];", "Input",ExpressionUUID->"3c612b6c-37b8-4a10-a29d-d12ddf3437fa"],
+
+Cell["integrated = IntegrateFrequencies[projected];", "Input",ExpressionUUID->"13d3011e-aee2-4d37-a5ea-e29720c5319d"],
+
+Cell["flows = CheckClosure[integrated, symmetries];", "Input",ExpressionUUID->"cb53babe-cfbc-4913-af2b-6b95734b2f4b"],
+
+Cell["ShowClosureReport[flows]", "Input",ExpressionUUID->"5905ad04-889e-49e9-b566-86b14f84ac4f"],
+
+Cell["5. Equations", "Section",ExpressionUUID->"1798d2b8-749b-4d99-bbb8-7dd5e1b262da"],
+
+Cell["\<\
+AssembleEquations writes each equation compactly in scale-stripped atoms \
+(e.g. ScaleAtom[H, Hbar, 0, 0] = Ak + arnh[q^2/k^2]) and explicitly: the \
+integrand of Int d^dq/(2 Pi)^d, with dsCoupling[c] = k dc/dk entering \
+linearly and the shapes and their derivatives abstract. It takes about 35 s.\
+\>", "Text",ExpressionUUID->"2940d32f-d09e-4ff2-b84f-5db83a704c73"],
+
+Cell["equations = AssembleEquations[flows];", "Input",ExpressionUUID->"75e4b208-a508-44d7-8e06-95953cf45243"],
+
+Cell["ShowEquation[equations, gk]", "Input",ExpressionUUID->"2032e31c-7a02-44e1-8190-e230a1b804ea"],
+
+Cell["ShowEquation[equations, Dhk aDhk]", "Input",ExpressionUUID->"c3ba0548-f479-4ced-9487-215a37f22435"],
+
+Cell["6. Numerical oracle", "Section",ExpressionUUID->"26aab6bf-d7d2-45f6-8460-df004f8a4637"],
+
+Cell["\<\
+RunOracle recomputes every equation numerically at one random point, without \
+the propagator algebra or the residues: matrix inverse of Gamma2 + R, \
+numerical frequency integral, finite differences in the external frequency \
+and momentum, in d = 2 and d = 3. It shares the vertices and the loop formula \
+with the symbolic chain, so it does not test the loop normalisation; the KPZ \
+notebook does.\
+\>", "Text",ExpressionUUID->"3fd0fe9c-e77b-4d24-a6b0-67dc5ee814b1"],
+
+Cell["oracle = RunOracle[equations];", "Input",ExpressionUUID->"ba7f25a1-4608-496b-9494-f3ca29d0b8cf"],
+
+Cell["7. Saving", "Section",ExpressionUUID->"041285c6-0268-410a-8f85-eeec3f7f5c59"],
+
+Cell["\<\
+file = SaveStage[equations, FileNameJoin[{$TemporaryDirectory, \
+\"swDE4plus-equations.wdx\"}]]\
+\>", "Input",ExpressionUUID->"bf17d8e5-763b-4f86-8776-b7df1babeb98"],
+
+Cell["\<\
+equations2 = LoadStage[file, \"Expect\" -> {theory, ansatz, regulator, \
+symmetries}];
+equations2 === equations\
+\>", "Input",ExpressionUUID->"9488bbb8-4c48-404a-a99e-9a5df9a34ef4"]
+},
+FrontEndVersion->"15.0 for Linux x86 (64-bit) (May 19, 2026)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"35bd4129-e727-49b9-9312-04bf0716d16f"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 101, 0, 70, "Title",ExpressionUUID->"af9d743a-6f08-4577-b547-5d0faaac4c5d"],
+Cell[658, 22, 615, 9, 70, "Text",ExpressionUUID->"2310f70e-4b83-4e70-87ca-04ed9db6645f"],
+Cell[1276, 33, 119, 0, 70, "Input",ExpressionUUID->"e4c4d928-18f3-4e27-8c36-85d514fb0874"],
+Cell[1398, 35, 94, 0, 70, "Section",ExpressionUUID->"718bdd37-7432-4a8a-bd4a-679e102e54f8"],
+Cell[1495, 37, 379, 5, 70, "Text",ExpressionUUID->"864be0d1-04de-4563-978f-2234c09e260d"],
+Cell[1877, 44, 148, 2, 70, "Input",ExpressionUUID->"a323394d-78c2-4f49-9039-23e2e5feaef6"],
+Cell[2028, 48, 506, 9, 70, "Input",ExpressionUUID->"629e10e1-4997-45be-842e-35ef90aa4f8e"],
+Cell[2537, 59, 108, 0, 70, "Section",ExpressionUUID->"0b2544fc-51f1-4d5b-b309-cc26008aacf5"],
+Cell[2648, 61, 568, 8, 70, "Text",ExpressionUUID->"72d7d7ad-1437-45ed-8f31-645041c97c42"],
+Cell[3219, 71, 105, 0, 70, "Input",ExpressionUUID->"125fa3a6-6ed1-4434-9c4d-1e8843e22dce"],
+Cell[3327, 73, 332, 6, 70, "Input",ExpressionUUID->"0e278bf5-4020-4465-b92a-266280abff21"],
+Cell[3662, 81, 116, 0, 70, "Input",ExpressionUUID->"8ecfda79-aabb-440c-8c91-a755d0f837d2"],
+Cell[3781, 83, 131, 0, 70, "Section",ExpressionUUID->"5767813f-d97c-4d9d-808e-faca78cc2138"],
+Cell[3915, 85, 473, 7, 70, "Text",ExpressionUUID->"b0e7905a-94c5-4ac5-bf2c-1dc3caec72cc"],
+Cell[4391, 94, 796, 14, 70, "Input",ExpressionUUID->"32c23dfa-76a1-4ffc-874d-47458d46570c"],
+Cell[5190, 110, 124, 0, 70, "Section",ExpressionUUID->"13e9691c-0a53-437f-82e3-17eece11979c"],
+Cell[5317, 112, 518, 7, 70, "Text",ExpressionUUID->"7b599c62-5b30-424e-8a8f-bfa6823e5ded"],
+Cell[5838, 121, 127, 0, 70, "Input",ExpressionUUID->"b19b2ce2-8872-4641-924a-e324c95b2d7f"],
+Cell[5968, 123, 122, 0, 70, "Input",ExpressionUUID->"3c612b6c-37b8-4a10-a29d-d12ddf3437fa"],
+Cell[6093, 125, 117, 0, 70, "Input",ExpressionUUID->"13d3011e-aee2-4d37-a5ea-e29720c5319d"],
+Cell[6213, 127, 117, 0, 70, "Input",ExpressionUUID->"cb53babe-cfbc-4913-af2b-6b95734b2f4b"],
+Cell[6333, 129, 96, 0, 70, "Input",ExpressionUUID->"5905ad04-889e-49e9-b566-86b14f84ac4f"],
+Cell[6432, 131, 86, 0, 70, "Section",ExpressionUUID->"1798d2b8-749b-4d99-bbb8-7dd5e1b262da"],
+Cell[6521, 133, 377, 5, 70, "Text",ExpressionUUID->"2940d32f-d09e-4ff2-b84f-5db83a704c73"],
+Cell[6901, 140, 109, 0, 70, "Input",ExpressionUUID->"75e4b208-a508-44d7-8e06-95953cf45243"],
+Cell[7013, 142, 99, 0, 70, "Input",ExpressionUUID->"2032e31c-7a02-44e1-8190-e230a1b804ea"],
+Cell[7115, 144, 105, 0, 70, "Input",ExpressionUUID->"c3ba0548-f479-4ced-9487-215a37f22435"],
+Cell[7223, 146, 93, 0, 70, "Section",ExpressionUUID->"26aab6bf-d7d2-45f6-8460-df004f8a4637"],
+Cell[7319, 148, 480, 7, 70, "Text",ExpressionUUID->"3fd0fe9c-e77b-4d24-a6b0-67dc5ee814b1"],
+Cell[7802, 157, 102, 0, 70, "Input",ExpressionUUID->"ba7f25a1-4608-496b-9494-f3ca29d0b8cf"],
+Cell[7907, 159, 83, 0, 70, "Section",ExpressionUUID->"041285c6-0268-410a-8f85-eeec3f7f5c59"],
+Cell[7993, 161, 175, 3, 70, "Input",ExpressionUUID->"bf17d8e5-763b-4f86-8776-b7df1babeb98"],
+Cell[8171, 166, 191, 4, 70, "Input",ExpressionUUID->"9488bbb8-4c48-404a-a99e-9a5df9a34ef4"]
+}
+]
+*)
+
+(* End of internal cache information *)

@@ -141,7 +141,8 @@ in field order, to Γ⁽ⁿ⁾ as a function of all n leg momenta, before the δ
     its pole in the upper half plane.
   - The time-mirrored convention or a damping term of the wrong sign aborts.
   - With no damping term (pole on the real axis) or no dt term, the check is inconclusive and reported as a WARN.
-- WARN `Vertices.gamma4`: Γ⁽⁴⁾ ≠ 0. The tadpole term of the flow is hand-derived and untested.
+- WARN `Vertices.gamma4`: Γ⁽⁴⁾ ≠ 0. The tadpole term of the flow is hand-derived and untested. The bubble is tested against
+  KPZ; see Loops.
 
 **Show.** The vertex table, with the convention header, is printed by `BuildVertices`. The commands are `ShowVertexTable[v]`,
 `ShowGamma2[v]` and `ShowVertex[v, {Hbar, H, Psi}]`.
@@ -303,7 +304,7 @@ lists one record per monomial: pair, m, n, class, Γ_k coefficient and reason.
 - Γ4_ab(ν,p;ω,q) has entry (c,d) = Γ⁽⁴⁾_{abcd}, with legs at (ν,p), (−ν,−p), (ω,q) and (−ω,−q).
 - The 1/(2π) of the ω-measure is included in the integrand. ∫dᵈq/(2π)ᵈ is left to the numerics.
 
-**Hand derivation (E3/E4; not independently tested, by your choice).**
+**Hand derivation (E3/E4).** The bubble part is checked against KPZ (see below); the tadpole is not.
 1. **Wetterich equation.** ∂sΓ = ½ Tr[∂sR (Γ⁽²⁾+R)⁻¹]. The fields are bosonic, so this is a plain trace. In Fourier space,
    Tr A = Σ_a ∫dω dᵈq/(2π)^{d+1} A_aa(ω,q).
 2. **Inverting in Fourier space.** With the derivative normalisation of CONVENTIONS.md, the second derivative at a uniform
@@ -325,7 +326,16 @@ lists one record per monomial: pair, m, n, class, Γ_k coefficient and reason.
 **What this is and is not tested against.**
 - `DE4plus_fast.wl` and its oracle use exactly this formula (`d3Γ`, 1/(2π) included). Agreement with `flowsFAST` therefore
   checks the implementation, **not** the normalisation.
-- The cross-read against textbook one-loop KPZ (dimensionful ν and D flows) is milestone 6.
+- **KPZ cross-check (`tests/acceptance/KPZ.wl`, milestone 6).** This test is independent of the formula. L. Canet,
+  arXiv:2509.01472, Eq. (20), derives the flow of g = v_d k^{d−2} λ² D/ν³ for the same ansatz with the Litim cutoff
+  r(y) = (1/y − 1) θ(1 − y). The same flow is used as the reference in `LPA_KPZ_thermal_forcing/lpa/kpz.jl`.
+  - The test integrates our dimensionful ν and D equations over q with that cutoff, solves the linear system for η_ν and η_D,
+    and compares d − 2 − η_D + 3η_ν with Canet's ratio. The agreement is exact, for symbolic d.
+  - This fixes the bubble prefactor 1, its sign and the 2π. It also checks the residues, the frequency and momentum
+    projections, and the assembly.
+  - It does **not** test the Γ⁽⁴⁾ tadpole (−½), because KPZ has no Γ⁽⁴⁾. It tests only the combination
+    d − 2 − η_D + 3η_ν, not each η separately; a compensating error in the ν and D equations is conceivable but would have
+    to hold for every d and g.
 - The card prints "tadpole … hand-derived, untested" whenever Γ⁽⁴⁾ ≠ 0.
 
 **Checks.** `Loops.sameUpstream` and `Loops.dsRSymmetric`. The normalisation is printed on the card as an ASSUMPTION.
@@ -519,7 +529,8 @@ equation:
    finite differences and gives an independent numerical check of the Ward identities.
 
 **What it does not test.** It shares the vertices and the loop formula (prefactor, −½ tadpole, 1/(2π)) with the symbolic
-chain, so it does not test the normalisation (E3/E4). The card says so.
+chain, so it does not test the normalisation (E3/E4). The card says so. The bubble normalisation is tested by the KPZ comparison
+with Canet's flow instead (see Loops).
 
 **Acceptance.**
 - Shallow water, 9 equations in d = 2 and 3: relative errors ≤ 2·10⁻⁹. This is the finite-difference error, about h²; the

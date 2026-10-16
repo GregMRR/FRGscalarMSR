@@ -14,8 +14,11 @@ These are extensions the v1 design keeps room for. None of them is implemented y
   - Write p = |p| e, Taylor-expand in |p|, and average over directions with
     ⟨(e·q)^{2m}⟩ = q^{2m} (2m−1)!! / [d(d+2)⋯(d+2m−2)].
   - This replaces the Laplacian trick at every order. Validate it with the oracle in d = 2 and d = 3.
-- **Independent check of the loop normalisation (E3/E4; declined for v1).**
-  - Use the background-field form ½ ∂̃s Tr ln(Γ2[φ₀] + R) on KPZ and on a toy quartic theory.
+- **Independent check of the Γ⁽⁴⁾ tadpole normalisation (E4).**
+  - The bubble is checked against Canet's KPZ flow (`tests/acceptance/KPZ.wl`). The tadpole needs a theory with a quartic
+    vertex.
+  - Options: the background-field form ½ ∂̃s Tr ln(Γ2[φ₀] + R) on a toy quartic theory, or a published one-loop flow of a
+    model with Γ⁽⁴⁾ ≠ 0.
 - **∂sΓ⁽³⁾ projections.**
   - These need Γ5 and the triangle and box diagrams, which means a new variant of Loops.
   - With them, `NonRenormalised` becomes checkable.
