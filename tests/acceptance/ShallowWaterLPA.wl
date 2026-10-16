@@ -2,11 +2,11 @@
 
 (* LPA acceptance: the LPA ansatz (DE4plus without the Kk, g2k, D2phik terms) derived from scratch by the library equals the
    equations of the old notebooks, exactly (random rationals for every symbol and shape atom):
-   (1) tests/reference/legacyLPA/flowsDE4plus_agreed /. DE4toLPA  -- input of LPA_KPZ_thermal_forcing/AdimensionalFlowEQGenericReg.nb,
+   (1) tests/reference/legacy/flowsDE4plus_agreed /. DE4toLPA  -- input of LPA_KPZ_thermal_forcing/AdimensionalFlowEQGenericReg.nb,
        already normalised flows, aDhk = ank = aDphik = 1 implicit;
-   (2) tests/reference/legacyLPA/flowsLPAold  -- the oldest LPA set (lambda = 1, A = 0, no H-noise regulator), raw RHS with the
+   (2) tests/reference/legacy/flowsLPAold  -- the oldest LPA set (lambda = 1, A = 0, no H-noise regulator), raw RHS with the
        factors of shallow_water_DE4plus.nb section 14.
-   Symbol maps (OldtoNew, DimensionlessRegulators) copied from shallow_water_DE4plus.nb; see tests/reference/legacyLPA/README.md. *)
+   Symbol maps (OldtoNew, DimensionlessRegulators) copied from shallow_water_DE4plus.nb; see tests/reference/legacy/README.md. *)
 
 lpaTheory = quiet[DefineTheory["Scalars" -> {H, Psi}, "Dimension" -> Dim]];
 lpaAnsatz = quiet[DefineAnsatz[lpaTheory, "Density" ->
@@ -30,18 +30,10 @@ test["LPA: 6 equations (A, g, Dh, H, N, Dphi)", Sort[lpaEquations["Equations"][[
 test["LPA: g2, K, D2phi flows reported as Neglected",
   Sort[#Pair & /@ Select[lpaClosure["Report"], #Class === "Neglected" && #Frequency == 0 && #Momentum == 1 &]], Sort[{{H, Psibar}, {Hbar, Psibar}, {Psibar, Psibar}}]];
 
-(* ours: explicit, d_s R abstract with the script's names (E10), bookkeeping couplings = 1 *)
-lpaE10 = {dsR[H, Hbar] -> dsNh, dsR[Hbar, Hbar] -> dsMh, dsR[Psi, Psibar] -> dsNphi, dsR[Psibar, Psibar] -> dsMphi};
-lpaOurs[c_] := (EquationOf[lpaEquations, c]["Compact"] /. Normal[lpaEquations["Atoms"]] /. lpaE10) /. {aDhk -> 1, ank -> 1, aDphik -> 1};
-(* old notation -> new: OldtoNew + DimensionlessRegulators of shallow_water_DE4plus.nb, H_0 = H_k, dsN\[Phi] = dsNphi *)
-lpaOldToNew = {Subscript[N, k] -> nk, Subscript[\[Lambda], k] -> lk, Subscript[K, k] -> Kk, Subscript[A, k] -> Ak, Subscript[D, hk] -> Dhk,
-   Subscript[D, \[Phi]k] -> Dphik, Subscript[D, 2 \[Phi]k] -> D2phik, Subscript[g, k] -> gk, Subscript[g, 2 k] -> g2k, Subscript[H, k] -> Hk, Subscript[H, 0] -> Hk,
-   Subscript[rn, h][q^2] -> arnh[q^2/k^2], Subscript[rn, \[Phi]][q^2] -> arnphi[q^2/k^2], Subscript[rm, h][q^2] -> armh[q^2/k^2], Subscript[rm, \[Phi]][q^2] -> armphi[q^2/k^2],
-   Derivative[1][Subscript[rn, h]][q^2] -> Derivative[1][arnh][q^2/k^2]/k^2, Derivative[1][Subscript[rn, \[Phi]]][q^2] -> Derivative[1][arnphi][q^2/k^2]/k^2,
-   Derivative[1][Subscript[rm, h]][q^2] -> Derivative[1][armh][q^2/k^2]/k^2, Derivative[1][Subscript[rm, \[Phi]]][q^2] -> Derivative[1][armphi][q^2/k^2]/k^2,
-   dsN\[Phi] -> dsNphi, dsM\[Phi] -> dsMphi};
-lpaRef[set_, f_] := Import[FileNameJoin[{testRoot, "reference", "legacyLPA", set, f <> ".wdx"}]] /. lpaOldToNew;
-lpaNew = {nk, lk, Kk, Ak, Dhk, Dphik, D2phik, gk, g2k, Hk, k, q, Dim, dsNh, dsMh, dsNphi, dsMphi, arnh, arnphi, armh, armphi};
+Get[FileNameJoin[{testRoot, "reference", "legacy", "OldNotation.wl"}]];
+lpaOurs[c_] := legacyForm[lpaEquations, c] /. {aDhk -> 1, ank -> 1, aDphik -> 1};
+lpaRef = legacyRef;
+lpaNew = newNotationSymbols;
 
 (* (1) flowsDE4plus_agreed /. DE4toLPA = {Kk, D2phik, g2k -> 0} (DE4toLPA3 of AdimensionalFlowEQGenericReg.nb) *)
 Do[Module[{ref = lpaRef["flowsDE4plus_agreed", j[[1]]] /. {Kk -> 0, D2phik -> 0, g2k -> 0}},

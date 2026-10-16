@@ -508,7 +508,16 @@ is derived from scratch, with those three flows reported as Neglected. Its equat
 - `flowsLPAold` with λ = 1, A = 0 and no H-noise regulator, for g, Dϕ, N and Dh, with the LHS factors of
   `shallow_water_DE4plus.nb` §14.
 
-The old-notation map and the provenance are in `tests/reference/legacyLPA/README.md`.
+The old-notation map and the provenance are in `tests/reference/legacy/README.md`.
+
+**DE4 against the old notebooks** (`tests/acceptance/ShallowWaterDE4Legacy.wl`).
+- Exact agreement with `flowsDE4plus_agreed` for g, Dϕ, N, Dh, A and K.
+- Exact agreement with the notebook's `flowsNEW` for g, Dϕ, N, Dh, A, K, H and g2.
+- Not compared:
+  - the agreed HEQ, which holds only a placeholder symbol;
+  - the flowsNEW D2ϕ file, which is corrupt;
+  - the agreed g2 and D2ϕ. These contain unsubstituted f″ and, even when completed, disagree with this library, which
+    agrees with flowsNEW, flowsFAST and the oracle. See `tests/reference/legacy/README.md`.
 
 ---
 

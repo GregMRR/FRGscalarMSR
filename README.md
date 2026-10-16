@@ -12,6 +12,8 @@ closed, checked set of Wetterich flow equations, using the derivative-expansion 
   in d = 2 and 3.
 - LPA: the LPA ansatz (no K, g2, D2phi) reproduces the old notebooks' LPA equations exactly (`flowsDE4plus_agreed` reduced to
   LPA, and the original `flowsLPAold`).
+- DE4 vs the old notebooks: exact agreement with `flowsDE4plus_agreed` (g, Dϕ, N, Dh, A, K) and `flowsNEW` (g, Dϕ, N, Dh, A, K, H, g2).
+  The old agreed g2 and D2ϕ disagree and are considered wrong (`tests/reference/legacy/README.md`).
 - KPZ: the one-loop flow reproduces L. Canet's closed-form flow (arXiv:2509.01472, Eq. 20) exactly, for any d.
 
 ## Workflow
@@ -57,7 +59,7 @@ math -script examples/runNotebook.wl examples/ShallowWaterDE4plus.nb  # ~80 s
 ## Tests
 
 ```
-math -script tests/runTests.wl [--verbose]     # unit + acceptance, ~105 s; exit code 0 means every test passed
+math -script tests/runTests.wl [--verbose]     # unit + acceptance, ~110 s; exit code 0 means every test passed
 ```
 
 ## Known limitations
