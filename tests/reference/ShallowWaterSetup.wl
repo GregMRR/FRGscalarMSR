@@ -34,3 +34,8 @@ If[! ValueQ[swaRegulator],
   refForms = {feta[s_] :> formeta[s], fDh[s_] :> formDh[s], fgamma[s_] :> formgamma[s], fDphi[s_] :> formDphi[s],
      fk[s_] :> formk[s], fl[s_] :> forml[s], fh[s_] :> formh[s]};
   regOff = Thread[{arnh, armh, arnphi, armphi} -> (0 &)]];
+
+(* milestone 5 stages *)
+If[! ValueQ[swaEquations],
+  swaClosure = quiet[CheckClosure[swaIntegrated, swaSymmetries]];
+  swaEquations = quiet[AssembleEquations[swaClosure]]];

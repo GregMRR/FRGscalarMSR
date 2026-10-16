@@ -58,7 +58,7 @@ integrate[e_, w_, deg_, cvals_] := Module[{exy, res},
 samplePoint[e_, prop_, w_, seed_] := Module[{e1, syms, atoms, pt, memo},
    e1 = e /. Join[{}, {DeltaCoefficient[m_][s_] :> prop["DeltaCoefficients"][s][[m + 1]],
        Derivative[k_][DeltaCoefficient[m_]][s_] :> (D[prop["DeltaCoefficients"][xs][[m + 1]], {xs, k}] /. xs -> s)}] /. \[CapitalDelta] -> dd;
-   syms = DeleteCases[Union[Cases[e1, x_Symbol /; Context[x] =!= "System`", {0, Infinity}, Heads -> False]], w];
+   syms = DeleteCases[Union[Cases[e1, x_Symbol /; Context[x] =!= "System`", {0, Infinity}, Heads -> False], {LoopMomentumSquared}], w];
    pt = RandomRationalPoint[syms, seed];
    SeedRandom[seed + 104729];
    memo[x_] := memo[x] = RandomInteger[{2, 60}]/RandomInteger[{61, 97}];
@@ -69,7 +69,15 @@ sampleValue[e_, prop_, w_, deg_, seed_] := Module[{e1, pt, memo, s, cv},
    {e1, pt, memo} = samplePoint[e, prop, w, seed];
    s = LoopMomentumSquared /. pt;
    cv = Thread[cc /@ Range[0, 2] -> (prop["DeltaCoefficients"][s] /. x : (GammaAtom[__][_]) :> memo[x])];
-   integrate[e1, w, deg, cv]];
+   {integrate[e1, w, deg, cv], validPointQ[prop, s, cv]}];
+
+(* the point is physical: q^2 > 0 and every root of Delta(w) in the upper half plane (Propagator validity conditions) *)
+validPointQ[prop_, s_, cv_] := TrueQ[s > 0] && TrueQ[And @@ (prop["ValidityConditions"][s] /. DeltaCoefficient[m_][_] :> (cc[m] /. cv))];
+
+(* a sample at a valid point, for values that are reported as sizes (Neglected); zero tests do not need valid points *)
+validSample[e_, prop_, w_, deg_, seed_] := Module[{r},
+   Do[r = sampleValue[e, prop, w, deg, seed + 1009 j]; If[r[[2]], Return[r[[1]], Module]], {j, 0, 199}];
+   FRGAssert["FrequencyIntegration.validPoint", False, e, "no random point satisfies the validity conditions in 200 tries: check the signs of the ansatz"]];
 
 IntegrateFrequencies[projected_] := Block[{$FRGModule = "FrequencyIntegration"},
   Module[{t0 = AbsoluteTime[], prop, w, deg, res, checks = {}, warns = {}, stage, symbolicC, nI},
@@ -79,12 +87,15 @@ IntegrateFrequencies[projected_] := Block[{$FRGModule = "FrequencyIntegration"},
    res = Function[r, Module[{t1 = AbsoluteTime[], out},
         out = If[r["Class"] === "Declared",
           <|"Value" -> integrate[r["Integrand"], w, deg, symbolicC]|>,
-          <|"Samples" -> Table[sampleValue[r["Integrand"], prop, w, deg, sd], {sd, If[r["Class"] === "Neglected", {1}, {1, 2, 3}]}]|>];
+          If[r["Class"] === "Neglected",
+           <|"Samples" -> {validSample[r["Integrand"], prop, w, deg, 1]}, "SampleValid" -> True|>,
+           <|"Samples" -> Table[First[sampleValue[r["Integrand"], prop, w, deg, sd]], {sd, {1, 2, 3}}]|>]];
         Join[KeyDrop[r, "Integrand"], out, <|"Seconds" -> AbsoluteTime[] - t1|>]]] /@ projected["Integrands"];
    nI = Length[Select[DownValues[FrequencyIntegral], FreeQ[#, Pattern] &]];
    AppendTo[checks, assertCheck["FrequencyIntegration.allIntegrated", True, Null, "",
      ToString[Count[res, KeyValuePattern["Class" -> "Declared"]]] <> " symbolic, " <> ToString[Count[res, _?(KeyExistsQ[#, "Samples"] &)]] <>
       " sampled; no leftover w, Delta or radicals; " <> ToString[nI] <> " distinct residue integrals"]];
+   AppendTo[warns, infoCheck["INFO", "FrequencyIntegration.samples", "zero tests use 3 arbitrary random points; Neglected values use one point where q^2 > 0 and the validity conditions hold"]];
    AppendTo[warns, infoCheck["ASSUMPTION", "FrequencyIntegration.poles", "all roots of Delta(w) in the upper half plane (Propagator validity conditions)"]];
    stage = stampStage[<|"Stage" -> "Integrated", "Pipeline" -> "DerivativeExpansion", "Upstream" -> {projected["Fingerprint"]},
       "Projection" -> projected, "Flows" -> res, "Checks" -> checks, "Warnings" -> warns, "Timing" -> AbsoluteTime[] - t0|>];

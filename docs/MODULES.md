@@ -167,7 +167,8 @@ to the export.
   `{Hbar, Hbar} -> -2 Dhk q^2 armh[q^2/k^2]` gives (Γ2+R)_{H̄H̄} = −2Dhk q²(aDhk + armh).
 - R is ω-independent and even in q, so R_ab = R_ba, and each unordered pair is given once.
 - You write the entries with your own `q` (loop momentum) and `k` (RG scale); they are recognised by name. `k` remains the
-  scale symbol in every later stage.
+  scale symbol in every later stage. Your `q` is stored as `"LoopMomentum"`, and the assembled equations are written in
+  it.
 - Map to `DE4plus_fast.wl`: dsNh = `dsR[H,Hbar]`, dsMh = `dsR[Hbar,Hbar]`, dsNphi = `dsR[Psi,Psibar]`,
   dsMphi = `dsR[Psibar,Psibar]`.
 
@@ -378,10 +379,13 @@ roots. This replaces the notebook's lookup table and generalises the script's `I
 - `Declared` monomials are integrated symbolically, in `GammaAtom`, `DeltaCoefficient` and `dsR` atoms.
 - `Protected`, `DeclaredNumeric` and `Causality` monomials are integrated **exactly at 3 random rational points**. The Δ
   coefficients are computed from the atoms at each point, so the relation Δ = det B is kept; ω and Δ stay symbolic.
-- `Neglected` monomials are integrated at one such point.
-- `CheckClosure` (milestone 5) asserts the zeros and reports the sizes.
+- `Neglected` monomials are integrated at one point that is **valid**: q² > 0, and the propagator's validity conditions hold
+  (every root of Δ(ω) in the upper half plane). Points are redrawn until one is valid, at most 200 times, after which the
+  module aborts with `FrequencyIntegration.validPoint`. A value reported as a size must come from a physical point. Zero
+  tests need no such point, because an exact zero is a zero everywhere.
+- `CheckClosure` asserts the zeros and reports the sizes.
 
-**Checks.** `FrequencyIntegration.convergence`, `.evenInBeta`, `.rational`, `.ready` and `.complete`. The unit tests compare
+**Checks.** `FrequencyIntegration.convergence`, `.evenInBeta`, `.rational`, `.ready`, `.complete` and `.validPoint`. The unit tests compare
 the results with the script's I(0,1,1) = π/(2AC) and with `NIntegrate`, in the overdamped, underdamped and degree-1 cases.
 
 **Acceptance (milestone 4).** In `tests/acceptance/ShallowWaterFlows.wl`:
@@ -391,3 +395,149 @@ the results with the script's I(0,1,1) = π/(2AC) and with `NIntegrate`, in the 
 - Every Protected, DeclaredNumeric and Causality flow samples to exactly 0.
 - The three frequency terms of script §6b are generated.
 - The full suite runs in about 26 s.
+
+---
+
+## Closure (`Kernel/Closure.wl`) — `CheckClosure`
+
+**Objective.** Decide, monomial by monomial, whether the integrated flows close on the ansatz. Then turn each declared
+monomial into a flow equation.
+
+**Input / output.** Input: the Integrated stage, plus the Symmetries stage it was projected with. Using any other Symmetries
+stage aborts with `Closure.sameSymmetries`. Output: the "Closure" stage, with these keys:
+- `Equations`: the declared records, each with `Normalisation`, `Flowing` and `RHS`;
+- `Report`: every classified monomial, including those that vanish by structure.
+
+**What happens to each class.**
+- **Protected**, **DeclaredNumeric** and **Causality**: all 3 exact samples must be 0. If one is not, the module aborts
+  with `Closure.protected`, `Closure.declaredNumeric` or `Closure.causality`; the hint lists the offending monomials and the
+  reasons of their tags. A nonzero Protected flow means one of two things: the declared symmetry is not a symmetry of the
+  ansatz with this regulator, or the ansatz breaks it.
+- **Neglected**: one WARN line per monomial, with its value at a valid random point (see FrequencyIntegration). This value
+  is one sample, not a bound: it says only that the term is generated.
+- **Structure**: an INFO count. These monomials are not computed.
+- **Declared**: the Γ_k coefficient is split into its pure number (sign included) and the rest, the *flowing combination*
+  (Q10, agreed with the user). For example, −2 Dhk aDhk gives normalisation −2 and combination Dhk aDhk. The equation is
+  ∂s(combination) = Value/normalisation.
+  - The (2d)ⁿ of the p² projection is already in Value. The normalisations therefore equal the LHS factors in the script's
+    `jobs` table divided by (2 Dim)ⁿ: −4Dim → −2, −2Dim → −1.
+
+**Assumptions printed.** Every `NonRenormalised` tag with its reason (not checkable in v1, because that needs ∂sΓ⁽³⁾), and
+the banner "Ward identities are assumed (the Protected tags), not derived".
+
+**Show.** `ShowClosureReport[closure]` prints a table pair | monomial | class | outcome, preceded by a plain-words
+explanation of each class.
+
+**Acceptance.** `tests/acceptance/ShallowWaterClosure.wl`:
+- the 9 combinations and normalisations of the script;
+- script §6b: iω and ω² in Γ_{HΨ̄} and ω² in Γ_{Ψ̄Ψ̄} are reported as generated.
+
+`tests/unit/ClosureTest.wl` (KPZ) covers the split and the negative test of design §10: a protected term with nonzero flow
+(ω² in Γ_{h̄h̄} tagged Protected) aborts. The untagged-monomial negative test is in `SymmetriesTest.wl`, because the
+monomial is caught there, before any flow is computed.
+
+---
+
+## Assemble (`Kernel/Assemble.wl`) — `AssembleEquations`
+
+**Objective.** Write every equation in two forms:
+- **compact**: scale-stripped atoms and abstract ∂sR entries, as the script's `compact.wdx`;
+- **explicit**: the q-integrand in couplings, `dsCoupling[c]`, shapes and `Dim`, ready for FlowRG (design §6 item 10).
+
+**Scale-stripped atoms.** These are generated automatically, replacing the script's hand-written `toAtoms`/`atomVals`.
+- Each propagator atom v(s) = GammaAtom[a,b,m](s), with s = q², is written v = c·sⁿ·X. Here c is the number and coupling
+  factor common to every term of v, n is the smallest power of s among those terms, and X is what is left.
+- When X is a sum, it becomes the atom `ScaleAtom[a,b,m,0]`; when it is a single term, it stays explicit.
+- The j-th s-derivative is written c·X_j with X_j = dʲ(sⁿX)/dsʲ. It becomes `ScaleAtom[a,b,m,j]` when it is a sum.
+- In shallow water this reproduces the script's atoms exactly: xE = Ak + r, xE1 = Ak + r + y r′, xE2 = (2r′ + y r″)/k², and
+  so on, with xL = gk + g2k q² and fl′ = g2k left explicit.
+- Check `Assemble.atomSync`: atom form = explicit value, exactly, for every atom and every derivative used.
+
+**Manipulations.**
+1. The Δ coefficients and their s-derivatives are replaced by their expressions in GammaAtom atoms.
+2. GammaAtom atoms are replaced by their atom forms, with q² = the user's `q`^2 (the regulator's loop-momentum symbol).
+3. The result is collected over the dsR entries and brought to canonical form with `Together`. It is checked to be linear
+   and homogeneous in dsR (`Assemble.linearInDsR`): the loop is proportional to ∂sR.
+4. `compactify`, ported from script §5. The candidates are per-dsR or whole-fraction forms, with the numerator content
+   pulled out and nested `Collect` over the atoms: derivative atoms first, then the others in two orders. Small results also
+   get a time-limited `Simplify` per dsR coefficient. The smallest explicit LeafCount wins, and it is checked exactly against
+   the canonical form (`Assemble.compactExact`).
+5. Explicit form: atoms → values, then the derived ∂sR (`DsRRules`) is substituted only here. `Assemble.dsRLinear` checks
+   that ∂sR is linear in the `dsCoupling` symbols. `Assemble.noIntermediates` checks that no GammaAtom, ScaleAtom, Δ,
+   DeltaCoefficient, dsR, `LoopMomentumSquared` or private symbol remains.
+
+**Output contract per equation.**
+- `Flowing`, `Normalisation`, `Pair`, `Frequency`, `Momentum`;
+- `Compact`, `CompactForm` (which candidate won), `DsR`;
+- `Integrand`: the ∫dᵈq/(2π)ᵈ integrand of ∂s(Flowing);
+- `DsCouplings`, `IdenticallyZero`, `LeafCount`. The compact LeafCount counts each ScaleAtom and dsR as one leaf, as the
+  script's xE and dsNh do.
+
+The stage also carries:
+- `Atoms`: ScaleAtom → explicit value;
+- `AtomForms`;
+- `ValidityConditions`: `Atoms` and `Explicit`; they must hold at every q, which is checked at run time downstream;
+- `DsRRules`, `LoopMomentum`, `Scale`, `Shapes`, `Couplings`, `Dimension`.
+
+Shapes appear as r[q²/k²], r′ and r″. FlowRG supports only r′ today (docs/FUTURE.md).
+
+**Show.** `ShowEquation[equations, comb]` prints the compact form, the atoms it uses, the ∂sR entries and the validity
+conditions. `EquationOf[equations, comb]` returns the equation record.
+
+**Acceptance.** `tests/acceptance/ShallowWaterEquations.wl`:
+- all 9 `Integrand`s equal `flowsFAST/*.wdx` exactly, with the derived ∂sR on both sides;
+- compact LeafCounts are no larger than 1.5× the script's `compact.wdx`. In practice they are close or smaller: g2 28 306 vs
+  30 130, D2phi 111 465 vs 115 792, Dphi·aDphi 2 141 vs 1 572;
+- HEQ ≡ 0;
+- assembly takes about 35 s, most of it (20 s) on D2phi.
+
+---
+
+## Oracle (`Kernel/Oracle.wl`) — `RunOracle`
+
+**Objective.** A numerical cross-check of the assembled equations, by a route independent of Propagator, Projection,
+FrequencyIntegration and Assemble. It generalises script §6c.
+
+**Method.** At one random point:
+- couplings and `dsCoupling[c]` are random rationals and k is random;
+- each shape is a concrete function (1/(1+y²), e^{−y}, 2/(2+y), …);
+- d = 2 and d = 3;
+- the loop momentum is an explicit d-vector.
+
+The point is redrawn until the validity conditions hold, because the symbolic side assumes causal poles. Then, for each
+equation:
+1. Γ2 + R is built numerically as a matrix polynomial in ω and inverted as a matrix. Γ3, Γ4 and ∂sR are evaluated
+   numerically.
+2. The loop trace (the formula of Loops) is a rational function of ω with numeric coefficients. It is integrated by
+   `NIntegrate` over the real axis, with 40 digits. An absolute accuracy goal stops the search on integrands that vanish.
+3. The projections are taken by central finite differences with h = 10⁻⁵:
+   - the p-Laplacian over the d unit vectors, divided by 2d;
+   - d^m/dν^m, divided by iᵐ m!;
+   - the normalisation is applied.
+4. The result is compared with `Integrand` at the same point: relative error < 10⁻⁸, or absolute for zero flows.
+   `"ZeroFlows" -> True` also checks every Protected, DeclaredNumeric and Causality flow. This exercises the ν
+   finite differences and gives an independent numerical check of the Ward identities.
+
+**What it does not test.** It shares the vertices and the loop formula (prefactor, −½ tadpole, 1/(2π)) with the symbolic
+chain, so it does not test the normalisation (E3/E4). The card says so.
+
+**Acceptance.**
+- Shallow water, 9 equations in d = 2 and 3: relative errors ≤ 2·10⁻⁹. This is the finite-difference error, about h²; the
+  script used a tolerance of 10⁻⁶. HEQ is numerically 5·10⁻¹³. Runs in 11 s.
+- KPZ with zero flows (`AssembleTest.wl`): 20 comparisons in 2 s.
+
+---
+
+## Stages (`Kernel/Stages.wl`) — `SaveStage`, `LoadStage`
+
+**Objective.** Optional persistence of any stage (Q13).
+- `SaveStage[stage, file]` writes the stage, with every stage it embeds, as WDX.
+- `LoadStage[file, "Expect" -> {stages…}]` reads it back. It recomputes the fingerprint (a modified file aborts with
+  `Stage.fingerprint`), then checks that the fingerprint of every expected stage appears among the saved stage's
+  fingerprints and upstream fingerprints (`StageFingerprints`). Pass, for example, the current theory, ansatz, regulator and
+  symmetries; a mismatch aborts with `Stages.stale`.
+
+**Tests.** `tests/unit/StagesTest.wl`:
+- a round trip gives the identical stage, which is usable downstream;
+- an ansatz with an extra coupling makes the saved stage stale;
+- a modified file and a missing file abort.
