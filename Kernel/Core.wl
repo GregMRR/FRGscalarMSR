@@ -12,6 +12,7 @@ validateStage::usage = "validateStage[stage, name] asserts the stage key and fin
 reservedNames::usage = "reservedNames: symbol names the user may not use for fields or couplings.";
 assertFreshSymbols::usage = "assertFreshSymbols[check, syms, what] asserts that user symbols are usable as fields / couplings.";
 inputForm::usage = "inputForm[e, n] is a short one-line InputForm string of e.";
+displayString::usage = "displayString[e] is a full one-line InputForm string of e without package contexts; scal[a, a] -> a^2, scal[a, b] -> a.b.";
 EndPackage[];
 
 BeginPackage["FRGscalarMSR`", {"FRGscalarMSR`Internal`"}];
@@ -38,6 +39,10 @@ $FRGModule = "FRGscalarMSR";
 $FRGExitOnFail = ($FrontEnd === Null && MemberQ[$CommandLine, "-script"]);
 
 inputForm[e_, n_ : 3] := StringReplace[ToString[Short[InputForm[e], n]], "\n" -> " "];
+
+displayString[e_] := StringReplace[
+   StringReplace[ToString[e, InputForm], RegularExpression["FRGscalarMSR`([A-Za-z]+`)*"] -> ""],
+   {RegularExpression["scal\\[(\\w+), \\1\\]"] -> "$1^2", RegularExpression["scal\\[(\\w+), (\\w+)\\]"] -> "$1.$2"}];
 
 failBlock[name_, details_, hint_] := Module[{lines},
    lines = {"FAIL  check: " <> ToString[name] <> "   module: " <> ToString[$FRGModule],

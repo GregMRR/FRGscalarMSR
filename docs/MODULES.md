@@ -103,3 +103,49 @@ Output: the `"Ansatz"` stage. Its key `"Monomials"` is a list of
 
 **Show.** `ShowMonomials[ansatz]` prints the table coefficient | fields | operators | order. It is printed automatically by
 `DefineAnsatz`. `MonomialString[m]` writes a monomial back in the DSL.
+
+---
+
+## Vertices (`Kernel/Vertices.wl`) — `BuildVertices`
+
+**Objective.** Fourier-transform the parsed density and build every vertex Γ⁽ⁿ⁾ (n = 2, 3, 4): the Γ2 matrix and the Γ3 (and Γ4)
+functions in the leg convention of CONVENTIONS.md. This replaces the hand-written `Γ3[i]` and `AnsatzBMW` of `DE4plus_fast.wl`.
+
+**Input / output.** The Ansatz stage. Output: the `"Vertices"` stage. Its key `"VertexTable"` maps each field multiset, sorted
+in field order, to Γ⁽ⁿ⁾ as a function of all n leg momenta, before the δ is stripped. Accessors:
+- `VertexValue[v, {a1,…,an}, {{ω1,q1},…,{ω_{n−1},q_{n−1}}}]`: leg j at (ωj, qj), last leg at −(sum of the others).
+- `Gamma2Matrix[v, ω, q]`: entry (a, b) = Γ2_ab(ω,q), leg a at (ω,q), leg b at (−ω,−q). No regulator.
+- `Gamma3Matrix[v, i, {ν,p}, {ω,q}]`: entry (a, b) = Γ⁽³⁾_{iab}, leg i at (ν,p), leg a at (ω,q), leg b at −(ν+ω, p+q). This is the
+  script's `Γ3[i][ν,p,ω,q]`.
+
+**Assumptions.** Those of the Ansatz. Couplings are constants, so each monomial is a product of independent plane-wave factors.
+
+**Manipulations.**
+1. A factor ∂t^{n_t} ∂_{i…} φ at leg l becomes (iω_l)^{n_t} Π(−i q_l,i). A repeated index between legs l and m becomes
+   `scal[q_l, q_m]`, and within one factor `scal[q_l, q_l]`.
+2. The n-th functional derivative of c ∫dt dᵈx Π φ is the sum, over every assignment of the monomial's factors to legs that carry
+   the same field, of c Π(symbols). This sum is the full symmetrisation: identical fields give the multiplicity factors (2 for
+   φ̄², 3! for φ̄φ³).
+3. The prefactors (2π)^{d+1} δ(Σω) δ(Σq) from ∫dt dᵈx and from the derivative normalisation cancel against those in the
+   definition of Γ⁽ⁿ⁾. Nothing else remains: there is no 2π factor at vertex level.
+
+**Checks.**
+- `Vertices.planeWave` (independent). For every field multiset with n = 2..4, including those with no vertex, set
+  φ_a(t,x) = Σ_l ε_l e^{i(ω_l t − q_l·x)}, with explicit 3-component vectors, in the **raw density** using System `D`, `Grad`,
+  `Div` and `Laplacian`. The coefficient of ε_1⋯ε_n must equal the derived vertex exactly. This tests the parser and the Fourier
+  transform together, independently of their code.
+- `Vertices.gamma2Symmetry`, `Vertices.causality` (Γ_φφ = 0), `Vertices.gamma2Polynomial`. These are implementation checks (E11):
+  near-tautological by construction and labelled as such on the card.
+- `Vertices.retardedPole[φ]` (E1) is the convention check.
+  - It takes the free response G_{φ̄φ}(ω) = 1/Γ2_{φφ̄}(ω), with couplings at random positive values and q² = 1/2, and requires
+    its pole in the upper half plane.
+  - The time-mirrored convention or a damping term of the wrong sign aborts.
+  - With no damping term (pole on the real axis) or no dt term, the check is inconclusive and reported as a WARN.
+- WARN `Vertices.gamma4`: Γ⁽⁴⁾ ≠ 0. The tadpole term of the flow is hand-derived and untested.
+
+**Show.** The vertex table, with the convention header, is printed by `BuildVertices`. The commands are `ShowVertexTable[v]`,
+`ShowGamma2[v]` and `ShowVertex[v, {Hbar, H, Psi}]`.
+
+**Acceptance (milestone 2).** In `tests/acceptance/ShallowWaterVertices.wl`, the derived Γ2 (regulator off) and Γ3[1..4] equal the
+script's `Γ2 /. AnsatzBMW /. form*` and `Γ3[i] /. AnsatzBMW` exactly. The reference definitions are copied mechanically, with
+renamed heads, into `tests/reference/DE4plusReference.wl`.
