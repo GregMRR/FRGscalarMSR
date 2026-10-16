@@ -149,3 +149,101 @@ in field order, to Γ⁽ⁿ⁾ as a function of all n leg momenta, before the δ
 **Acceptance (milestone 2).** In `tests/acceptance/ShallowWaterVertices.wl`, the derived Γ2 (regulator off) and Γ3[1..4] equal the
 script's `Γ2 /. AnsatzBMW /. form*` and `Γ3[i] /. AnsatzBMW` exactly. The reference definitions are copied mechanically, with
 renamed heads, into `tests/reference/DE4plusReference.wl`.
+
+---
+
+## Regulator (`Kernel/Regulator.wl`) — `DefineRegulator`
+
+**Objective.** Declare the regulator R_k per field pair and derive ∂sR = k ∂k R. The shape functions stay abstract all the way
+to the export.
+
+**Input / output.** The Ansatz stage, plus rules `{a, b} -> R_ab` and `"Shapes" -> {r1, …}`. Output: the `"Regulator"` stage.
+- `RegulatorMatrix[reg, s]` and `DsRegulatorMatrix[reg, s]` give the matrices at q² = s.
+- `DsRAbstractMatrix[reg]` gives the matrix of abstract symbols `dsR[a, b]`.
+- `DsRRules[reg, s]` gives the rules `dsR[a, b] -> derived entry`.
+
+**Conventions (E10).**
+- R_ab is the **Γ2-level entry**: what adds to Γ2_ab, including the factor 2 of a diagonal pair. For example,
+  `{Hbar, Hbar} -> -2 Dhk q^2 armh[q^2/k^2]` gives (Γ2+R)_{H̄H̄} = −2Dhk q²(aDhk + armh).
+- R is ω-independent and even in q, so R_ab = R_ba, and each unordered pair is given once.
+- You write the entries with your own `q` (loop momentum) and `k` (RG scale); they are recognised by name. `k` remains the
+  scale symbol in every later stage.
+- Map to `DE4plus_fast.wl`: dsNh = `dsR[H,Hbar]`, dsMh = `dsR[Hbar,Hbar]`, dsNphi = `dsR[Psi,Psibar]`,
+  dsMphi = `dsR[Psibar,Psibar]`.
+
+**Assumptions.**
+- Couplings depend on k only.
+- Shapes enter only as r(y), with y = q²/k².
+- The overall amplitude is absorbed into r (Q5b): there is no separate amplitude symbol.
+
+**Manipulations.** ∂sR = Σ_c (∂R/∂c) `dsCoupling[c]` + k ∂R/∂k at fixed q.
+- `dsCoupling[c]` = k dc/dk. Downstream it becomes −η c for the couplings that carry anomalous dimensions.
+- The chain rule gives k ∂k r(q²/k²) = −2 y r′(y).
+
+**Checks.**
+- `Regulator.pairFields` and `Regulator.responsePair`: only φ̄φ and φ̄φ̄ pairs, because a φφ entry would break causality.
+- `Regulator.pairOnce` and `Regulator.evenInQ`.
+- `Regulator.knownSymbols`: only couplings, q, k and shapes. In particular there is no frequency.
+- `Regulator.onlyDeclaredShapes` and `Regulator.shapeArgument`: every shape appears only as r[q²/k²].
+- `Regulator.dsRChainRule`: the same ∂sR is computed by a second route (couplings as functions c(k), total derivative) and the
+  two results are compared exactly.
+
+**Show.** `ShowRegulator[reg]` prints R_ab and ∂sR_ab. `DefineRegulator` calls it automatically.
+
+---
+
+## Propagator (`Kernel/Propagator.wl`) — `BuildPropagator`
+
+**Objective.** Compute G = (Γ2 + R)⁻¹ symbolically and generically. This replaces the hand-written `G2Implicit`/`proprules`.
+
+**Input / output.** The Vertices and Regulator stages, which must come from the same Ansatz. Output: the `"Propagator"` stage.
+- `PropagatorMatrix[prop, ω, s]` gives G in atoms, with `Δ[±ω, s]`.
+- `FullMatrix[prop, ω, s]` gives Γ2 + R in atoms.
+- `AtomRules[prop]`, `DeltaRules[prop]` and `ValidityConditions[prop]` give the atom values, the Δ rules and the validity
+  conditions.
+
+**Abstract atoms (primer rule 1).**
+- Each entry of Γ2 + R is a polynomial in iω. For a before b in field order, `GammaAtom[a, b, m][s]` is the coefficient of
+  (iω)^m at q² = s. The (b, a) entry is the same polynomial evaluated at −ω.
+- Numeric coefficients, such as the 1 in front of iω, stay numbers.
+- The atoms get their explicit values (couplings, shapes) only at the very end.
+
+**Mathematics.** In the order (φ1..φN | φ̄1..φ̄N), Γ2 + R = [[0, B(ω)], [B(−ω)ᵀ, C]], where:
+- B is the (φ, φ̄) block, with rows φ at frequency ω;
+- C is the (φ̄, φ̄) noise block;
+- the (φ, φ) block is 0 by causality.
+
+Then
+- G_{φ̄φ} = B(ω)⁻¹ = adj B(ω)/Δ(ω). This is the retarded response, with poles at the roots of Δ(ω).
+- G_{φφ̄} = (B(−ω)ᵀ)⁻¹, with denominator Δ(−ω).
+- G_{φφ} = −(B(−ω)ᵀ)⁻¹ C B(ω)⁻¹, with denominator Δ(ω)Δ(−ω).
+- G_{φ̄φ̄} = 0.
+
+Here Δ(ω) = det B(ω) = c0 + c1 (iω) + c2 (iω)², with coefficients `DeltaCoefficient[m]`. For the shallow-water ansatz, c2 = 1,
+c1 = 2A and c0 = CC of the script.
+
+**Validity conditions.** All roots of Δ(ω) must lie in the upper half ω-plane (causal poles); every frequency integral assumes
+this.
+- Write u = iω. A root of Δ in the upper half ω-plane is a root u with negative real part.
+- For degree 2, c2 u² + c1 u + c0 has both roots with Re u < 0 exactly when its three coefficients have the same sign: c1/c2 > 0
+  and c0/c2 > 0. For the shallow-water ansatz this is A > 0 and CC > 0, as in the primer.
+- For degree 1, the condition is c0/c1 > 0.
+- The conditions are emitted as an ASSUMPTION, to be checked at run time at every q.
+
+**Checks.**
+- `Propagator.sameAnsatz`, `Propagator.polynomial`, `Propagator.atomsReal`, `Propagator.atomForm`, `Propagator.causalBlock`.
+- `Propagator.deltaDegree`: 1 ≤ deg_ω Δ ≤ 2. Degree 3 or more is a future extension; degree 0 means the frequency integrals
+  diverge.
+- `Propagator.inverse` and `Propagator.inverseRight`: G·(Γ2+R) = (Γ2+R)·G = 1, exactly at random rationals for every atom, ω
+  and q².
+- `Propagator.responseBlock`.
+
+**Show.** `ShowPropagator[prop]` prints the atoms, Δ, its coefficients and the validity conditions. `ShowPropagator[prop, {a, b}]`
+prints G_ab.
+
+**Acceptance (milestone 3).** In `tests/acceptance/ShallowWaterPropagator.wl`:
+- the atoms (Γ_k + R) equal the script's `form*`, with the regulator included;
+- Δ equals the script's Δ;
+- {c0, c1, c2} = {CC, 2A, 1};
+- G equals `G2Explicit /. AnsatzBMW` entry by entry, with Δ abstract on both sides;
+- the dsR pattern equals `dsRmat` under the E10 map.

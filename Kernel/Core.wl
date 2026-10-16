@@ -80,6 +80,7 @@ valueAt[e_, seed_Integer] := Module[{pt, memo, atomRule},
    Quiet[Check[Together[(e /. pt) /. atomRule], $Failed], {Power::infy, Infinity::indet}]];
 
 Options[ExactlyZeroQ] = {"Seeds" -> {1, 2, 3}};
+ExactlyZeroQ[l_List, opts : OptionsPattern[]] := AllTrue[Flatten[l], ExactlyZeroQ[#, opts] &];
 ExactlyZeroQ[e_, OptionsPattern[]] := Module[{vals},
    vals = Table[Module[{v = valueAt[e, sd]}, If[v === $Failed, valueAt[e, sd + 1000], v]], {sd, OptionValue["Seeds"]}];
    Block[{$FRGModule = "Core"},
