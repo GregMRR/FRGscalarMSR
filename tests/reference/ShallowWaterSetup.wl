@@ -16,6 +16,17 @@ If[! ValueQ[swaRegulator],
      {Hbar, Hbar} -> -2 Dhk q^2 armh[q^2/k^2], {Psibar, Psibar} -> -2 Dphik armphi[q^2/k^2],
      "Shapes" -> {arnh, arnphi, armh, armphi}]];
   swaPropagator = quiet[BuildPropagator[swaVertices, swaRegulator]];
+  swaSymmetries = quiet[DeclareSymmetries[swaAnsatz,
+     Protected[{Hbar, _}, "Momentum" -> 0, "Reason" -> "Hbar -> Hbar + c(t) (mass conservation)"],
+     Protected[{Psi, _}, "Momentum" -> 0, "Reason" -> "Psi -> Psi + c(t)"],
+     Neglected[{H, Psibar}, "Frequency" -> {1, 2}, "Momentum" -> 0, "Reason" -> "truncation, z = 1 power counting"],
+     Neglected[{Psibar, Psibar}, "Frequency" -> 2, "Momentum" -> 0, "Reason" -> "coloured forcing, dropped"],
+     Neglected[_, "Frequency" -> {1, 2}, "Momentum" -> 1, "Reason" -> "mixed i w q^2 / w^2 q^2 terms, dropped"],
+     NonRenormalised[lk, "Reason" -> "Galilean invariance"],
+     "TruncationOrders" -> <|"Frequency" -> 2, "Momentum" -> 1|>]];
+  swaLoops = quiet[BuildLoopIntegrands[swaVertices, swaPropagator, swaRegulator]];
+  swaProjected = quiet[ProjectOnMonomials[swaLoops, swaSymmetries]];
+  swaIntegrated = quiet[IntegrateFrequencies[swaProjected]];
   (* script atoms in terms of ours (E10 and the primer's Gamma2 table) *)
   toScriptAtoms = {GammaAtom[H, Hbar, 0] -> feta, GammaAtom[Psi, Psibar, 0] -> fgamma, GammaAtom[Hbar, Hbar, 0] -> (-fDh[#] &),
      GammaAtom[Psibar, Psibar, 0] -> (-fDphi[#] &), GammaAtom[H, Psibar, 0] -> fl, GammaAtom[Hbar, Psi, 0] -> (-fh[#] &),

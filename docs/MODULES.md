@@ -247,3 +247,147 @@ prints G_ab.
 - {c0, c1, c2} = {CC, 2A, 1};
 - G equals `G2Explicit /. AnsatzBMW` entry by entry, with Δ abstract on both sides;
 - the dsR pattern equals `dsRmat` under the E10 map.
+
+---
+
+## Symmetries (`Kernel/Symmetries.wl`) — `DeclareSymmetries`
+
+This module was added to the design's file list. `ProjectOnMonomials` needs the classification, and the classification needs
+no flow, so it can fail early, before any loop is computed.
+
+**Objective.** Classify every monomial (iω)^m (q²)^n, with m ≤ `"Frequency"` and n ≤ `"Momentum"`, of every Γ2 entry. The pair
+is (a, b) with a before b in field order; the (b, a) entry is the same polynomial at −ω.
+
+**Input / output.** The Ansatz stage, plus tags `Protected[pairPattern, "Frequency" -> m | {m..} | All, "Momentum" -> …,
+"Reason" -> "…"]`, `Neglected[…]` with the same options, and `NonRenormalised[coupling, "Reason" -> "…"]`, plus
+`"TruncationOrders" -> <|"Frequency" -> mf, "Momentum" -> mp|>`. Output: the `"Symmetries"` stage, whose `"Classification"`
+lists one record per monomial: pair, m, n, class, Γ_k coefficient and reason.
+
+**Classes**, in order of precedence:
+- `Causality`: Γ_φφ between two physical fields. Its flow is computed and must vanish.
+- `Structure`: odd m in a diagonal entry. Γ2_aa(ω) = Γ2_aa(−ω), so the monomial vanishes identically and is not computed (E5).
+- `Protected`: the flow must vanish exactly, otherwise `CheckClosure` aborts with the reason.
+  - A monomial that carries a coupling **and** is Protected is a contradiction and aborts (`Symmetries.contradiction`).
+  - A numeric coefficient that is also Protected is consistent.
+- `DeclaredNumeric`: a numeric coefficient in the ansatz, such as the 1 in front of iω. Its flow must vanish.
+- `Declared`: a coefficient carrying couplings. It gives the equation ∂s(coefficient as written) = RHS (Q10).
+- `Neglected`: the flow is computed, reported as a warning with its size, and dropped.
+- Anything else aborts (`Symmetries.allTagged`).
+
+**Pattern matching.** A pair pattern matches the unordered pair: `{Hbar, _}` matches every entry with an H̄ leg, including
+`{Hbar, Hbar}`.
+
+**Checks.**
+- `Symmetries.momentumOrder` (mp ≤ 1, E2), `Symmetries.allTagged` and `Symmetries.contradiction`.
+- `Symmetries.truncationCoversAnsatz`: no ansatz monomial lies beyond the truncation.
+- `Symmetries.reason`: every tag has a reason.
+- `Symmetries.nonRenormalised`.
+- WARN for an unused tag.
+- ASSUMPTION lines for `NonRenormalised` and for the Ward identities, which are declared, not derived.
+
+**Show.** `ShowClassification[sym]` is printed automatically.
+
+---
+
+## Loops (`Kernel/Loops.wl`) — `BuildLoopIntegrands`
+
+**Objective.** Build the one-loop integrand of ∂sΓ2_ab(ν,p) at a fixed loop point (ω, q).
+
+**Formula.** With every ∂sR entry kept abstract (`dsR[c,d]`):
+
+  ∂sΓ2_ab(ν,p) = ∫dω/(2π) ∫dᵈq/(2π)ᵈ { Tr[∂sR G(ω,q) Γ3_a(ν,p;ω,q) G(ω+ν,p+q) Γ3_b(−ν,−p;ω+ν,p+q) G(ω,q)]
+                                         − ½ Tr[∂sR G(ω,q) Γ4_ab(ν,p;ω,q) G(ω,q)] }
+
+- Γ3_a(ν,p;ω,q) is `Gamma3Matrix`: entry (c,d) = Γ⁽³⁾_{acd}, with leg a at (ν,p), leg c at (ω,q) and leg d at −(ν+ω,p+q).
+- Γ4_ab(ν,p;ω,q) has entry (c,d) = Γ⁽⁴⁾_{abcd}, with legs at (ν,p), (−ν,−p), (ω,q) and (−ω,−q).
+- The 1/(2π) of the ω-measure is included in the integrand. ∫dᵈq/(2π)ᵈ is left to the numerics.
+
+**Hand derivation (E3/E4; not independently tested, by your choice).**
+1. **Wetterich equation.** ∂sΓ = ½ Tr[∂sR (Γ⁽²⁾+R)⁻¹]. The fields are bosonic, so this is a plain trace. In Fourier space,
+   Tr A = Σ_a ∫dω dᵈq/(2π)^{d+1} A_aa(ω,q).
+2. **Inverting in Fourier space.** With the derivative normalisation of CONVENTIONS.md, the second derivative at a uniform
+   background is (2π)^{d+1} δ(ω+ω′) δ(q+q′) Γ2_ab(ω,q). The operator inverse then has the same δ structure, with the matrix
+   G(ω,q) = (Γ2(ω,q) + R(q))⁻¹.
+3. **First field derivative.** δG/δφ_a = −G (δΓ⁽²⁾/δφ_a) G = −G Γ3_a G.
+4. **Second field derivative.**
+   δ²/δφ_a δφ_b of ½ Tr[∂sR G] = ½ Tr[∂sR (G Γ3_a G Γ3_b G + G Γ3_b G Γ3_a G − G Γ4_ab G)].
+5. **The two cubic orderings are equal.** Shift the loop variables (ω,q) → −(ω+ν, q+p) and transpose inside the trace
+   (Tr Mᵀ = Tr M), using:
+   - ∂sR is symmetric;
+   - G_cd(ω,q) = G_dc(−ω,−q), which follows from Γ2_cd(ω,q) = Γ2_dc(−ω,−q);
+   - Γ3 is symmetric in its legs.
+
+   The second ordering then becomes the first. Together, the two give the prefactor 1, and the tadpole keeps −½.
+6. **Stripping the external δ.** Removing (2π)^{d+1} δ(ν+ν′) δ(p+p′) from both sides of the result of step 4 leaves the measure
+   ∫dω dᵈq/(2π)^{d+1} = ∫dω/(2π) ∫dᵈq/(2π)ᵈ.
+
+**What this is and is not tested against.**
+- `DE4plus_fast.wl` and its oracle use exactly this formula (`d3Γ`, 1/(2π) included). Agreement with `flowsFAST` therefore
+  checks the implementation, **not** the normalisation.
+- The cross-read against textbook one-loop KPZ (dimensionful ν and D flows) is milestone 6.
+- The card prints "tadpole … hand-derived, untested" whenever Γ⁽⁴⁾ ≠ 0.
+
+**Checks.** `Loops.sameUpstream` and `Loops.dsRSymmetric`. The normalisation is printed on the card as an ASSUMPTION.
+
+---
+
+## Projection (`Kernel/Projection.wl`) — `ProjectOnMonomials`
+
+**Objective.** For each classified monomial except `Structure`, turn the loop integrand into an ω-integrand at ν = p = 0. This
+is pipeline 1: the external variables are set to zero. As a result the only ω-poles left are those of Δ(±ω).
+
+**Operator.** The coefficient of (iν)^m (p²)^n is [(∂/∂(iν))^m / m!] applied to the integrand, followed, when n = 1, by
+[∇²_p / (2d)], all evaluated at ν = 0, p = 0.
+- The p-Laplacian uses the script's trick (§3): vectors are bare symbols, `D[D[f, p], p]` is taken, and the derivatives of
+  `scal` are replaced by `Dimensionalfactors` (∂∂ scal[p,p] → d, and so on).
+- A first derivative of scal[p,q] leaves a bare vector q. It is marked λ, so that the product of two of them is λ² = q·q, and
+  the result is read off as (λ⁰ part) + ½ ∂²_λ (λ² part) × q². The λ¹ part must vanish; this is asserted.
+- This is valid only for p² (E2).
+- Derivatives of Δ(ω, s) are completed with Δ = Σ_m c_m(s) (iω)^m, so they come out in `DeltaCoefficient[m]` atoms and their
+  s-derivatives.
+
+**Checks.**
+- `Projection.LHS`: the same operator, applied to Γ_k (regulator off), reproduces every classified Γ_k coefficient. This checks
+  the normalisation of both projections, including 2d.
+- `Projection.evenInQ` and `Projection.complete`: no external variable, vector, or derivative of `scal` or Δ is left.
+
+**Show.** `ShowIntegrand[projected, nk*Ak]` or `ShowIntegrand[projected, {a, b}, {m, n}]`.
+
+---
+
+## FrequencyIntegration (`Kernel/FrequencyIntegration.wl`) — `IntegrateFrequencies`
+
+**Objective.** Integrate every projected integrand over the real ω axis, exactly. The result contains no ω, no Δ and no square
+roots. This replaces the notebook's lookup table and generalises the script's `Iint`/`ωIntegrate`.
+
+**Mathematics.**
+- Δ(ω) = c0 + c1 (iω) + c2 (iω)². Its roots z1, z2 lie in the upper half plane (the propagator's validity conditions). Those of
+  Δ(−ω) are −z1, −z2, in the lower half plane.
+- `FrequencyIntegral[n, a, b, deg]` = ∫ ω^n Δ(ω)^{−a} Δ(−ω)^{−b} dω = 2πi × (sum of the residues at z1, z2), obtained by closing
+  the contour in the upper half plane.
+- Write z1,2 = iα ± β, with α = c1/(2c2) and β² = (4 c0 c2 − c1²)/(4 c2²). The residue sum is symmetric under z1 ↔ z2, so it is
+  even in β, and replacing β² by its value makes it rational in c0, c1, c2.
+- This covers overdamped motion (β² < 0) and underdamped motion (β² > 0) alike.
+- For degree 1, the single root is z = i c0/c1.
+- For a = 0 there is no pole in the upper half plane, so the integral is 0.
+- Convergence requires n − deg·(a+b) ≤ −2; otherwise it aborts.
+- Dispatch is by structure: Δ(ω) → 1/X and Δ(−ω) → 1/Y, then `CoefficientRules` over {ω, X, Y}. Every monomial ω^n X^a Y^b is
+  integrated by the memoised `FrequencyIntegral`. Nothing is skipped silently, and nothing depends on rule order.
+
+**Modes.**
+- `Declared` monomials are integrated symbolically, in `GammaAtom`, `DeltaCoefficient` and `dsR` atoms.
+- `Protected`, `DeclaredNumeric` and `Causality` monomials are integrated **exactly at 3 random rational points**. The Δ
+  coefficients are computed from the atoms at each point, so the relation Δ = det B is kept; ω and Δ stay symbolic.
+- `Neglected` monomials are integrated at one such point.
+- `CheckClosure` (milestone 5) asserts the zeros and reports the sizes.
+
+**Checks.** `FrequencyIntegration.convergence`, `.evenInBeta`, `.rational`, `.ready` and `.complete`. The unit tests compare
+the results with the script's I(0,1,1) = π/(2AC) and with `NIntegrate`, in the overdamped, underdamped and degree-1 cases.
+
+**Acceptance (milestone 4).** In `tests/acceptance/ShallowWaterFlows.wl`:
+- All 9 shallow-water equations equal `flowsFAST/*.wdx` exactly, at random rationals for every symbol and every shape atom.
+  This holds both with the abstract dsR mapped to dsNh, … (E10) and with the derived ∂sR substituted on both sides.
+- HEQ ≡ 0.
+- Every Protected, DeclaredNumeric and Causality flow samples to exactly 0.
+- The three frequency terms of script §6b are generated.
+- The full suite runs in about 26 s.

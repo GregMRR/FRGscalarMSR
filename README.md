@@ -4,8 +4,8 @@ A Mathematica library that turns an ansatz for Γ_k of N MSR scalars into a clos
 using the derivative-expansion pipeline. The design is in `FRGDESIGN.md`, the modules are described in `docs/MODULES.md`, and
 the conventions in `docs/CONVENTIONS.md`.
 
-**Status: milestone 3 of 6.** Core, Theory, Ansatz (DSL parser), Vertices (Fourier vertices, plane-wave check), Regulator (d_s R) and Propagator (G in abstract atoms) are implemented. Loops,
-projection, frequency integration, closure, assembly and oracle follow in milestones 4–5.
+**Status: milestone 4 of 6.** Core, Theory, Ansatz, Vertices, Regulator, Propagator, Symmetries, Loops, Projection and FrequencyIntegration are implemented; the 9 shallow-water DE4plus equations reproduce `flowsFAST` exactly. Closure, assembly and oracle follow in milestone 5; KPZ, notebooks and docs in milestone 6. Not yet:
+closure, assembly, oracle.
 
 ```mathematica
 Get["~/sources/FRGscalarMSR/FRGscalarMSR.wl"]

@@ -11,10 +11,10 @@ If[MemberQ[Contexts[], "FRGscalarMSR`"],
   ClearAll["FRGscalarMSR`*", "FRGscalarMSR`Internal`*"]];
 
 FRGscalarMSR`$FRGRoot = DirectoryName[$InputFileName];
-FRGscalarMSR`$FRGVersion = "0.1.0 (milestone 3)";
+FRGscalarMSR`$FRGVersion = "0.1.0 (milestone 4)";
 
 (* load order matters: each module only uses the ones above it *)
-FRGscalarMSR`$FRGModules = {"Core", "Theory", "Ansatz", "Vertices", "Regulator", "Propagator"};
+FRGscalarMSR`$FRGModules = {"Core", "Theory", "Ansatz", "Vertices", "Regulator", "Propagator", "Symmetries", "Loops", "Projection", "FrequencyIntegration"};
 
 Scan[Get[FileNameJoin[{FRGscalarMSR`$FRGRoot, "Kernel", # <> ".wl"}]] &, FRGscalarMSR`$FRGModules];
 
