@@ -5,7 +5,7 @@ using the derivative-expansion pipeline. The design is in `FRGDESIGN.md`, the mo
 the conventions in `docs/CONVENTIONS.md`.
 
 **Status: milestone 2 of 6.** Core, Theory, Ansatz (DSL parser) and Vertices (Fourier vertices, plane-wave check) are implemented. Regulator, propagator, loops,
-projection, frequency integration, closure, assembly and oracle follow in milestones 2–5.
+projection, frequency integration, closure, assembly and oracle follow in milestones 3–5.
 
 ```mathematica
 Get["~/sources/FRGscalarMSR/FRGscalarMSR.wl"]
