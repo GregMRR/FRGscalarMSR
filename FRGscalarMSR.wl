@@ -2,7 +2,7 @@
 
 (* FRGscalarMSR -- Wetterich flow equations for N MSR scalars, derivative-expansion pipeline.
    Load from a notebook or a script with
-       Get["~/sources/FRGscalarMSR/FRGscalarMSR.wl"]
+       Get["~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl"]
    Modules are documented in docs/MODULES.md, conventions in docs/CONVENTIONS.md. *)
 
 (* reloading: drop the previous definitions (several symbols are Protected) *)
@@ -14,7 +14,7 @@ FRGscalarMSR`$FRGRoot = DirectoryName[$InputFileName];
 FRGscalarMSR`$FRGVersion = "1.0.0";
 
 (* load order matters: each module only uses the ones above it *)
-FRGscalarMSR`$FRGModules = {"Core", "Theory", "Ansatz", "Vertices", "Regulator", "Propagator", "Symmetries", "Loops", "Projection", "FrequencyIntegration", "Closure", "Assemble", "Oracle", "Stages"};
+FRGscalarMSR`$FRGModules = {"Core", "Theory", "Ansatz", "Vertices", "Regulator", "Propagator", "Symmetries", "Loops", "Projection", "FrequencyIntegration", "Closure", "Assemble", "Oracle", "Stages", "Dimensions", "Adimensional", "JuliaExport"};
 
 Scan[Get[FileNameJoin[{FRGscalarMSR`$FRGRoot, "Kernel", # <> ".wl"}]] &, FRGscalarMSR`$FRGModules];
 

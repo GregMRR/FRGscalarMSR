@@ -35,3 +35,23 @@ test["jac 2D: lk enters the Hbar H p^2 equation", ! FreeQ[EquationOf[jacEquation
 test["jac 2D: Oracle ran in d = 2 only", Union[jacOracle["Results"][[All, "Dimension"]]], {2}];
 test["jac 2D: Oracle agrees within 10^-8 (" <> ToString[Length[jacOracle["Results"]]] <> " comparisons)",
   Length[jacOracle["Results"]] > 0 && AllTrue[jacOracle["Results"], #Error < 10^-8 &], True];
+
+(* dimensionless flows and export with a declared d = 2 *)
+Get[FileNameJoin[{testRoot, "reference", "JuliaRoundTrip.wl"}]];
+(* the regulator above has mk q^2 in the Psi sector; mk cannot be a reference ([mk] = [nk]), and plan D4 allows references only in
+   the regulator prefactors, so these tests use nk q^2 there *)
+jacRegulatorRef = quiet[DefineRegulator[jacAnsatz,
+    {Hbar, H} -> nk q^2 jrh[q^2/k^2], {Hbar, Hbar} -> -2 dk jdh[q^2/k^2], {Psibar, Psi} -> nk q^2 jrp[q^2/k^2], {Psibar, Psibar} -> -2 ek jdp[q^2/k^2],
+    "Shapes" -> {jrh, jdh, jrp, jdp}]];
+jacEquationsRef = Module[{p = quiet[BuildPropagator[jacVertices, jacRegulatorRef]]},
+   quiet[AssembleEquations[CheckClosure[IntegrateFrequencies[ProjectOnMonomials[BuildLoopIntegrands[jacVertices, p, jacRegulatorRef], jacSymmetries]], jacSymmetries]]]];
+jacDims = quiet[DeriveDimensions[jacAnsatz, "References" -> {nk -> "nu", dk -> "d", ek -> "e"}]];
+expectFail["jac 2D adim: mk in the regulator is not a reference (plan D4)", AdimensionalEquations[jacEquations, jacDims, "State" -> {lk, kap, dh2, mk}],
+  "Adimensional.regulatorReferences"];
+jacAdim = quiet[AdimensionalEquations[jacEquationsRef, jacDims, "State" -> {lk, kap, dh2, mk}]];
+test["jac 2D adim: [lk] = [kap] (each eps slot counts one gradient)", DimensionOf[jacDims, lk] === DimensionOf[jacDims, kap], True];
+test["jac 2D adim: numeric dimension throughout", FreeQ[jacAdim["BetaL"], Dim] && jacAdim["Dimension"] === 2, True];
+test["jac 2D adim: NonRenormalised lk, kap have linear parts only", jacAdim["BetaNL"][[1 ;; 2]], {0, 0}];
+expectFail["jac 2D adim: export in d = 3 aborts (d = 2 declared)",
+  ExportJulia[jacAdim, "Dimension" -> 3, "File" -> FileNameJoin[{$roundTripDir, "jac3", "Equations3D.jl"}]], "JuliaExport.declaredDimension"];
+juliaRoundTrip["jac2D", jacAdim, 2];

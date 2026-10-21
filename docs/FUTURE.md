@@ -26,7 +26,12 @@ These are extensions the v1 design keeps room for. None of them is implemented y
   - `jac` covers ε_ij in d = 2 only (design/LEVICIVITA.md). ε_ijk ∂_j A_k needs vector-valued operands and the d = 3 identity
     ε_ijk ε_lmn = det[δ], plus its own declared dimension and oracle.
 - **Ward identities.** Derive and check the symmetry constraints symbolically. Today the user declares them.
-- **Adimensional.wl and JuliaExport.wl.**
-  - Map the `Equations` stage onto FlowRG's `docs/equations-interface.md`: COUPLINGS/ETAS/SHAPES, positional arguments, β and an
-    η-system linear in η, the l/nl split, and shapes as `armh(aq^2)`, `Darmh(aq^2)`.
-  - FlowRG supports only first derivatives of the shapes today. g2 and D2phi need r″, so the interface must be extended.
+- **Non-reference couplings in the regulator** (Adimensional, plan D4). Today a prefactor such as `nk (1 + Ak) q^2 arnh` aborts,
+  because ∂sR would contain β_A itself. The exact treatment: one vector of unknowns X = (η_1 … η_{N+1}, ∂s c for every
+  regulator coupling c); each β written once and linear in X; the rows ∂s c = β_c(X) join the η system; FlowRG gets a
+  `const SOLVED = (:A,)` declaring couplings whose β is the solved unknown.
+- **η fixed by a relation** (Adimensional). Today a fixed η is a number given at run time (FlowRG `fixed_etas`). Extensions:
+  a linear relation among the η's (`"Fixed" -> <|Dphik -> 2 etanu - etah + 1|>`), or a quantity kept scale invariant
+  (`"ScaleInvariant" -> Dphik^a nk^b k^c`), from which the library derives the relation through `Dimensions`.
+- **Second shape derivatives in FlowRG.** The export writes r″ as `D2<shape>(aq^2)` (DE4plus g2, D2φ); FlowRG must bind them
+  (`docs/handoff/FlowRG-MUST_FIX.md`, task 2). For Litim, r″ contains δ(y − 1), which a pointwise `D2` cannot represent.

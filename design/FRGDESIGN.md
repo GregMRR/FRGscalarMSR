@@ -6,8 +6,7 @@
   **binding** for this library.
 - `~/sync_cnrs/Projects/shallow_water/DE4plus_fast.wl` — the optimised reference script (25 s, 9 equations, exact checks). Most
   numerical/algebraic machinery is reused from it (§9 below).
-- `~/sources/FlowRG/docs/equations-interface.md` — the Julia contract the future JuliaExport module must target. (`~/sources/FlowRG`
-  is the live path; `LPA_KPZ_thermal_forcing/CLAUDE.md` still says `~/Physics/Sources/FlowRG.jl` — stale, E13.)
+- `~/Physics/Sources/FlowRG.jl/docs/equations-interface.md` — the Julia contract JuliaExport targets.
 - Adversarial review round 1 (the-enemy, 2026-10-16): findings E1–E14 are resolved in this plan; tags "E#" mark where.
   Probe scripts: `/tmp/claude-1002/-home-gtibone-sync-cnrs-Projects-shallow-water/ab3f0a62-a3fc-4e01-86ba-644acfd41efa/scratchpad/probe-*.wl`.
 - Never edit `.nb` files or `eqs/*.jl` in the user's projects; the user regenerates them. Never kill `WolframKernel` processes you did
@@ -47,7 +46,7 @@ structure), ∂sΓ⁽³⁾ projections, symbolic Ward identities, Adimensional m
 | E3/E4 | Loop prefactor (factor, sign, 2π) and Γ⁽⁴⁾ tadpole (−½) are **hand-derived** in MODULES.md, cross-read against textbook one-loop KPZ; no automated independent check (user choice). `flowsFAST` agreement does **not** verify the normalisation (same trace formula) — say so in docs. Cards print "tadpole term hand-derived, untested" whenever Γ⁽⁴⁾ ≠ 0. |
 | Q7 / E1 | Fourier convention e^{−i(q·x−ωt)} (∂t → +iω, ∇ → −iq), leg a at (ω,q): reproduces `DE4plus_fast.wl` exactly (§3). Plane-wave cross-check of every vertex + an independent pole-placement check. |
 | Q8 | One `.wl` per module, private contexts, immutable stage Associations passed explicitly, no global state. |
-| Q9/Q14 | Standalone git repo `~/sources/FRGscalarMSR` (next to FlowRG). Acceptance: shallow-water DE4plus reproduces all 9 `flowsFAST` equations exactly + numerical oracle; one 1-scalar KPZ test. |
+| Q9/Q14 | Standalone git repo `~/Physics/Sources/FRGscalarMSR` (next to FlowRG). Acceptance: shallow-water DE4plus reproduces all 9 `flowsFAST` equations exactly + numerical oracle; one 1-scalar KPZ test. |
 | Q10 | Output equation = ∂s(coefficient as written in the DSL, e.g. nk·Ak) = RHS. Interpretation (anomalous dimensions η, bookkeeping couplings = 1) deferred to the Adimensional module. |
 | Q12 | Each stage prints a summary card (PASS/FAIL lines, LeafCount, timing); full expressions only through `Show…`. |
 | Q13 | Optional `SaveStage`/`LoadStage`, fingerprinted on theory+ansatz+regulator+symmetries; mismatch aborts. |
@@ -79,7 +78,7 @@ The user prefers explanations that do not assume jargon (Vieta, Routh–Hurwitz,
 ## 4. Notebook workflow (user-facing API)
 
 ```
-Get["~/sources/FRGscalarMSR/FRGscalarMSR.wl"]
+Get["~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl"]
 theory     = DefineTheory["Scalars" -> {H, Psi}, "Dimension" -> Dim]       (* Hbar, Psibar auto *)
 ansatz     = DefineAnsatz[theory,
   "Density" ->
@@ -124,7 +123,7 @@ poles those of Δ(±ω); `CheckClosure` replaces the previewed `ProjectFlows`. F
 ## 5. Repo layout
 
 ```
-~/sources/FRGscalarMSR/                      (git init; README.md; no CLAUDE.md unless the user asks)
+~/Physics/Sources/FRGscalarMSR/                      (git init; README.md; no CLAUDE.md unless the user asks)
   FRGscalarMSR.wl            loader (Get of Kernel/*.wl in order), version, banner ("Ward identities assumed, not derived")
   Kernel/  Core.wl  Theory.wl  Ansatz.wl  Vertices.wl  Regulator.wl  Propagator.wl  Loops.wl  Projection.wl
            FrequencyIntegration.wl  Closure.wl  Assemble.wl  Oracle.wl  Stages.wl
@@ -221,7 +220,7 @@ instead of Simplify, exact random-rational verification.
 
 ## 10. Verification
 
-- `math -script ~/sources/FRGscalarMSR/tests/runTests.wl` → unit + acceptance tests, exit 0.
+- `math -script ~/Physics/Sources/FRGscalarMSR/tests/runTests.wl` → unit + acceptance tests, exit 0.
 - Shallow water: all 9 equations equal `tests/reference/flowsFAST/*.wdx` exactly at random rationals; `RunOracle` agrees to ~1e-10;
   HEQ ≡ 0; runtime of the same order as the script (~25 s).
 - KPZ (E6, restated so v1 can check it): dimensionful ν and D flows match a hand derivation (and the dimensionful content of the
@@ -231,3 +230,28 @@ instead of Simplify, exact random-rational verification.
   degree-3 Δ, a p⁴ monomial, a System `Dt` in the density, and a declared+Protected contradiction each abort with a red FAIL block.
 - Known limitation written in README: the loop normalisation is hand-derived, not independently tested (E3/E4).
 - `examples/ShallowWaterDE4plus.nb` runs top to bottom; every stage prints its card; the vertex table is printed.
+
+## 11. Dimensions, Adimensional, JuliaExport (grilling 2026-10-21, adversarial review r1)
+
+Three modules after `Equations` (docs/MODULES.md): `DeriveDimensions` → `AdimensionalEquations` → `ExportJulia`.
+
+| # | Decision |
+|---|---|
+| D1 | Dimensions solved from Γ_k = ∫dt dᵈx 𝓛 dimensionless as exponent vectors over {k, ref₁…ref_{N+1}}; exponents linear in symbolic `Dim` (numbers for a declared d = 2). Exactly N+1 free units besides k, asserted. The measure enters with + (review E1). |
+| D2 | Dimensionless amplitudes (Ak, aDphik) are declared; an underdetermined split aborts naming the couplings. |
+| D3 | `"State"` gives COUPLINGS order (dimensionful names). Leibniz linear solve for ∂s of each coupling; NonRenormalised → linear part only; every state coupling needs a flow, every coupling with an equation must be in the state. |
+| D4 | Regulator prefactors contain reference couplings only (abort otherwise; lifting it: FUTURE.md). |
+| D5 | One module per step; `Dim` symbolic until export; one file per d. |
+| D6 | `ShowDimensions`, `CheckDimensions` (exact hand values), `ShowBeta`, `ShowEtaSystem`. |
+| D7 | Checks: references independent; overdetermined system consistent; R_ab has the dimension of Γ2_ab; LHS coefficient dimension; homogeneity (HomVec generalised) and random unit rescaling before stripping (E8); action invariance under the derived rescaling on the raw density (E6); FreeQ of units at export. |
+| D8 | r″ exported as `D2<shape>(aq^2)`; FlowRG binding is a handoff task (Litim's r″ has a δ: open question for the user). |
+| D9 | The old file's ∂sM_h ∝ η_φ was a bug. |
+| D10 | Names: `a<>c`; dimensionless keep their name; references name their η (`etanu`, `:nu`); collisions abort; `"Names"` overrides. q = k aq. |
+| D11 | Running reference (alone in an equation: η row) vs fixed reference (only times an amplitude: η fixed at run time, the equation is the amplitude's flow). Opt-in `"Mode" -> "Running"` (+ `"Equation"`) for the old convention (review E3). |
+| D12 | Fixed η: placeholder row η = 0, `const MUST_FIX` in the file, FlowRG `load_model` refuses to run without `fixed_etas` (handoff `docs/handoff/FlowRG-MUST_FIX.md`). |
+| D13 | Compact export: dimensionless atoms as local variables; compact = explicit asserted. |
+| D14 | Julia round trip in the tests; SKIP without julia/FlowRG; `--require-julia`. |
+| D15 | Stages fingerprinted; `AnsatzOf` reaches the ansatz inside a loaded `Equations` stage. |
+| D16 | `betal` aq-free (not integrated), `betanl` loop integrand only. |
+| D17 | Measure S_d aq^{d−1}/(2π)^d (the old files lack the (2π)^{−d}; fixed by Canet's v_d in the KPZ test, review E7). |
+| D18 | The LPA notebook's regulator becomes `{Hbar, H} -> nk q^2 arnh` (user reruns it). |

@@ -601,3 +601,143 @@ with Canet's flow instead (see Loops).
 - a round trip gives the identical stage, which is usable downstream;
 - an ansatz with an extra coupling makes the saved stage stale;
 - a modified file and a missing file abort.
+
+---
+
+## Dimensions (`Kernel/Dimensions.wl`) — `DeriveDimensions`
+
+**Objective.** Derive the scaling dimension of every coupling, every field and of time from the ansatz, written in a basis the
+user chooses: the RG scale k and **N+1 reference couplings** (N = number of scalars). It runs right after `DefineAnsatz`, so the
+dimensions can be checked before the expensive part of the pipeline. A loaded `Equations` stage works too:
+`DeriveDimensions[AnsatzOf[equations], …]`.
+
+**Assumption.** Γ_k = ∫dt dᵈx 𝓛 has no dimension. [x] = 1/k; [t] is an unknown.
+
+**Manipulations.**
+- A dimension is an exponent vector over (k, ref₁, …, ref_{N+1}): the quantity scales as k^x ref₁^{y₁} ⋯ . Exponents may
+  depend on the symbolic dimension (`Dim`); with a declared d = 2 they are numbers.
+- One linear equation per monomial **term**, where τ = [t]:
+  [coefficient term] + Σ[fields] − (number of dt)·τ + (number of spatial indices)·e_k + τ − Dim·e_k = 0.
+  Every spatial index counts once: a `SpaceIndex` and each slot of a `jac` (ε_ij) alike. A summed coefficient (e.g.
+  `−nk − Ak nk`) gives one equation per term, and all of them must agree.
+- Unknowns: τ, the 2N field dimensions, and every coupling that is neither a reference nor declared `"Dimensionless"`.
+  References are unit vectors; declared dimensionless couplings are 0.
+- The system is overdetermined (e.g. lk appears in three monomials). It is solved exactly and the residual is checked.
+
+**Checks** (each aborts with a readable hint):
+- `Dimensions.referenceCount`: exactly N+1 references.
+- `Dimensions.freedoms`: with the references treated as unknowns too, the homogeneous system leaves exactly N+1 free units
+  besides k. More means an amplitude split such as `nk Ak` is undetermined: declare `Ak` in `"Dimensionless"` (the error
+  lists the undetermined unknowns). Fewer means a monomial fixes more than expected, e.g. a φ̄ dt φ term with a coupling in
+  front.
+- `Dimensions.referencesIndependent`: the references fix all N+1 freedoms (no dimensional relation among them).
+- `Dimensions.consistent`: every monomial equation holds; otherwise the conflicting monomials are listed.
+- `Dimensions.rescaling` (independent route): the **action** is invariant under the derived change of units. Explicit polynomial
+  test fields are put into the density as written (not the parsed monomial table), every quantity of dimension v is multiplied
+  by a random s(v), and 𝓛_new(t, x) = s(Dim e_k − τ) 𝓛(t/s(τ), λ_k x) is checked exactly, in d = 2 and 3 (d = 2 if declared).
+- `Dimensions.names`: generated names do not collide (see below).
+
+**Names.** A dimensionful coupling c becomes `a<>c` (gk → agk). A coupling declared dimensionless, or that comes out
+dimensionless, keeps its name (the latter is reported INFO). A reference has no dimensionless version; it names its η:
+`nk -> "nu"` gives the symbol `etanu` and the FlowRG name `:nu`. A collision aborts; `"Names" -> <|gk -> ghat|>` overrides.
+
+**Linear part.** With ∂s ref_j = −η_j ref_j, a coupling of dimension k^x Π ref_j^{y_j} has ĉ = c/(k^x Π ref_j^{y_j}) and
+∂s ĉ = ĉ (−x + Σ_j y_j η_j) + (∂s c)/[c]. `LinearPart[dims, c]` returns −x + Σ y_j η_j.
+
+**Options.** `"References" -> {nk -> "nu", …}`; a reference times an amplitude may be written
+`nk -> {"nu", "Mode" -> "Running", "Equation" -> nk ank}` (see Adimensional). `"Dimensionless" -> {…}`, `"Names"`,
+`"Scale" -> k`.
+
+**Show.** `ShowDimensions[dims]` prints coupling | monomials it appears in | dimension | dimensionless name | linear part, then
+the field dimensions, [ω] and z (e.g. [ω] = k² nk, z = 2 − η_ν). `CheckDimensions[dims, <|gk -> k Dphik^(1/2) Dhk^(-1/2) nk,
+…, "Frequency" -> k^2 nk|>]` compares hand values exactly and aborts on any difference. `DimensionOf[dims, x]`.
+
+**Tests.** `tests/unit/DimensionsTest.wl`: the old notebook's hand values for DE4plus (g, g2, D2φ, K, H, λ: H and λ fail if the
+measure entered with the wrong sign, review E1), the old `betal` linear parts, LPA (mk, Dmk), KPZ ([λ²D/ν³] = k^{2−d}), the 2D
+`jac` example, and every abort.
+
+---
+
+## Adimensional (`Kernel/Adimensional.wl`) — `AdimensionalEquations`
+
+**Objective.** From the dimensionful equations ∂s(comb) = ∫dᵈq/(2π)ᵈ I(q) and the derived dimensions, build for each state
+coupling c
+
+  ∂s ĉ = BetaL + ∫daq LoopMeasure(d, aq) BetaNL,  LoopMeasure = S_d aq^{d−1}/(2π)^d, S_d = 2π^{d/2}/Γ(d/2),
+
+with BetaL **not integrated** (canonical part and local Leibniz terms) and BetaNL the loop integrand, and the linear system for
+the η's: (EtaML + ∫daq LoopMeasure EtaMNL) η = EtaBL + ∫daq LoopMeasure EtaBNL. `Dim` stays symbolic.
+
+**References.** Each reference is one of two kinds:
+- **Running**: it appears alone as a flowing combination (`nk` in LPA). Its η comes from that equation, η_j = −loop_j/ref_j,
+  and gives one row of the η system (identity in EtaML, loop coefficients in EtaMNL/EtaBNL).
+- **Fixed**: it appears only times dimensionless amplitudes (`Dphik aDphik`). Its η is fixed by hand at run time; the
+  equation becomes the flow of the amplitude, β_a = a η_j + loop/ref_j, and the η row is a placeholder η_j = 0, listed in
+  `MustFix` (FlowRG `fixed_etas`).
+- Opt-in `"Mode" -> "Running"` on a reference with an amplitude restores the old notebook's convention: η_j = −loop/ref_j with
+  the amplitude counted as 1, the amplitude stays in the state with β_a = (a − 1)η_j at the solved η. When several equations
+  qualify, `"Equation" -> comb` picks one.
+- Aborts: a reference with no equation, an ambiguous running reference, a `NonRenormalised` reference, `"Mode" -> "Fixed"` on a
+  reference that appears alone.
+
+**Manipulations.**
+1. Leibniz: ∂s(comb) = Σ_c (∂comb/∂c) ∂s c, with ∂s ref = −η ref and ∂s c = 0 for `NonRenormalised` c. The system for the
+   remaining ∂s c must be square and regular (`Adimensional.leibnizSquare`, `leibnizSolvable`); an equation that determines
+   nothing aborts (`Adimensional.unusedEquation`).
+2. Units: c → ĉ [c], q → k aq, `dsCoupling[ref]` → −η ref. A loop piece α ∫dᵈq/(2π)ᵈ I(q)/[c] becomes the integrand
+   α k^d I(k aq)/[c] of ∫daq LoopMeasure.
+3. Homogeneity (`homVec`, generalised from the old notebook's HomVec/HomClean): every sum must carry one exponent vector over
+   (k, refs), units may not appear in exponents or function arguments (shape arguments must reduce to aq²), and the total must be
+   zero. This proves that the β's depend on neither k nor the references.
+4. Independent route (`Adimensional.unitInvariance`): before the units are stripped, every loop piece is evaluated with the units
+   multiplied by random factors (perfect powers, so all fractional powers stay rational) in d = 2 and 3, and must not change.
+5. Compact form: the scale-stripped atoms of Assemble become dimensionless atoms `AdimAtom[a, b, m, j]` (stage key `Atoms`);
+   BetaNL, EtaMNL, EtaBNL are written in them. `Adimensional.compactExact`: compact = explicit at random points, for every β and
+   every η row.
+
+**Checks.**
+- `Adimensional.sameAnsatz`: the dimensions were derived from the ansatz embedded in the equations (fingerprint).
+- `Adimensional.regulatorReferences` (plan D4): ∂sR contains ∂s of reference couplings only. A regulator such as
+  `nk (1 + Ak) q^2 arnh` aborts (FUTURE.md).
+- `Adimensional.regulatorDimension`: each R_ab has the dimension of Γ2_ab = Dim e_k − τ − [a] − [b].
+- `Adimensional.lhsDimension`: the Γ_k coefficient of each equation has the dimension of its monomial (iω)^m (p²)^n in Γ2_ab.
+- `Adimensional.state` / `noBeta` / `stateMissing`: every state coupling gets a flow, from an equation or as `NonRenormalised`
+  (linear part only); every coupling with an equation is in the state.
+- `Adimensional.linearNoMomentum`: BetaL is free of aq.
+
+**Options.** `"State" -> {gk, lk, …}`: dimensionful names, in the order of FlowRG's COUPLINGS. Default: every non-reference
+coupling in ansatz order.
+
+**Show.** `ShowBeta[adim, c]` prints BetaL, the measure, BetaNL and the atoms used. `ShowEtaSystem[adim]` prints the η system
+row by row, with the placeholder rows marked MUST_FIX.
+
+**Tests.** `tests/acceptance/KPZAdimensional.wl`: the dimensionless KPZ flow, with the η system solved and the loop integrals done
+exactly with the Litim shape, equals Canet's Eq. (20) for symbolic d. Canet's v_d = 1/(2^{d−1}π^{d/2}Γ(d/2)) = S_d/(2π)^d, so this
+also fixes the (2π)^{−d} of the measure. `tests/acceptance/ShallowWaterDE4Adimensional.wl`: DE4plus against the old hand-built
+export (below).
+
+---
+
+## JuliaExport (`Kernel/JuliaExport.wl`) — `ExportJulia`
+
+**Objective.** Write the Adimensional stage at one integer dimension d as a FlowRG equations file
+(`FlowRG.jl/docs/equations-interface.md`): `COUPLINGS`, `ETAS`, `SHAPES`, `MUST_FIX` (when some η is fixed), `betal`, `betanl`,
+`etaMl`, `etaMnl`, `etabl`, `etabnl`, positional arguments in the documented order, row-major matrices, all-zero parts left out
+except `betal`.
+
+**Manipulations.** `Dim` → d (a declared d = 2 must be exported with d = 2: `JuliaExport.declaredDimension`); the loop measure is
+multiplied into every loop part; shape derivatives become applied functions `Darmh(aq^2)`, `D2armh(aq^2)`; compact form
+(default): each loop function first computes the dimensionless atoms it uses as local variables `atom_H_Hbar_0_1`.
+`"Form" -> "Explicit"` writes the expanded expressions. `JuliaParts[adim, d]` returns the same parts as Mathematica
+expressions.
+
+**Checks.** `JuliaExport.noUnits` (no k, references, q, symbolic `Dim`), `knownSymbols`, `systemHeads` (only + × ^ and
+sqrt/exp/log/abs), `linearNoMomentum`. A file that uses r″ gets a warning: FlowRG must bind `D2<shape>` (handoff
+`docs/handoff/FlowRG-MUST_FIX.md`, task 2).
+
+**Tests.** `tests/reference/JuliaRoundTrip.wl`, used by the acceptance tests: the file is evaluated in plain Julia with smooth
+test shapes and compared with Mathematica at a random point (relative 1e-11); then FlowRG's `load_model` must accept it and give
+finite η's and β (skipped for files that need r″). Without julia or FlowRG these tests print SKIP;
+`runTests.wl --require-julia` turns a SKIP into a failure. DE4plus against the old `eqs/Equations2D.jl`
+(`tests/reference/legacy/DE4plusEquations2D.jl`): `betal` equal; `betanl`, `M·η` and `b` of the η system equal to the old ones
+times (2π)^{−2} (the old file lacks the (2π)^{−d}) at η_h = η_φ (the old file multiplies ∂sM_h by η_φ, a bug).

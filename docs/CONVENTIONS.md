@@ -34,6 +34,18 @@ This header is printed above every vertex table (from milestone 2 on). Every mod
 - ∂s ≡ k∂k, where k is the RG scale.
 - Shape functions are functions of y = q²/k².
 
+## Dimensions and dimensionless couplings (Dimensions, Adimensional, JuliaExport)
+
+- Γ_k = ∫dt dᵈx 𝓛 is dimensionless; [x] = 1/k. A dimension is written k^x ref₁^{y₁} ⋯ ref_{N+1}^{y_{N+1}} in the basis of the RG
+  scale k and N+1 user-chosen reference couplings (N scalars).
+- Anomalous dimensions: **∂s ref_j = −η_j ref_j**. A coupling of dimension k^x Π ref_j^{y_j} has ĉ = c/(k^x Π ref_j^{y_j}) and
+  ∂s ĉ = ĉ (−x + Σ_j y_j η_j) + (∂s c)/[c]. The frequency exponent is z = x_ω − Σ_j y_{ω,j} η_j for [ω] = k^{x_ω} Π ref_j^{y_{ω,j}}
+  (e.g. [ω] = k² nk gives z = 2 − η_ν).
+- Names: ĉ = `a<>c` for a dimensionful c (gk → agk); a dimensionless coupling keeps its name; the η of a reference named "nu" is
+  `etanu` (FlowRG name `:nu`).
+- Loop momentum: q = k aq. ∫dᵈq/(2π)ᵈ f(q²) = k^d ∫daq LoopMeasure(d, aq) f(k² aq²), LoopMeasure = S_d aq^{d−1}/(2π)^d,
+  S_d = 2π^{d/2}/Γ(d/2). The exported loop parts include this measure; the old hand-built exports did not have the (2π)^{−d}.
+
 ## Projections (derivative-expansion pipeline)
 
 - The p² coefficient is ∇²_p/(2d) at p = 0. This is valid **only for p²**: monomials of order p⁴ abort. The general method is in

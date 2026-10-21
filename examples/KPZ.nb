@@ -3,22 +3,22 @@
 (*** Wolfram Notebook File ***)
 (* http://www.wolfram.com/nb *)
 
-(* CreatedBy='Wolfram 15.0' *)
+(* CreatedBy='Wolfram 14.3' *)
 
 (*CacheID: 234*)
 (* Internal cache information:
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       154,          7]
-NotebookDataLength[      6244,        134]
-NotebookOptionsPosition[      4781,        109]
-NotebookOutlinePosition[      5095,        123]
-CellTagsIndexPosition[      5052,        120]
+NotebookDataLength[      7763,        165]
+NotebookOptionsPosition[      5834,        135]
+NotebookOutlinePosition[      6148,        149]
+CellTagsIndexPosition[      6105,        146]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
-Cell["KPZ, one loop, dimensionful", "Title",ExpressionUUID->"8b3b313b-5d65-43eb-9ddf-2ca2bbd474e4"],
+Cell["KPZ, one loop, dimensionful", "Title",ExpressionUUID->"768da233-9bda-4b0e-85b8-8e22d72b8d12"],
 
 Cell["\<\
 The KPZ equation dt h = nu lap h + lambda/2 (grad h)^2 + noise, with noise \
@@ -26,16 +26,16 @@ variance 2 D, written as an MSR action. The ansatz has the form of the bare \
 action. The Galilean symmetry protects the coefficient 1 of dt h (Ward \
 identity) and the non-linearity lambda (not checkable in v1: that needs d_s \
 Gamma3, so it is declared NonRenormalised).\
-\>", "Text",ExpressionUUID->"6b1f4999-b990-41d5-b318-0f09e15cf6ac"],
+\>", "Text",ExpressionUUID->"69929feb-c3f7-4382-bbe4-b8909c6fd74c"],
 
-Cell["Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"]", "Input",ExpressionUUID->"039e33d8-d906-4a1a-b909-1414bea6fadf"],
+Cell["Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"]", "Input",ExpressionUUID->"e2a573df-3491-4f39-9b38-c7892a58a907"],
 
 Cell["\<\
 theory = DefineTheory[\"Scalars\" -> {h}, \"Dimension\" -> Dim];
 ansatz = DefineAnsatz[theory, \"Density\" -> hbar (dt[h] - nuk lap[h] - \
 lamk/2 grad[h].grad[h]) - Dk hbar^2,
   \"Couplings\" -> {nuk, lamk, Dk}];\
-\>", "Input",ExpressionUUID->"d8720be0-c95c-4156-a5c8-3cfa5c58e704"],
+\>", "Input",ExpressionUUID->"93b0786a-160a-4711-9fb1-dae891b0b0db"],
 
 Cell["\<\
 symmetries = DeclareSymmetries[ansatz,
@@ -46,29 +46,29 @@ symmetries = DeclareSymmetries[ansatz,
   Neglected[_, \"Reason\" -> \"beyond the ansatz\"], NonRenormalised[lamk, \
 \"Reason\" -> \"Galilean invariance\"],
   \"TruncationOrders\" -> <|\"Frequency\" -> 2, \"Momentum\" -> 1|>];\
-\>", "Input",ExpressionUUID->"df8b9fb4-7819-43b8-a094-4b862ac4fe09"],
+\>", "Input",ExpressionUUID->"fbba357a-b902-404c-99ca-4bc8a87ffd23"],
 
 Cell["\<\
 vertices = BuildVertices[ansatz];
 regulator = DefineRegulator[ansatz, {hbar, h} -> nuk q^2 rn[q^2/k^2], {hbar, \
 hbar} -> -2 Dk rd[q^2/k^2], \"Shapes\" -> {rn, rd}];
 prop = BuildPropagator[vertices, regulator];\
-\>", "Input",ExpressionUUID->"4025f4fc-6839-4d91-9408-553ac39c0e73"],
+\>", "Input",ExpressionUUID->"c36b940e-ef14-4fa5-85af-ee3efb889c74"],
 
 Cell["\<\
 flows = CheckClosure[IntegrateFrequencies[ProjectOnMonomials[\
 BuildLoopIntegrands[vertices, prop, regulator], symmetries]], symmetries];\
-\>", "Input",ExpressionUUID->"186c5a21-67ce-4791-888f-6ed4fd3894e9"],
+\>", "Input",ExpressionUUID->"441abab1-6b0a-4342-98a5-0dc896b11e2b"],
 
 Cell["\<\
 equations = AssembleEquations[flows];
 ShowEquation[equations, nuk]
 ShowEquation[equations, Dk]\
-\>", "Input",ExpressionUUID->"9dd1c6d6-8656-468d-a59d-baaf47a8d73f"],
+\>", "Input",ExpressionUUID->"a6f96d33-1a4f-4cb4-bb69-078851903ea9"],
 
-Cell["oracle = RunOracle[equations, \"ZeroFlows\" -> True];", "Input",ExpressionUUID->"9262bb5c-7edd-464f-b24a-2f8812c77379"],
+Cell["oracle = RunOracle[equations, \"ZeroFlows\" -> True];", "Input",ExpressionUUID->"d408ba1f-fcda-4ab7-956e-983e390657df"],
 
-Cell["Check of the loop normalisation against Canet's flow", "Section",ExpressionUUID->"6d6bfe65-4d4b-4c16-8195-e30fe9ae1452"],
+Cell["Check of the loop normalisation against Canet's flow", "Section",ExpressionUUID->"a5a59f86-3f70-4862-8fbc-223ad2641f33"],
 
 Cell["\<\
 L. Canet, arXiv:2509.01472, Eq. (20): with the Litim cutoff r(y) = (1/y - 1) \
@@ -79,7 +79,7 @@ Litim shape (Int d^dq/(2 Pi)^d f = v_d k^d/2 Int_0^1 y^(d/2-1) f dy), solve \
 the linear system for eta_nu and eta_D, and compare. The difference is \
 exactly 0 for every d: this checks the prefactor, sign and 2 Pi of the loop \
 formula (not the Gamma4 tadpole, absent here).\
-\>", "Text",ExpressionUUID->"2c6407d1-97b6-45e8-ad3e-d54bfa01e696"],
+\>", "Text",ExpressionUUID->"35ddd4f0-74f5-4f4b-9157-e5655ba2d7df"],
 
 Cell["\<\
 litim = {rn -> Function[y, 1/y - 1], rd -> Function[y, 1/y - 1]};
@@ -89,7 +89,7 @@ litim] y^(d/2 - 1)], terms},
   vd k^d/2 Total[(# /. y -> 1)/(Exponent[#, y] + 1) & /@ terms]];
 flowOf[c_] := litimIntegral[EquationOf[equations, c][\"Integrand\"] /. Dim -> \
 d];\
-\>", "Input",ExpressionUUID->"49d38c08-4912-480d-bc7d-99e164fffda4"],
+\>", "Input",ExpressionUUID->"23be36c8-b47a-4f73-9b32-795c566e172b"],
 
 Cell["\<\
 etas = First[Solve[{-etanu nuk == (flowOf[nuk] /. {dsCoupling[nuk] -> -etanu \
@@ -98,18 +98,44 @@ nuk, dsCoupling[Dk] -> -etaD Dk}),
 dsCoupling[Dk] -> -etaD Dk})}, {etanu, etaD}]];
 bracket = Together[(d - 2 - etaD + 3 etanu) /. etas /. lamk -> Sqrt[g \
 nuk^3/(vd k^(d - 2) Dk)]]\
-\>", "Input",ExpressionUUID->"cb58fdec-7e5a-416d-ba0b-07b30b595e9f"],
+\>", "Input",ExpressionUUID->"a9eee056-1f8d-4c07-b78b-d92c4475aaaa"],
 
 Cell["\<\
 canet = (2 d^6 + 4 d^5 - d^4 (7 g + 8) - 2 d^3 (3 g + 8) + d^2 g (3 g + 20) - \
 d (g - 8) g - 2 g^2)/
    (2 d^5 + 8 d^4 + d^3 (8 - 3 g) - 2 d^2 g + d g (g + 8) - g^2);
 Together[bracket - canet]\
-\>", "Input",ExpressionUUID->"f8fada25-6130-425e-a05c-6469e54047d4"]
+\>", "Input",ExpressionUUID->"b3de8901-bc6a-4479-9f3f-98183d971fd1"],
+
+Cell["Dimensionless flow and the FlowRG file", "Section",ExpressionUUID->"88055464-39d1-48fb-ba72-456f0b58dac5"],
+
+Cell["\<\
+The same, done by the library: dimensions from the ansatz in the basis (k, \
+nuk, Dk), the dimensionless flow of lamk (linear part only: lambda is \
+NonRenormalised) and the eta system, then the FlowRG file for d = 2. \
+tests/acceptance/KPZAdimensional.wl checks that this output gives Canet's Eq. \
+(20) exactly.\
+\>", "Text",ExpressionUUID->"de7d2b0f-d6b5-4c5e-8afa-e182890d4e2e"],
+
+Cell["\<\
+dims = DeriveDimensions[ansatz, \"References\" -> {nuk -> \"nu\", Dk -> \
+\"D\"}];\
+\>", "Input",ExpressionUUID->"d0ebb5a8-265a-4230-9cea-87dd59e0f303"],
+
+Cell["\<\
+adim = AdimensionalEquations[equations, dims];
+ShowBeta[adim, lamk]
+ShowEtaSystem[adim]\
+\>", "Input",ExpressionUUID->"90fc62ba-0d4f-4e53-ab97-e2ebaf17c67f"],
+
+Cell["\<\
+ExportJulia[adim, \"Dimension\" -> 2, \"File\" -> \
+FileNameJoin[{$TemporaryDirectory, \"KPZ\", \"Equations2D.jl\"}]]\
+\>", "Input",ExpressionUUID->"9f3a53b2-7a90-416a-b1cc-62641fba4d69"]
 },
-FrontEndVersion->"15.0 for Linux x86 (64-bit) (May 19, 2026)",
+FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
 StyleDefinitions->"Default.nb",
-ExpressionUUID->"35bd4129-e727-49b9-9312-04bf0716d16f"
+ExpressionUUID->"bac4b446-e164-413d-b92c-2fae239d37fa"
 ]
 (* End of Notebook Content *)
 
@@ -122,20 +148,25 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[554, 20, 99, 0, 70, "Title",ExpressionUUID->"8b3b313b-5d65-43eb-9ddf-2ca2bbd474e4"],
-Cell[656, 22, 428, 6, 70, "Text",ExpressionUUID->"6b1f4999-b990-41d5-b318-0f09e15cf6ac"],
-Cell[1087, 30, 119, 0, 70, "Input",ExpressionUUID->"039e33d8-d906-4a1a-b909-1414bea6fadf"],
-Cell[1209, 32, 292, 5, 70, "Input",ExpressionUUID->"d8720be0-c95c-4156-a5c8-3cfa5c58e704"],
-Cell[1504, 39, 524, 9, 70, "Input",ExpressionUUID->"df8b9fb4-7819-43b8-a094-4b862ac4fe09"],
-Cell[2031, 50, 290, 5, 70, "Input",ExpressionUUID->"4025f4fc-6839-4d91-9408-553ac39c0e73"],
-Cell[2324, 57, 217, 3, 70, "Input",ExpressionUUID->"186c5a21-67ce-4791-888f-6ed4fd3894e9"],
-Cell[2544, 62, 174, 4, 70, "Input",ExpressionUUID->"9dd1c6d6-8656-468d-a59d-baaf47a8d73f"],
-Cell[2721, 68, 125, 0, 70, "Input",ExpressionUUID->"9262bb5c-7edd-464f-b24a-2f8812c77379"],
-Cell[2849, 70, 126, 0, 70, "Section",ExpressionUUID->"6d6bfe65-4d4b-4c16-8195-e30fe9ae1452"],
-Cell[2978, 72, 666, 9, 70, "Text",ExpressionUUID->"2c6407d1-97b6-45e8-ad3e-d54bfa01e696"],
-Cell[3647, 83, 446, 8, 70, "Input",ExpressionUUID->"49d38c08-4912-480d-bc7d-99e164fffda4"],
-Cell[4096, 93, 405, 7, 70, "Input",ExpressionUUID->"cb58fdec-7e5a-416d-ba0b-07b30b595e9f"],
-Cell[4504, 102, 273, 5, 70, "Input",ExpressionUUID->"f8fada25-6130-425e-a05c-6469e54047d4"]
+Cell[554, 20, 99, 0, 70, "Title",ExpressionUUID->"768da233-9bda-4b0e-85b8-8e22d72b8d12"],
+Cell[656, 22, 428, 6, 70, "Text",ExpressionUUID->"69929feb-c3f7-4382-bbe4-b8909c6fd74c"],
+Cell[1087, 30, 127, 0, 70, "Input",ExpressionUUID->"e2a573df-3491-4f39-9b38-c7892a58a907"],
+Cell[1217, 32, 292, 5, 70, "Input",ExpressionUUID->"93b0786a-160a-4711-9fb1-dae891b0b0db"],
+Cell[1512, 39, 524, 9, 70, "Input",ExpressionUUID->"fbba357a-b902-404c-99ca-4bc8a87ffd23"],
+Cell[2039, 50, 290, 5, 70, "Input",ExpressionUUID->"c36b940e-ef14-4fa5-85af-ee3efb889c74"],
+Cell[2332, 57, 217, 3, 70, "Input",ExpressionUUID->"441abab1-6b0a-4342-98a5-0dc896b11e2b"],
+Cell[2552, 62, 174, 4, 70, "Input",ExpressionUUID->"a6f96d33-1a4f-4cb4-bb69-078851903ea9"],
+Cell[2729, 68, 125, 0, 70, "Input",ExpressionUUID->"d408ba1f-fcda-4ab7-956e-983e390657df"],
+Cell[2857, 70, 126, 0, 70, "Section",ExpressionUUID->"a5a59f86-3f70-4862-8fbc-223ad2641f33"],
+Cell[2986, 72, 666, 9, 70, "Text",ExpressionUUID->"35ddd4f0-74f5-4f4b-9157-e5655ba2d7df"],
+Cell[3655, 83, 446, 8, 70, "Input",ExpressionUUID->"23be36c8-b47a-4f73-9b32-795c566e172b"],
+Cell[4104, 93, 405, 7, 70, "Input",ExpressionUUID->"a9eee056-1f8d-4c07-b78b-d92c4475aaaa"],
+Cell[4512, 102, 273, 5, 70, "Input",ExpressionUUID->"b3de8901-bc6a-4479-9f3f-98183d971fd1"],
+Cell[4788, 109, 112, 0, 70, "Section",ExpressionUUID->"88055464-39d1-48fb-ba72-456f0b58dac5"],
+Cell[4903, 111, 392, 6, 70, "Text",ExpressionUUID->"de7d2b0f-d6b5-4c5e-8afa-e182890d4e2e"],
+Cell[5298, 119, 162, 3, 70, "Input",ExpressionUUID->"d0ebb5a8-265a-4230-9cea-87dd59e0f303"],
+Cell[5463, 124, 167, 4, 70, "Input",ExpressionUUID->"90fc62ba-0d4f-4e53-ab97-e2ebaf17c67f"],
+Cell[5633, 130, 197, 3, 70, "Input",ExpressionUUID->"9f3a53b2-7a90-416a-b1cc-62641fba4d69"]
 }
 ]
 *)

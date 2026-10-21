@@ -1,8 +1,8 @@
 (* ::Package:: *)
 
 (* makeNotebooks.wl -- writes examples/ShallowWaterDE4plus.nb and examples/KPZ.nb from the cell lists below.
-   Run:  math -script ~/sources/FRGscalarMSR/examples/makeNotebooks.wl
-   Check that they run headless:  math -script ~/sources/FRGscalarMSR/examples/runNotebook.wl <notebook.nb>
+   Run:  math -script ~/Physics/Sources/FRGscalarMSR/examples/makeNotebooks.wl
+   Check that they run headless:  math -script ~/Physics/Sources/FRGscalarMSR/examples/runNotebook.wl <notebook.nb>
    Edit the cells here, not in the .nb files, then regenerate. *)
 
 dir = DirectoryName[$InputFileName];
@@ -12,7 +12,7 @@ text[s_] := Cell[s, "Text"];
 input[s_] := Cell[s, "Input"];
 nb[cells_] := Notebook[cells, StyleDefinitions -> "Default.nb"];
 
-load = input["Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"]"];
+load = input["Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"]"];
 
 shallowWater = {
    title["Shallow water, DE4plus ansatz"],
@@ -64,7 +64,20 @@ It shares the vertices and the loop formula with the symbolic chain, so it does 
    input["oracle = RunOracle[equations];"],
    section["7. Saving"],
    input["file = SaveStage[equations, FileNameJoin[{$TemporaryDirectory, \"swDE4plus-equations.wdx\"}]]"],
-   input["equations2 = LoadStage[file, \"Expect\" -> {theory, ansatz, regulator, symmetries}];\nequations2 === equations"]};
+   input["equations2 = LoadStage[file, \"Expect\" -> {theory, ansatz, regulator, symmetries}];\nequations2 === equations"],
+   section["8. Dimensionless flows and the FlowRG file"],
+   text["DeriveDimensions derives the dimension of every coupling from the ansatz (Gamma_k is dimensionless), in the basis of k and \
+N+1 = 3 reference couplings, and checks them (independent references, consistent monomials, action invariant under the derived \
+rescaling). CheckDimensions compares hand values exactly. Here every reference appears only times an amplitude (nk ank, Dhk aDhk, \
+Dphik aDphik); \"Mode\" -> \"Running\" makes each eta follow from that equation (the amplitude is counted as 1), the convention \
+of the old hand-built export. Without it the eta would be fixed at run time (MUST_FIX)."],
+   input["dims = DeriveDimensions[ansatz, \"References\" -> {Dphik -> {\"phi\", \"Mode\" -> \"Running\"}, Dhk -> {\"h\", \"Mode\" -> \"Running\"},\n    nk -> {\"nu\", \"Mode\" -> \"Running\", \"Equation\" -> nk ank}}, \"Dimensionless\" -> {Ak, ank, aDhk, aDphik}];"],
+   input["CheckDimensions[dims, <|gk -> k Dphik^(1/2) Dhk^(-1/2) nk, lk -> k^(1 - Dim/2) Dphik^(-1/2) nk^(3/2), \"Frequency\" -> k^2 nk|>]"],
+   text["AdimensionalEquations writes d_s chat = BetaL (not integrated) + Integral daq LoopMeasure BetaNL for each state coupling, and \
+the linear system of the etas. Every beta is checked to be free of k and the references, structurally and by a random rescaling of the \
+units. ExportJulia writes the FlowRG equations file for one d (this one uses r'', D2<shape>, which FlowRG must bind)."],
+   input["adim = AdimensionalEquations[equations, dims, \"State\" -> {gk, g2k, lk, Hk, aDphik, D2phik, Kk, Ak, ank, aDhk}];\nShowBeta[adim, gk]"],
+   input["ExportJulia[adim, \"Dimension\" -> 2, \"File\" -> FileNameJoin[{$TemporaryDirectory, \"swDE4plus\", \"Equations2D.jl\"}]]"]};
 
 kpz = {
    title["KPZ, one loop, dimensionful"],
@@ -86,7 +99,14 @@ linear system for eta_nu and eta_D, and compare. The difference is exactly 0 for
 of the loop formula (not the Gamma4 tadpole, absent here)."],
    input["litim = {rn -> Function[y, 1/y - 1], rd -> Function[y, 1/y - 1]};\nlitimIntegral[f_] := Module[{g = Expand[Together[f /. q -> k Sqrt[y] /. litim] y^(d/2 - 1)], terms},\n  terms = If[Head[g] === Plus, List @@ g, {g}];\n  vd k^d/2 Total[(# /. y -> 1)/(Exponent[#, y] + 1) & /@ terms]];\nflowOf[c_] := litimIntegral[EquationOf[equations, c][\"Integrand\"] /. Dim -> d];"],
    input["etas = First[Solve[{-etanu nuk == (flowOf[nuk] /. {dsCoupling[nuk] -> -etanu nuk, dsCoupling[Dk] -> -etaD Dk}),\n     -etaD Dk == (flowOf[Dk] /. {dsCoupling[nuk] -> -etanu nuk, dsCoupling[Dk] -> -etaD Dk})}, {etanu, etaD}]];\nbracket = Together[(d - 2 - etaD + 3 etanu) /. etas /. lamk -> Sqrt[g nuk^3/(vd k^(d - 2) Dk)]]"],
-   input["canet = (2 d^6 + 4 d^5 - d^4 (7 g + 8) - 2 d^3 (3 g + 8) + d^2 g (3 g + 20) - d (g - 8) g - 2 g^2)/\n   (2 d^5 + 8 d^4 + d^3 (8 - 3 g) - 2 d^2 g + d g (g + 8) - g^2);\nTogether[bracket - canet]"]};
+   input["canet = (2 d^6 + 4 d^5 - d^4 (7 g + 8) - 2 d^3 (3 g + 8) + d^2 g (3 g + 20) - d (g - 8) g - 2 g^2)/\n   (2 d^5 + 8 d^4 + d^3 (8 - 3 g) - 2 d^2 g + d g (g + 8) - g^2);\nTogether[bracket - canet]"],
+   section["Dimensionless flow and the FlowRG file"],
+   text["The same, done by the library: dimensions from the ansatz in the basis (k, nuk, Dk), the dimensionless flow of lamk (linear part \
+only: lambda is NonRenormalised) and the eta system, then the FlowRG file for d = 2. tests/acceptance/KPZAdimensional.wl checks that this \
+output gives Canet's Eq. (20) exactly."],
+   input["dims = DeriveDimensions[ansatz, \"References\" -> {nuk -> \"nu\", Dk -> \"D\"}];"],
+   input["adim = AdimensionalEquations[equations, dims];\nShowBeta[adim, lamk]\nShowEtaSystem[adim]"],
+   input["ExportJulia[adim, \"Dimension\" -> 2, \"File\" -> FileNameJoin[{$TemporaryDirectory, \"KPZ\", \"Equations2D.jl\"}]]"]};
 
 Export[FileNameJoin[{dir, "ShallowWaterDE4plus.nb"}], nb[shallowWater]];
 Export[FileNameJoin[{dir, "KPZ.nb"}], nb[kpz]];
