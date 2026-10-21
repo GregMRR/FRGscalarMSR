@@ -12,7 +12,10 @@ validateStage::usage = "validateStage[stage, name] asserts the stage key and fin
 reservedNames::usage = "reservedNames: symbol names the user may not use for fields or couplings.";
 assertFreshSymbols::usage = "assertFreshSymbols[check, syms, what] asserts that user symbols are usable as fields / couplings.";
 inputForm::usage = "inputForm[e, n] is a short one-line InputForm string of e.";
-displayString::usage = "displayString[e] is a full one-line InputForm string of e without package contexts; scal[a, a] -> a^2, scal[a, b] -> a.b.";
+displayString::usage = "displayString[e] is a full one-line InputForm string of e without package contexts; scal[a, a] -> a^2, scal[a, b] -> a.b, \
+wedge[a, b] -> wedge(a,b).";
+reduceWedge2D::usage = "reduceWedge2D[e] rewrites every product of two wedges by the d = 2 identity \
+wedge[a,b] wedge[c,d] = scal[a,c] scal[b,d] - scal[a,d] scal[b,c] until each term of the expanded e has at most one wedge.";
 EndPackage[];
 
 BeginPackage["FRGscalarMSR`", {"FRGscalarMSR`Internal`"}];
@@ -29,6 +32,8 @@ RandomRationalPoint::usage = "RandomRationalPoint[syms, seed] gives rules sym ->
 PrintCard::usage = "PrintCard[stage] prints the stage summary card: PASS/WARN/INFO/ASSUMPTION lines, LeafCount, timing, fingerprint.";
 scal::usage = "scal[a, b] is the scalar product of the vectors a, b (bare symbols). Orderless; linear over sums and over \
 explicit numbers only (not over couplings).";
+wedge::usage = "wedge[a, b] = eps_ij a_i b_j (d = 2, eps_12 = +1) of the vectors a, b (bare symbols). Antisymmetric (canonical \
+order, not Orderless), wedge[a, a] = 0; linear over sums and over explicit numbers only.";
 
 Begin["`Private`"];
 
@@ -42,7 +47,8 @@ inputForm[e_, n_ : 3] := StringReplace[ToString[Short[InputForm[e], n]], "\n" ->
 
 displayString[e_] := StringReplace[
    StringReplace[ToString[e, InputForm], RegularExpression["FRGscalarMSR`([A-Za-z]+`)*"] -> ""],
-   {RegularExpression["scal\\[(\\w+), \\1\\]"] -> "$1^2", RegularExpression["scal\\[(\\w+), (\\w+)\\]"] -> "$1.$2"}];
+   {RegularExpression["scal\\[(\\w+), \\1\\]"] -> "$1^2", RegularExpression["scal\\[(\\w+), (\\w+)\\]"] -> "$1.$2",
+    RegularExpression["wedge\\[([^\\[\\],]+), ([^\\[\\],]+)\\]"] -> "wedge($1,$2)"}];
 
 failBlock[name_, details_, hint_] := Module[{lines},
    lines = {"FAIL  check: " <> ToString[name] <> "   module: " <> ToString[$FRGModule],
@@ -137,6 +143,23 @@ scal[(a_) + (b_), c_] := scal[a, c] + scal[b, c];
 scal[(a_)*(b_), c_] /; NumberQ[a] := a*scal[b, c];
 scal[-(a_), b_] := -scal[a, b];
 scal[0, b_] := 0;
+
+(* ---------------- 2D antisymmetric product eps_ij a_i b_j (design/LEVICIVITA.md F1, F2) ---------------- *)
+
+wedge[0, _] := 0;
+wedge[_, 0] := 0;
+wedge[a_, a_] := 0;
+wedge[(a_) + (b_), c_] := wedge[a, c] + wedge[b, c];
+wedge[a_, (b_) + (c_)] := wedge[a, b] + wedge[a, c];
+wedge[(a_)*(b_), c_] /; NumberQ[a] := a*wedge[b, c];
+wedge[a_, (b_)*(c_)] /; NumberQ[b] := b*wedge[a, c];
+wedge[b_, a_] /; ! OrderedQ[{b, a}] := -wedge[a, b];
+
+(* F2, valid in d = 2 only *)
+wedgePairRules = {
+   wedge[a_, b_] wedge[c_, d_] :> scal[a, c] scal[b, d] - scal[a, d] scal[b, c],
+   Power[wedge[a_, b_], n_Integer /; n >= 2] :> (scal[a, a] scal[b, b] - scal[a, b]^2) wedge[a, b]^(n - 2)};
+reduceWedge2D[e_] := FixedPoint[Expand[# /. wedgePairRules] &, Expand[e]];
 
 End[];
 EndPackage[];

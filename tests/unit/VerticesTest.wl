@@ -32,3 +32,11 @@ Module[{a = vAnsatz[hbar (dt[h] - nuk lap[h]), {nuk}], wrong},
   expectFail["deliberately wrong vertex aborts (plane-wave check)", BuildVertices[wrong], "Vertices.planeWave"]];
 expectFail["wrong input stage", BuildVertices[vTheory], "Stage.input"];
 expectFail["VertexValue needs n-1 legs", VertexValue[kpz, {h, h, hbar}, {{ω, q}}], "Vertices.legCount"];
+
+(* jac (design/LEVICIVITA.md F3): eps_ij d_i A d_j B at legs (l, m) -> -wedge[q_l, q_m] *)
+jvTheory = quiet[DefineTheory["Scalars" -> {H, Psi}, "Dimension" -> FixedDimension[2]]];
+jv = quiet[BuildVertices[quiet[DefineAnsatz[jvTheory, "Density" -> Hbar dt[H] + Psibar dt[Psi] + c3 Hbar jac[H, Psi], "Couplings" -> {c3}]]]];
+test["jac: Gamma3_{Hbar H Psi} = -c wedge[q_H, q_Psi] (by hand)", VertexValue[jv, {Hbar, H, Psi}, {{ω1, q1}, {ω2, q2}}], -c3 wedge[q2, -q1 - q2]];
+test["jac: Gamma3 leg order", VertexValue[jv, {H, Psi, Hbar}, {{ω1, q1}, {ω2, q2}}], -c3 wedge[q1, q2]];
+test["jac: Gamma2 unaffected (wedge[q, -q] = 0)", Gamma2Matrix[jv, ω, q], {{0, I ω, 0, 0}, {-I ω, 0, 0, 0}, {0, 0, 0, I ω}, {0, 0, -I ω, 0}}];
+test["jac: 2D plane-wave check on the card", StringContainsQ[SelectFirst[jv["Checks"], #Check === "Vertices.planeWave" &]["Detail"], "d = 2 components"], True];

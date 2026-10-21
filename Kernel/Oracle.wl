@@ -11,7 +11,7 @@ BeginPackage["FRGscalarMSR`", {"FRGscalarMSR`Internal`"}];
 
 RunOracle::usage = "RunOracle[equations, opts] compares every equation (and, with \"ZeroFlows\" -> True, every flow that must vanish) \
 with a numerical evaluation of the loop at one random point: numeric matrix inverse, NIntegrate over w, finite differences in nu \
-and p. Options: \"Dimensions\" -> {2, 3}, \"Tolerance\" -> 10^-8 (relative; absolute for zero flows), \"Seed\" -> 1, \
+and p. Options: \"Dimensions\" -> Automatic ({2, 3} for a symbolic d, {2} for a declared d = 2), \"Tolerance\" -> 10^-8 (relative; absolute for zero flows), \"Seed\" -> 1, \
 \"ZeroFlows\" -> False. Returns the \"Oracle\" stage.";
 
 Begin["`Private`"];
@@ -34,12 +34,19 @@ stencil[0, h_] := {{0, 1}};
 stencil[1, h_] := {{h, 1/(2 h)}, {-h, -1/(2 h)}};
 stencil[2, h_] := {{h, 1/h^2}, {0, -2/h^2}, {-h, 1/h^2}};
 
-Options[RunOracle] = {"Dimensions" -> {2, 3}, "Tolerance" -> 10^-8, "Seed" -> 1, "ZeroFlows" -> False};
+(* eps_ij in the numeric vertices: wedge[a, b] -> a1 b2 - a2 b1, evaluated once both vectors are explicit (p is numeric only in fLoop) *)
+wedgeN[a_?VectorQ, b_?VectorQ] /; Length[a] == Length[b] == 2 := a[[1]] b[[2]] - a[[2]] b[[1]];
+
+Options[RunOracle] = {"Dimensions" -> Automatic, "Tolerance" -> 10^-8, "Seed" -> 1, "ZeroFlows" -> False};
 
 RunOracle[eqs_, OptionsPattern[]] := Block[{$FRGModule = "Oracle"},
   Module[{t0 = AbsoluteTime[], closure, loops, v, reg, fields, hasG4, recs, checks = {}, warns = {}, results = {}, stage, tol = OptionValue["Tolerance"],
-    h = 10^-5, prec = 40},
+    h = 10^-5, prec = 40, dims},
    validateStage[eqs, "Equations"];
+   dims = Replace[OptionValue["Dimensions"], Automatic -> If[eqs["Dimension"] === 2, {2}, {2, 3}]];
+   FRGAssert["Oracle.declaredDimension", If[eqs["Dimension"] === 2, dims === {2}, ListQ[dims] && dims =!= {} && SubsetQ[{2, 3}, dims]], dims,
+    If[eqs["Dimension"] === 2, "the dimension is declared: d = 2 only (\"Dimensions\" -> {2} or Automatic)",
+     "\"Dimensions\" must be a non-empty subset of {2, 3}"]];
    closure = eqs["Closure"]; loops = closure["Integrated"]["Projection"]["Loops"];
    v = loops["Vertices"]; reg = loops["Regulator"]; fields = v["Fields"]; hasG4 = loops["HasGamma4"];
    recs = Join[Function[e, <|"Pair" -> e["Pair"], "Frequency" -> e["Frequency"], "Momentum" -> e["Momentum"], "Label" -> inputForm[e["Flowing"]],
@@ -61,7 +68,7 @@ RunOracle[eqs_, OptionsPattern[]] := Block[{$FRGModule = "Oracle"},
       mat = N[(Gamma2Matrix[v, wO, xO] /. scal[xO, xO] -> x2O) + RegulatorMatrix[reg, x2O] /. pt, prec + 10];
       gNum[w_, x2_] := Inverse[mat /. {wO -> w, x2O -> x2}];
       vecs = {qO -> qVec, pO -> pVecO};
-      dot[e_] := e /. scal[a_, b_] :> ((a /. vecs) . (b /. vecs));
+      dot[e_] := e /. {scal[a_, b_] :> ((a /. vecs) . (b /. vecs)), wedge[a_, b_] :> wedgeN[a /. vecs, b /. vecs]};
       g3[i_, {nu_, p_}, {w_, q_}] := g3[i, {nu, p}, {w, q}] = N[dot[Gamma3Matrix[v, i, {nu, p}, {w, q}]] /. pt, prec + 10];
       g4[a_, b_] := g4[a, b] = N[dot[Table[VertexValue[v, {a, b, c, e}, {{nuO, pO}, {-nuO, -pO}, {wO, qO}}], {c, fields}, {e, fields}]] /. pt, prec + 10];
       dsr = N[DsRegulatorMatrix[reg, q2] /. pt, prec + 10];
@@ -89,11 +96,11 @@ RunOracle[eqs_, OptionsPattern[]] := Block[{$FRGModule = "Oracle"},
            "the symbolic equation and the numerical loop disagree at the oracle point",
            "numeric " <> sci[num, 10] <> ", symbolic " <> sci[sym, 10] <> If[sym == 0, ", |numeric| = ", ", rel. diff "] <> sci[err, 2]]]],
        {r, recs}]],
-    {d, OptionValue["Dimensions"]}];
+    {d, dims}];
    AppendTo[warns, infoCheck["ASSUMPTION", "Oracle.scope",
      "the oracle shares the vertices and the loop formula (prefactor, tadpole -1/2, 1/(2 Pi)) with the symbolic chain: it does not test the normalisation (E3/E4)"]];
    AppendTo[warns, infoCheck["INFO", "Oracle.method", "numeric inverse of Gamma2 + R, NIntegrate over w (" <> ToString[prec] <>
-      " digits), central differences h = 10^-5 in nu and in an explicit p vector, d in " <> ToString[OptionValue["Dimensions"]]]];
+      " digits), central differences h = 10^-5 in nu and in an explicit p vector, d in " <> ToString[dims]]];
    stage = stampStage[<|"Stage" -> "Oracle", "Pipeline" -> "DerivativeExpansion", "Upstream" -> {eqs["Fingerprint"]}, "Results" -> results,
       "Checks" -> checks, "Warnings" -> warns, "Timing" -> AbsoluteTime[] - t0|>];
    PrintCard[stage];

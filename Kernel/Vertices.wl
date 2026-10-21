@@ -26,8 +26,11 @@ Begin["`Private`"];
 (* leg l carries frequency wv[l] and momentum qv[l]; a factor dt^nt d_i.. phi at leg l gives (I wv[l])^nt (-I qv[l]_i)... *)
 factorSymbol[FieldFactor[_, nt_, ix_], l_] := {(I wv[l])^nt (-I)^Length[ix], Thread[ix -> qv[l]]};
 
-monomialAt[m_Association, perm_List] := Module[{parts = MapThread[factorSymbol, {m["Factors"], perm}]},
-   m["Coefficient"] Times @@ parts[[All, 1]] Times @@ (scal @@ # & /@ Values[GroupBy[Flatten[parts[[All, 2]]], First -> Last]])];
+(* a SpaceIndex pair gives scal[qa, qb]; the eps pair EpsIndex[1], EpsIndex[2] gives wedge[q(slot 1), q(slot 2)] *)
+monomialAt[m_Association, perm_List] := Module[{parts = MapThread[factorSymbol, {m["Factors"], perm}], g},
+   g = GroupBy[Flatten[parts[[All, 2]]], First -> Last];
+   m["Coefficient"] Times @@ parts[[All, 1]] Times @@ (scal @@ # & /@ Values[KeySelect[g, FreeQ[#, EpsIndex] &]]) *
+    If[KeyExistsQ[g, EpsIndex[1]], wedge[First[g[EpsIndex[1]]], First[g[EpsIndex[2]]]], 1]];
 
 (* Gamma^(n) for the field multiset ms (sorted in field order), all n momenta independent (before delta stripping):
    sum over every assignment of the monomial's factors to the legs carrying the same field = full symmetrisation *)
@@ -56,19 +59,21 @@ Gamma3Matrix[v_Association, i0_, {nu_, p_}, {w_, q_}] := Module[{i = If[IntegerQ
 
 (* ---------- independent check: plane waves substituted into the raw density ---------- *)
 
-(* phi_a(t, x) = sum over the legs l of field a of eps[l] Exp[I (ww[l] t - kq[l].X)]  (d = 3 components);
+(* phi_a(t, x) = sum over the legs l of field a of eps[l] Exp[I (ww[l] t - kq[l].X)]  (nc = 3 components, 2 for a declared d = 2);
    the coefficient of eps[1]...eps[n] Exp[I sum(ww t - kq.X)] in the density is Gamma^(n)(all legs) *)
-planeWaveCoefficient[dens_, fields_, ms_List] := Module[{n = Length[ms], X = {xx[1], xx[2], xx[3]}, kq, phase, rules, e},
-   kq[l_] := {kc[l, 1], kc[l, 2], kc[l, 3]};
+planeWaveCoefficient[dens_, fields_, ms_List, nc_] := Module[{n = Length[ms], X = Array[xx, nc], kq, phase, rules, e},
+   kq[l_] := Table[kc[l, c], {c, nc}];
    phase = I Sum[ww[l] tt - kq[l] . X, {l, n}];
    rules = Thread[fields -> (Sum[If[ms[[l]] === #, eps[l] Exp[I (ww[l] tt - kq[l] . X)], 0], {l, n}] & /@ fields)];
-   e = (dens /. rules) /. {dt -> (D[#, tt] &), grad -> (Grad[#, X] &), div -> (If[# === 0, 0, Div[#, X]] &), lap -> (Laplacian[#, X] &)};
+   e = (dens /. rules) /. {dt -> (D[#, tt] &), grad -> (Grad[#, X] &), div -> (If[# === 0, 0, Div[#, X]] &), lap -> (Laplacian[#, X] &),
+      jac -> (D[#1, xx[1]] D[#2, xx[2]] - D[#1, xx[2]] D[#2, xx[1]] &)};
    e = D[e, Sequence @@ Table[eps[l], {l, n}]] /. eps[_] -> 0;
    e = Expand[e] /. Power[E, z_] :> Exp[Expand[z - phase]];
    FRGAssert["Vertices.planeWavePhase", FreeQ[e, tt | xx], e, "internal: the plane-wave coefficient still depends on t or x"];
    Expand[e]];
 
-symbolAsPlaneWave[e_] := Expand[e /. scal[a_, b_] :> ((a /. qv[l_] :> {kc[l, 1], kc[l, 2], kc[l, 3]}) . (b /. qv[l_] :> {kc[l, 1], kc[l, 2], kc[l, 3]})) /. wv[l_] :> ww[l]];
+symbolAsPlaneWave[e_, nc_] := Module[{vec = # /. qv[l_] :> Table[kc[l, c], {c, nc}] &},
+   Expand[e /. {scal[a_, b_] :> vec[a] . vec[b], wedge[a_, b_] :> vec[a][[1]] vec[b][[2]] - vec[a][[2]] vec[b][[1]]} /. wv[l_] :> ww[l]]];
 
 (* ---------- display ---------- *)
 
@@ -103,7 +108,7 @@ ShowVertexTable[v_Association] := (
 
 BuildVertices[ansatz_] := Block[{$FRGModule = "Vertices"},
   Module[{t0 = AbsoluteTime[], theory, fields, phis, bars, sortF, mons, nmax, msets, table, checks = {}, warns = {}, stage, w, q, g2, bad,
-    pw, conv},
+    pw, conv, nc},
    validateStage[ansatz, "Ansatz"];
    theory = ansatz["Theory"]; fields = theory["Fields"]; phis = theory["Scalars"]; bars = theory["ResponseFields"];
    mons = ansatz["Monomials"];
@@ -113,10 +118,11 @@ BuildVertices[ansatz_] := Block[{$FRGModule = "Vertices"},
    table = Association[DeleteCases[(# -> vertexExpr[#, mons, sortF]) & /@ msets, _ -> 0]];
 
    (* (a) plane waves into the raw density, every multiset (also those with no vertex: nothing may be lost) *)
-   bad = Select[msets, Expand[planeWaveCoefficient[ansatz["Density"], fields, #] - symbolAsPlaneWave[Lookup[table, Key[#], 0]]] =!= 0 &];
+   nc = If[theory["Dimension"] === 2, 2, 3];
+   bad = Select[msets, Expand[planeWaveCoefficient[ansatz["Density"], fields, #, nc] - symbolAsPlaneWave[Lookup[table, Key[#], 0], nc]] =!= 0 &];
    AppendTo[checks, assertCheck["Vertices.planeWave", bad === {}, bad,
      "the Fourier vertex differs from the plane-wave substitution into the density: parser or Fourier-transform error",
-     "plane waves in the raw density = derived vertex, " <> ToString[Length[msets]] <> " field multisets (n = 2.." <> ToString[nmax] <> ", d = 3 components)"]];
+     "plane waves in the raw density = derived vertex, " <> ToString[Length[msets]] <> " field multisets (n = 2.." <> ToString[nmax] <> ", d = " <> ToString[nc] <> " components)"]];
 
    stage = <|"Fields" -> fields, "VertexTable" -> table|>;
    g2 = Gamma2Matrix[stage, w, q];

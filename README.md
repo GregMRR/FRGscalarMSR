@@ -2,7 +2,7 @@
 
 A Mathematica library that takes an ansatz for Γ_k of N scalar fields in the MSR (response-field) formalism and produces a
 closed, checked set of Wetterich flow equations, using the derivative-expansion pipeline.
-- The design is in `FRGDESIGN.md`.
+- The design is in `design/FRGDESIGN.md`.
 - Each module is described in `docs/MODULES.md`: what it does, its assumptions and its checks.
 - The conventions are in `docs/CONVENTIONS.md`: Fourier transform, vertex legs, the density language.
 - Planned extensions are in `docs/FUTURE.md`.
@@ -41,7 +41,8 @@ ShowEquation[equations, gk]   ShowClosureReport[flows]   SaveStage[equations, fi
 The output equations are ∂s(coefficient as written in the ansatz) = ∫dᵈq/(2π)ᵈ (integrand). In each integrand:
 - `dsCoupling[c]` = k dc/dk enters linearly;
 - the regulator shapes r(q²/k²) and their derivatives stay abstract;
-- `Dim` stays symbolic.
+- `Dim` stays symbolic. The one exception is the 2D Levi-Civita term ε_ij ∂_iA ∂_jB, written `jac[A, B]`: it needs
+  `"Dimension" -> FixedDimension[2]`, the integrands then carry d = 2, and the oracle runs in d = 2 only (`design/LEVICIVITA.md`).
 
 The output is meant for the FlowRG Julia package; the export step (adimensionalisation, Julia code) is future work
 (`docs/FUTURE.md`).
@@ -59,7 +60,7 @@ math -script examples/runNotebook.wl examples/ShallowWaterDE4plus.nb  # ~80 s
 ## Tests
 
 ```
-math -script tests/runTests.wl [--verbose]     # unit + acceptance, ~110 s; exit code 0 means every test passed
+math -script tests/runTests.wl [--verbose]     # unit + acceptance, ~4 min; exit code 0 means every test passed
 ```
 
 ## Known limitations

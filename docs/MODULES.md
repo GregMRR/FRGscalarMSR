@@ -34,6 +34,11 @@ assumptions, the manipulations it performs, its checks, and its `Show…` comman
 - `RandomRationalPoint[syms, seed]`, `PrintCard[stage]`.
 - `scal[a, b]` is the scalar product: Orderless, linear over sums and over explicit numbers only (E14). The rules come from
   `DE4plus_fast.wl` §1.
+- `wedge[a, b]` = ε_ij a_i b_j in d = 2 (ε₁₂ = +1, design/LEVICIVITA.md). It is antisymmetric, `wedge[a, a]` = 0, and linear
+  over sums and explicit numbers. It is kept in canonical order (`wedge[b, a]` → −`wedge[a, b]`), not Orderless.
+- Internal `reduceWedge2D[e]` applies the d = 2 identity (F2)
+  wedge[a,b] wedge[c,d] = scal[a,c] scal[b,d] − scal[a,d] scal[b,c] until each term has at most one wedge. With a symbolic d
+  the p² projection of a wedge² term would be off by d − 1, which is why ε needs the declared d = 2.
 
 **Assumption.** An identity that holds at 3 random rational points is treated as exact. A rational function of degree D in
 its variables that vanishes at a random point drawn from M values does so by accident with probability ≤ D/M (the
@@ -45,7 +50,8 @@ Schwartz–Zippel bound), so three independent points make an accidental pass ne
 
 **Objective.** Declare the physical scalars, their response fields, the field order and the space dimension.
 
-**Input / output.** Options `"Scalars" -> {φ1, …}` and `"Dimension" -> Dim`. Output: the `"Theory"` stage, with keys
+**Input / output.** Options `"Scalars" -> {φ1, …}` and `"Dimension" -> Dim` (a fresh symbol) or `"Dimension" -> FixedDimension[2]`
+(needed by `jac`; the stage then stores `"Dimension" -> 2` and the card says "dimension 2 (declared)"). Output: the `"Theory"` stage, with keys
 `Scalars`, `ResponseFields`, `Fields` (in field order), `ResponseOf`, `Dimension`.
 
 **Assumptions.** N = 1 or 2. With 2 scalars, the propagator denominator Δ(ω) has degree 2 in ω, which is the largest degree
@@ -57,7 +63,8 @@ v1 integrates in closed form.
 - `Theory.N`: N ∈ {1, 2}.
 - `Theory.scalars.*`, `Theory.responseFields.*`, `Theory.dimension.*`: the symbols are plain, not System symbols, not reserved
   (`k q p y t x ω ν`), do not collide with library names, have no definitions, and are not duplicated.
-- `Theory.dimensionDistinct`: `Dim` is not a field.
+- `Theory.dimension`: a symbol or `FixedDimension[2]`. A literal number, `FixedDimension[3]`, or a `Dim` that got a value aborts.
+- `Theory.dimensionDistinct`: `Dim` is not a field (symbolic d only).
 
 **Show.** The card prints the field order.
 
@@ -71,7 +78,8 @@ Vertices module Fourier-transforms (milestone 2).
 **Input / output.** The Theory stage, plus `"Density" -> expr`, `"Couplings" -> {…}` and `"Pipeline" -> "DerivativeExpansion"`.
 Output: the `"Ansatz"` stage. Its key `"Monomials"` is a list of
 `<|"Coefficient", "Factors" -> {FieldFactor[φ, n_t, {indices}], …}, "Fields", "FieldCount", "ResponseCount", "TimeOrder",
-"MomentumOrder"|>`.
+"MomentumOrder"|>`. When a monomial carries ε (from `jac`), the stage also has `"Epsilon" -> True`; read it with
+`Lookup[ansatz, "Epsilon", False]`.
 
 **Assumptions.**
 - Couplings depend on k only. They have no t or x dependence and never sit under an operator.
@@ -87,14 +95,23 @@ Output: the `"Ansatz"` stage. Its key `"Monomials"` is a list of
    Gradients carry explicit spatial indices, and contractions are repeated indices.
 3. The density is expanded into monomials. Since the momentum order is ≤ 2, there is at most one summed index, which is
    renamed `SpaceIndex[1]`; equal monomials then combine, and monomials that cancel are dropped (reported as INFO).
+4. `jac[a, b]` puts `EpsIndex[1]` on the factors of a and `EpsIndex[2]` on those of b. ε is antisymmetric, so a monomial and
+   its copy with the two slots swapped are the same monomial with opposite sign: the smaller of the two factor lists is kept,
+   with sign −1 when the swapped one is chosen, and a list equal to its swap is zero (`jac[A, A]`, `jac[A,B] + jac[B,A]` cancel).
+   The momentum order of a `jac` monomial is 2, so it has no other spatial index.
 
 **Checks** (named as in the FAIL block).
 - `Ansatz.noSystemDerivatives` (E7): no `Dt`, `D`, `Grad`, `Div`, `Laplacian` or `Derivative`.
   - Caveat: System operators applied to explicit coordinates (`Laplacian[H, {x, y}]`) evaluate to 0 before the library sees
     them. Only the package operators are safe.
 - `Ansatz.knownSymbols`: every symbol is a field, a declared coupling or `Dim`. An explicit `t` or `x` gets its own hint.
-- `Ansatz.couplingsOutsideOperators`: no `dt[nk H]`.
-- `Ansatz.operatorArity`, `Ansatz.operatorOnField`.
+- `Ansatz.couplingsOutsideOperators`: no `dt[nk H]` (every argument of `jac` is checked).
+- `Ansatz.operatorArity` (`jac` takes 2 arguments, the others 1), `Ansatz.operatorOnField` (every argument contains a field).
+- `Ansatz.epsilonDimension`: `jac` needs `"Dimension" -> FixedDimension[2]`.
+- `Ansatz.singleEpsilon`: at most one `jac` per monomial, counted in slots (so `jac[…]^2` aborts). Two would be p⁴.
+- `Ansatz.jacQuadratic`: a quadratic `jac` term is a total derivative, ∂_i(ε_ij A ∂_j B), whose vertex vanishes (F5): it aborts
+  instead of leaving a coupling that silently does nothing.
+- `Ansatz.indexPairs` (internal): every `SpaceIndex` appears twice; `EpsIndex[1]` and `EpsIndex[2]` once each or not at all.
 - `Ansatz.vectorRank`, `Ansatz.vectorSum`, `Ansatz.vectorProduct`, `Ansatz.scalarDensity`: the vector algebra is well formed.
 - `Ansatz.polynomial`, `Ansatz.unknownStructure`: the density is polynomial in the fields.
 - `Ansatz.MSR`, `Ansatz.noLinear`, `Ansatz.quartic`, `Ansatz.momentumOrder` (E2).
@@ -102,7 +119,7 @@ Output: the `"Ansatz"` stage. Its key `"Monomials"` is a list of
 - Warning `Ansatz.unusedCouplings`: a declared coupling is absent from the density.
 
 **Show.** `ShowMonomials[ansatz]` prints the table coefficient | fields | operators | order. It is printed automatically by
-`DefineAnsatz`. `MonomialString[m]` writes a monomial back in the DSL.
+`DefineAnsatz`. `MonomialString[m]` writes a monomial back in the DSL (the ε pair as `jac[a, b]`).
 
 ---
 
@@ -122,7 +139,9 @@ in field order, to Γ⁽ⁿ⁾ as a function of all n leg momenta, before the δ
 
 **Manipulations.**
 1. A factor ∂t^{n_t} ∂_{i…} φ at leg l becomes (iω_l)^{n_t} Π(−i q_l,i). A repeated index between legs l and m becomes
-   `scal[q_l, q_m]`, and within one factor `scal[q_l, q_l]`.
+   `scal[q_l, q_m]`, and within one factor `scal[q_l, q_l]`. The ε pair, `EpsIndex[1]` at leg l and `EpsIndex[2]` at leg m,
+   becomes `wedge[q_l, q_m]`; with the (−i)² prefactor, `jac[A, B]` gives −`wedge[q_A, q_B]` (F3). Γ2 never carries a wedge,
+   because `wedge[q, −q]` = 0.
 2. The n-th functional derivative of c ∫dt dᵈx Π φ is the sum, over every assignment of the monomial's factors to legs that carry
    the same field, of c Π(symbols). This sum is the full symmetrisation: identical fields give the multiplicity factors (2 for
    φ̄², 3! for φ̄φ³).
@@ -131,7 +150,8 @@ in field order, to Γ⁽ⁿ⁾ as a function of all n leg momenta, before the δ
 
 **Checks.**
 - `Vertices.planeWave` (independent). For every field multiset with n = 2..4, including those with no vertex, set
-  φ_a(t,x) = Σ_l ε_l e^{i(ω_l t − q_l·x)}, with explicit 3-component vectors, in the **raw density** using System `D`, `Grad`,
+  φ_a(t,x) = Σ_l ε_l e^{i(ω_l t − q_l·x)}, with explicit 3-component vectors (2 for a declared d = 2, where `jac` becomes
+  ∂₁a ∂₂b − ∂₂a ∂₁b and `wedge[a, b]` becomes a₁b₂ − a₂b₁), in the **raw density** using System `D`, `Grad`,
   `Div` and `Laplacian`. The coefficient of ε_1⋯ε_n must equal the derived vertex exactly. This tests the parser and the Fourier
   transform together, independently of their code.
 - `Vertices.gamma2Symmetry`, `Vertices.causality` (Γ_φφ = 0), `Vertices.gamma2Polynomial`. These are implementation checks (E11):
@@ -356,11 +376,19 @@ is pipeline 1: the external variables are set to zero. As a result the only ω-p
 - This is valid only for p² (E2).
 - Derivatives of Δ(ω, s) are completed with Δ = Σ_m c_m(s) (iω)^m, so they come out in `DeltaCoefficient[m]` atoms and their
   s-derivatives.
+- **With ε** (`jac`, declared d = 2 only), before anything else:
+  - `reduceWedge2D` (F2) leaves at most one wedge per term, so every term is wedge[p,q]^e f(p², p·q, q², ν) with e ∈ {0, 1}
+    (wedge[q, q] = wedge[p, p] = 0 and linearity reduce any other wedge to this one);
+  - the e = 1 terms are dropped (F4): they vanish at p = 0, and so does their p-Laplacian, 2 ε_ij q_j q_i ∂_{p·q} f = 0. This
+    is exact for every projection with m, n ≤ 1 and any m.
 
 **Checks.**
 - `Projection.LHS`: the same operator, applied to Γ_k (regulator off), reproduces every classified Γ_k coefficient. This checks
   the normalisation of both projections, including 2d.
-- `Projection.evenInQ` and `Projection.complete`: no external variable, vector, or derivative of `scal` or Δ is left.
+- `Projection.evenInQ` and `Projection.complete`: no external variable, vector, wedge, or derivative of `scal` or Δ is left.
+- With ε: `Projection.epsilonDimension` (d = 2), and `Projection.wedgeOdd`. After F2 every remaining wedge must be
+  ±wedge[p, q] to a power ≤ 1, and the projection of the dropped part, evaluated with explicit 2-vectors at a random rational
+  point, must be exactly 0. The card counts the integrands with a nonzero dropped part.
 
 **Show.** `ShowIntegrand[projected, nk*Ak]` or `ShowIntegrand[projected, {a, b}, {m, n}]`.
 
@@ -452,7 +480,8 @@ monomial is caught there, before any flow is computed.
 
 **Objective.** Write every equation in two forms:
 - **compact**: scale-stripped atoms and abstract ∂sR entries, as the script's `compact.wdx`;
-- **explicit**: the q-integrand in couplings, `dsCoupling[c]`, shapes and `Dim`, ready for FlowRG (design §6 item 10).
+- **explicit**: the q-integrand in couplings, `dsCoupling[c]`, shapes and `Dim`, ready for FlowRG (design §6 item 10). For a
+  declared d = 2 the integrand has the number 2 in place of `Dim`, and the card says "d = 2 (declared)".
 
 **Scale-stripped atoms.** These are generated automatically, replacing the script's hand-written `toAtoms`/`atomVals`.
 - Each propagator atom v(s) = GammaAtom[a,b,m](s), with s = q², is written v = c·sⁿ·X. Here c is the number and coupling
@@ -529,8 +558,9 @@ FrequencyIntegration and Assemble. It generalises script §6c.
 **Method.** At one random point:
 - couplings and `dsCoupling[c]` are random rationals and k is random;
 - each shape is a concrete function (1/(1+y²), e^{−y}, 2/(2+y), …);
-- d = 2 and d = 3;
-- the loop momentum is an explicit d-vector.
+- d = 2 and d = 3 (`"Dimensions" -> Automatic`); for a declared d = 2, only d = 2. An explicit list must be a subset of
+  {2, 3} for a symbolic d, and exactly {2} for a declared d = 2; anything else aborts with `Oracle.declaredDimension`;
+- the loop momentum is an explicit d-vector; `wedge[a, b]` becomes a₁b₂ − a₂b₁ once p is explicit.
 
 The point is redrawn until the validity conditions hold, because the symbolic side assumes causal poles. Then, for each
 equation:
@@ -554,6 +584,7 @@ with Canet's flow instead (see Loops).
 - Shallow water, 9 equations in d = 2 and 3: relative errors ≤ 2·10⁻⁹. This is the finite-difference error, about h²; the
   script used a tolerance of 10⁻⁶. HEQ is numerically 5·10⁻¹³. Runs in 11 s.
 - KPZ with zero flows (`AssembleTest.wl`): 20 comparisons in 2 s.
+- `jac` in d = 2 (`tests/acceptance/Jacobian2D.wl`): 5 equations, relative errors ≤ 10⁻⁹.
 
 ---
 

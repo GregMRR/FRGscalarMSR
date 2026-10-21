@@ -10,19 +10,23 @@ dt::usage = "dt[e]: time derivative in the ansatz density (package-owned and ine
 grad::usage = "grad[e]: spatial gradient (a vector) in the ansatz density; contract two of them with a dot: grad[a].grad[b].";
 div::usage = "div[v]: divergence of a vector expression in the ansatz density, e.g. div[H grad[Psi]].";
 lap::usage = "lap[e]: Laplacian in the ansatz density.";
+jac::usage = "jac[a, b] = eps_ij d_i a d_j b (eps_12 = +1) in the ansatz density, a and b scalars. It exists only in d = 2: declare \
+\"Dimension\" -> FixedDimension[2] in DefineTheory. At most one jac per monomial.";
 DefineAnsatz::usage = "DefineAnsatz[theory, \"Density\" -> density, \"Couplings\" -> {c1, c2, ...}] parses the density \
 (Gamma_k = Integral dt d^dx density) into monomials, prints the parsed table and returns the \"Ansatz\" stage.";
 FieldFactor::usage = "FieldFactor[phi, nt, {i, ...}] is the factor dt^nt d_i ... phi of a parsed monomial; a repeated index \
 SpaceIndex[1] is summed over (one contraction at most, since momentum order <= 2).";
 SpaceIndex::usage = "SpaceIndex[n] is a summed spatial index in a parsed monomial.";
+EpsIndex::usage = "EpsIndex[s] (s = 1, 2) is the s-th index of eps_ij in a parsed monomial: jac[a, b] gives EpsIndex[1] on the factor of a \
+and EpsIndex[2] on the factor of b.";
 ShowMonomials::usage = "ShowMonomials[ansatz] prints the table of parsed monomials (coefficient | fields | operators).";
 MonomialString::usage = "MonomialString[monomial] writes the field part of a parsed monomial back in the DSL.";
 
 Begin["`Private`"];
 
-SetAttributes[{dt, grad, div, lap, FieldFactor, SpaceIndex}, Protected];
+SetAttributes[{dt, grad, div, lap, jac, FieldFactor, SpaceIndex, EpsIndex}, Protected];
 
-opHeads = dt | grad | div | lap;
+opHeads = dt | grad | div | lap | jac;
 systemOps = Dt | D | Grad | Div | Laplacian | Curl | Derivative | Integrate | Inactive | Inactivate;
 
 (* ---------- vector rank of a raw density expression (0 scalar, 1 vector); fails on ill-formed input ---------- *)
@@ -35,6 +39,7 @@ rankOf[grad[a_], fld_] := (needRank[a, 0, fld, "grad[...] acts on a scalar"]; 1)
 rankOf[dt[a_], fld_] := rank[a, fld];
 rankOf[div[a_], fld_] := (needRank[a, 1, fld, "div[...] acts on a vector, e.g. div[H grad[Psi]]"]; 0);
 rankOf[lap[a_], fld_] := (needRank[a, 0, fld, "lap[...] acts on a scalar"]; 0);
+rankOf[jac[a_, b_], fld_] := (needRank[a, 0, fld, "jac[a, b] acts on two scalars"]; needRank[b, 0, fld, "jac[a, b] acts on two scalars"]; 0);
 rankOf[Dot[a_, b_], fld_] := (needRank[a, 1, fld, "a dot contracts two vectors"]; needRank[b, 1, fld, "a dot contracts two vectors"]; 0);
 rankOf[e_Plus, fld_] := Module[{r = rank[#, fld] & /@ List @@ e},
    FRGAssert["Ansatz.vectorSum", Equal @@ r, e, "a sum mixes scalar and vector terms"]; First[r]];
@@ -65,6 +70,7 @@ toFactors[e_, fld_, new_] := Module[{S, V},
    S[lap[x_]] := With[{j = new[]}, Expand[derive[j][derive[j][S[x]]]]];
    S[div[v_]] := With[{j = new[]}, Expand[derive[j][V[v, j]]]];
    S[Dot[u_, v_]] := With[{j = new[]}, Expand[V[u, j] V[v, j]]];
+   S[jac[a_, b_]] := With[{j = new[]}, Expand[derive[EpsIndex[j, 1]][S[a]] derive[EpsIndex[j, 2]][S[b]]]];
    V[grad[x_], i_] := Expand[derive[i][S[x]]];
    V[dt[v_], i_] := Expand[derive["t"][V[v, i]]];
    V[x_Plus, i_] := V[#, i] & /@ x;
@@ -77,9 +83,18 @@ toFactors[e_, fld_, new_] := Module[{S, V},
 
 (* ---------- monomials ---------- *)
 
-(* rename the (at most one) summed index to SpaceIndex[1] so that equal monomials combine *)
-canonical[factors_List] := Module[{ix = Union[Flatten[factors[[All, 3]]]]},
-   Sort[factors /. Thread[ix -> Table[SpaceIndex[n], {n, Length[ix]}]]]];
+(* rename the (at most one) summed index to SpaceIndex[1] so that equal monomials combine; returns {sign, factors}.
+   With eps (one pair EpsIndex[1], EpsIndex[2]): eps_ij is antisymmetric, so the factor list with the slots swapped is the same
+   monomial with sign -1; the smaller of the two lists is kept, and a list equal to its swap is zero (sign 0). *)
+canonical[factors0_List] := Module[{factors = factors0 /. EpsIndex[_, s_] :> EpsIndex[s], ix, l, ls},
+   ix = Union[Cases[Flatten[factors[[All, 3]]], Except[_EpsIndex]]];
+   l = Sort[factors /. Thread[ix -> Table[SpaceIndex[n], {n, Length[ix]}]]];
+   If[FreeQ[l, EpsIndex], {1, l},
+    ls = Sort[l /. {EpsIndex[1] -> EpsIndex[2], EpsIndex[2] -> EpsIndex[1]}];
+    Which[ls === l, {0, l}, OrderedQ[{l, ls}], {1, l}, True, {-1, ls}]]];
+
+arity[_jac] = 2;
+arity[_] = 1;
 
 splitTerm[t_] := Module[{fs = If[Head[t] === Times, List @@ t, {t}]},
    FRGAssert["Ansatz.polynomial", AllTrue[fs, MatchQ[#, _FieldFactor | Power[_FieldFactor, _Integer?Positive] | _?(FreeQ[#, FieldFactor] &)] &], t,
@@ -90,10 +105,18 @@ splitTerm[t_] := Module[{fs = If[Head[t] === Times, List @@ t, {t}]},
 fieldString[FieldFactor[f_, nt_, ix_]] := Nest["dt[" <> # <> "]" &,
    Which[ix === {}, ToString[f], Length[ix] == 2 && ix[[1]] === ix[[2]], "lap[" <> ToString[f] <> "]",
     Length[ix] == 1, "grad[" <> ToString[f] <> "]", True, "d" <> ToString[ix] <> "[" <> ToString[f] <> "]"], nt];
-(* factors carrying one index are the two ends of the contraction: printed as grad[a].grad[b] *)
-MonomialString[m_Association] := Module[{fs = m["Factors"], pair},
+(* factors carrying one index are the two ends of the contraction: printed as grad[a].grad[b]; the factors carrying EpsIndex are
+   printed as jac[slot 1, slot 2] *)
+MonomialString[m_Association] := Module[{fs0 = m["Factors"], fs, pair, eps},
+   eps = SortBy[Select[fs0, ! FreeQ[#[[3]], EpsIndex] &], First[Cases[#[[3]], EpsIndex[s_] :> s]] &];
+   fs = Select[fs0, FreeQ[#[[3]], EpsIndex] &];
    pair = Select[fs, Length[#[[3]]] == 1 &];
-   StringRiffle[Join[fieldString /@ Select[fs, Length[#[[3]]] =!= 1 &], If[pair === {}, {}, {StringRiffle[fieldString /@ pair, "."]}]], " "]];
+   StringRiffle[Join[fieldString /@ Select[fs, Length[#[[3]]] =!= 1 &], If[pair === {}, {}, {StringRiffle[fieldString /@ pair, "."]}],
+     If[eps === {}, {}, {"jac[" <> StringRiffle[fieldString[MapAt[DeleteCases[#, _EpsIndex] &, #, 3]] & /@ eps, ", "] <> "]"}]], " "]];
+
+(* every SpaceIndex appears twice; EpsIndex[1] and EpsIndex[2] once each, or neither *)
+indexPairsQ[m_] := Module[{ix = Flatten[m["Factors"][[All, 3]]]},
+   AllTrue[Tally[Cases[ix, _SpaceIndex]][[All, 2]], EqualTo[2]] && MemberQ[{{0, 0}, {1, 1}}, {Count[ix, EpsIndex[1]], Count[ix, EpsIndex[2]]}]];
 
 (* factors stored response fields first, then in field order (display order; identity was fixed by canonical) *)
 monomialRecord[{coef_, fac0_}, fieldOrder_, responses_] := Module[{nIx = Length[Flatten[fac0[[All, 3]]]], fac},
@@ -108,7 +131,7 @@ Options[DefineAnsatz] = {"Density" -> None, "Couplings" -> {}, "Pipeline" -> "De
 
 DefineAnsatz[theory_, opts : OptionsPattern[]] := Block[{$FRGModule = "Ansatz"},
   Module[{t0 = AbsoluteTime[], dens, cps, fields, fld, responses, checks = {}, warns = {}, counter = 0, new, ops, expanded, terms, mons,
-    badSyms, unused, stage},
+    badSyms, unused, stage, jacQ, epsQ},
    validateStage[theory, "Theory"];
    FRGAssert["Ansatz.options", MatchQ[{opts}, {(Rule | RuleDelayed)["Density" | "Couplings" | "Pipeline", _] ...}], {opts},
     "only the options \"Density\", \"Couplings\", \"Pipeline\" are accepted"];
@@ -126,19 +149,23 @@ DefineAnsatz[theory_, opts : OptionsPattern[]] := Block[{$FRGModule = "Ansatz"},
    AppendTo[checks, assertCheck["Ansatz.noSystemDerivatives", FreeQ[dens, systemOps], Cases[dens, systemOps[___] | Derivative[__][_], {0, Infinity}, Heads -> True],
      "use the package operators dt, grad, div, lap (System Dt, Grad, Div, Laplacian, D are not allowed)", "no Dt/D/Grad/Div/Laplacian"]];
 
-   badSyms = Complement[Cases[dens, s_Symbol /; Context[s] =!= "System`", {0, Infinity}, Heads -> True], fields, cps, {theory["Dimension"], dt, grad, div, lap}];
+   badSyms = Complement[Cases[dens, s_Symbol /; Context[s] =!= "System`", {0, Infinity}, Heads -> True], fields, cps, {theory["Dimension"], dt, grad, div, lap, jac}];
    AppendTo[checks, assertCheck["Ansatz.knownSymbols", badSyms === {}, badSyms,
      If[MemberQ[SymbolName /@ badSyms, "t" | "x"], "couplings depend on k only: no explicit t or x dependence is allowed",
       "every symbol must be a declared coupling (\"Couplings\") or a field of the theory"], "every symbol is a field, a coupling or Dim"]];
 
    (* operators act on field expressions only: couplings depend on k only and must stand outside (no dt[nk H], no lap[nk]) *)
    ops = Cases[dens, opHeads[___], {0, Infinity}];
-   FRGAssert["Ansatz.operatorArity", AllTrue[ops, Length[#] == 1 &], Select[ops, Length[#] =!= 1 &], "dt, grad, div, lap take exactly one argument"];
-   AppendTo[checks, assertCheck["Ansatz.couplingsOutsideOperators", AllTrue[ops, FreeQ[First[#], Alternatives @@ cps] &],
-     Select[ops, ! FreeQ[First[#], Alternatives @@ cps] &],
+   FRGAssert["Ansatz.operatorArity", AllTrue[ops, Length[#] == arity[#] &], Select[ops, Length[#] =!= arity[#] &],
+    "dt, grad, div, lap take exactly one argument; jac takes two"];
+   AppendTo[checks, assertCheck["Ansatz.couplingsOutsideOperators", AllTrue[ops, FreeQ[List @@ #, Alternatives @@ cps] &],
+     Select[ops, ! FreeQ[List @@ #, Alternatives @@ cps] &],
      "couplings depend on k only: write nk dt[H], not dt[nk H] (and never differentiate a coupling)", "no coupling under dt/grad/div/lap"]];
-   FRGAssert["Ansatz.operatorOnField", AllTrue[ops, ! FreeQ[First[#], fld] &], Select[ops, FreeQ[First[#], fld] &],
+   FRGAssert["Ansatz.operatorOnField", AllTrue[ops, AllTrue[List @@ #, ! FreeQ[#, fld] &] &], Select[ops, ! AllTrue[List @@ #, ! FreeQ[#, fld] &] &],
     "an operator acts on an expression without fields"];
+   jacQ = ! FreeQ[dens, jac];
+   If[jacQ, AppendTo[checks, assertCheck["Ansatz.epsilonDimension", theory["Dimension"] === 2, theory["Dimension"],
+      "jac (eps_ij) exists only in d = 2: declare \"Dimension\" -> FixedDimension[2]", "jac with d = 2 (declared)"]]];
 
    FRGAssert["Ansatz.scalarDensity", rank[dens, fld] === 0, dens, "the density must be a scalar (contract gradients with a dot)"];
    new[] := SpaceIndex[{"dummy", ++counter}];
@@ -147,11 +174,18 @@ DefineAnsatz[theory_, opts : OptionsPattern[]] := Block[{$FRGModule = "Ansatz"},
     "some field or operator was not converted (internal error, or a non-polynomial structure such as Exp[H])"];
    terms = If[Head[expanded] === Plus, List @@ expanded, {expanded}];
    mons = splitTerm /@ terms;
-   mons = KeyValueMap[{Together[Total[#2]], #1} &, GroupBy[mons, canonical[#[[2]]] & -> First]];
+   If[jacQ, AppendTo[checks, assertCheck["Ansatz.singleEpsilon", AllTrue[mons, Count[#[[2, All, 3]], EpsIndex[_, 1], Infinity] <= 1 &],
+      Select[mons, Count[#[[2, All, 3]], EpsIndex[_, 1], Infinity] > 1 &], "at most one jac per monomial (p^4 is unsupported)", "at most one jac per monomial"]]];
+   mons = Function[m, With[{c = canonical[m[[2]]]}, {c[[1]] m[[1]], c[[2]]}]] /@ mons;
+   mons = KeyValueMap[{Together[Total[#2]], #1} &, GroupBy[mons, Last -> First]];
    If[MemberQ[mons[[All, 1]], 0],
     AppendTo[warns, infoCheck["INFO", "Ansatz.cancelled", ToString[Count[mons[[All, 1]], 0]] <> " monomial(s) cancel and are dropped"]]];
    mons = monomialRecord[#, fields, responses] & /@ DeleteCases[mons, {0, _}];
    mons = SortBy[mons, {#FieldCount, Sort[First /@ (FirstPosition[fields, #] & /@ #Fields)], #TimeOrder, #MomentumOrder} &];
+   epsQ = ! FreeQ[mons[[All, "Factors"]], EpsIndex];
+   If[epsQ, AppendTo[checks, assertCheck["Ansatz.jacQuadratic", NoneTrue[mons, #FieldCount == 2 && ! FreeQ[#Factors, EpsIndex] &],
+      MonomialString /@ Select[mons, #FieldCount == 2 && ! FreeQ[#Factors, EpsIndex] &],
+      "a quadratic jac term is a total derivative and does not contribute: remove it", "no quadratic jac term (total derivative)"]]];
 
    AppendTo[checks, assertCheck["Ansatz.MSR", AllTrue[mons, #ResponseCount >= 1 &], MonomialString /@ Select[mons, #ResponseCount == 0 &],
      "every monomial must contain at least one response field (MSR action)", "every monomial has >= 1 response field"]];
@@ -161,15 +195,15 @@ DefineAnsatz[theory_, opts : OptionsPattern[]] := Block[{$FRGModule = "Ansatz"},
      "v1 supports at most quartic monomials", "at most quartic (max " <> ToString[Max[#FieldCount & /@ mons]] <> ")"]];
    AppendTo[checks, assertCheck["Ansatz.momentumOrder", AllTrue[mons, #MomentumOrder <= 2 &], MonomialString /@ Select[mons, #MomentumOrder > 2 &],
      "momentum order p^4 or higher: the p-Laplacian projection is valid for p^2 only (E2, see docs/FUTURE.md)", "momentum order <= p^2"]];
-   FRGAssert["Ansatz.indexPairs", AllTrue[mons, AllTrue[Tally[Flatten[#Factors[[All, 3]]]][[All, 2]], EqualTo[2]] &],
-    Select[mons, ! AllTrue[Tally[Flatten[#Factors[[All, 3]]]][[All, 2]], EqualTo[2]] &], "internal: every spatial index must appear exactly twice"];
-   AppendTo[checks, assertCheck["Ansatz.couplingsInCoefficients", AllTrue[mons, FreeQ[#Coefficient, fld | opHeads | SpaceIndex] &], mons,
+   FRGAssert["Ansatz.indexPairs", AllTrue[mons, indexPairsQ], Select[mons, ! indexPairsQ[#] &],
+    "internal: every spatial index must appear exactly twice, and EpsIndex[1], EpsIndex[2] once each or not at all"];
+   AppendTo[checks, assertCheck["Ansatz.couplingsInCoefficients", AllTrue[mons, FreeQ[#Coefficient, fld | opHeads | SpaceIndex | EpsIndex] &], mons,
      "internal: a coefficient contains a field", "coefficients are field-free"]];
    unused = Select[cps, FreeQ[mons[[All, "Coefficient"]], #] &];
    If[unused =!= {}, AppendTo[warns, infoCheck["WARN", "Ansatz.unusedCouplings", "declared but absent from the density: " <> ToString[unused]]]];
 
    stage = stampStage[<|"Stage" -> "Ansatz", "Pipeline" -> "DerivativeExpansion", "Upstream" -> {theory["Fingerprint"]},
-      "Theory" -> theory, "Density" -> dens, "Couplings" -> cps, "Monomials" -> mons,
+      "Theory" -> theory, "Density" -> dens, "Couplings" -> cps, "Monomials" -> mons, Sequence @@ If[epsQ, {"Epsilon" -> True}, {}],
       "Checks" -> checks, "Warnings" -> warns, "Timing" -> AbsoluteTime[] - t0|>];
    ShowMonomials[stage];
    PrintCard[stage];

@@ -67,3 +67,42 @@ expectFail["wrong input stage", DefineAnsatz[sw, "Density" -> Hbar dt[H], "Coupl
 H = 1;
 expectFail["stale theory (a field got a value)", DefineAnsatz[swTheory, "Density" -> Hbar dt[H], "Couplings" -> {}], "Stage.fingerprint"];
 ClearAll[H];
+
+(* jac: eps_ij d_i a d_j b in d = 2 (design/LEVICIVITA.md) *)
+strip[a_Association] := strip /@ KeyDrop[a, {"Timing", "Fingerprint", "Upstream"}]; strip[l_List] := strip /@ l; strip[x_] := x;
+Module[{kt = quiet[DefineTheory["Scalars" -> {h}, "Dimension" -> Dim]], ka},
+  ka = quiet[DefineAnsatz[kt, "Density" -> hbar (dt[h] - nuk lap[h] - lamk/2 grad[h].grad[h]) - Dk hbar^2, "Couplings" -> {nuk, lamk, Dk}]];
+  (* content hash (without timings, which enter the fingerprint through the nested Theory stage) recorded at commit 1fbb12e *)
+  test["eps-free symbolic-Dim ansatz unchanged by jac support", Hash[strip[ka], "SHA256", "HexString"],
+   "2821c78a100ebada39ecf39e511201ef4a3991401eacd155c3852c890d69cee4"];
+  test["eps-free ansatz has no Epsilon key", KeyExistsQ[ka, "Epsilon"], False]];
+
+jTheory = quiet[DefineTheory["Scalars" -> {H, Psi}, "Dimension" -> FixedDimension[2]]];
+jAnsatz[d_, c_ : {lk}] := DefineAnsatz[jTheory, "Density" -> Hbar dt[H] + Psibar dt[Psi] + d, "Couplings" -> c];
+jTable[a_] := Sort[{#Coefficient, MonomialString[#]} & /@ a["Monomials"]];
+
+expectFail["jac with a symbolic Dim", DefineAnsatz[swTheory, "Density" -> Hbar dt[H] + lk Hbar jac[H, Psi], "Couplings" -> {lk}],
+  "Ansatz.epsilonDimension"];
+Module[{a = quiet[jAnsatz[lk Hbar jac[H, Psi]]], m},
+  m = SelectFirst[a["Monomials"], #FieldCount == 3 &];
+  test["jac parsed: one cubic monomial", Count[a["Monomials"], KeyValuePattern["FieldCount" -> 3]], 1];
+  test["jac monomial: coefficient and display", {m["Coefficient"], MonomialString[m]}, {lk, "Hbar jac[H, Psi]"}];
+  test["jac monomial: orders", Lookup[m, {"TimeOrder", "MomentumOrder"}], {0, 2}];
+  test["jac: Epsilon key", a["Epsilon"], True]];
+test["jac[B, A] = -jac[A, B]", Select[jTable[quiet[jAnsatz[lk Hbar jac[Psi, H]]]], StringContainsQ[#[[2]], "jac"] &], {{-lk, "Hbar jac[H, Psi]"}}];
+Module[{a = quiet[jAnsatz[lk Hbar (jac[H, Psi] + jac[Psi, H])]]},
+  test["Hbar (jac[A,B] + jac[B,A]) cancels", Length[a["Monomials"]], 2];
+  test["cancellation reported", MemberQ[a["Warnings"][[All, "Check"]], "Ansatz.cancelled"], True];
+  test["no Epsilon key after cancellation", KeyExistsQ[a, "Epsilon"], False]];
+test["Hbar jac[Psi, Psi] cancels", Length[quiet[jAnsatz[lk Hbar jac[Psi, Psi]]]["Monomials"]], 2];
+test["jac[dt[H], Psi] parsed", Select[jTable[quiet[jAnsatz[lk Hbar jac[dt[H], Psi]]]], StringContainsQ[#[[2]], "jac"] &],
+  {{lk, "Hbar jac[dt[H], Psi]"}}];
+test["jac of a product: Leibniz", Select[jTable[quiet[jAnsatz[lk Hbar jac[H Psi, Psi]]]], StringContainsQ[#[[2]], "jac"] &],
+  {{lk, "Hbar Psi jac[H, Psi]"}}];
+expectFail["jac[grad[H], Psi]", jAnsatz[lk Hbar jac[grad[H], Psi]], "Ansatz.vectorRank"];
+expectFail["jac[H]", jAnsatz[lk Hbar jac[H]], "Ansatz.operatorArity"];
+expectFail["jac[H, nk Psi]", jAnsatz[Hbar jac[H, nk Psi], {nk}], "Ansatz.couplingsOutsideOperators"];
+expectFail["jac[H, 1] (argument without a field)", jAnsatz[lk Hbar jac[H, 1]], "Ansatz.operatorOnField"];
+expectFail["two jac in one monomial", jAnsatz[lk Hbar jac[H, Psi] jac[Psi, H]], "Ansatz.singleEpsilon"];
+expectFail["jac squared (one label, two slots)", jAnsatz[lk Hbar jac[H + Psi, H - Psi]^2], "Ansatz.singleEpsilon"];
+expectFail["quadratic jac (total derivative)", jAnsatz[lk jac[Hbar, H]], "Ansatz.jacQuadratic"];

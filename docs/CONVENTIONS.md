@@ -27,7 +27,10 @@ This header is printed above every vertex table (from milestone 2 on). Every mod
 
 - Vectors are bare symbols. Their scalar product is `scal[a, b]`, which is Orderless and linear over sums and over explicit
   **numbers** only. It is not linear over couplings: `scal[nk a, b]` stays as it is.
-- The space dimension d is a user symbol (e.g. `Dim`) throughout.
+- The space dimension d is a user symbol (e.g. `Dim`) throughout. The one exception is `"Dimension" -> FixedDimension[2]`,
+  which `jac` requires. d is never fixed silently: a literal 2, or a `Dim` that got the value 2, aborts.
+- In d = 2, `wedge[a, b]` = ε_ij a_i b_j, with **ε₁₂ = +1**. It is antisymmetric (kept in canonical order, not Orderless), and
+  linear over sums and over explicit numbers only, like `scal`.
 - ∂s ≡ k∂k, where k is the RG scale.
 - Shape functions are functions of y = q²/k².
 
@@ -40,12 +43,14 @@ This header is printed above every vertex table (from milestone 2 on). Every mod
 ## Ansatz density (DSL)
 
 - Γ_k = ∫dt dᵈx density. The density is written with the package-owned, protected, inert operators `dt`, `grad`, `div`, `lap`,
-  plus `.` between two gradients.
+  plus `.` between two gradients, and `jac[a, b]` = ε_ij ∂_i a ∂_j b (d = 2 only, a and b scalars, at most one per monomial).
+  With ∇ → −iq, `jac[A, B]` with A at leg l and B at leg m gives −`wedge[q_l, q_m]`.
   - Do not use System `Dt`, `D`, `Grad`, `Div` or `Laplacian`. `Dt[nk H]` silently adds `H Dt[nk]`, and the System operators
     applied to explicit coordinates evaluate to 0 before the library sees them.
 - Couplings depend on k only. They stand outside the operators: write `nk dt[H]`, not `dt[nk H]`.
 - Each parsed monomial is coefficient × Π `FieldFactor[φ, n_t, {indices}]`. `FieldFactor[φ, n_t, {i, …}]` is ∂t^{n_t} ∂_i … φ.
-  A repeated `SpaceIndex[1]` is summed over.
+  A repeated `SpaceIndex[1]` is summed over. The two indices of ε are `EpsIndex[1]` (on the factor of a) and `EpsIndex[2]` (on
+  the factor of b).
 
 ## Reserved names
 

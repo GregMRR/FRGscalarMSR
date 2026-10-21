@@ -26,3 +26,21 @@ Module[{th = quiet[DefineTheory["Scalars" -> {H, Psi}, "Dimension" -> Dim]]},
   expectFail["validateStage wrong stage", FRGscalarMSR`Internal`validateStage[th, "Ansatz"], "Stage.input"];
   expectFail["validateStage tampered stage", FRGscalarMSR`Internal`validateStage[Append[th, "Dimension" -> d2], "Theory"], "Stage.fingerprint"];
   test["validateStage untouched stage", FRGscalarMSR`Internal`validateStage[th, "Theory"] === th, True]];
+
+(* wedge: eps_ij a_i b_j in d = 2 (design/LEVICIVITA.md F1, F2) *)
+test["wedge antisymmetric", wedge[b, a] + wedge[a, b], 0];
+test["wedge canonical order (not Orderless)", wedge[b, a], -wedge[a, b]];
+test["wedge[a, a] = 0", wedge[a, a], 0];
+test["wedge linear in slot 1", wedge[a + 2 b, c], wedge[a, c] + 2 wedge[b, c]];
+test["wedge linear in slot 2", wedge[a, -b + 3 c], -wedge[a, b] + 3 wedge[a, c]];
+test["wedge of zero", {wedge[0, a], wedge[a, 0]}, {0, 0}];
+test["wedge of a difference with itself", wedge[a + b, a + b], 0];
+test["wedge not linear over couplings", FreeQ[wedge[nk a, b], wedge[a, b]], True];
+Module[{vecs, num, e},
+  SeedRandom[5]; vecs = Thread[{a, b, c, d} -> RandomInteger[{-9, 9}, {4, 2}]];
+  num[x_] := x /. {scal[u_, v_] :> (u /. vecs) . (v /. vecs), wedge[u_, v_] :> Module[{s = u /. vecs, t = v /. vecs}, s[[1]] t[[2]] - s[[2]] t[[1]]]};
+  e = 3 wedge[a, b] wedge[c, d] + nk wedge[a, c]^2 wedge[b, d] - wedge[a + b, c]^2 scal[a, d] + wedge[a, d]^3 wedge[b, c];
+  test["reduceWedge2D: at most one wedge per term", Max[Exponent[# /. wedge[__] -> ww, ww] & /@ List @@ FRGscalarMSR`Internal`reduceWedge2D[e]], 1];
+  test["reduceWedge2D = original on explicit 2-vectors", Expand[num[FRGscalarMSR`Internal`reduceWedge2D[e]] - num[e]], 0];
+  test["F2 on explicit 2-vectors", Expand[num[wedge[a, b] wedge[c, d]] - num[scal[a, c] scal[b, d] - scal[a, d] scal[b, c]]], 0]];
+test["displayString wedge", FRGscalarMSR`Internal`displayString[wedge[q1, q2] + scal[q1, q1]], "q1^2 + wedge(q1,q2)"];

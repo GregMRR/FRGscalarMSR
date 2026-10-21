@@ -53,6 +53,7 @@ structure), ∂sΓ⁽³⁾ projections, symbolic Ward identities, Adimensional m
 | Q13 | Optional `SaveStage`/`LoadStage`, fingerprinted on theory+ansatz+regulator+symmetries; mismatch aborts. |
 | Q15 / E7 | DSL = density expression with **package-owned, protected** heads `dt, grad, div, lap` (not System `Dt/Grad/Div`: `Dt[nk H]` silently adds `Dt[nk]` terms). The parser always echoes the table of parsed monomials and asserts no System derivative head appears. |
 | Q16 | Final `Equations` stage designed as the input of future Adimensional + JuliaExport → FlowRG `equations-interface.md`. |
+| LC | Exception to E12/Q16 (symbolic d, Oracle in d = 2 and 3): the Levi-Civita operator `jac` exists only in d = 2, so the user declares `"Dimension" -> FixedDimension[2]`. The equations then carry the number 2 and the Oracle runs in d = 2 only. d is never fixed silently. Spec: `design/LEVICIVITA.md`. |
 | Q18 / E10 | Regulator written in Fourier space per field pair, values are **Γ2-level entries** (what adds to Γ2_ab, incl. the 2 of diagonal pairs), e.g. `{Hbar,H} -> nk q^2 arnh[q^2/k^2]`. ∂sR entries stay abstract symbols until Assemble; the map to the script's placeholders is dsNh = ∂sR_{HH̄}, dsMh = ∂sR_{H̄H̄}, dsNphi = ∂sR_{ΨΨ̄}, dsMphi = ∂sR_{Ψ̄Ψ̄}. |
 | Q19 | `Protected[...]`, `Neglected[...]`, `NonRenormalised[...]`, each with a mandatory `"Reason"`, printed in every card. A banner warns that Ward identities are assumed, not derived (future work). |
 | Q20 | Verb-first notebook workflow (§4). |

@@ -125,7 +125,7 @@ AssembleEquations[closure_] := Block[{$FRGModule = "Assemble"},
    explicitAtoms = validity /. atomVals;
    AppendTo[warns, infoCheck["ASSUMPTION", "Assemble.validity", displayString[validity] <> " at every q (causal poles; to be checked at run time)"]];
    AppendTo[warns, infoCheck["INFO", "Assemble.contract", "Integrand: d^dq/(2 Pi)^d integrand of d_s(comb) in the couplings, dsCoupling[c] = k dc/dk (linear), " <>
-      "shapes " <> inputForm[shapes] <> " of y = " <> ToString[qU] <> "^2/" <> ToString[k] <> "^2 with derivatives, " <> ToString[closure["Symmetries"]["Dimension"]] <> " symbolic"]];
+      "shapes " <> inputForm[shapes] <> " of y = " <> ToString[qU] <> "^2/" <> ToString[k] <> "^2 with derivatives, " <> If[closure["Symmetries"]["Dimension"] === 2, "d = 2 (declared)", ToString[closure["Symmetries"]["Dimension"]] <> " symbolic"]]];
 
    stage = stampStage[<|"Stage" -> "Equations", "Pipeline" -> "DerivativeExpansion", "Upstream" -> {closure["Fingerprint"]},
       "Closure" -> closure, "Equations" -> eqs, "Atoms" -> Association[atomVals], "AtomForms" -> Association[KeyValueMap[#1 -> (#2 /. toQ) &, forms]],

@@ -24,3 +24,11 @@ expectFail["missing dimension", DefineTheory["Scalars" -> {H}], "Theory.dimensio
 expectFail["dimension equal to a field", DefineTheory["Scalars" -> {H}, "Dimension" -> Hbar], "Theory.dimensionDistinct"];
 expectFail["duplicate scalars", DefineTheory["Scalars" -> {H, H}, "Dimension" -> Dim], "Theory.scalars.duplicates"];
 expectFail["unknown option", DefineTheory["Scalars" -> {H}, "Dimension" -> Dim, "Foo" -> 1], "Theory.options"];
+
+(* declared dimension (jac, design/LEVICIVITA.md) *)
+test["FixedDimension[2] accepted: the stage stores 2", quiet[DefineTheory["Scalars" -> {H}, "Dimension" -> FixedDimension[2]]]["Dimension"], 2];
+expectFail["FixedDimension[3] aborts", DefineTheory["Scalars" -> {H}, "Dimension" -> FixedDimension[3]], "Theory.dimension"];
+expectFail["a literal 2 aborts", DefineTheory["Scalars" -> {H}, "Dimension" -> 2], "Theory.dimension"];
+Dim = 2;
+expectFail["a leftover Dim = 2 still aborts", DefineTheory["Scalars" -> {H}, "Dimension" -> Dim], "Theory.dimension"];
+ClearAll[Dim];

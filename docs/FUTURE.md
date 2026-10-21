@@ -22,6 +22,9 @@ These are extensions the v1 design keeps room for. None of them is implemented y
 - **∂sΓ⁽³⁾ projections.**
   - These need Γ5 and the triangle and box diagrams, which means a new variant of Loops.
   - With them, `NonRenormalised` becomes checkable.
+- **3D Levi-Civita (curl-type) operators.**
+  - `jac` covers ε_ij in d = 2 only (design/LEVICIVITA.md). ε_ijk ∂_j A_k needs vector-valued operands and the d = 3 identity
+    ε_ijk ε_lmn = det[δ], plus its own declared dimension and oracle.
 - **Ward identities.** Derive and check the symmetry constraints symbolically. Today the user declares them.
 - **Adimensional.wl and JuliaExport.wl.**
   - Map the `Equations` stage onto FlowRG's `docs/equations-interface.md`: COUPLINGS/ETAS/SHAPES, positional arguments, β and an

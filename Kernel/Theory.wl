@@ -7,10 +7,14 @@ BeginPackage["FRGscalarMSR`", {"FRGscalarMSR`Internal`"}];
 
 DefineTheory::usage = "DefineTheory[\"Scalars\" -> {phi1, phi2, ...}, \"Dimension\" -> Dim] declares N physical scalars; \
 the response field of phi is created as the symbol phibar (same context). Field order: (phi1, phi1bar, phi2, phi2bar, ...). \
-Returns the \"Theory\" stage.";
+Returns the \"Theory\" stage. \"Dimension\" -> FixedDimension[2] declares d = 2 (needed by jac); d is never fixed otherwise.";
+FixedDimension::usage = "FixedDimension[2] in DefineTheory[..., \"Dimension\" -> FixedDimension[2]] declares the space dimension d = 2 \
+(required by the Levi-Civita operator jac). Only 2 is accepted.";
 ResponseField::usage = "ResponseField[theory, phi] is the MSR response field of the scalar phi.";
 
 Begin["`Private`"];
+
+SetAttributes[FixedDimension, Protected];
 
 Options[DefineTheory] = {"Scalars" -> {}, "Dimension" -> None};
 
@@ -25,15 +29,17 @@ DefineTheory[opts : OptionsPattern[]] := Block[{$FRGModule = "Theory"}, Module[{
     assertFreshSymbols["Theory.scalars", phis, "scalars"];
     bars = Symbol[Context[#] <> SymbolName[#] <> "bar"] & /@ phis;
     assertFreshSymbols["Theory.responseFields", bars, "response fields (auto-generated <name>bar)"];
-    FRGAssert["Theory.dimension", Head[dim] === Symbol && dim =!= None, dim, "\"Dimension\" -> Dim is required: d stays a symbol"];
-    assertFreshSymbols["Theory.dimension", {dim}, "the dimension symbol"];
-    FRGAssert["Theory.dimensionDistinct", ! MemberQ[Join[phis, bars], dim], dim, "the dimension symbol must not be a field"];
+    FRGAssert["Theory.dimension", (Head[dim] === Symbol && dim =!= None) || dim === FixedDimension[2], dim,
+     "\"Dimension\" -> Dim is required: a symbol, or FixedDimension[2] (needed by jac)"];
+    If[dim === FixedDimension[2], dim = 2,
+     assertFreshSymbols["Theory.dimension", {dim}, "the dimension symbol"];
+     FRGAssert["Theory.dimensionDistinct", ! MemberQ[Join[phis, bars], dim], dim, "the dimension symbol must not be a field"]];
     AppendTo[checks, assertCheck["Theory.symbols", True, Null, "", "fields and Dim are fresh and collision-free"]];
     stage = stampStage[<|"Stage" -> "Theory", "Pipeline" -> "DerivativeExpansion", "Upstream" -> {},
        "Scalars" -> phis, "ResponseFields" -> bars, "Fields" -> Flatten[Transpose[{phis, bars}]],
        "ResponseOf" -> AssociationThread[phis -> bars], "Dimension" -> dim,
        "Checks" -> checks, "Timing" -> AbsoluteTime[] - t0|>];
-    Print["Theory: fields in order ", stage["Fields"], ", dimension ", dim, " (response fields are created automatically)"];
+    Print["Theory: fields in order ", stage["Fields"], ", dimension ", If[dim === 2, "2 (declared)", dim], " (response fields are created automatically)"];
     PrintCard[stage];
     stage]];
 
