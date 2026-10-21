@@ -34,7 +34,8 @@ expectFail["Protected pattern hitting a declared noise term", DeclareSymmetries[
    Neglected[_, "Reason" -> "y"], trunc], "Symmetries.contradiction"];
 expectFail["declared + Protected contradiction", DeclareSymmetries[sAnsatz, Protected[{hbar, h}, "Momentum" -> 1, "Reason" -> "x"], Neglected[_, "Reason" -> "y"], trunc],
   "Symmetries.contradiction"];
-expectFail["p^4 truncation (E2)", DeclareSymmetries[sAnsatz, Neglected[_, "Reason" -> "y"], "TruncationOrders" -> <|"Frequency" -> 2, "Momentum" -> 2|>], "Symmetries.momentumOrder"];
+test["p^4 truncation accepted (design/MOMENTUMPROJECTION.md)",
+  Max[quiet[DeclareSymmetries[sAnsatz, Neglected[_, "Reason" -> "y"], "TruncationOrders" -> <|"Frequency" -> 2, "Momentum" -> 2|>]]["Classification"][[All, "Momentum"]]], 2];
 expectFail["missing reason", DeclareSymmetries[sAnsatz, Neglected[_], trunc], "Symmetries.reason"];
 expectFail["truncation below the ansatz", DeclareSymmetries[sAnsatz, Neglected[_, "Reason" -> "y"], "TruncationOrders" -> <|"Frequency" -> 0, "Momentum" -> 1|>],
   "Symmetries.truncationCoversAnsatz"];

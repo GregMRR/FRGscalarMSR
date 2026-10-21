@@ -57,8 +57,7 @@ DeclareSymmetries[ansatz_, args___] := Block[{$FRGModule = "Symmetries"},
    FRGAssert["Symmetries.truncationOrders", AssociationQ[trunc] && Sort[Keys[trunc]] === {"Frequency", "Momentum"} && AllTrue[Values[trunc], IntegerQ[#] && # >= 0 &],
     trunc, "\"TruncationOrders\" -> <|\"Frequency\" -> 2, \"Momentum\" -> 1|> (non-negative integers)"];
    {mf, mp} = {trunc["Frequency"], trunc["Momentum"]};
-   AppendTo[checks, assertCheck["Symmetries.momentumOrder", mp <= 1, mp,
-     "momentum truncation above p^2 is not supported in v1: the p-Laplacian projection is exact only for p^2 (E2, docs/FUTURE.md)",
+   AppendTo[checks, assertCheck["Symmetries.truncation", True, mp, "",
      "truncation: (I w)^" <> ToString[mf] <> ", (q^2)^" <> ToString[mp]]];
 
    prot = tagRecord[#, "Protected"] & /@ Cases[tags, _Protected];
@@ -91,7 +90,7 @@ DeclareSymmetries[ansatz_, args___] := Block[{$FRGModule = "Symmetries"},
      "every monomial up to the truncation orders must be declared in the ansatz, Protected or Neglected", ToString[Length[cls]] <> " monomials classified"]];
 
    (* declared monomials of the ansatz beyond the truncation orders would be silently ignored *)
-   declOutside = Select[Flatten[Table[{pr, m, n}, {pr, pairs}, {m, 0, 2 mf + 4}, {n, 0, 2}], 2],
+   declOutside = Select[Flatten[Table[{pr, m, n}, {pr, pairs}, {m, 0, 2 mf + 4}, {n, 0, Max[2, Max[ansatz["Monomials"][[All, "MomentumOrder"]]]/2]}], 2],
      (#[[2]] > mf || #[[3]] > mp) && gammaCoefficient[VertexValue[v, #[[1]], {{nu, p}}], nu, p, #[[2]], #[[3]]] =!= 0 &];
    AppendTo[checks, assertCheck["Symmetries.truncationCoversAnsatz", declOutside === {}, declOutside,
      "the ansatz contains Gamma2 monomials beyond \"TruncationOrders\": raise the orders", "the truncation contains every monomial of the ansatz"]];

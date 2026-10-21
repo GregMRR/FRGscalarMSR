@@ -10,10 +10,12 @@ These are extensions the v1 design keeps room for. None of them is implemented y
   - Needs a general reduction by symmetric functions of the roots.
   - The validity condition becomes the Routh–Hurwitz criterion: an algebraic test on the coefficients of Δ that tells whether
     all its roots lie in one half plane, without computing the roots.
-- **Projections at p⁴ and higher (E2).**
-  - Write p = |p| e, Taylor-expand in |p|, and average over directions with
-    ⟨(e·q)^{2m}⟩ = q^{2m} (2m−1)!! / [d(d+2)⋯(d+2m−2)].
-  - This replaces the Laplacian trick at every order. Validate it with the oracle in d = 2 and d = 3.
+- **p⁴ in FlowRG.** The symbolic chain projects any (p²)ⁿ (design/MOMENTUMPROJECTION.md), but `JuliaExport` exports only r, r′,
+  r″: p⁴ flows need r‴, r⁗ bound by FlowRG (an interface extension through a `docs/handoff/` spec), and a smooth (C⁴) shape.
+- **More than one `jac` per monomial.** The ε reduction (F2) handles one pair of ε indices; two would need the product rule for
+  two ε pairs and the matching canonical form.
+- **Shallow-water p⁴ acceptance.** No end-to-end p⁴ acceptance test exists (decided): p⁴ is checked by `Projection.explicitVectors`,
+  `Projection.normalisation`, the unit closed forms and the Oracle. A reference p⁴ flow (e.g. shallow water) would close the loop.
 - **Independent check of the Γ⁽⁴⁾ tadpole normalisation (E4).**
   - The bubble is checked against Canet's KPZ flow (`tests/acceptance/KPZ.wl`). The tadpole needs a theory with a quartic
     vertex.

@@ -49,7 +49,6 @@ expectFail["explicit t dependence", bad[Hbar dt[H] + nk t Hbar H], "Ansatz.known
 expectFail["no response field (MSR)", bad[Hbar dt[H] + nk H lap[H]], "Ansatz.MSR"];
 expectFail["linear term", bad[Hbar dt[H] + nk Hbar], "Ansatz.noLinear"];
 expectFail["quintic term", bad[Hbar dt[H] + nk Hbar H^4], "Ansatz.quartic"];
-expectFail["p^4 monomial (E2)", bad[Hbar dt[H] + nk Hbar lap[lap[H]]], "Ansatz.momentumOrder"];
 expectFail["uncontracted gradient", bad[Hbar dt[H] + nk Hbar grad[H]], "Ansatz.vectorSum"];
 expectFail["vector density", bad[nk Hbar grad[H]], "Ansatz.scalarDensity"];
 expectFail["product of two gradients", bad[Hbar dt[H] + nk grad[Hbar] grad[H]], "Ansatz.vectorProduct"];
@@ -69,12 +68,13 @@ expectFail["stale theory (a field got a value)", DefineAnsatz[swTheory, "Density
 ClearAll[H];
 
 (* jac: eps_ij d_i a d_j b in d = 2 (design/LEVICIVITA.md) *)
-strip[a_Association] := strip /@ KeyDrop[a, {"Timing", "Fingerprint", "Upstream"}]; strip[l_List] := strip /@ l; strip[x_] := x;
+strip[a_Association] := strip /@ KeyDrop[a, {"Timing", "Fingerprint", "Upstream", "Checks", "Warnings"}]; strip[l_List] := strip /@ l; strip[x_] := x;
 Module[{kt = quiet[DefineTheory["Scalars" -> {h}, "Dimension" -> Dim]], ka},
   ka = quiet[DefineAnsatz[kt, "Density" -> hbar (dt[h] - nuk lap[h] - lamk/2 grad[h].grad[h]) - Dk hbar^2, "Couplings" -> {nuk, lamk, Dk}]];
-  (* content hash (without timings, which enter the fingerprint through the nested Theory stage) recorded at commit 1fbb12e *)
-  test["eps-free symbolic-Dim ansatz unchanged by jac support", Hash[strip[ka], "SHA256", "HexString"],
-   "2821c78a100ebada39ecf39e511201ef4a3991401eacd155c3852c890d69cee4"];
+  (* content hash (without timings, which enter the fingerprint through the nested Theory stage, and without the card lines),
+     the same at commit ba4a80d (before the p^(2n) projection) and after *)
+  test["eps-free symbolic-Dim ansatz unchanged by jac and p^(2n) support", Hash[strip[ka], "SHA256", "HexString"],
+   "a19bb9df3ce9e7f9f07050ecf3953d40b6a2f6fc816d6bb05d4a206c6a6b1f1c"];
   test["eps-free ansatz has no Epsilon key", KeyExistsQ[ka, "Epsilon"], False]];
 
 jTheory = quiet[DefineTheory["Scalars" -> {H, Psi}, "Dimension" -> FixedDimension[2]]];
@@ -106,3 +106,23 @@ expectFail["jac[H, 1] (argument without a field)", jAnsatz[lk Hbar jac[H, 1]], "
 expectFail["two jac in one monomial", jAnsatz[lk Hbar jac[H, Psi] jac[Psi, H]], "Ansatz.singleEpsilon"];
 expectFail["jac squared (one label, two slots)", jAnsatz[lk Hbar jac[H + Psi, H - Psi]^2], "Ansatz.singleEpsilon"];
 expectFail["quadratic jac (total derivative)", jAnsatz[lk jac[Hbar, H]], "Ansatz.jacQuadratic"];
+
+(* p^4 and beyond (design/MOMENTUMPROJECTION.md step 2): powers get fresh dummies (review E14), canonical form with several
+   contractions (E9) *)
+p4[d_] := Select[parse[swTheory, Hbar dt[H] + d, {nk}], #[[2]] =!= "Hbar dt[H]" &];
+test["p^4 monomial accepted", p4[nk Hbar lap[lap[H]]], {{nk, "Hbar lap[lap[H]]"}}];
+test["p^4 monomial: MomentumOrder 4",
+  Lookup[SelectFirst[quiet[DefineAnsatz[swTheory, "Density" -> Hbar dt[H] + nk Hbar lap[lap[H]], "Couplings" -> {nk}]]["Monomials"], #FieldCount == 2 && #TimeOrder == 0 &],
+   "MomentumOrder"], 4];
+test["lap[H]^2 parses", Length[p4[nk Hbar lap[H]^2]], 1];
+test["lap[H] lap[H] = lap[H]^2", p4[nk Hbar lap[H] lap[H]], p4[nk Hbar lap[H]^2]];
+test["(grad Hbar.grad H)^2 parses to one monomial", Length[p4[nk (grad[Hbar].grad[H])^2]], 1];
+test["(grad Hbar.grad H)^2 = product written with swapped dummies",
+  p4[nk (grad[Hbar].grad[H])^2 - nk (grad[H].grad[Hbar]) (grad[Hbar].grad[H])], {}];
+test["lap[lap[H]] = div[grad[lap[H]]]", p4[nk Hbar lap[lap[H]] - nk Hbar div[grad[lap[H]]]], {}];
+test["grad[lap[H]].grad[H] = grad[H].grad[lap[H]]", p4[nk Hbar grad[lap[H]].grad[H] - nk Hbar grad[H].grad[lap[H]]], {}];
+test["lap[lap[H]] lap[H]: three contractions", Length[p4[nk H Hbar lap[lap[H]] lap[H]]], 1];
+test["jac[H, lap[Psi]] = -jac[lap[Psi], H] (two dummies with eps)",
+  Select[jTable[quiet[jAnsatz[lk Hbar jac[H, lap[Psi]] + lk Hbar jac[lap[Psi], H]]]], StringContainsQ[#[[2]], "jac"] &], {}];
+test["jac[lap[H], lap[H]] = 0", Select[jTable[quiet[jAnsatz[lk Hbar jac[lap[H], lap[H]]]]], StringContainsQ[#[[2]], "jac"] &], {}];
+test["jac[H, lap[Psi]] kept", Length[Select[jTable[quiet[jAnsatz[lk Hbar jac[H, lap[Psi]]]]], StringContainsQ[#[[2]], "jac"] &]], 1];

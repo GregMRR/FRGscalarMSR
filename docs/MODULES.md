@@ -28,8 +28,10 @@ assumptions, the manipulations it performs, its checks, and its `Show…` comman
 - `ExactlyZeroQ[expr]` replaces `Simplify[…] == 0` (primer rule 7). It evaluates expr at 3 random rational points and requires
   exact 0 at each:
   - every non-System symbol (couplings, `q`, `k`, `Dim`, …) gets an independent random rational (E12: `Dim` is randomised too);
-  - every remaining function atom, such as `r[y]`, `r'[y]`, `r''[y]`, `scal[a,b]`, gets its own independent random rational, so
-    the identity is tested for arbitrary shape functions;
+  - every remaining function atom, such as `r[y]`, `r'[y]`, `r''[y]`, `scal[a,b]`, `GammaAtom[a,b,m][x]`,
+    `Derivative[k][GammaAtom[a,b,m]][x]`, gets its own independent random rational, so the identity is tested for arbitrary
+    shape functions. Atoms are replaced whole: matching inside `Derivative[k][f[a]]` would give `Derivative[k][number]` = 0 and
+    hide every derivative term (design/MOMENTUMPROJECTION.md step 0);
   - if the result is not an exact number, it aborts with `ExactlyZeroQ.numeric`.
 - `RandomRationalPoint[syms, seed]`, `PrintCard[stage]`.
 - `scal[a, b]` is the scalar product: Orderless, linear over sums and over explicit numbers only (E14). The rules come from
@@ -84,7 +86,7 @@ Output: the `"Ansatz"` stage. Its key `"Monomials"` is a list of
 **Assumptions.**
 - Couplings depend on k only. They have no t or x dependence and never sit under an operator.
 - The density is a polynomial in the fields, at most quartic.
-- The momentum order of every monomial is at most 2. The p-Laplacian projection used downstream is exact only for p² (E2).
+- Any momentum order: the projection downstream is valid for every (p²)ⁿ (design/MOMENTUMPROJECTION.md).
 - MSR structure: every monomial contains a response field. There are no linear terms.
 
 **Manipulations.**
@@ -108,13 +110,18 @@ Output: the `"Ansatz"` stage. Its key `"Monomials"` is a list of
 - `Ansatz.couplingsOutsideOperators`: no `dt[nk H]` (every argument of `jac` is checked).
 - `Ansatz.operatorArity` (`jac` takes 2 arguments, the others 1), `Ansatz.operatorOnField` (every argument contains a field).
 - `Ansatz.epsilonDimension`: `jac` needs `"Dimension" -> FixedDimension[2]`.
-- `Ansatz.singleEpsilon`: at most one `jac` per monomial, counted in slots (so `jac[…]^2` aborts). Two would be p⁴.
+- `Ansatz.singleEpsilon`: at most one `jac` per monomial, counted in slots (so `jac[…]^2` aborts): the ε reduction handles one
+  pair of ε indices.
+- Canonical form (`canonical`, review E9 of MOMENTUMPROJECTION): for every numbering of the summed indices, each factor's index
+  list is sorted (derivatives commute) and the factor list is sorted; the smallest is kept, so lap[lap[A]] = div[grad[lap[A]]].
+  With ε the same minimum over the slot-swapped list gives the sign (−1) or zero (equal minima). Each factor of a power gets its
+  own dummies (`lap[h]^2`, `(grad[h].grad[h])^2`).
 - `Ansatz.jacQuadratic`: a quadratic `jac` term is a total derivative, ∂_i(ε_ij A ∂_j B), whose vertex vanishes (F5): it aborts
   instead of leaving a coupling that silently does nothing.
 - `Ansatz.indexPairs` (internal): every `SpaceIndex` appears twice; `EpsIndex[1]` and `EpsIndex[2]` once each or not at all.
 - `Ansatz.vectorRank`, `Ansatz.vectorSum`, `Ansatz.vectorProduct`, `Ansatz.scalarDensity`: the vector algebra is well formed.
 - `Ansatz.polynomial`, `Ansatz.unknownStructure`: the density is polynomial in the fields.
-- `Ansatz.MSR`, `Ansatz.noLinear`, `Ansatz.quartic`, `Ansatz.momentumOrder` (E2).
+- `Ansatz.MSR`, `Ansatz.noLinear`, `Ansatz.quartic`.
 - `Ansatz.pipeline`: only `"DerivativeExpansion"` exists in v1.
 - Warning `Ansatz.unusedCouplings`: a declared coupling is absent from the density.
 
@@ -300,7 +307,7 @@ lists one record per monomial: pair, m, n, class, Γ_k coefficient and reason.
 `{Hbar, Hbar}`.
 
 **Checks.**
-- `Symmetries.momentumOrder` (mp ≤ 1, E2), `Symmetries.allTagged` and `Symmetries.contradiction`.
+- `Symmetries.truncation` (card line, any mp), `Symmetries.allTagged` and `Symmetries.contradiction`.
 - `Symmetries.truncationCoversAnsatz`: no ansatz monomial lies beyond the truncation.
 - `Symmetries.reason`: every tag has a reason.
 - `Symmetries.nonRenormalised`.
@@ -367,28 +374,37 @@ lists one record per monomial: pair, m, n, class, Γ_k coefficient and reason.
 **Objective.** For each classified monomial except `Structure`, turn the loop integrand into an ω-integrand at ν = p = 0. This
 is pipeline 1: the external variables are set to zero. As a result the only ω-poles left are those of Δ(±ω).
 
-**Operator.** The coefficient of (iν)^m (p²)^n is [(∂/∂(iν))^m / m!] applied to the integrand, followed, when n = 1, by
-[∇²_p / (2d)], all evaluated at ν = 0, p = 0.
-- The p-Laplacian uses the script's trick (§3): vectors are bare symbols, `D[D[f, p], p]` is taken, and the derivatives of
-  `scal` are replaced by `Dimensionalfactors` (∂∂ scal[p,p] → d, and so on).
-- A first derivative of scal[p,q] leaves a bare vector q. It is marked λ, so that the product of two of them is λ² = q·q, and
-  the result is read off as (λ⁰ part) + ½ ∂²_λ (λ² part) × q². The λ¹ part must vanish; this is asserted.
-- This is valid only for p² (E2).
+**Operator** (design/MOMENTUMPROJECTION.md M1, any n). The coefficient of (iν)^m (p²)^n is [(∂/∂(iν))^m / m!] applied to the
+integrand, followed by the direction average of its s^{2n} Taylor coefficient along p = s e, all at ν = 0, p = 0.
+- The loop holds p only in scal[p,p] → s² and scal[p,q] → s c (scal is bilinear, so (p+q)² is already expanded). D[·,{s,2n}]/(2n)!
+  at s = 0 leaves a polynomial in c; ⟨c^{2k}⟩ = q^{2k}(2k−1)!!/[d(d+2)⋯(d+2k−2)] (`projCAverage`); odd powers of c vanish by
+  degree counting (asserted, `Projection.noOddC`).
+- Equivalent to (∇²_p)ⁿ at p = 0 / N_n, N_n = 4ⁿ n! (d/2)_n (M2; N_1 = 2d, N_2 = 8d(d+2)). The old Laplacian trick (exact for
+  n ≤ 1 only) is kept test-only in `tests/reference/OldProjection.wl`: the new operator is Expand-identical to it on every
+  existing integrand (`tests/acceptance/ProjectionRegression.wl`).
+- At order p^{2n} the flows contain shape derivatives up to order 2n: the card prints an ASSUMPTION (any explicit shape substituted
+  later must be C^{2n}; the library itself accepts only generic declared shapes).
 - Derivatives of Δ(ω, s) are completed with Δ = Σ_m c_m(s) (iω)^m, so they come out in `DeltaCoefficient[m]` atoms and their
   s-derivatives.
 - **With ε** (`jac`, declared d = 2 only), before anything else:
   - `reduceWedge2D` (F2) leaves at most one wedge per term, so every term is wedge[p,q]^e f(p², p·q, q², ν) with e ∈ {0, 1}
     (wedge[q, q] = wedge[p, p] = 0 and linearity reduce any other wedge to this one);
-  - the e = 1 terms are dropped (F4): they vanish at p = 0, and so does their p-Laplacian, 2 ε_ij q_j q_i ∂_{p·q} f = 0. This
-    is exact for every projection with m, n ≤ 1 and any m.
+  - the e = 1 terms are dropped: their projection vanishes for every m and n (M3: the reflection of e about q keeps c and
+    flips ε_ij e_i q_j, F4 of LEVICIVITA for n ≤ 1).
 
 **Checks.**
-- `Projection.LHS`: the same operator, applied to Γ_k (regulator off), reproduces every classified Γ_k coefficient. This checks
-  the normalisation of both projections, including 2d.
-- `Projection.evenInQ` and `Projection.complete`: no external variable, vector, wedge, or derivative of `scal` or Δ is left.
+- `Projection.LHS`: the same operator, applied to Γ_k (regulator off), reproduces every classified Γ_k coefficient. Γ_k depends on
+  p only through p², so this checks the frequency normalisation and the s-order, not the d-normalisation (MOMENTUMPROJECTION r1 E2).
+- `Projection.normalisation` (n ≥ 1 in the truncation): the full projection of (p·q)^{2k}(p²)^{n−k}, k = 0..n, equals
+  q^{2k} Γ(k+½)Γ(d/2)/(√π Γ(k+d/2)), a closed form written independently of `projCAverage`.
+- `Projection.explicitVectors` (n ≥ 2 only; n ≤ 1 is certified by the regression vs the old operator): every p^{2n} integrand
+  equals (∇²_p)ⁿ/N_n on explicit d-vectors, at the declared d, or at d = 1, …, n+1 for a symbolic d (n+1 independent
+  d-structures). Uses the sound `ExactlyZeroQ`. About 0.03–0.3 s per KPZ p⁴ integrand.
+- `Projection.noOddC` (internal invariant) and `Projection.complete`: no external variable, vector, wedge, s, c, or derivative of
+  `scal` or Δ is left.
 - With ε: `Projection.epsilonDimension` (d = 2), and `Projection.wedgeOdd`. After F2 every remaining wedge must be
-  ±wedge[p, q] to a power ≤ 1, and the projection of the dropped part, evaluated with explicit 2-vectors at a random rational
-  point, must be exactly 0. The card counts the integrands with a nonzero dropped part.
+  ±wedge[p, q] to a power ≤ 1, and the projection of the dropped part, (∇²_p)ⁿ on explicit 2-vectors at a random rational
+  point, must be exactly 0 (any n). The card counts the integrands with a nonzero dropped part.
 
 **Show.** `ShowIntegrand[projected, nk*Ak]` or `ShowIntegrand[projected, {a, b}, {m, n}]`.
 
@@ -457,8 +473,8 @@ stage aborts with `Closure.sameSymmetries`. Output: the "Closure" stage, with th
 - **Declared**: the Γ_k coefficient is split into its pure number (sign included) and the rest, the *flowing combination*
   (Q10, agreed with the user). For example, −2 Dhk aDhk gives normalisation −2 and combination Dhk aDhk. The equation is
   ∂s(combination) = Value/normalisation.
-  - The (2d)ⁿ of the p² projection is already in Value. The normalisations therefore equal the LHS factors in the script's
-    `jobs` table divided by (2 Dim)ⁿ: −4Dim → −2, −2Dim → −1.
+  - Projection returns the coefficient itself (its N_n is already applied). The normalisations therefore equal the LHS factors in
+    the script's `jobs` table divided by (2 Dim)ⁿ: −4Dim → −2, −2Dim → −1.
 
 **Assumptions printed.** Every `NonRenormalised` tag with its reason (not checkable in v1, because that needs ∂sΓ⁽³⁾), and
 the banner "Ward identities are assumed (the Protected tags), not derived".
@@ -569,7 +585,11 @@ equation:
 2. The loop trace (the formula of Loops) is a rational function of ω with numeric coefficients. It is integrated by
    `NIntegrate` over the real axis, with 40 digits. An absolute accuracy goal stops the search on integrands that vanish.
 3. The projections are taken by central finite differences with h = 10⁻⁵:
-   - the p-Laplacian over the d unit vectors, divided by 2d;
+   - (∇²_p)ⁿ by nested second differences over the tuples (c₁…cₙ) of unit vectors, divided by N_n (2d at n = 1). For n ≥ 2
+     the error of 2n-th differences is cut by Richardson extrapolation (h, h/2) and the working precision is raised to
+     8 + 10n + 6 + 18 digits (PrecisionGoal 8 + 10n + 6); the precision is part of the memo key, so no point computed for
+     n ≤ 1 (40 digits, PrecisionGoal 22, as before) is reused (reviews E3, E15, E19). The card's `Oracle.highMomentum` line says
+     that, the oracle running only d = 2, 3, the d-dependence at n ≥ 2 is certified by `Projection.explicitVectors`;
    - d^m/dν^m, divided by iᵐ m!;
    - the normalisation is applied.
 4. The result is compared with `Integrand` at the same point: relative error < 10⁻⁸, or absolute for zero flows.
@@ -585,6 +605,8 @@ with Canet's flow instead (see Loops).
   script used a tolerance of 10⁻⁶. HEQ is numerically 5·10⁻¹³. Runs in 11 s.
 - KPZ with zero flows (`AssembleTest.wl`): 20 comparisons in 2 s.
 - `jac` in d = 2 (`tests/acceptance/Jacobian2D.wl`): 5 equations, relative errors ≤ 10⁻⁹.
+- p⁴ (manual run, KPZ + κ lap[lap[h]], `"Momentum" -> 2`): the κ equation agrees to 10⁻²⁰ in d = 2, 3 (Oracle 26 s).
+  The stencil itself is tested in `tests/unit/OracleTest.wl` on F((p+q)²) at n = 2 (error < 10⁻⁹).
 
 ---
 
@@ -732,7 +754,8 @@ multiplied into every loop part; shape derivatives become applied functions `Dar
 expressions.
 
 **Checks.** `JuliaExport.noUnits` (no k, references, q, symbolic `Dim`), `knownSymbols`, `systemHeads` (only + × ^ and
-sqrt/exp/log/abs), `linearNoMomentum`. A file that uses r″ gets a warning: FlowRG must bind `D2<shape>` (handoff
+sqrt/exp/log/abs), `linearNoMomentum`, `shapeDerivative` (only r, r′, r″: p⁴ flows need r‴/r⁗ and a FlowRG interface
+extension, docs/FUTURE.md). A file that uses r″ gets a warning: FlowRG must bind `D2<shape>` (handoff
 `docs/handoff/FlowRG-MUST_FIX.md`, task 2).
 
 **Tests.** `tests/reference/JuliaRoundTrip.wl`, used by the acceptance tests: the file is evaluated in plain Julia with smooth

@@ -13,7 +13,7 @@ Get[FileNameJoin[{testRoot, "reference", "KPZSetup.wl"}]];
 litim = {rn -> Function[y, 1/y - 1], rd -> Function[y, 1/y - 1]};
 (* Int d^dq/(2 Pi)^d f(q^2) = v_d k^d/2 Int_0^1 y^(d/2 - 1) f(k^2 y) dy (the Litim integrand vanishes for y > 1, its r' has no delta term
    here because it multiplies r(1) = 0); every term is c y^a with a depending on d *)
-litimIntegral[f_] := Module[{g = Expand[Together[f /. q -> k Sqrt[yy] /. litim] yy^(dd/2 - 1)], terms},
+litimIntegral[f_] := Module[{g = (litimSmoothGuard[f]; Expand[Together[f /. q -> k Sqrt[yy] /. litim] yy^(dd/2 - 1)]), terms},
    terms = If[Head[g] === Plus, List @@ g, {g}];
    If[! AllTrue[terms, FreeQ[# /. yy -> 1, yy] && FreeQ[Together[#/yy^Exponent[#, yy]], yy] &], $Failed,
     vd k^dd/2 Total[(# /. yy -> 1)/(Exponent[#, yy] + 1) & /@ terms]]];
@@ -24,6 +24,7 @@ bracket = Together[(dd - 2 - etaD + 3 etanu) /. First[etaSol] /. lamk -> Sqrt[gt
 canet = (2 dd^6 + 4 dd^5 - dd^4 (7 gt + 8) - 2 dd^3 (3 gt + 8) + dd^2 gt (3 gt + 20) - dd (gt - 8) gt - 2 gt^2)/
    (2 dd^5 + 8 dd^4 + dd^3 (8 - 3 gt) - 2 dd^2 gt + dd gt (gt + 8) - gt^2);
 
+expectFail["KPZ Litim: r''' (a p^4 flow) aborts", litimIntegral[Derivative[3][rn][q^2/k^2]], "Litim.smoothShape"];
 test["KPZ Litim: q-integrals done exactly", FreeQ[{kpzFlow[nuk], kpzFlow[Dk]}, $Failed], True];
 test["KPZ Litim: eta_nu, eta_D solved uniquely", Length[etaSol], 1];
 test["KPZ Litim: bracket depends only on d and g (k, nu, D, v_d drop out)", Complement[Variables[bracket], {dd, gt}], {}];

@@ -14,8 +14,8 @@ jac::usage = "jac[a, b] = eps_ij d_i a d_j b (eps_12 = +1) in the ansatz density
 \"Dimension\" -> FixedDimension[2] in DefineTheory. At most one jac per monomial.";
 DefineAnsatz::usage = "DefineAnsatz[theory, \"Density\" -> density, \"Couplings\" -> {c1, c2, ...}] parses the density \
 (Gamma_k = Integral dt d^dx density) into monomials, prints the parsed table and returns the \"Ansatz\" stage.";
-FieldFactor::usage = "FieldFactor[phi, nt, {i, ...}] is the factor dt^nt d_i ... phi of a parsed monomial; a repeated index \
-SpaceIndex[1] is summed over (one contraction at most, since momentum order <= 2).";
+FieldFactor::usage = "FieldFactor[phi, nt, {i, ...}] is the factor dt^nt d_i ... phi of a parsed monomial; every repeated \
+SpaceIndex[n] is summed over (one index per contraction, numbered canonically).";
 SpaceIndex::usage = "SpaceIndex[n] is a summed spatial index in a parsed monomial.";
 EpsIndex::usage = "EpsIndex[s] (s = 1, 2) is the s-th index of eps_ij in a parsed monomial: jac[a, b] gives EpsIndex[1] on the factor of a \
 and EpsIndex[2] on the factor of b.";
@@ -65,6 +65,8 @@ toFactors[e_, fld_, new_] := Module[{S, V},
    S[x : fld] := FieldFactor[x, 0, {}];
    S[x_Plus] := S /@ x;
    S[x_Times] := S /@ x;
+   (* each factor of a power gets its own dummies: lap[h]^2, (grad h.grad h)^2 (design/MOMENTUMPROJECTION.md, review E14) *)
+   S[Power[x_, n_Integer?Positive]] := Expand[Times @@ Table[S[x], {n}]];
    S[Power[x_, n_]] := Expand[S[x]^n];
    S[dt[x_]] := Expand[derive["t"][S[x]]];
    S[lap[x_]] := With[{j = new[]}, Expand[derive[j][derive[j][S[x]]]]];
@@ -83,14 +85,18 @@ toFactors[e_, fld_, new_] := Module[{S, V},
 
 (* ---------- monomials ---------- *)
 
-(* rename the (at most one) summed index to SpaceIndex[1] so that equal monomials combine; returns {sign, factors}.
+(* canonical form of a monomial, so that equal monomials combine; returns {sign, factors}. For every numbering of the summed
+   indices as SpaceIndex[1..]: sort each factor's index list (derivatives commute), sort the factor list; keep the smallest
+   (a class invariant for any number of contractions: lap[lap[A]] = div[grad[lap[A]]], review E9).
    With eps (one pair EpsIndex[1], EpsIndex[2]): eps_ij is antisymmetric, so the factor list with the slots swapped is the same
-   monomial with sign -1; the smaller of the two lists is kept, and a list equal to its swap is zero (sign 0). *)
+   monomial with sign -1; the smaller of the two minima is kept, and equal minima mean zero (sign 0). *)
+canonMinForm[factors_List, ix_List] := First[Sort[Function[perm,
+     Sort[(factors /. Thread[ix -> (SpaceIndex /@ perm)]) /. FieldFactor[f_, nt_, i_] :> FieldFactor[f, nt, Sort[i]]]] /@ Permutations[Range[Length[ix]]]]];
 canonical[factors0_List] := Module[{factors = factors0 /. EpsIndex[_, s_] :> EpsIndex[s], ix, l, ls},
    ix = Union[Cases[Flatten[factors[[All, 3]]], Except[_EpsIndex]]];
-   l = Sort[factors /. Thread[ix -> Table[SpaceIndex[n], {n, Length[ix]}]]];
+   l = canonMinForm[factors, ix];
    If[FreeQ[l, EpsIndex], {1, l},
-    ls = Sort[l /. {EpsIndex[1] -> EpsIndex[2], EpsIndex[2] -> EpsIndex[1]}];
+    ls = canonMinForm[factors /. {EpsIndex[1] -> EpsIndex[2], EpsIndex[2] -> EpsIndex[1]}, ix];
     Which[ls === l, {0, l}, OrderedQ[{l, ls}], {1, l}, True, {-1, ls}]]];
 
 arity[_jac] = 2;
@@ -103,7 +109,7 @@ splitTerm[t_] := Module[{fs = If[Head[t] === Times, List @@ t, {t}]},
     Flatten[Replace[Select[fs, ! FreeQ[#, FieldFactor] &], {Power[f_, n_] :> Table[f, n], f_ :> {f}}, {1}]]}];
 
 fieldString[FieldFactor[f_, nt_, ix_]] := Nest["dt[" <> # <> "]" &,
-   Which[ix === {}, ToString[f], Length[ix] == 2 && ix[[1]] === ix[[2]], "lap[" <> ToString[f] <> "]",
+   Which[ix === {}, ToString[f], EvenQ[Length[ix]] && AllTrue[Tally[ix][[All, 2]], EvenQ], Nest["lap[" <> # <> "]" &, ToString[f], Length[ix]/2],
     Length[ix] == 1, "grad[" <> ToString[f] <> "]", True, "d" <> ToString[ix] <> "[" <> ToString[f] <> "]"], nt];
 (* factors carrying one index are the two ends of the contraction: printed as grad[a].grad[b]; the factors carrying EpsIndex are
    printed as jac[slot 1, slot 2] *)
@@ -175,7 +181,7 @@ DefineAnsatz[theory_, opts : OptionsPattern[]] := Block[{$FRGModule = "Ansatz"},
    terms = If[Head[expanded] === Plus, List @@ expanded, {expanded}];
    mons = splitTerm /@ terms;
    If[jacQ, AppendTo[checks, assertCheck["Ansatz.singleEpsilon", AllTrue[mons, Count[#[[2, All, 3]], EpsIndex[_, 1], Infinity] <= 1 &],
-      Select[mons, Count[#[[2, All, 3]], EpsIndex[_, 1], Infinity] > 1 &], "at most one jac per monomial (p^4 is unsupported)", "at most one jac per monomial"]]];
+      Select[mons, Count[#[[2, All, 3]], EpsIndex[_, 1], Infinity] > 1 &], "at most one jac per monomial (the eps reduction handles one pair of eps indices)", "at most one jac per monomial"]]];
    mons = Function[m, With[{c = canonical[m[[2]]]}, {c[[1]] m[[1]], c[[2]]}]] /@ mons;
    mons = KeyValueMap[{Together[Total[#2]], #1} &, GroupBy[mons, Last -> First]];
    If[MemberQ[mons[[All, 1]], 0],
@@ -193,8 +199,6 @@ DefineAnsatz[theory_, opts : OptionsPattern[]] := Block[{$FRGModule = "Ansatz"},
      "terms linear in the fields are not supported (expand around a stationary point)", "no linear term"]];
    AppendTo[checks, assertCheck["Ansatz.quartic", AllTrue[mons, #FieldCount <= 4 &], MonomialString /@ Select[mons, #FieldCount > 4 &],
      "v1 supports at most quartic monomials", "at most quartic (max " <> ToString[Max[#FieldCount & /@ mons]] <> ")"]];
-   AppendTo[checks, assertCheck["Ansatz.momentumOrder", AllTrue[mons, #MomentumOrder <= 2 &], MonomialString /@ Select[mons, #MomentumOrder > 2 &],
-     "momentum order p^4 or higher: the p-Laplacian projection is valid for p^2 only (E2, see docs/FUTURE.md)", "momentum order <= p^2"]];
    FRGAssert["Ansatz.indexPairs", AllTrue[mons, indexPairsQ], Select[mons, ! indexPairsQ[#] &],
     "internal: every spatial index must appear exactly twice, and EpsIndex[1], EpsIndex[2] once each or not at all"];
    AppendTo[checks, assertCheck["Ansatz.couplingsInCoefficients", AllTrue[mons, FreeQ[#Coefficient, fld | opHeads | SpaceIndex | EpsIndex] &], mons,

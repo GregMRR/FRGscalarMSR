@@ -1,8 +1,8 @@
 (* ::Package:: *)
 
 (* Projection.wl -- ProjectOnMonomials: for every classified monomial (I nu)^m (p^2)^n of d_s Gamma2_ab(nu, p), apply
-     (d/d(I nu))^m / m!  and, for n = 1, the p-Laplacian / (2 d), at nu = 0, p = 0 (pipeline 1: external variables set to zero),
-   to the loop integrand; the same operator applied to Gamma_k (regulator off) is asserted to give its coefficient (LHS check).
+     (d/d(I nu))^m / m!  and the (p^2)^n coefficient (direction average of the s^(2n) Taylor coefficient of p = s e, any n;
+   design/MOMENTUMPROJECTION.md M1), at nu = 0, p = 0 (pipeline 1: external variables set to zero), to the loop integrand; the same operator applied to Gamma_k (regulator off) is asserted to give its coefficient (LHS check).
    Objective, assumptions and checks: docs/MODULES.md section "Projection". *)
 
 BeginPackage["FRGscalarMSR`", {"FRGscalarMSR`Internal`"}];
@@ -14,18 +14,55 @@ ShowIntegrand::usage = "ShowIntegrand[projected, coefficient] or ShowIntegrand[p
 
 Begin["`Private`"];
 
-(* p-Laplacian with vectors as bare symbols (DE4plus_fast.wl section 3): D[D[f, p], p] /. dimFactors at p = 0 is the Laplacian;
-   a bare vector q left by a first derivative of scal[p, q] is marked by lam, so that q.q = lam^2 -> q^2 *)
-dimFactors[dim_, q_, lam_] := {Derivative[0, 1][scal][a_, b_] :> (a /. q -> lam), Derivative[1, 0][scal][a_, b_] :> (b /. q -> lam),
-   Derivative[0, 2][scal][a_, b_] -> 0, Derivative[2, 0][scal][a_, b_] -> 0, Derivative[1, 1][scal][a_, b_] -> dim};
-
 (* derivatives of Delta(w, s) = sum_m c_m(s) (I w)^m *)
 deltaCompletion[deg_] := Derivative[i_, j_][\[CapitalDelta]][w_, s_] :>
    (D[Sum[DeltaCoefficient[mm][xs] (I yw)^mm, {mm, 0, deg}], {yw, i}, {xs, j}] /. {yw -> w, xs -> s});
 
+(* <c^k> |q|^k, c = cosine between a random unit direction e and q in d dimensions (design/MOMENTUMPROJECTION.md M1) *)
+projCAverage[k_, dim_, qq_] := If[OddQ[k], 0, qq^(k/2) (k - 1)!!/Product[dim + 2 j, {j, 0, k/2 - 1}]];
+
+(* M1: the (p^2)^n coefficient of f(p) is the direction average of the s^(2n) Taylor coefficient of f(p = s e). The loop holds p only
+   in scal[p, p] = s^2 and scal[p, q] = s c (scal is bilinear: (p + q)^2 is already expanded); c^k averages to projCAverage *)
+directionalAverage[e0_, n_, p_, q_, dim_] := Module[{e = e0 /. {scal[p, p] -> projS^2, scal[p, q] -> projS projC}, odd},
+   If[n == 0, Return[e /. projS -> 0]];
+   e = (D[e, {projS, 2 n}] /. projS -> 0)/(2 n)!;
+   odd = Table[D[e, {projC, k}] /. projC -> 0, {k, 1, 2 n - 1, 2}];
+   FRGAssert["Projection.noOddC", ExactlyZeroQ[odd, "Seeds" -> {1}], Short[odd],
+    "internal invariant: a term odd in p.q survived at order s^(2n) (impossible by degree counting: c-degree is 2n - 2a)"];
+   Sum[(D[e, {projC, k}] /. projC -> 0)/k! projCAverage[k, dim, scal[q, q]], {k, 0, 2 n, 2}]];
+
+(* N_n = (Laplacian_p)^n (p^2)^n = 4^n n! (d/2)_n  (M2) *)
+lapNorm[n_, d_] := 4^n n! Pochhammer[d/2, n];
+
+(* the same projection on explicit d-vectors: (Laplacian_p)^n at p = 0 / N_n; returns {coefficient, q.q}. Independent of
+   directionalAverage and projCAverage (used by Projection.explicitVectors and the tests) *)
+explicitProjection[e0_, m_, n_, {nu_, p_}, {w_, q_}, d_Integer, deg_] := Module[{pc = Array[projPc, d], qc = Array[projQc, d], vec, e},
+   vec = {p -> pc, q -> qc};
+   e = e0 /. {scal[a_, b_] :> Expand[(a /. vec) . (b /. vec)], wedge[a_, b_] :> With[{x = a /. vec, y = b /. vec}, x[[1]] y[[2]] - x[[2]] y[[1]]]};
+   If[m > 0, e = D[e, {nu, m}]];
+   e = Nest[Function[g, Sum[D[g, {x, 2}], {x, pc}]], e, n] /. Thread[pc -> 0] /. nu -> 0;
+   {(e /. deltaCompletion[deg])/(I^m m! lapNorm[n, d]), qc . qc}];
+
+(* Projection.explicitVectors (n >= 2): the symbolic projection equals the explicit one at the declared d, or at d = 1..n+1 for a
+   symbolic d (the p^(2n) result spans n+1 independent d-structures, review E4) *)
+checkExplicitVectors[loop_, integrand_, m_, n_, {nu_, p_}, wq_, dim_, deg_] := Module[{ds = If[IntegerQ[dim], {dim}, Range[n + 1]], bad},
+   bad = Select[ds, Function[d, With[{x = explicitProjection[loop, m, n, {nu, p}, wq, d, deg]},
+        ! ExactlyZeroQ[x[[1]] - (integrand /. LoopMomentumSquared -> x[[2]] /. If[IntegerQ[dim], {}, dim -> d]), "Seeds" -> {1}]]]];
+   FRGAssert["Projection.explicitVectors", bad === {}, bad,
+    "internal: the directional average differs from (Laplacian_p)^n / N_n on explicit d-vectors in these dimensions"]];
+
+(* Projection.normalisation: the full projection of (p.q)^(2k) (p^2)^(n-k) against <c^(2k)> q^(2k) = q^(2k) Gamma(k+1/2) Gamma(d/2) /
+   (Sqrt[Pi] Gamma(k+d/2)), written independently of projCAverage (review E17) *)
+checkNormalisation[nmax_, dim_] := Module[{bad},
+   bad = Select[Flatten[Table[{n, k}, {n, 1, nmax}, {k, 0, n}], 1], Function[nk, With[{n = nk[[1]], k = nk[[2]]},
+        Together[FunctionExpand[project[scal[nP, nQ]^(2 k) scal[nP, nP]^(n - k), 0, n, {nNu, nP}, {nW, nQ}, dim, 0] -
+            LoopMomentumSquared^k Gamma[k + 1/2] Gamma[dim/2]/(Sqrt[Pi] Gamma[k + dim/2])]] =!= 0]]];
+   FRGAssert["Projection.normalisation", bad === {}, bad,
+    "internal: the projection of (p.q)^(2k) (p^2)^(n-k) differs from <c^(2k)> q^(2k) (these {n, k})"]];
+
 (* with eps (d = 2): products of wedges are reduced by F2; every term is then wedge[p, q]^e f(p^2, p.q, q^2, nu) with e = 0 or 1, and
-   the e = 1 part has a vanishing (I nu)^m (p^2)^n projection (n <= 1, F4 of design/LEVICIVITA.md): it is dropped, after checking
-   that its projection vanishes on explicit 2-vectors. $wedgeDropped counts the integrands with a nonzero dropped part. *)
+   the e = 1 part has a vanishing (I nu)^m (p^2)^n projection for every n (M3; F4 of design/LEVICIVITA.md): it is dropped, after
+   checking that its projection vanishes on explicit 2-vectors. $wedgeDropped counts the integrands with a nonzero dropped part. *)
 dropWedge[e0_, m_, n_, {nu_, p_}, {w_, q_}] := Module[{e = FRGscalarMSR`Internal`reduceWedge2D[e0], ew, odd, ex, pc, qc, vec},
    ew = e /. {wedge[p, q] -> wz, wedge[q, p] -> -wz};
    FRGAssert["Projection.wedgeOdd", FreeQ[ew, wedge] && Exponent[ew, wz] <= 1 && FreeQ[ew, Power[wz, _?Negative]],
@@ -35,29 +72,25 @@ dropWedge[e0_, m_, n_, {nu_, p_}, {w_, q_}] := Module[{e = FRGscalarMSR`Internal
     vec = {p -> {pc[1], pc[2]}, q -> {qc[1], qc[2]}};
     ex = (pc[1] qc[2] - pc[2] qc[1]) odd /. scal[a_, b_] :> Expand[(a /. vec) . (b /. vec)];
     If[m > 0, ex = D[ex, {nu, m}]];
-    If[n == 1, ex = D[ex, {pc[1], 2}] + D[ex, {pc[2], 2}]];
+    ex = Nest[D[#, {pc[1], 2}] + D[#, {pc[2], 2}] &, ex, n];
     ex = ex /. {pc[_] -> 0, nu -> 0};
     FRGAssert["Projection.wedgeOdd", ExactlyZeroQ[ex, "Seeds" -> {1}], Short[ex],
      "internal: the part odd in wedge[p, q] has a nonzero projection (explicit 2-vectors)"];
     $wedgeDropped++];
    ew /. wz -> 0];
 
-project[e0_, m_, n_, {nu_, p_}, {w_, q_}, dim_, deg_, eps_ : False] := Module[{e = e0, lin},
+(* (d/d(I nu))^m / m! at nu = 0, and the (p^2)^n coefficient by directionalAverage *)
+project[e0_, m_, n_, {nu_, p_}, {w_, q_}, dim_, deg_, eps_ : False] := Module[{e = e0},
    If[eps, e = dropWedge[e, m, n, {nu, p}, {w, q}]];
    If[m > 0, e = D[e, {nu, m}]];
-   If[n == 1, e = D[e, p, p] /. dimFactors[dim, q, lam]];
-   e = e /. p -> 0 /. nu -> 0;
-   If[n == 1,
-    lin = D[e, lam] /. lam -> 0;
-    FRGAssert["Projection.evenInQ", ExactlyZeroQ[lin, "Seeds" -> {1}], Short[lin], "internal: a term odd in the loop momentum survived the p-Laplacian"];
-    e = (e /. lam -> 0) + (D[e, {lam, 2}] /. lam -> 0)/2 scal[q, q]];
+   e = directionalAverage[e, n, p, q, dim] /. nu -> 0;
    e = e /. scal[q, q] -> LoopMomentumSquared /. deltaCompletion[deg];
-   FRGAssert["Projection.complete", FreeQ[e, q | p | nu | lam | wedge | Derivative[__][scal] | Derivative[__][\[CapitalDelta]]], e,
+   FRGAssert["Projection.complete", FreeQ[e, q | p | nu | projS | projC | wedge | Derivative[__][scal] | Derivative[__][\[CapitalDelta]]], e,
     "internal: external variables, vectors or Delta derivatives left after the projection"];
-   e/(I^m m!)/If[n == 1, 2 dim, 1]];
+   e/(I^m m!)];
 
 ProjectOnMonomials[loops_, symmetries_] := Block[{$FRGModule = "Projection"},
-  Module[{t0 = AbsoluteTime[], v, prop, dim, deg, targets, lhsBad, byPair, res, checks = {}, warns = {}, stage, wq, eps},
+  Module[{t0 = AbsoluteTime[], v, prop, dim, deg, targets, lhsBad, byPair, res, nmax, nExplicit, checks = {}, warns = {}, stage, wq, eps},
    validateStage[loops, "Loops"]; validateStage[symmetries, "Symmetries"];
    v = loops["Vertices"]; prop = loops["Propagator"];
    FRGAssert["Projection.sameAnsatz", v["Upstream"] === symmetries["Upstream"], {v["Upstream"], symmetries["Upstream"]},
@@ -67,16 +100,31 @@ ProjectOnMonomials[loops_, symmetries_] := Block[{$FRGModule = "Projection"},
    If[eps, AppendTo[checks, assertCheck["Projection.epsilonDimension", dim === 2, dim, "internal: eps (jac) needs the declared d = 2", "eps with d = 2"]]];
    $wedgeDropped = 0;
    targets = Select[symmetries["Classification"], #Class =!= "Structure" &];
+   nmax = Max[0, targets[[All, "Momentum"]]];
+
+   (* the d-normalisation of the momentum projection, against an independent closed form (LHS cannot see it: review E2) *)
+   If[nmax >= 1, checkNormalisation[nmax, dim];
+    AppendTo[checks, assertCheck["Projection.normalisation", True, Null, "",
+      "(p.q)^(2k) (p^2)^(n-k) -> <c^(2k)> q^(2k) = q^(2k) Gamma(k+1/2) Gamma(d/2)/(Sqrt[Pi] Gamma(k+d/2)), n <= " <> ToString[nmax] <> ", d = " <> ToString[dim]]]];
+   If[nmax >= 2, AppendTo[warns, infoCheck["ASSUMPTION", "Projection.shapeSmoothness",
+      "p^{2n} flows contain shape derivatives up to order 2n (here " <> ToString[2 nmax] <> "): any explicit shape substituted later must be C^" <> ToString[2 nmax]]]];
 
    (* LHS check: the projection operator applied to Gamma_k (regulator off) reproduces the classified coefficient *)
    lhsBad = Select[targets, Expand[project[VertexValue[v, #Pair, {{nu, p}}], #Frequency, #Momentum, {nu, p}, {zz, zq}, dim, deg, eps] - #GammaK] =!= 0 &];
    AppendTo[checks, assertCheck["Projection.LHS", lhsBad === {}, lhsBad,
      "internal: the projection operator does not reproduce the Gamma_k coefficient (normalisation of the frequency or momentum projection)",
-     "projection of Gamma_k = its coefficient, " <> ToString[Length[targets]] <> " monomials ((d/d(I nu))^m/m!, Laplacian_p/(2 " <> ToString[dim] <> "))"]];
+     "projection of Gamma_k = its coefficient, " <> ToString[Length[targets]] <> " monomials ((d/d(I nu))^m/m!, (p^2)^n coefficient; not the d-normalisation)"]];
 
    byPair = GroupBy[targets, #Pair &];
    res = Join @@ KeyValueMap[Function[{pair, ms}, Module[{loop = LoopIntegrand[loops, pair, nu, p]},
-        Append[#, "Integrand" -> project[loop, #Frequency, #Momentum, {nu, p}, wq, dim, deg, eps]] & /@ ms]], byPair];
+        Function[r, With[{ig = project[loop, r["Frequency"], r["Momentum"], {nu, p}, wq, dim, deg, eps]},
+           (* n >= 2: the directional average against explicit vectors (n <= 1 is certified by the regression vs the old operator) *)
+           If[r["Momentum"] >= 2, checkExplicitVectors[loop, ig, r["Frequency"], r["Momentum"], {nu, p}, wq, dim, deg]];
+           Append[r, "Integrand" -> ig]]] /@ ms]], byPair];
+   nExplicit = Count[res, r_ /; r["Momentum"] >= 2];
+   If[nExplicit > 0, AppendTo[checks, assertCheck["Projection.explicitVectors", True, Null, "",
+      ToString[nExplicit] <> " p^(2n >= 4) integrands = (Laplacian_p)^n/N_n on explicit vectors, d = " <>
+       If[IntegerQ[dim], ToString[dim], "1, ..., " <> ToString[nmax + 1]]]]];
    AppendTo[checks, assertCheck["Projection.integrandsBuilt", Length[res] == Length[targets], Length[res], "internal",
      ToString[Length[res]] <> " integrands at nu = p = 0 (largest LeafCount " <> ToString[Max[LeafCount[#Integrand] & /@ res]] <> ")"]];
    If[eps, AppendTo[checks, assertCheck["Projection.wedgeOdd", True, Null, "",

@@ -20,7 +20,8 @@ atomName[AdimAtom[a__]] := "atom_" <> StringRiffle[ToString /@ {a}, "_"];
 
 (* shape derivatives as applied functions: arnh'[y] -> Darnh[y], arnh''[y] -> D2arnh[y] *)
 derivativeRule[shapes_] := Derivative[n_Integer][f : Alternatives @@ shapes][y_] :>
-   (FRGAssert["JuliaExport.shapeDerivative", n <= 2, Derivative[n][f], "only r, r' and r'' are exported"];
+   (FRGAssert["JuliaExport.shapeDerivative", n <= 2, Derivative[n][f],
+     "only r, r' and r'' are exported: p^4 (and higher) flows need r''' / r'''' and a FlowRG interface extension (docs/FUTURE.md)"];
     Symbol[Context[f] <> If[n == 1, "D", "D2"] <> SymbolName[f]][y]);
 
 toJulia[e_] := Module[{s},

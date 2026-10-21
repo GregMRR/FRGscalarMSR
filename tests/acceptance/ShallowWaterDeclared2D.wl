@@ -4,6 +4,7 @@
    as the symbolic-Dim pipeline at Dim -> 2. Compared with ExactlyZeroQ, not ===: Assemble picks its output form by LeafCount. *)
 
 Get[FileNameJoin[{testRoot, "reference", "ShallowWaterSetup.wl"}]];
+Get[FileNameJoin[{testRoot, "reference", "OldProjection.wl"}]];
 
 Module[{th, an, sy, ve, re, pr, lo, eq, old = swaEquations["Equations"], new, key},
   th = quiet[DefineTheory["Scalars" -> {H, Psi}, "Dimension" -> FixedDimension[2]]];
@@ -31,4 +32,6 @@ Module[{th, an, sy, ve, re, pr, lo, eq, old = swaEquations["Equations"], new, ke
    swaSymmetries["Classification"][[All, {"Pair", "Frequency", "Momentum", "Class"}]]];
   test["declared d = 2: every equation = symbolic-Dim equation at Dim -> 2 (exact)",
    AllTrue[Transpose[{new, old}], ExactlyZeroQ[#[[1]]["Integrand"] - (#[[2]]["Integrand"] /. Dim -> 2)] &], True];
-  test["declared d = 2: no Epsilon key", KeyExistsQ[an, "Epsilon"], False]];
+  test["declared d = 2: no Epsilon key", KeyExistsQ[an, "Epsilon"], False];
+  test["declared d = 2: new projection = old operator (design/MOMENTUMPROJECTION.md invariant)",
+   FRGscalarMSR`Private`oldLapMismatches[eq["Closure"]["Integrated"]["Projection"]], {}]];

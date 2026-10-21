@@ -27,7 +27,7 @@ $FRGModule::usage = "$FRGModule is the module name printed in FAIL blocks (set w
 $FRGExitOnFail::usage = "$FRGExitOnFail: if True a failed check calls Exit[2] instead of Abort[] (default: True in math -script runs).";
 ExactlyZeroQ::usage = "ExactlyZeroQ[expr] is True iff expr vanishes exactly at several random rational points: every non-System \
 symbol (couplings, q, k, Dim, ...) gets an independent random rational, and every remaining function atom r[y], r'[y], r''[y], \
-f[...] gets its own independent random rational (same atom, same value). Option \"Seeds\" -> {1, 2, 3}.";
+f[...], f[a][y], Derivative[k][f[a]][y] (as a whole) gets its own independent random rational (same atom, same value). Option \"Seeds\" -> {1, 2, 3}.";
 RandomRationalPoint::usage = "RandomRationalPoint[syms, seed] gives rules sym -> random rational in (0, 1), reproducible from seed.";
 PrintCard::usage = "PrintCard[stage] prints the stage summary card: PASS/WARN/INFO/ASSUMPTION lines, LeafCount, timing, fingerprint.";
 scal::usage = "scal[a, b] is the scalar product of the vectors a, b (bare symbols). Orderless; linear over sums and over \
@@ -82,7 +82,9 @@ valueAt[e_, seed_Integer] := Module[{pt, memo, atomRule},
    pt = RandomRationalPoint[userSymbols[e], seed];
    SeedRandom[seed + 7919];
    memo[x_] := memo[x] = RandomInteger[{2, 60}]/RandomInteger[{61, 97}];
-   atomRule = x : (Derivative[__][_Symbol][___] | (h_Symbol /; ! systemSymbolQ[h])[___]) :> memo[x];
+   (* whole atoms first: f[y], f'[y], f[a, b][y], Derivative[k][f[a, b]][y] each get their own value; matching inside
+      Derivative[k][f[a, b]] would turn it into Derivative[k][number] = 0 (design/MOMENTUMPROJECTION.md step 0, E1) *)
+   atomRule = x : (Derivative[__][_][___] | (_[___])[___] | (h_Symbol /; ! systemSymbolQ[h])[___]) :> memo[x];
    Quiet[Check[Together[(e /. pt) /. atomRule], $Failed], {Power::infy, Infinity::indet}]];
 
 Options[ExactlyZeroQ] = {"Seeds" -> {1, 2, 3}};

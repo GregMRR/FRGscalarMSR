@@ -42,7 +42,7 @@ structure), ∂sΓ⁽³⁾ projections, symbolic Ward identities, Adimensional m
 | Q4 | Γ2 entries polynomial in iω and q²; deg_ω Δ ≤ 2 (asserted, abort beyond). Results rational in Δ's coefficients (Vieta), no radicals; pole-validity conditions emitted. |
 | Q5 | Regulator declared separately; ∂sR derived; shape functions stay **abstract** r(y), r′, r″ (y = q²/k²) through to the Julia export, so shapes are swapped at run time to test stability. Amplitude absorbed into r (Q5b, no α symbol). |
 | Q6/Q17 | Every (iω)^m (q²)^n monomial of every Γ2 entry up to explicit global `TruncationOrders` is classified: declared / `Protected` (flow must be exactly 0, else abort) / `Neglected` (flow computed, warning with its size). Untagged → abort. Rules (E5): monomials that vanish by structure (e.g. odd ω in a diagonal noise entry, Γ2_aa(ω)=Γ2_aa(−ω)) are detected and reported "vanishes by structure", no tag needed; a declared monomial with a **numeric** coefficient (e.g. the 1 in front of iω) must have zero flow (asserted); a monomial both declared-with-coupling and Protected → abort (contradiction). |
-| E2 | Momentum order ≤ 1 (p²) asserted in v1: the script's Laplacian trick is wrong for (∇²_p)ⁿ, n ≥ 2 (gives 24d² instead of 8d(d+2)). Directional-average method for any order → FUTURE.md. Loop momentum q may carry any power. |
+| E2 | Momentum order ≤ 1 (p²) asserted in v1: the script's Laplacian trick is wrong for (∇²_p)ⁿ, n ≥ 2 (iterated, gives 8(d²+2) instead of 8d(d+2); MOMENTUMPROJECTION r1 E10). Directional-average method for any order → FUTURE.md. Loop momentum q may carry any power. |
 | E3/E4 | Loop prefactor (factor, sign, 2π) and Γ⁽⁴⁾ tadpole (−½) are **hand-derived** in MODULES.md, cross-read against textbook one-loop KPZ; no automated independent check (user choice). `flowsFAST` agreement does **not** verify the normalisation (same trace formula) — say so in docs. Cards print "tadpole term hand-derived, untested" whenever Γ⁽⁴⁾ ≠ 0. |
 | Q7 / E1 | Fourier convention e^{−i(q·x−ωt)} (∂t → +iω, ∇ → −iq), leg a at (ω,q): reproduces `DE4plus_fast.wl` exactly (§3). Plane-wave cross-check of every vertex + an independent pole-placement check. |
 | Q8 | One `.wl` per module, private contexts, immutable stage Associations passed explicitly, no global state. |
@@ -71,7 +71,7 @@ The user prefers explanations that do not assume jargon (Vieta, Routh–Hurwitz,
   `Iint` (closes upward) is reused unchanged.
 - Vectors kept as bare symbols with `scal[a,b]` (Orderless, linear over **numbers** only — E14; extend to couplings or keep the wording).
 - d is a symbol (`Dim`) throughout. ∂s ≡ k∂k. Momentum projection of p² = ∇²_p/(2d) at p = 0 (script trick, valid only for n = 1;
-  n ≥ 2 aborts, E2); frequency projection of (iν)^m = (∂/∂(iν))^m / m! at ν = 0.
+  n ≥ 2 aborts, E2; superseded by the directional average of design/MOMENTUMPROJECTION.md, any n); frequency projection of (iν)^m = (∂/∂(iν))^m / m! at ν = 0.
 - Reserved internal symbols live in private contexts; `DefineTheory` aborts if a user name collides with a library symbol
   (primer trap: a global `s = …` silently broke the old rules; `k`, `l` were both heads and variables).
 

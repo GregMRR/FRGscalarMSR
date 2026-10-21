@@ -26,6 +26,8 @@ lpaSymmetries = quiet[DeclareSymmetries[lpaAnsatz,
 lpaPropagator = quiet[BuildPropagator[lpaVertices, lpaRegulator]];
 lpaClosure = quiet[CheckClosure[IntegrateFrequencies[ProjectOnMonomials[BuildLoopIntegrands[lpaVertices, lpaPropagator, lpaRegulator], lpaSymmetries]], lpaSymmetries]];
 lpaEquations = quiet[AssembleEquations[lpaClosure]];
+Get[FileNameJoin[{testRoot, "reference", "OldProjection.wl"}]];
+test["LPA: new projection = old operator (design/MOMENTUMPROJECTION.md invariant)", FRGscalarMSR`Private`oldLapMismatches[lpaClosure["Integrated"]["Projection"]], {}];
 test["LPA: 6 equations (A, g, Dh, H, N, Dphi)", Sort[lpaEquations["Equations"][[All, "Flowing"]]], Sort[{nk Ak, gk, Dhk aDhk, Hk lk, nk ank, Dphik aDphik}]];
 test["LPA: g2, K, D2phi flows reported as Neglected",
   Sort[#Pair & /@ Select[lpaClosure["Report"], #Class === "Neglected" && #Frequency == 0 && #Momentum == 1 &]], Sort[{{H, Psibar}, {Hbar, Psibar}, {Psibar, Psibar}}]];

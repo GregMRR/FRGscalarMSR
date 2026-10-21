@@ -21,3 +21,14 @@ Module[{th, an, sy, ve, re, pr, lo, eq},
 
 expectFail["symbolic d: {4} aborts", RunOracle[kpzEquations, "Dimensions" -> {4}], "Oracle.declaredDimension"];
 test["symbolic d: Automatic = {2, 3}", Union[quiet[RunOracle[kpzEquations]]["Results"][[All, "Dimension"]]], {2, 3}];
+
+(* (Laplacian_p)^n / N_n by nested stencils (design/MOMENTUMPROJECTION.md step 5) on F((p + q)^2), F = 1/(1 + x): exact coefficient
+   F''/2 + 2 Q F'''/d + 2 Q^2 F''''/(d (d + 2)) at n = 2; values at 60 digits, h = 10^-5, Richardson (h, h/2) *)
+Module[{F = Function[x, 1/(1 + x)], q = {3/10, -1/2, 2/5}, exact, num, f},
+  Do[With[{qd = Take[q, d]}, Module[{Q = qd . qd},
+     f = Function[pv, N[F[(pv + qd) . (pv + qd)], 60]];
+     exact = F''[Q]/2 + 2 Q F'''[Q]/d + 2 Q^2 F''''[Q]/(d (d + 2));
+     num = FRGscalarMSR`Private`oracleLaplacianN[f, d, 2, 10^-5]/FRGscalarMSR`Private`oracleLapNorm[2, d];
+     test["oracle stencil n = 2, d = " <> ToString[d] <> ": rel. error < 10^-9", Abs[(num - exact)/exact] < 10^-9, True];
+     test["oracle stencil n = 1, d = " <> ToString[d] <> ": N_1 = 2 d", Abs[FRGscalarMSR`Private`oracleLaplacianN[f, d, 1, 10^-5]/(2 d) - (F'[Q] + 2 Q F''[Q]/d)] < 10^-9, True]]],
+   {d, 2, 3}]];

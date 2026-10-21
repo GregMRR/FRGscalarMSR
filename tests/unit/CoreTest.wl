@@ -14,6 +14,11 @@ test["ExactlyZeroQ r and r' independent (E12)", ExactlyZeroQ[r'[y0] - r[y0]], Fa
 test["ExactlyZeroQ r' and r'' independent (E12)", ExactlyZeroQ[r''[y0] - r'[y0]], False];
 test["ExactlyZeroQ two shapes independent", ExactlyZeroQ[r1[y0] - r2[y0]], False];
 test["ExactlyZeroQ Pi and I are constants", ExactlyZeroQ[I Pi a - Pi I a], True];
+(* derivative atoms are seen as wholes (design/MOMENTUMPROJECTION.md step 0, E1) *)
+test["ExactlyZeroQ sees GammaAtom'", ExactlyZeroQ[Derivative[1][GammaAtom[hb, h, 0]][QQ]], False];
+test["ExactlyZeroQ sees DeltaCoefficient''", ExactlyZeroQ[Derivative[2][DeltaCoefficient[1]][QQ]], False];
+test["ExactlyZeroQ GammaAtom' and GammaAtom independent", ExactlyZeroQ[Derivative[1][GammaAtom[hb, h, 0]][QQ] - GammaAtom[hb, h, 0][QQ]], False];
+test["ExactlyZeroQ chain rule through an atom", ExactlyZeroQ[D[GammaAtom[a, b, 0][x^2], x] - 2 x Derivative[1][GammaAtom[a, b, 0]][x^2]], True];
 expectFail["ExactlyZeroQ refuses a non-numeric leftover", ExactlyZeroQ["text"], "ExactlyZeroQ.numeric"];
 
 test["scal Orderless", scal[b, a] === scal[a, b], True];

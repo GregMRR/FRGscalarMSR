@@ -48,8 +48,11 @@ This header is printed above every vertex table (from milestone 2 on). Every mod
 
 ## Projections (derivative-expansion pipeline)
 
-- The p² coefficient is ∇²_p/(2d) at p = 0. This is valid **only for p²**: monomials of order p⁴ abort. The general method is in
-  FUTURE.md.
+- The (p²)ⁿ coefficient, any n, is the direction average of the s^{2n} Taylor coefficient along p = s e:
+  scal[p,p] → s², scal[p,q] → s c, ⟨c^{2k}⟩ = q^{2k}(2k−1)!!/[d(d+2)⋯(d+2k−2)]. It equals (∇²_p)ⁿ at p = 0 / N_n,
+  N_n = 4ⁿ n! (d/2)_n (N_1 = 2d). design/MOMENTUMPROJECTION.md.
+- p^{2n} flows contain shape derivatives up to order 2n: an explicit shape substituted later must be C^{2n} (Litim is not C³;
+  the KPZ tests' Litim helpers abort with `Litim.smoothShape`).
 - The (iν)^m coefficient is (∂/∂(iν))^m / m! at ν = 0.
 
 ## Ansatz density (DSL)

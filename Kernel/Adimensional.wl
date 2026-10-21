@@ -61,6 +61,7 @@ unitInvariantQ[e_, units_, dimSym_, ds_, seed_] := AllTrue[ds, Function[d, Modul
      pt = Thread[syms -> RandomInteger[{2, 40}, Length[syms]]/RandomInteger[{41, 97}, Length[syms]]];
      lam = Thread[units -> (RandomInteger[{2, 7}, Length[units]]/RandomInteger[{2, 7}, Length[units]])^den];
      memo[x_] := memo[x] = RandomInteger[{2, 60}]/RandomInteger[{61, 97}];
+     (* not Core's whole-atom rule (design/MOMENTUMPROJECTION.md step 0): enough here, AdimAtom[..] takes no argument and shapes are symbols *)
      atom = x : (Derivative[__][_Symbol][___] | (h_Symbol /; Context[h] =!= "System`")[___]) :> memo[x];
      val[u_] := Together[(ed /. Thread[units -> (u units)] /. pt /. Thread[units -> (Last /@ lam)] /. atom)];
      Together[val[1] - val[Last /@ lam]] === 0]]];

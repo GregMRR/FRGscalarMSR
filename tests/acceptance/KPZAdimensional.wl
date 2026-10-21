@@ -12,6 +12,7 @@ kpzAdim = quiet[AdimensionalEquations[kpzEquations, kpzDims]];
 (* Integral_0^1 daq Measure f(aq^2) with the Litim shape r(y) = 1/y - 1 (y < 1): (v_d/2) Integral_0^1 y^(d/2-1) f(y) dy, termwise *)
 adimLitim = {rn -> Function[y, 1/y - 1], rd -> Function[y, 1/y - 1]};
 adimIntegral[f_] := Module[{g, terms},
+   litimSmoothGuard[f /. Normal[kpzAdim["Atoms"]]];
    g = Expand[Together[(f /. Normal[kpzAdim["Atoms"]] /. aq -> Sqrt[yy] /. adimLitim) yy^(Dim/2 - 1)]];
    terms = If[Head[g] === Plus, List @@ g, {g}];
    If[! AllTrue[terms, FreeQ[Together[#/yy^Exponent[#, yy]], yy] &], $Failed,
