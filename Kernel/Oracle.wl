@@ -35,12 +35,12 @@ stencil[1, h_] := {{h, 1/(2 h)}, {-h, -1/(2 h)}};
 stencil[2, h_] := {{h, 1/h^2}, {0, -2/h^2}, {-h, 1/h^2}};
 
 (* (Laplacian_p)^n at p = 0 by nested central second differences over direction tuples (c1, ..., cn), and its normalisation
-   N_n = (Laplacian)^n (p^2)^n = 4^n n! (d/2)_n (written here independently of Projection). For n >= 2, Richardson extrapolation
-   (h, h/2) removes the O(h^2) error (review E19). f is a function of the explicit d-vector p. *)
+   N_n = (Laplacian)^n (p^2)^n = 4^n n! (d/2)_n (written here independently of Projection). For n >= 1, Richardson extrapolation
+   (h, h/2) removes the O(h^2) error (review E19; at n = 1 it keeps the relative error below the tolerance when the coefficient is small). f is a function of the explicit d-vector p. *)
 oracleLapNorm[n_, d_] := 4^n n! Pochhammer[d/2, n];
 oracleLapStencil[f_, d_, n_, h_] := With[{units = IdentityMatrix[d], st = stencil[2, h]},
    Total[Flatten[Table[Times @@ sh[[All, 2]] f[ConstantArray[0, d] + Sum[sh[[i, 1]] units[[cs[[i]]]], {i, n}]], {cs, Tuples[Range[d], n]}, {sh, Tuples[st, n]}]]]];
-oracleLaplacianN[f_, d_, n_, h_] := If[n <= 1, oracleLapStencil[f, d, n, h], (4 oracleLapStencil[f, d, n, h/2] - oracleLapStencil[f, d, n, h])/3];
+oracleLaplacianN[f_, d_, n_, h_] := If[n == 0, oracleLapStencil[f, d, n, h], (4 oracleLapStencil[f, d, n, h/2] - oracleLapStencil[f, d, n, h])/3];
 
 (* eps_ij in the numeric vertices: wedge[a, b] -> a1 b2 - a2 b1, evaluated once both vectors are explicit (p is numeric only in fLoop) *)
 wedgeN[a_?VectorQ, b_?VectorQ] /; Length[a] == Length[b] == 2 := a[[1]] b[[2]] - a[[2]] b[[1]];
@@ -73,7 +73,7 @@ RunOracle[eqs_, OptionsPattern[]] := Block[{$FRGModule = "Oracle"},
       FRGAssert["Oracle.validPoint", valid, eqs["ValidityConditions"]["Explicit"], "no random point satisfies the validity conditions"];
 
       (* numeric Gamma2 + R as a polynomial in w, at momentum squared x2 *)
-      (* numerics per working precision wp: 40 digits (PrecisionGoal 22) for n <= 1 as before; more for n >= 2, where 2n-th
+      (* numerics per working precision wp: 40 digits (PrecisionGoal 22) for n = 0 as before; more for n >= 1, where 2n-th
          differences at h = 10^-5 eat 10 n digits (reviews E3, E15: the precision is part of every memo key) *)
       mat[wp_] := mat[wp] = N[(Gamma2Matrix[v, wO, xO] /. scal[xO, xO] -> x2O) + RegulatorMatrix[reg, x2O] /. pt, wp + 10];
       gNum[w_, x2_, wp_] := Inverse[mat[wp] /. {wO -> w, x2O -> x2}];
@@ -95,7 +95,7 @@ RunOracle[eqs_, OptionsPattern[]] := Block[{$FRGModule = "Oracle"},
           {NIntegrate::izero, NIntegrate::precw}]]];
       Do[Module[{m = r["Frequency"], n = r["Momentum"], units = IdentityMatrix[d], num, sym, err, ok, t1 = AbsoluteTime[], pspec},
          (* (d/d(I nu))^m / m!  and  (Laplacian_p)^n / N_n, by central differences; equations are d_s(comb) = coefficient / norm *)
-         If[n <= 1,
+         If[n == 0,
           pspec = {prec, 22};
           num = Total[Flatten[Table[sn[[2]] If[n == 0, fLoop[r["Pair"], sn[[1]], ConstantArray[0, d], pspec],
                 Total[Table[sp[[2]] fLoop[r["Pair"], sn[[1]], sp[[1]] units[[c]], pspec], {c, d}, {sp, stencil[2, h]}], 2]],
@@ -116,8 +116,8 @@ RunOracle[eqs_, OptionsPattern[]] := Block[{$FRGModule = "Oracle"},
      "the oracle shares the vertices and the loop formula (prefactor, tadpole -1/2, 1/(2 Pi)) with the symbolic chain: it does not test the normalisation (E3/E4)"]];
    AppendTo[warns, infoCheck["INFO", "Oracle.method", "numeric inverse of Gamma2 + R, NIntegrate over w (" <> ToString[prec] <>
       " digits), central differences h = 10^-5 in nu and in an explicit p vector, d in " <> ToString[dims]]];
-   If[Max[0, recs[[All, "Momentum"]]] >= 2, AppendTo[warns, infoCheck["INFO", "Oracle.highMomentum",
-      "(q^2)^(n >= 2): nested stencils / N_n with Richardson (h, h/2), " <> ToString[8 + 10 # + 6 + 18] <> " digits at n = " <> ToString[#] <>
+   If[Max[0, recs[[All, "Momentum"]]] >= 1, AppendTo[warns, infoCheck["INFO", "Oracle.highMomentum",
+      "(q^2)^(n >= 1): nested stencils / N_n with Richardson (h, h/2), " <> ToString[8 + 10 # + 6 + 18] <> " digits at n = " <> ToString[#] <>
        "; the oracle runs d = 2, 3 only: the d-dependence at n >= 2 is certified by Projection.explicitVectors"] &[Max[recs[[All, "Momentum"]]]]]];
    stage = stampStage[<|"Stage" -> "Oracle", "Pipeline" -> "DerivativeExpansion", "Upstream" -> {eqs["Fingerprint"]}, "Results" -> results,
       "Checks" -> checks, "Warnings" -> warns, "Timing" -> AbsoluteTime[] - t0|>];

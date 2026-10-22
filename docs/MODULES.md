@@ -585,10 +585,10 @@ equation:
 2. The loop trace (the formula of Loops) is a rational function of ω with numeric coefficients. It is integrated by
    `NIntegrate` over the real axis, with 40 digits. An absolute accuracy goal stops the search on integrands that vanish.
 3. The projections are taken by central finite differences with h = 10⁻⁵:
-   - (∇²_p)ⁿ by nested second differences over the tuples (c₁…cₙ) of unit vectors, divided by N_n (2d at n = 1). For n ≥ 2
+   - (∇²_p)ⁿ by nested second differences over the tuples (c₁…cₙ) of unit vectors, divided by N_n (2d at n = 1). For n ≥ 1
      the error of 2n-th differences is cut by Richardson extrapolation (h, h/2) and the working precision is raised to
      8 + 10n + 6 + 18 digits (PrecisionGoal 8 + 10n + 6); the precision is part of the memo key, so no point computed for
-     n ≤ 1 (40 digits, PrecisionGoal 22, as before) is reused (reviews E3, E15, E19). The card's `Oracle.highMomentum` line says
+     n = 0 (40 digits, PrecisionGoal 22, as before) is reused (reviews E3, E15, E19). The card's `Oracle.highMomentum` line says
      that, the oracle running only d = 2, 3, the d-dependence at n ≥ 2 is certified by `Projection.explicitVectors`;
    - d^m/dν^m, divided by iᵐ m!;
    - the normalisation is applied.

@@ -192,6 +192,207 @@ Checks: KPZ reproduces Canet's Eq. (20) exactly after adimensionalisation (`test
 with the old hand-built `Equations2D.jl` up to its two known errors (`tests/acceptance/ShallowWaterDE4Adimensional.wl`). Design and
 decisions: `design/ADIMENSIONAL.md`.
 
+## Function reference
+
+Exported functions per module, in load order. `docs/MODULES.md` gives each module's assumptions, manipulations and checks. Vectors
+in `VertexValue`/`LoopIntegrand` are symbols, scalar products are `scal[a, b]`. `s` stands for q², `w` for the frequency.
+
+**Theory**
+
+| Call | Arguments | Returns / prints |
+|---|---|---|
+| `DefineTheory[…]` | `"Scalars" -> {φ1, …}`, `"Dimension" -> Dim` or `FixedDimension[2]` | Theory stage; field order (φ1, φ1bar, φ2, …) |
+| `ResponseField[theory, φ]` | theory stage, a scalar | its response field `φbar` |
+
+**Ansatz** (operators for the density: `dt`, `grad`, `div`, `lap`, `jac`)
+
+| Call | Arguments | Returns / prints |
+|---|---|---|
+| `DefineAnsatz[theory, …]` | `"Density" -> density`, `"Couplings" -> {c1, …}` | Ansatz stage; prints the parsed monomials |
+| `ShowMonomials[ansatz]` | ansatz stage | table coefficient / fields / operators |
+| `MonomialString[monomial]` | one parsed monomial | its field part written in the DSL |
+
+**Vertices**
+
+| Call | Arguments | Returns / prints |
+|---|---|---|
+| `BuildVertices[ansatz]` | ansatz stage | Vertices stage; prints the vertex table |
+| `VertexValue[vertices, {a1, …, an}, {{w1, q1}, …, {w(n-1), q(n-1)}}]` | fields; the n-1 independent (ω, q) legs | Γ⁽ⁿ⁾, last leg = −(sum) |
+| `Gamma2Matrix[vertices, w, q]` | frequency, momentum symbol | Γ2_ab(w, q), field order, no regulator |
+| `Gamma3Matrix[vertices, i, {nu, p}, {w, q}]` | field `i` (or its position), two (ω, q) legs | matrix Γ⁽³⁾_{i a b} |
+| `ShowVertex[vertices, {a1, …, an}]`, `ShowGamma2[vertices]`, `ShowVertexTable[vertices]` | | print |
+
+**Regulator**
+
+| Call | Arguments | Returns / prints |
+|---|---|---|
+| `DefineRegulator[ansatz, …]` | `{a, b} -> R_ab, …`, `"Shapes" -> {r1, …}` | Regulator stage |
+| `RegulatorMatrix[regulator, s]` | regulator stage, value of q² | R_ab(s), field order |
+| `DsRegulatorMatrix[regulator, s]` | same | derived ∂s R_ab(s) (`dsCoupling[c]`, shape derivatives) |
+| `DsRAbstractMatrix[regulator]` | | matrix of the symbols `dsR[a, b]` |
+| `DsRRules[regulator, s]` | | rules `dsR[a, b] -> ∂s R_ab(s)` |
+| `ShowRegulator[regulator]` | | prints R_ab and ∂s R_ab |
+| `dsCoupling[c]`, `dsR[a, b]` | symbols appearing in results | k dc/dk; abstract entry of ∂s R |
+
+**Propagator**
+
+| Call | Arguments | Returns / prints |
+|---|---|---|
+| `BuildPropagator[vertices, regulator]` | both stages | Propagator stage |
+| `PropagatorMatrix[prop, w, s]` | | G(w) in `GammaAtom` atoms and `Δ[±w, s]` |
+| `FullMatrix[prop, w, s]` | | (Γ2 + R)(w) in `GammaAtom` atoms |
+| `AtomRules[prop]` | | rules `GammaAtom[a, b, m] -> Function[s, value]` |
+| `DeltaRules[prop]` | | rules for `Δ` and `DeltaCoefficient` in atoms |
+| `ValidityConditions[prop]` | | inequalities for causal poles (a function of `s`) |
+| `ShowPropagator[prop]`, `ShowPropagator[prop, {a, b}]` | | atoms, Δ, validity; or G_ab |
+| `GammaAtom[a, b, m][s]`, `Δ[w, s]`, `DeltaCoefficient[m][s]` | symbols appearing in results | coefficient of (iω)^m; det of the (φ, φbar) block; coefficient c_m of Δ |
+
+**Symmetries**
+
+| Call | Arguments | Returns / prints |
+|---|---|---|
+| `DeclareSymmetries[ansatz, tags…, …]` | `Protected[…]`, `Neglected[…]`, `NonRenormalised[c, "Reason" -> …]`, `"TruncationOrders" -> <\|"Frequency" -> mf, "Momentum" -> mp\|>` | Symmetries stage |
+| `ShowClassification[symmetries]` | | classification table of all monomials |
+| `MonomialClasses` | | the class names (`"Declared"`, `"Protected"`, `"Neglected"`, …) |
+
+**Loops**
+
+| Call | Arguments | Returns / prints |
+|---|---|---|
+| `BuildLoopIntegrands[vertices, prop, regulator]` | three stages | Loops stage |
+| `LoopIntegrand[loops, {a, b}, nu, p]` | field pair, external frequency and momentum | integrand of ∂s Γ2_ab (with `dsR`) |
+| `LoopVariables[loops]` | | `{w, q}`, the loop variables |
+
+**Projection**
+
+| Call | Arguments | Returns / prints |
+|---|---|---|
+| `ProjectOnMonomials[loops, symmetries]` | | Projection stage |
+| `ShowIntegrand[projected, coefficient]`, `ShowIntegrand[projected, {a, b}, {m, n}]` | a coupling combination, or pair and powers of (iω)^m (p²)^n | prints the ω-integrand |
+| `LoopMomentumSquared` | | the symbol for q² in integrands and equations |
+
+**FrequencyIntegration**
+
+| Call | Arguments | Returns / prints |
+|---|---|---|
+| `IntegrateFrequencies[projected]` | | Integrated stage |
+| `ShowFlow[integrated, {a, b}, {m, n}]` | pair, powers | integrated flow of a monomial |
+| `FrequencyIntegral[n, a, b, deg]`, `FrequencyIntegralC[m]` | | ∫dω ωⁿ/(Δ(ω)^a Δ(−ω)^b) in the coefficients c_m |
+
+**Closure**
+
+| Call | Arguments | Returns / prints |
+|---|---|---|
+| `CheckClosure[integrated, symmetries]` | | Closure stage |
+| `ShowClosureReport[closure]` | | class and outcome per monomial |
+
+**Assemble**
+
+| Call | Arguments | Returns / prints |
+|---|---|---|
+| `AssembleEquations[closure]` | | Equations stage |
+| `ShowEquation[equations, comb]` | `comb` as written in the ansatz, e.g. `nk Ak` | prints ∂s(comb) = RHS, atoms, validity |
+| `EquationOf[equations, comb]` | | the equation record (keys include `"Integrand"`) |
+| `ScaleAtom[a, b, m, j]` | symbol in results | scale-stripped atom; values in `equations["Atoms"]` |
+
+**Oracle**
+
+| Call | Arguments | Returns / prints |
+|---|---|---|
+| `RunOracle[equations, opts]` | `"Dimensions"`, `"Tolerance" -> 10^-8`, `"Seed"`, `"ZeroFlows"` | Oracle stage; numerical cross-check |
+
+**Stages**
+
+| Call | Arguments | Returns / prints |
+|---|---|---|
+| `SaveStage[stage, file]` | any stage, `.wdx` path | the file name |
+| `LoadStage[file, "Expect" -> {stages…}]` | the current theory, ansatz, regulator, symmetries | the stage; aborts if it was not built from them |
+| `StageFingerprints[stage]` | | fingerprints of the stage and everything it embeds |
+
+**Dimensions**
+
+| Call | Arguments | Returns / prints |
+|---|---|---|
+| `DeriveDimensions[ansatz, …]` | `"References" -> {nk -> "nu", …}`, `"Dimensionless" -> {…}`, `"Names"`, `"Scale"` | Dimensions stage |
+| `ShowDimensions[dims]` | | dimension table |
+| `CheckDimensions[dims, <\|gk -> …, "Frequency" -> …\|>]` | hand-derived dimensions | compares exactly, aborts on mismatch |
+| `DimensionOf[dims, x]` | coupling, field, `"Frequency"` or `"Time"` | k^x ref^y |
+| `LinearPart[dims, c]` | coupling | canonical part of the dimensionless flow |
+| `EmbeddedStage[stage, name]` | any stage, a stage name (`"Propagator"`) | the stage embedded at any depth, or `Missing` |
+| `AnsatzOf[stage]` | any later stage | its Ansatz stage |
+
+**Adimensional**
+
+| Call | Arguments | Returns / prints |
+|---|---|---|
+| `AdimensionalEquations[equations, dims, "State" -> {…}]` | | Adimensional stage |
+| `ShowBeta[adim, c]` | state coupling | linear part, loop integrand, atoms |
+| `ShowEtaSystem[adim]` | | the η system row by row |
+| `AdimAtom[a, b, m, j]`, `LoopMeasure[d, aq]` | symbols appearing in results | dimensionless atom (values in `adim["Atoms"]`); angular measure |
+
+**JuliaExport**
+
+| Call | Arguments | Returns / prints |
+|---|---|---|
+| `ExportJulia[adim, "Dimension" -> d, "File" -> path]` | `"Form" -> "Compact"` (default) or `"Explicit"` | the path of the FlowRG file |
+| `JuliaParts[adim, d]` | | the parts of the file as Mathematica expressions |
+
+**Core**: `FRGAssert[name, cond, details, hint]` raises a named check, `ExactlyZeroQ[expr]` tests exact zero at random rationals,
+`PrintCard[stage]` reprints a stage card.
+
+### Inspecting a loaded stage
+
+A stage is an Association: `Keys[stage]` lists its contents, `stage["Stage"]` its name, `PrintCard[stage]` its card. A stage embeds
+the stages it was built from, so one loaded `Equations` file gives access to the whole chain:
+
+```
+Equations ⊃ Closure ⊃ Integrated ⊃ Projection ⊃ Loops ⊃ { Vertices, Propagator, Regulator } ⊃ Ansatz ⊃ Theory     (Symmetries beside Closure)
+Adimensional ⊃ { Equations, Dimensions }
+```
+
+`EmbeddedStage[stage, "Name"]` returns the embedded stage (or `Missing`); then use that module's accessors from the tables above.
+
+| I want | Call (`eqs` = a loaded Equations stage) |
+|---|---|
+| the ansatz, its monomials | `ShowMonomials[AnsatzOf[eqs]]` |
+| vertices, Γ2 | `v = EmbeddedStage[eqs, "Vertices"]`, `ShowVertex[v, {…}]`, `ShowGamma2[v]` |
+| regulator | `ShowRegulator[EmbeddedStage[eqs, "Regulator"]]` |
+| propagator, Δ | `prop = EmbeddedStage[eqs, "Propagator"]`, see below |
+| symmetry classes | `ShowClassification[EmbeddedStage[eqs, "Symmetries"]]` |
+| closure report | `ShowClosureReport[EmbeddedStage[eqs, "Closure"]]` |
+| the flow of a coupling | `ShowEquation[eqs, comb]`, `EquationOf[eqs, comb]` |
+| dimensions, β function (from an Adimensional stage) | `ShowDimensions[adim["Dimensions"]]`, `ShowBeta[adim, c]` |
+
+**Δ of the propagator matrix.** Δ(ω) = det of the (φ, φbar) block of Γ2 + R, whose roots are the poles of the retarded propagator.
+It is stored in the Propagator stage as a function of the frequency and q², written in `GammaAtom` atoms:
+
+```mathematica
+eqs  = LoadStage["kpz.wdx", "Expect" -> {theory, ansatz, regulator, symmetries}];
+prop = EmbeddedStage[eqs, "Propagator"];
+
+prop["Delta"][w, s]                  (* I w + GammaAtom[h, hbar, 0][s]   for KPZ *)
+prop["DeltaCoefficients"][s]         (* {c0, c1, c2}: Δ = c0 + c1 (I w) + c2 (I w)^2 *)
+prop["DeltaDegree"]                  (* 1 or 2 *)
+ValidityConditions[prop][s]          (* conditions for all roots in the upper half plane *)
+
+(* with the couplings and regulator shapes written out *)
+prop["Delta"][w, s] /. (g : GammaAtom[__])[x_] :> prop["AtomValues"][g][x]
+                                     (* nuk s + I w + nuk s rn[s/k^2]   for KPZ *)
+ShowPropagator[prop]                 (* prints atoms, Δ, coefficients, validity *)
+```
+
+**The propagator in the couplings.** `prop["G"][w, s]` is written in atoms and `Δ`; two substitutions make it explicit:
+
+```mathematica
+atoms = (g : GammaAtom[__])[x_] :> prop["AtomValues"][g][x];
+G = prop["G"][w, s] /. DeltaRules[prop] /. atoms;      (* matrix in field order (h, hbar), no GammaAtom or Δ left *)
+G[[1, 2]]                                              (* G_{h hbar}: 1/(nuk s - I w + nuk s rn[s/k^2]) for KPZ *)
+G . (prop["M"][w, s] /. atoms) // Simplify             (* identity matrix: check *)
+```
+
+The same stage holds `prop["G"][w, s]` (propagator matrix, same as `PropagatorMatrix[prop, w, s]`) and `prop["M"][w, s]`
+(Γ2 + R, `FullMatrix`). From a Loops stage, `loops["Propagator"]` gives it directly.
+
 ## Examples
 
 `examples/ShallowWaterDE4plus.nb` and `examples/KPZ.nb` are generated by `examples/makeNotebooks.wl`. Edit the cells there and
