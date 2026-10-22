@@ -29,7 +29,7 @@ juliaRoundTrip[name_String, adim_, d_Integer] := Module[{file, parts, shapes, sh
         Symbol[Context[s] <> "D2" <> SymbolName[s]] -> Function[y, Evaluate[D[f[y], {y, 2}]]]}], {i, Length[shapes]}]];
    SeedRandom[17];
    pt = Thread[Join[cps, etas, {aq}] -> RandomInteger[{1, 40}, Length[cps] + Length[etas] + 1]/RandomInteger[{41, 97}, Length[cps] + Length[etas] + 1]];
-   mma = N[Flatten[(parts /@ {"betal", "betanl", "etaMl", "etaMnl", "etabl", "etabnl"}) /. parts["atoms"] /. shapeRules /. (#[[1]] -> Rationalize[N[#[[2]]], 0] & /@ pt)], 30];
+   mma = N[Flatten[(parts /@ {"betal", "betanl", "etaMl", "etaMnl", "etabl", "etabnl", "causalPoles"}) /. parts["atoms"] /. shapeRules /. (#[[1]] -> Rationalize[N[#[[2]]], 0] & /@ pt)], 30];
    script = StringRiffle[Join[{"module M"},
       juliaShapeDef[ToString[#[[1]]], #[[2]]] & /@ shapeRules,
       {"    include(" <> ToString[file, InputForm] <> ")", "end",
@@ -38,7 +38,7 @@ juliaRoundTrip[name_String, adim_, d_Integer] := Module[{file, parts, shapes, sh
        "aq = " <> ToString[N[aq /. pt], CForm],
        "z(f, k, args...) = isdefined(M, f) ? collect(getfield(M, f)(args...)) : zeros(k)",
        "N, n = " <> ToString[Length[cps]] <> ", " <> ToString[Length[etas]],
-       "v = vcat(collect(M.betal(c..., e...)), z(:betanl, N, c..., e..., aq), collect(M.etaMl(c...)), z(:etaMnl, n*n, c..., aq), z(:etabl, n, c...), z(:etabnl, n, c..., aq))",
+       "v = vcat(collect(M.betal(c..., e...)), z(:betanl, N, c..., e..., aq), collect(M.etaMl(c...)), z(:etaMnl, n*n, c..., aq), z(:etabl, n, c...), z(:etabnl, n, c..., aq), z(:causal_poles, " <> ToString[Length[parts["causalPoles"]]] <> ", c..., aq))",
        "println(join(repr.(v), \",\"))"}], "\n"];
    Export[FileNameJoin[{$roundTripDir, name, "roundtrip.jl"}], script, "Text"];
    out = RunProcess[Join[{$juliaExe}, $juliaFlags, {FileNameJoin[{$roundTripDir, name, "roundtrip.jl"}]}]];

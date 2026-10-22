@@ -123,7 +123,7 @@ AssembleEquations[closure_] := Block[{$FRGModule = "Assemble"},
 
    validity = prop["ValidityConditions"][LoopMomentumSquared] /. deltaRules /. rules /. toQ;
    explicitAtoms = validity /. atomVals;
-   AppendTo[warns, infoCheck["ASSUMPTION", "Assemble.validity", displayString[validity] <> " at every q (causal poles; to be checked at run time)"]];
+   AppendTo[warns, infoCheck["ASSUMPTION", "Assemble.validity", displayString[validity] <> " at every q (causal poles; not checked by the library: exported as causal_poles by ExportJulia)"]];
    AppendTo[warns, infoCheck["INFO", "Assemble.contract", "Integrand: d^dq/(2 Pi)^d integrand of d_s(comb) in the couplings, dsCoupling[c] = k dc/dk (linear), " <>
       "shapes " <> inputForm[shapes] <> " of y = " <> ToString[qU] <> "^2/" <> ToString[k] <> "^2 with derivatives, " <> If[closure["Symmetries"]["Dimension"] === 2, "d = 2 (declared)", ToString[closure["Symmetries"]["Dimension"]] <> " symbolic"]]];
 

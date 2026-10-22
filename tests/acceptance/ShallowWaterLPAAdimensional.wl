@@ -43,4 +43,6 @@ test["LPA adim: linear parts", Expand[lpaAdim["BetaL"]], Expand[{agk (-1 - etah/
      aHk (-Dim/2 + etah/2 - etanu/2), Ak etanu, amk (1 - etah/2 + etaphi/2), aDmk (1 + etah/2 + etaphi/2), aDphik etaphi}]];
 test["LPA adim: lk has no loop part (NonRenormalised)", lpaAdim["BetaNL"][[2]], 0];
 test["LPA adim: placeholder eta_phi row", {lpaAdim["EtaMNL"][[3]], lpaAdim["EtaBNL"][[3]]}, {{0, 0, 0}, 0}];
+test["LPA adim: causal poles (design/CAUSALITY.md section 4)", Expand[lpaAdim["CausalPoles"]["Explicit"]],
+  Expand[{1 + Ak + aHk alk amk + arnh[aq^2] + arnphi[aq^2], agk aHk alk + aq^2 (Ak + arnh[aq^2]) (1 + arnphi[aq^2])}]];
 juliaRoundTrip["LPA2D", lpaAdim, 2];

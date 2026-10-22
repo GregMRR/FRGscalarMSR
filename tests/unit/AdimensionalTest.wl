@@ -41,3 +41,15 @@ test["amplitude: beta_A = A eta_nu + loop (linear part A eta_nu)", Expand[adAmp[
 test["amplitude: placeholder row for eta_nu", {adAmp["EtaMNL"][[1]], adAmp["EtaBNL"][[1]]}, {{0, 0}, 0}];
 test["amplitude: Mode -> Running restores an eta row", quiet[AdimensionalEquations[adAmpEquations[{{hbar, h} -> nuk q^2 rn[q^2/k^2], {hbar, hbar} -> -2 Dk rd[q^2/k^2]}],
      quiet[DeriveDimensions[adAmpAnsatz, "References" -> {nuk -> {"nu", "Mode" -> "Running"}, Dk -> "D"}, "Dimensionless" -> {Ak}]]]]["MustFix"], {}];
+
+(* causal-pole conditions (design/CAUSALITY.md): minimal dimensionless form, its check and its abort *)
+test["KPZ causal poles: compact = the atom", adKPZ["CausalPoles"]["Compact"], {AdimAtom[h, hbar, 0, 0]}];
+test["KPZ causal poles: explicit 1 + rn(aq^2)", adKPZ["CausalPoles"]["Explicit"], {1 + rn[aq^2]}];
+test["KPZ causal poles: stripped nuk k^2 aq^2", adKPZ["CausalPoles"]["Stripped"], {aq^2 k^2 nuk}];
+Block[{FRGscalarMSR`Private`causalPolesStrip = Function[{r, x}, {1, 2 Expand[r]}]},
+  expectFail["mutated causal-pole strip: wrong factor", AdimensionalEquations[kpzEquations, adKPZDims], "Adimensional.causalPolesMinimal"]];
+Block[{FRGscalarMSR`Private`causalPolesStrip = Function[{r, x}, {-1, -Expand[r]}]},
+  expectFail["mutated causal-pole strip: negative content", AdimensionalEquations[kpzEquations, adKPZDims], "Adimensional.causalPolesMinimal"]];
+adAcausal = With[{q = kpzEquations["LoopMomentum"]}, FRGscalarMSR`Internal`stampStage[KeyDrop[Append[kpzEquations,
+      "ValidityConditions" -> <|"Atoms" -> {-nuk q^2 > 0}, "Explicit" -> {-nuk q^2 > 0}|>], "Fingerprint"]]];
+expectFail["a causal-pole condition that reduces to a negative constant", AdimensionalEquations[adAcausal, adKPZDims], "Adimensional.causalPoles"];

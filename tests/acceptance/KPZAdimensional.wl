@@ -33,3 +33,11 @@ test["KPZ adim: d = 1 fixed point g* = 6/5", Together[kpzAdimBracket /. {dd -> 1
 (* the exported file evaluated in Julia (and loaded by FlowRG) *)
 Get[FileNameJoin[{testRoot, "reference", "JuliaRoundTrip.wl"}]];
 Scan[juliaRoundTrip["KPZ" <> ToString[#] <> "D", kpzAdim, #] &, {1, 2, 3}];
+
+(* causal_poles in the file; omitted (INFO) when no condition is left *)
+kpzCPFile = quiet[ExportJulia[kpzAdim, "Dimension" -> 2, "File" -> FileNameJoin[{$roundTripDir, "KPZcausal", "Equations2D.jl"}]]];
+test["KPZ export: causal_poles(couplings..., aq) written", StringContainsQ[Import[kpzCPFile, "Text"],
+   "causal_poles(" <> StringRiffle[ToString /@ Append[kpzAdim["Couplings"], aq], ", "] <> ")"], True];
+kpzNoCP = FRGscalarMSR`Internal`stampStage[KeyDrop[Append[kpzAdim, "CausalPoles" -> <|"Compact" -> {}, "Explicit" -> {}, "Stripped" -> {}|>], "Fingerprint"]];
+test["KPZ export: no causal_poles when trivially satisfied", StringContainsQ[Import[quiet[ExportJulia[kpzNoCP, "Dimension" -> 2,
+     "File" -> FileNameJoin[{$roundTripDir, "KPZnocausal", "Equations2D.jl"}]]], "Text"], "causal_poles"], False];

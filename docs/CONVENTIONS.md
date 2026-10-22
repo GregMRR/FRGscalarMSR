@@ -45,6 +45,9 @@ This header is printed above every vertex table (from milestone 2 on). Every mod
   `etanu` (FlowRG name `:nu`).
 - Loop momentum: q = k aq. ∫dᵈq/(2π)ᵈ f(q²) = k^d ∫daq LoopMeasure(d, aq) f(k² aq²), LoopMeasure = S_d aq^{d−1}/(2π)^d,
   S_d = 2π^{d/2}/Γ(d/2). The exported loop parts include this measure; the old hand-built exports did not have the (2π)^{−d}.
+- Reference couplings are **> 0** (and k, aq > 0). The causal-pole conditions are exported with their powers stripped
+  (`causal_poles`, design/CAUSALITY.md). "Causality" alone names Γ2_{φφ} = 0 (the `Causality` symmetry class); "causal poles"
+  names the roots of Δ(ω) in the upper half plane.
 
 ## Projections (derivative-expansion pipeline)
 

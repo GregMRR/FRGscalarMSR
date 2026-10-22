@@ -18,7 +18,8 @@ dimensionless β functions → FlowRG (Julia) equations file.
 - `docs/MODULES.md` - per module: objective, assumptions, manipulations, checks, Show commands. `docs/CONVENTIONS.md`,
   `docs/FUTURE.md`.
 - `design/` - decision records with their adversarial reviews: `FRGDESIGN.md` (v1), `LEVICIVITA.md` (`jac`), `ADIMENSIONAL.md`
-  (dimensions, export), `MOMENTUMPROJECTION.md` (p^{2n} projection, any n); `design/reviews/`.
+  (dimensions, export), `MOMENTUMPROJECTION.md` (p^{2n} projection, any n), `CAUSALITY.md` (causal-pole conditions exported as
+  `causal_poles`); `design/reviews/`.
 - `docs/handoff/` - specs for work in other repos (FlowRG: `MUST_FIX`, `D2<shape>`).
 - `tests/reference/` - shared pipeline setups (`ShallowWaterSetup.wl`, `KPZSetup.wl`), `JuliaRoundTrip.wl`, `OldProjection.wl`
   (the pre-p^{2n} Laplacian operator, test-only regression reference); `legacy/` holds the old

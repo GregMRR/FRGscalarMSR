@@ -20,6 +20,8 @@ test["DE4 adim: betal = old betal at d = 2", Expand[de4Adim["BetaL"] /. Dim -> 2
   Expand[{agk (-1 - etah/2 + etanu + etaphi/2), ag2k (1 - etah/2 + etanu + etaphi/2), alk ((3 etanu)/2 - etaphi/2), aHk (-1 + etah/2 - etanu/2),
     aDphik etaphi, aD2phik (2 + etaphi), aKk (1 + etah/2 + etaphi/2), Ak etanu, ank etanu, aDhk etah}]];
 test["DE4 adim: all references running, nothing to fix", {Values[de4Adim["ReferenceKinds"]], de4Adim["MustFix"]}, {{"Running", "Running", "Running"}, {}}];
+test["DE4 adim: causal poles (design/CAUSALITY.md section 4)", Expand[de4Adim["CausalPoles"]["Explicit"]],
+  Expand[{Ak + ank + arnh[aq^2] + arnphi[aq^2], agk aHk alk + aq^2 (ag2k aHk alk + (Ak + arnh[aq^2]) (ank + arnphi[aq^2]))}]];
 
 (* old vs new in Julia, same smooth test shapes, random state, eta_h = eta_phi *)
 de4Compare[] := Module[{newFile, oldFile, dir, shapes, defs, script, out, v},

@@ -257,7 +257,8 @@ this.
 - For degree 2, c2 u² + c1 u + c0 has both roots with Re u < 0 exactly when its three coefficients have the same sign: c1/c2 > 0
   and c0/c2 > 0. For the shallow-water ansatz this is A > 0 and CC > 0, as in the primer.
 - For degree 1, the condition is c0/c1 > 0.
-- The conditions are emitted as an ASSUMPTION, to be checked at run time at every q.
+- The conditions are emitted as an ASSUMPTION: they must hold at every q. The library does not check them; Adimensional carries
+  them in minimal dimensionless form and ExportJulia writes them as `causal_poles` (design/CAUSALITY.md).
 
 **Checks.**
 - `Propagator.sameAnsatz`, `Propagator.polynomial`, `Propagator.atomsReal`, `Propagator.atomForm`, `Propagator.causalBlock`.
@@ -716,6 +717,14 @@ the η's: (EtaML + ∫daq LoopMeasure EtaMNL) η = EtaBL + ∫daq LoopMeasure Et
 5. Compact form: the scale-stripped atoms of Assemble become dimensionless atoms `AdimAtom[a, b, m, j]` (stage key `Atoms`);
    BetaNL, EtaMNL, EtaBNL are written in them. `Adimensional.compactExact`: compact = explicit at random points, for every β and
    every η row.
+6. Causal poles (design/CAUSALITY.md), stage key `CausalPoles` = `<|"Compact", "Explicit", "Stripped"|>`: each validity
+   condition e > 0 of the Equations stage becomes p > 0 with p = n·d (n/d = e; p = sign(d)·n when d is a number). After the
+   units, p = (monomial in k, refs) × rest; the positive numeric content of rest and its lowest power of aq (counted outside
+   shape arguments) are stripped too. Minimal = rest / content, in atoms (`Compact`) and with the atoms substituted
+   (`Explicit`); `Stripped` = the removed positive factor. A condition that becomes a positive constant is dropped.
+   Assumes references > 0 (and k, aq > 0): ASSUMPTION `Adimensional.referencesPositive`. The conditions are listed in the
+   ASSUMPTION `Adimensional.causalPoles`: each must be > 0 at every aq; they are exported, not checked. No use of shape
+   positivity: KPZ keeps 1 + rn(aq²) > 0.
 
 **Checks.**
 - `Adimensional.sameAnsatz`: the dimensions were derived from the ansatz embedded in the equations (fingerprint).
@@ -726,12 +735,17 @@ the η's: (EtaML + ∫daq LoopMeasure EtaMNL) η = EtaBL + ∫daq LoopMeasure Et
 - `Adimensional.state` / `noBeta` / `stateMissing`: every state coupling gets a flow, from an equation or as `NonRenormalised`
   (linear part only); every coupling with an equation is in the state.
 - `Adimensional.linearNoMomentum`: BetaL is free of aq.
+- `Adimensional.causalPolesMinimal`: original p = Stripped × minimal exactly (`ExactlyZeroQ`), and Stripped is a positive number
+  times powers of k, references and aq. Tested by mutating the private `causalPolesStrip`.
+- `Adimensional.causalPoles`: aborts when a condition is `False` or reduces to a constant ≤ 0 (Δ acausal at every state);
+  `Adimensional.causalPolesDimension`: a condition is not homogeneous in the units.
 
 **Options.** `"State" -> {gk, lk, …}`: dimensionful names, in the order of FlowRG's COUPLINGS. Default: every non-reference
 coupling in ansatz order.
 
 **Show.** `ShowBeta[adim, c]` prints BetaL, the measure, BetaNL and the atoms used. `ShowEtaSystem[adim]` prints the η system
-row by row, with the placeholder rows marked MUST_FIX.
+row by row, with the placeholder rows marked MUST_FIX. `ShowCausalPoles[adim]` prints the minimal causal-pole conditions
+(explicit, with the compact form and the atoms used).
 
 **Tests.** `tests/acceptance/KPZAdimensional.wl`: the dimensionless KPZ flow, with the η system solved and the loop integrals done
 exactly with the Litim shape, equals Canet's Eq. (20) for symbolic d. Canet's v_d = 1/(2^{d−1}π^{d/2}Γ(d/2)) = S_d/(2π)^d, so this
@@ -745,7 +759,9 @@ export (below).
 **Objective.** Write the Adimensional stage at one integer dimension d as a FlowRG equations file
 (`FlowRG.jl/docs/equations-interface.md`): `COUPLINGS`, `ETAS`, `SHAPES`, `MUST_FIX` (when some η is fixed), `betal`, `betanl`,
 `etaMl`, `etaMnl`, `etabl`, `etabnl`, positional arguments in the documented order, row-major matrices, all-zero parts left out
-except `betal`.
+except `betal`. Plus `causal_poles(couplings…, aq) = (e1, …)`: the causal-pole conditions of Adimensional (Compact or Explicit
+with `"Form"`), each entry must be > 0 at every aq (sign only: the stripped scale is arbitrary). It is an extra definition
+(interface rule 6): FlowRG does not call it. When no condition is left it is omitted (INFO `JuliaExport.causalPoles`).
 
 **Manipulations.** `Dim` → d (a declared d = 2 must be exported with d = 2: `JuliaExport.declaredDimension`); the loop measure is
 multiplied into every loop part; shape derivatives become applied functions `Darmh(aq^2)`, `D2armh(aq^2)`; compact form
@@ -760,7 +776,7 @@ extension, docs/FUTURE.md). A file that uses r″ gets a warning: FlowRG must bi
 
 **Tests.** `tests/reference/JuliaRoundTrip.wl`, used by the acceptance tests: the file is evaluated in plain Julia with smooth
 test shapes and compared with Mathematica at a random point (relative 1e-11); then FlowRG's `load_model` must accept it and give
-finite η's and β (skipped for files that need r″). Without julia or FlowRG these tests print SKIP;
+finite η's and β (skipped for files that need r″). The round trip includes `causal_poles`. Without julia or FlowRG these tests print SKIP;
 `runTests.wl --require-julia` turns a SKIP into a failure. DE4plus against the old `eqs/Equations2D.jl`
 (`tests/reference/legacy/DE4plusEquations2D.jl`): `betal` equal; `betanl`, `M·η` and `b` of the η system equal to the old ones
 times (2π)^{−2} (the old file lacks the (2π)^{−d}) at η_h = η_φ (the old file multiplies ∂sM_h by η_φ, a bug).

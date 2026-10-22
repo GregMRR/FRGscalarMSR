@@ -10,6 +10,10 @@ These are extensions the v1 design keeps room for. None of them is implemented y
   - Needs a general reduction by symmetric functions of the roots.
   - The validity condition becomes the Routh–Hurwitz criterion: an algebraic test on the coefficients of Δ that tells whether
     all its roots lie in one half plane, without computing the roots.
+- **Causal poles checked in FlowRG.** `causal_poles(couplings…, aq)` is exported (design/CAUSALITY.md) but FlowRG does not call
+  it. FlowRG could evaluate it on its aq nodes and at the ends of the domain (aq → 0, where the shallow-water condition reduces to
+  agk aHk alk > 0) and stop the flow or flag a fixed point on a violation; sampling is not a proof between nodes. Through a
+  `docs/handoff/` spec.
 - **p⁴ in FlowRG.** The symbolic chain projects any (p²)ⁿ (design/MOMENTUMPROJECTION.md), but `JuliaExport` exports only r, r′,
   r″: p⁴ flows need r‴, r⁗ bound by FlowRG (an interface extension through a `docs/handoff/` spec), and a smooth (C⁴) shape.
 - **More than one `jac` per monomial.** The ε reduction (F2) handles one pair of ε indices; two would need the product rule for

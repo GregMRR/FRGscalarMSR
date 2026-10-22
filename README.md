@@ -96,7 +96,8 @@ The two-field shallow-water case is in `examples/ShallowWaterDE4plus.nb`.
    including the factor 2 of a diagonal pair: `Dk hbar^2` in the density gives Γ2_{hbar hbar} = −2 Dk, so its regulator is
    `-2 Dk rd[q^2/k^2]`. Shapes are abstract functions of q²/k²; they stay abstract up to the Julia file, where the regulator is
    chosen at run time. Only φ̄φ and φ̄φ̄ pairs.
-5. **Propagator.** `BuildPropagator[vertices, regulator]` inverts Γ2 + R exactly and prints the conditions for causal poles.
+5. **Propagator.** `BuildPropagator[vertices, regulator]` inverts Γ2 + R exactly and prints the conditions for causal poles
+   (exported later, dimensionless, as `causal_poles`).
 6. **Symmetries.** `DeclareSymmetries[ansatz, tags…, "TruncationOrders" -> <|"Frequency" -> mf, "Momentum" -> mp|>]` gives every
    monomial (iω)^m (p²)^n of every Γ2 entry, up to the truncation orders, one class:
    - declared in the ansatz: it gets a flow equation;
@@ -168,9 +169,18 @@ ansatz = DefineAnsatz[theory, "Density" ->
      amplitude counted as 1 (the convention of the old hand-built exports; add `"Equation" -> nk ank` when several qualify).
    - `NonRenormalised` couplings keep their canonical part only.
    - `ShowBeta[adim, gk]` and `ShowEtaSystem[adim]` print them.
+   - **Causal poles.** The propagator's validity conditions (all roots of Δ(ω) in the upper half plane) are rewritten in
+     minimal dimensionless form, in `adim["CausalPoles"]`: denominators cleared, positive factors (numbers, powers of k, of the
+     references, of aq) stripped, assuming the references are > 0. Shallow water gives `Ak + ank + arnh(aq²) + arnphi(aq²) > 0`
+     and `agk aHk alk + aq² (ag2k aHk alk + (Ak + arnh)(ank + arnphi)) > 0`; KPZ gives `1 + rn(aq²) > 0` (shape positivity is
+     not used: the shapes are chosen in Julia). Each must hold at every aq. `ShowCausalPoles[adim]` prints them
+     (design/CAUSALITY.md).
 3. **Export.** `ExportJulia[adim, "Dimension" -> 2, "File" -> FileNameJoin[{dir, "eqs", "Equations2D.jl"}]]` writes one file per
    space dimension, following FlowRG's `docs/equations-interface.md` (COUPLINGS, ETAS, SHAPES, `betal`, `betanl`, `etaMl`, …). Load
    it with `load_model(path; regulator = Litim, fixed_etas = (phi = 0.0,))`, giving every `MUST_FIX` eta.
+   - The file also defines `causal_poles(couplings…, aq)`, the causal-pole conditions: each entry must be > 0 at every aq (only
+     the sign means something). FlowRG does not call it: evaluate it yourself, e.g. `M.causal_poles(u..., aq)` on a grid of aq,
+     with the shapes bound as in FlowRG. Omitted when no condition is left.
 
 From a stage saved by part 1 (e.g. in another notebook):
 
@@ -328,14 +338,15 @@ in `VertexValue`/`LoopIntegrand` are symbols, scalar products are `scal[a, b]`. 
 | `AdimensionalEquations[equations, dims, "State" -> {…}]` | | Adimensional stage |
 | `ShowBeta[adim, c]` | state coupling | linear part, loop integrand, atoms |
 | `ShowEtaSystem[adim]` | | the η system row by row |
+| `ShowCausalPoles[adim]` | | causal-pole conditions, minimal and dimensionless (`adim["CausalPoles"]`: `Compact`, `Explicit`, `Stripped`) |
 | `AdimAtom[a, b, m, j]`, `LoopMeasure[d, aq]` | symbols appearing in results | dimensionless atom (values in `adim["Atoms"]`); angular measure |
 
 **JuliaExport**
 
 | Call | Arguments | Returns / prints |
 |---|---|---|
-| `ExportJulia[adim, "Dimension" -> d, "File" -> path]` | `"Form" -> "Compact"` (default) or `"Explicit"` | the path of the FlowRG file |
-| `JuliaParts[adim, d]` | | the parts of the file as Mathematica expressions |
+| `ExportJulia[adim, "Dimension" -> d, "File" -> path]` | `"Form" -> "Compact"` (default) or `"Explicit"` | the path of the FlowRG file (FlowRG parts + `causal_poles`) |
+| `JuliaParts[adim, d]` | | the parts of the file as Mathematica expressions (`"causalPoles"` included) |
 
 **Core**: `FRGAssert[name, cond, details, hint]` raises a named check, `ExactlyZeroQ[expr]` tests exact zero at random rationals,
 `PrintCard[stage]` reprints a stage card.
@@ -362,6 +373,7 @@ Adimensional ⊃ { Equations, Dimensions }
 | closure report | `ShowClosureReport[EmbeddedStage[eqs, "Closure"]]` |
 | the flow of a coupling | `ShowEquation[eqs, comb]`, `EquationOf[eqs, comb]` |
 | dimensions, β function (from an Adimensional stage) | `ShowDimensions[adim["Dimensions"]]`, `ShowBeta[adim, c]` |
+| causal-pole conditions, dimensionless | `ShowCausalPoles[adim]` |
 
 **Δ of the propagator matrix.** Δ(ω) = det of the (φ, φbar) block of Γ2 + R, whose roots are the poles of the retarded propagator.
 It is stored in the Propagator stage as a function of the frequency and q², written in `GammaAtom` atoms:
@@ -424,5 +436,6 @@ Tests that need `julia` or FlowRG (`~/Physics/Sources/FlowRG.jl`, or `FLOWRG_PAT
   - Agreement with `flowsFAST` and with the oracle does not test the normalisation, because they share the formula.
 - **Truncation.** Momentum projections only up to p² (E2). Δ (the determinant whose roots are the propagator poles) must be of
   degree ≤ 2 in ω, so at most 2 scalars. Both limits abort clearly; the extensions are in `docs/FUTURE.md`.
-- **Validity conditions.** The causal-pole conditions must hold at every loop momentum; they are emitted with the equations
-  and are to be checked at run time.
+- **Validity conditions.** The causal-pole conditions must hold at every loop momentum. The library does not check them: they
+  are exported, minimal and dimensionless, as `causal_poles` in the equations file, and FlowRG does not call it yet
+  (`docs/FUTURE.md`). Stripping their positive factors assumes the reference couplings are > 0.

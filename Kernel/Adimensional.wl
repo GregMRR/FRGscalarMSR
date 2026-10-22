@@ -15,6 +15,8 @@ ShowEtaSystem::usage = "ShowEtaSystem[adim] prints the eta system row by row (ru
 placeholder row eta = 0, to be fixed at run time with FlowRG fixed_etas).";
 AdimAtom::usage = "AdimAtom[a, b, m, j] is a dimensionless propagator atom (the scale-stripped atom ScaleAtom[a, b, m, j] in dimensionless \
 couplings and aq); its value is adim[\"Atoms\"][AdimAtom[...]].";
+ShowCausalPoles::usage = "ShowCausalPoles[adim] prints the causal-pole conditions in minimal dimensionless form: each entry must be > 0 at \
+every aq (exported as causal_poles; design/CAUSALITY.md).";
 LoopMeasure::usage = "LoopMeasure[d, aq] = 2 Pi^(d/2)/Gamma[d/2] aq^(d-1)/(2 Pi)^d: Integral d^dq/(2 Pi)^d f(q^2) = k^d Integral daq LoopMeasure[d, aq] f(k^2 aq^2).";
 
 Begin["`Private`"];
@@ -66,6 +68,23 @@ unitInvariantQ[e_, units_, dimSym_, ds_, seed_] := AllTrue[ds, Function[d, Modul
      val[u_] := Together[(ed /. Thread[units -> (u units)] /. pt /. Thread[units -> (Last /@ lam)] /. atom)];
      Together[val[1] - val[Last /@ lam]] === 0]]];
 
+(* ---------- causal-pole conditions (design/CAUSALITY.md) ---------- *)
+
+(* numeric coefficient of one term of an expanded polynomial *)
+causalPolesCoefficient[t_] := Which[NumberQ[t], t, Head[t] === Times, Times @@ Select[List @@ t, NumberQ], True, 1];
+(* exponent of aq in one term, outside function arguments: rn[aq^2] does not count *)
+causalPolesAqExponent[t_, aq_] := Exponent[t /. (h_Symbol /; Context[h] =!= "System`")[___] :> 1, aq];
+(* {content, minimal}: rest = content minimal, content = positive numeric content x aq^(smallest exponent) *)
+causalPolesStrip[rest_, aq_] := Module[{e = Expand[rest], terms, num, m},
+   If[e === 0, Return[{1, 0}]];
+   terms = If[Head[e] === Plus, List @@ e, {e}];
+   num = Abs[GCD @@ (causalPolesCoefficient /@ terms)];
+   m = Min[causalPolesAqExponent[#, aq] & /@ terms];
+   {num aq^m, Expand[e/(num aq^m)]}];
+(* a product of a positive number and powers of the given symbols *)
+causalPolesPositiveQ[s_, syms_] := AllTrue[If[Head[s] === Times, List @@ s, {s}],
+   (NumberQ[#] && # > 0) || MatchQ[#, Alternatives @@ syms] || MatchQ[#, Power[Alternatives @@ syms, _]] &];
+
 (* ---------- AdimensionalEquations ---------- *)
 
 Options[AdimensionalEquations] = {"State" -> Automatic};
@@ -74,7 +93,8 @@ AdimensionalEquations[equations_, dims_, opts : OptionsPattern[]] := Block[{$FRG
   Module[{t0 = AbsoluteTime[], checks = {}, warns = {}, ansatz, theory, fields, cps, refs, etas, names, vecs, basis, nb, unitIndex, kk, qU, aq,
     dimSym, nonren, regC, reg, eqs, combs, toUnits, form, gamma2Dim, kind, defEq, running, fixed, state, dsC, lhs, unknowns, uEqs, mat, rhsVec,
     sol, loopSym, dsOf, betaL, betaNL, betaNLExplicit, atomVals, atomVecs, adimAtoms, compactPiece, explicitPiece, etaRows, mL, mNL, bL, bNL,
-    mustFix, stage, testDims, cand, bad, compactAtoms, etaRowsExplicit, mNLx, bNLx},
+    mustFix, stage, testDims, cand, bad, compactAtoms, etaRowsExplicit, mNLx, bNLx, causalRaw, causalOrig, causalStripped, causalMin,
+    causalExpl, causalKeep},
    validateStage[equations, "Equations"]; validateStage[dims, "Dimensions"];
    FRGAssert["Adimensional.options", MatchQ[{opts}, {(Rule | RuleDelayed)["State", _] ...}], {opts}, "only the option \"State\" is accepted"];
    ansatz = AnsatzOf[equations];
@@ -172,6 +192,32 @@ AdimensionalEquations[equations_, dims_, opts : OptionsPattern[]] := Block[{$FRG
    adimAtoms = Association[KeyValueMap[(AdimAtom @@ #1) -> #2[[2]] &, atomVecs]];
    compactAtoms = KeyValueMap[#1 -> basisForm[#2[[1]], basis] (AdimAtom @@ #1) &, atomVecs];
 
+   (* causal-pole conditions (design/CAUSALITY.md): clear denominators, units out (references > 0), positive content stripped *)
+   causalRaw = equations["ValidityConditions"]["Atoms"] /. True -> Nothing;
+   FRGAssert["Adimensional.causalPoles", FreeQ[causalRaw, False] && MatchQ[causalRaw, {Greater[_, 0] ...}], causalRaw,
+    "the causal-pole conditions must be a list of e > 0; False means Delta has an acausal root at every state"];
+   {causalOrig, causalStripped, causalMin} = If[causalRaw === {}, {{}, {}, {}}, Transpose[Function[cond, Module[{nd, p, x, vr, cont, minimal},
+         nd = NumeratorDenominator[Together[First[cond]]];
+         p = If[NumberQ[nd[[2]]], Sign[nd[[2]]] nd[[1]], nd[[1]] nd[[2]]];
+         x = (p /. compactAtoms) /. toUnits;
+         vr = dimensionVector["Adimensional.causalPolesDimension", x, unitIndex, nb, cond];
+         {cont, minimal} = causalPolesStrip[vr[[2]], aq];
+         {x, basisForm[vr[[1]], basis] cont, minimal}]] /@ causalRaw]];
+   bad = Pick[causalRaw, MapThread[! (causalPolesPositiveQ[#2, Append[basis, aq]] && ExactlyZeroQ[#1 - #2 #3]) &, {causalOrig, causalStripped, causalMin}]];
+   AppendTo[checks, assertCheck["Adimensional.causalPolesMinimal", bad === {}, bad,
+     "internal: a minimal causal-pole condition is not the original one divided by a positive factor (number, references, k, aq)",
+     "minimal causal-pole conditions = original / (positive number x powers of k, references, aq), exact"]];
+   causalExpl = causalMin /. Normal[adimAtoms];
+   bad = Pick[causalRaw, (NumberQ[#] && # <= 0) & /@ (Together /@ causalExpl)];
+   FRGAssert["Adimensional.causalPoles", bad === {}, bad,
+    "a causal-pole condition reduces to a constant <= 0: Delta has an acausal root at every state (check the ansatz signs)"];
+   causalKeep = ! NumberQ[Together[#]] & /@ causalExpl;
+   {causalStripped, causalMin, causalExpl} = Pick[#, causalKeep] & /@ {causalStripped, causalMin, causalExpl};
+   AppendTo[warns, infoCheck["ASSUMPTION", "Adimensional.referencesPositive", "references " <> StringRiffle[ToString /@ refs, ", "] <>
+      ", k and aq are > 0 (their powers are stripped from the causal-pole conditions)"]];
+   AppendTo[warns, infoCheck["ASSUMPTION", "Adimensional.causalPoles", If[causalExpl === {}, "causal poles: trivially satisfied",
+      StringRiffle[(displayString[#] <> " > 0") & /@ causalExpl, ", "] <> " at every aq (causal poles; exported as causal_poles, not checked here)"]]];
+
    (* a loop piece  alpha x Integral d^dq/(2 Pi)^d I(q) / [c]  as the integrand of Integral daq LoopMeasure: alpha k^d I(k aq)/[c] *)
    explicitPiece[alpha_, e_, v_, what_] := Module[{x = (alpha kk^dimSym eqs[[e]]["Integrand"]) /. toUnits},
      FRGAssert["Adimensional.unitInvariance", unitInvariantQ[x, basis, dimSym, testDims, e], what,
@@ -220,6 +266,7 @@ AdimensionalEquations[equations_, dims_, opts : OptionsPattern[]] := Block[{$FRG
       "References" -> refs, "ReferenceKinds" -> kind, "Etas" -> Values[etas], "EtaNames" -> (dims["EtaNames"] /@ refs), "MustFix" -> mustFix,
       "BetaL" -> (betaL /@ state), "BetaNL" -> (betaNL /@ state), "BetaNLExplicit" -> (betaNLExplicit /@ state),
       "EtaML" -> mL, "EtaMNL" -> mNL, "EtaBL" -> bL, "EtaBNL" -> bNL, "EtaMNLExplicit" -> mNLx, "EtaBNLExplicit" -> bNLx, "Atoms" -> adimAtoms,
+      "CausalPoles" -> <|"Compact" -> causalMin, "Explicit" -> causalExpl, "Stripped" -> causalStripped|>,
       "LoopMomentum" -> aq, "Measure" -> LoopMeasure[dimSym, aq], "Dimension" -> dimSym, "Shapes" -> equations["Shapes"],
       "Checks" -> checks, "Warnings" -> warns, "Timing" -> AbsoluteTime[] - t0|>];
    PrintCard[stage];
@@ -245,6 +292,15 @@ ShowEtaSystem[adim_Association] := Block[{$FRGModule = "Adimensional"}, Module[{
     Print["   ML  = ", adim["EtaML"][[j]], "   BL = ", adim["EtaBL"][[j]]];
     Print["   MNL = ", inputForm[adim["EtaMNL"][[j]], 6]];
     Print["   BNL = ", inputForm[adim["EtaBNL"][[j]], 6]], {j, n}]]];
+
+ShowCausalPoles[adim_Association] := Block[{$FRGModule = "Adimensional"}, Module[{cp, used},
+   validateStage[adim, "Adimensional"];
+   cp = adim["CausalPoles"];
+   If[cp["Compact"] === {}, Print["causal poles: trivially satisfied (no condition left)"]; Return[Null]];
+   Print["causal poles: each entry > 0 at every aq (references, k, aq > 0 assumed; exported as causal_poles):"];
+   MapThread[Print["  ", displayString[#1], " > 0", If[#1 === #2, "", "   (compact: " <> displayString[#2] <> ")"]] &, {cp["Explicit"], cp["Compact"]}];
+   used = Union[Cases[cp["Compact"], _AdimAtom, {0, Infinity}]];
+   If[used =!= {}, Print["atoms:"]; Scan[Print["  ", displayString[#], " = ", displayString[adim["Atoms"][#]]] &, used]]]];
 
 End[];
 EndPackage[];
