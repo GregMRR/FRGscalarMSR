@@ -18,8 +18,11 @@ These are extensions the v1 design keeps room for. None of them is implemented y
   r″: p⁴ flows need r‴, r⁗ bound by FlowRG (an interface extension through a `docs/handoff/` spec), and a smooth (C⁴) shape.
 - **More than one `jac` per monomial.** The ε reduction (F2) handles one pair of ε indices; two would need the product rule for
   two ε pairs and the matching canonical form.
-- **Shallow-water p⁴ acceptance.** No end-to-end p⁴ acceptance test exists (decided): p⁴ is checked by `Projection.explicitVectors`,
-  `Projection.normalisation`, the unit closed forms and the Oracle. A reference p⁴ flow (e.g. shallow water) would close the loop.
+- **Generic-d p⁴ acceptance.** `benchmarks/KuramotoSivashinsky` checks the p⁴ flows end to end against the literature
+  (Gosteva, Wschebor, Canet 2026), but only at d = 1, where the n = 2 normalisation 8d(d+2) equals 8(d²+2). A literature p⁴ flow
+  at symbolic d would close the loop. Candidates: the Lai–Das Sarma equation near d = 4 − ε, whose O(ε) result z = 4 − ε/3 does
+  not depend on the regulator; the KPZ derivative expansion of Sánchez-Villalobos, Canet, Wschebor (in preparation); or the
+  shallow-water DE4plus flows.
 - **Independent check of the Γ⁽⁴⁾ tadpole normalisation (E4).**
   - The bubble is checked against Canet's KPZ flow (`tests/acceptance/KPZ.wl`). The tadpole needs a theory with a quartic
     vertex.

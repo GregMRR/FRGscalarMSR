@@ -383,6 +383,10 @@ integrand, followed by the direction average of its s^{2n} Taylor coefficient al
 - Equivalent to (∇²_p)ⁿ at p = 0 / N_n, N_n = 4ⁿ n! (d/2)_n (M2; N_1 = 2d, N_2 = 8d(d+2)). The old Laplacian trick (exact for
   n ≤ 1 only) is kept test-only in `tests/reference/OldProjection.wl`: the new operator is Expand-identical to it on every
   existing integrand (`tests/acceptance/ProjectionRegression.wl`).
+- Literature check at p⁴: `benchmarks/KuramotoSivashinsky` (suite hook `tests/acceptance/KuramotoSivashinsky.wl`). The flows of
+  ν, τ (Γ⁽¹¹⁾ at p², p⁴), D and ζ (Γ⁽⁰²⁾ at p⁰, p²) equal Eqs. (34)–(37) of arXiv:2607.15784 exactly, pointwise in q, with generic
+  shapes. The time-reversal identities hold at d = 1 and fail at d = 2. Only d = 1 is tested, which does not see the n = 2
+  d-normalisation.
 - At order p^{2n} the flows contain shape derivatives up to order 2n: the card prints an ASSUMPTION (any explicit shape substituted
   later must be C^{2n}; the library itself accepts only generic declared shapes).
 - Derivatives of Δ(ω, s) are completed with Δ = Σ_m c_m(s) (iω)^m, so they come out in `DeltaCoefficient[m]` atoms and their

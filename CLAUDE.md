@@ -9,6 +9,8 @@ dimensionless β functions → FlowRG (Julia) equations file.
   base name). `--verbose` shows the cards and FAIL blocks; `--require-julia` turns the SKIPs of julia/FlowRG tests into failures.
 - Examples: edit `examples/makeNotebooks.wl`, then `math -script examples/makeNotebooks.wl`; check one headless with
   `math -script examples/runNotebook.wl examples/KPZ.nb`.
+- Benchmarks: `math -script benchmarks/<Name>/run.wl` (exit 0 = all pass); notebook: edit `benchmarks/<Name>/makeNotebook.wl`,
+  run it, check with `examples/runNotebook.wl benchmarks/<Name>/<Name>.nb`.
 
 ## Layout
 - `FRGscalarMSR.wl` - loader; `$FRGModules` lists `Kernel/*.wl` in load order (each module uses only those above it).
@@ -24,9 +26,13 @@ dimensionless β functions → FlowRG (Julia) equations file.
 - `tests/reference/` - shared pipeline setups (`ShallowWaterSetup.wl`, `KPZSetup.wl`), `JuliaRoundTrip.wl`, `OldProjection.wl`
   (the pre-p^{2n} Laplacian operator, test-only regression reference); `legacy/` holds the old
   notebooks' results used as references (`legacy/README.md` maps the old notation).
+- `benchmarks/` - literature benchmarks, one folder each (`README.md` is the index): `README.md`, `Reference.wl` (the paper's
+  equations), `Pipeline.wl`, `Checks.wl` (`ksChecks[]`-style records, no harness dependency), `run.wl`, `makeNotebook.wl` → `.nb`.
 
 ## Where to change X
 - New module: `Kernel/X.wl` + its name in `$FRGModules` + a section in `docs/MODULES.md` + `tests/unit/XTest.wl`.
+- New benchmark: `benchmarks/<Name>/` (files as in `KuramotoSivashinsky/`), a line in `benchmarks/README.md`, a suite hook
+  `tests/acceptance/<Name>.wl` that only wraps the checks in `test[…]`.
 - New check: `FRGAssert`/`assertCheck` named `Module.check` (shown on the card) + an `expectFail[…, "Module.check"]` test.
 - FlowRG file format: `Kernel/JuliaExport.wl`; the contract is `~/Physics/Sources/FlowRG.jl/docs/equations-interface.md`
   (other repo: changes there go through a `docs/handoff/` spec).
