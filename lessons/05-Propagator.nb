@@ -1,0 +1,1173 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[     43002,       1164]
+NotebookOptionsPosition[     37095,       1087]
+NotebookOutlinePosition[     37432,       1102]
+CellTagsIndexPosition[     37389,       1099]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["Lesson 05 - Propagator", "Title",ExpressionUUID->"36eb5704-6353-43d7-8862-47afe2c4b124"],
+
+Cell[TextData[{
+ StyleBox["Physics step.",
+  FontWeight->Bold],
+ " Invert ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2 + R to get the propagator G(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ", q), using the MSR block structure: the (",
+ StyleBox["\[CurlyPhi]",
+  FontFamily->"Noto Sans"],
+ ", ",
+ StyleBox["\[CurlyPhi]",
+  FontFamily->"Noto Sans"],
+ ") block vanishes by causality, so G has the retarded response G_{",
+ StyleBox["\[CurlyPhi]\:0304\[CurlyPhi]",
+  FontFamily->"Noto Sans"],
+ "} = B(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\:207b\.b9",
+  FontFamily->"Noto Sans"],
+ ", the advanced one, and the correlation G_{",
+ StyleBox["\[CurlyPhi]\[CurlyPhi]",
+  FontFamily->"Noto Sans"],
+ "} = ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "(B(",
+ StyleBox["\[Minus]\[Omega]",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\:1d40",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\:207b\.b9",
+  FontFamily->"Noto Sans"],
+ " C B(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\:207b\.b9",
+  FontFamily->"Noto Sans"],
+ ", with B the (",
+ StyleBox["\[CurlyPhi]",
+  FontFamily->"Noto Sans"],
+ ", ",
+ StyleBox["\[CurlyPhi]\:0304",
+  FontFamily->"Noto Sans"],
+ ") block and C the noise block. The poles are the roots of ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ "(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ") = det B(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ "); the module states the conditions for them to be causal."
+}], "Text",ExpressionUUID->"2748234b-3b7b-434d-b4f9-a193fcff607d"],
+
+Cell[TextData[{
+ StyleBox["Stage.",
+  FontWeight->Bold],
+ " Input: the Vertices and Regulator stages, built from the same Ansatz. \
+Output: the ",
+ StyleBox["\"Propagator\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stage."
+}], "Text",ExpressionUUID->"d71e5a0f-43c1-42de-8a02-1a4315e7f062"],
+
+Cell["\<\
+Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
+regulator = lessonUpTo[\"Regulator\"]; vertices = kpzVertices;\
+\>", "Input",ExpressionUUID->"96844c05-6f0a-408f-9ba5-b3b6b316699a"],
+
+Cell[TextData[{
+ StyleBox["lessonUpTo",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " returns the last stage it built and leaves the earlier ones in variables (",
+ StyleBox["kpzTheory",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["kpzAnsatz",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["kpzVertices",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ...), as its printout says."
+}], "Text",ExpressionUUID->"af6d8ce2-94c9-4eac-b4a5-1066d775f050"],
+
+Cell["1. Using it", "Section",ExpressionUUID->"f3d7d420-2df4-4664-85d4-9c9717e3aadd"],
+
+Cell["propagator = BuildPropagator[vertices, regulator];", "Input",ExpressionUUID->"c58e9045-15d6-468f-bf5d-568ab229df2e"],
+
+Cell[TextData[{
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2 + R and G, in ",
+ StyleBox["atoms",
+  FontWeight->Bold],
+ ":"
+}], "Text",ExpressionUUID->"fb803250-9993-4bf0-8c7e-a19aed458a96"],
+
+Cell["\<\
+{FullMatrix[propagator, w, s], PropagatorMatrix[propagator, w, s]}\
+\>", "Input",ExpressionUUID->"77cf2b4a-d08c-459d-a7d3-1628cf708483"],
+
+Cell[TextData[{
+ StyleBox["GammaAtom[h, hbar, 0][s]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stands for the coefficient of (i",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\:2070",
+  FontFamily->"Noto Sans"],
+ " in (",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2 + R)_{h ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ "} at q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " = s, that is ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " s (1 + r_n(s/k",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ")). ",
+ StyleBox["\[CapitalDelta][w, s]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stands for ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ "(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ") at q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " = s. Their values are kept aside:"
+}], "Text",ExpressionUUID->"3484fda9-fa3f-417c-ab5a-2dca0955de58"],
+
+Cell["AtomRules[propagator]", "Input",ExpressionUUID->"52d86cae-5540-4189-9c16-af61cd0dd38d"],
+
+Cell[TextData[{
+ "Substituting them gives the familiar KPZ propagator (here, and only here, \
+on a small expression, ",
+ StyleBox["Simplify",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is harmless):"
+}], "Text",ExpressionUUID->"563b96d4-db9e-4be2-bb22-219a5c49cc3f"],
+
+Cell["\<\
+Simplify[PropagatorMatrix[propagator, w, s] /. DeltaRules[propagator] /. \
+AtomRules[propagator]]\
+\>", "Input",ExpressionUUID->"d0a3ae7d-8b26-4e12-9742-8b5f6f46885a"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Abstract atoms until the end",
+  FontWeight->Bold],
+ "\n\n",
+ "The explicit entries contain couplings and shape functions; G built from \
+them would contain them many times over, and every later expression (loop \
+integrands, their projections, the frequency integrals) would grow \
+accordingly. With one atom per entry coefficient, G stays a small rational \
+function of a handful of symbols, the heavy algebra of lessons 07",
+ StyleBox["\[Dash]",
+  FontFamily->"Noto Sans"],
+ "10 runs on it, and the atoms are replaced by their values only once, at \
+assembly (lesson 11). This is rule 1 of the computer-algebra rules in the \
+shallow-water project primer, \"abstract until the end\" (",
+ StyleBox["~/sync_cnrs/Projects/shallow_water/AGENT_PRIMER.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " ",
+ StyleBox["\[Section]",
+  FontFamily->"Noto Sans"],
+ "7, cited in ",
+ StyleBox["design/FRGDESIGN.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", module 5). The atoms are curried, ",
+ StyleBox["GammaAtom[a, b, m][s]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["Curried definitions",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 02)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "), because the same coefficient is needed at different momenta, q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " and (q + p)",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "; ",
+ StyleBox["ExactlyZeroQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " treats each ",
+ StyleBox["GammaAtom[...][s]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " as one atom with its own random value (lesson 00, section 5)."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"cb9872de-19a5-427b-9d90-075caff55e18"],
+
+Cell["2. From \[CapitalGamma]2 + R to atoms", "Section",ExpressionUUID->"197fa8e9-b0ae-4229-b5d1-974b61cd5bbe"],
+
+Cell["\<\
+(* Kernel/Propagator.wl:28-52 *)
+BuildPropagator[vertices_, regulator_] := Block[{$FRGModule = \
+\"Propagator\"},
+  Module[{t0 = AbsoluteTime[], fields, theory, phis, bars, n, nf, pos, g2, \
+rm, full, atoms = {}, atomVals = <||>, abs, iphi, ibar, B, Bm, C,
+    detB, deg, cs, G, checks = {}, warns = {}, stage, valid, explanation, \
+ex},
+   validateStage[vertices, \"Vertices\"]; validateStage[regulator, \
+\"Regulator\"];
+   FRGAssert[\"Propagator.sameAnsatz\", regulator[\"Upstream\"] === vertices[\
+\"Upstream\"], {regulator[\"Upstream\"], vertices[\"Upstream\"]},
+    \"the regulator and the vertices were built from different ansatz \
+stages\"];
+   theory = vertices[\"Ansatz\"][\"Theory\"]; fields = vertices[\"Fields\"]; \
+phis = theory[\"Scalars\"]; bars = theory[\"ResponseFields\"];
+   nf = Length[fields]; n = Length[phis]; pos[a_] := \
+First[FirstPosition[fields, a]];
+
+   (* explicit Gamma2 + R, polynomial in w *)
+   g2 = Gamma2Matrix[vertices, ww, qv] /. scal[qv, qv] -> ss;
+   rm = RegulatorMatrix[regulator, ss];
+   full = Expand[g2 + rm];
+   FRGAssert[\"Propagator.polynomial\", AllTrue[Flatten[full], PolynomialQ[#, \
+ww] &], full, \"Gamma2 + R must be polynomial in w\"];
+
+   (* abstract atoms: coefficient of (I w)^m of entry (a, b), a <= b; numbers \
+stay numbers *)
+   abs = Table[Module[{i0 = Min[i, j], j0 = Max[i, j], e, a, b},
+      a = fields[[i0]]; b = fields[[j0]]; e = full[[i0, j0]];
+      Sum[Module[{c = Expand[Coefficient[e, ww, m] / I^m]},
+        Which[c === 0, 0, NumericQ[c], c,
+         True, (If[! KeyExistsQ[atomVals, GammaAtom[a, b, m]], \
+atomVals[GammaAtom[a, b, m]] = Function[Evaluate[{ss}], Evaluate[c]]];
+          GammaAtom[a, b, m][ss])] (I If[i <= j, 1, -1] ww)^m], {m, 0, \
+Exponent[e, ww]}]], {i, nf}, {j, nf}];
+   atoms = Keys[atomVals];
+   AppendTo[checks, assertCheck[\"Propagator.atomsReal\", FreeQ[(#[ss] & /@ \
+Values[atomVals]), Complex], atomVals,
+     \"the coefficients of (I w)^m must be real (no explicit I in the ansatz \
+or the regulator)\", ToString[Length[atoms]] <> \" real entry atoms\"]];\
+\>", "Program",ExpressionUUID->"8fb94f28-7ecc-4707-a678-e287c9a2d212"],
+
+Cell[TextData[{
+ StyleBox["Propagator.sameAnsatz",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " compares the ",
+ StyleBox["\"Upstream\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " fingerprints of the two inputs (",
+ StyleBox["Hash",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "): both must point to the same Ansatz stage."
+}], "Text",ExpressionUUID->"e0ad8979-b96a-4a66-be18-547916410e6e"],
+
+Cell[TextData[{
+ StyleBox["Gamma2Matrix",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (lesson 03) and ",
+ StyleBox["RegulatorMatrix",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (lesson 04) are evaluated with private symbols ",
+ StyleBox["ww",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " for ",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ " and ",
+ StyleBox["ss",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " for q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "."
+}], "Text",ExpressionUUID->"5b72d830-b682-4480-9983-7173ad8fbeb8"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Coefficient and Exponent",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Coefficient[e, x, m]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the coefficient of x^m in the polynomial e; ",
+ StyleBox["Exponent[e, x]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " its degree in x.",
+ "\n\n",
+ StyleBox["Coefficient[e, ww, m] / I^m",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the coefficient of (i",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ")^m. For each entry and each power, the module either keeps a number (",
+ StyleBox["NumericQ[c]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is True for exact or approximate numbers, like the 1 in front of i",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ") or creates the atom ",
+ StyleBox["GammaAtom[a, b, m]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and stores its value as a function of q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " (",
+ StyleBox["Function and Evaluate",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 04)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ") in the local association ",
+ StyleBox["atomVals",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"5a4b57f6-3b7d-45c6-9ee5-deeb41d15a56"],
+
+Cell["\<\
+{Coefficient[3 + 2 x + 5 x^2, x, 2], Exponent[3 + 2 x + 5 x^2, x], \
+NumericQ[3/4], NumericQ[nuk]}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"73ee255e-eab7-44c8-855b-ddf321cf0938"],
+
+Cell[TextData[{
+ "Only the entries (a, b) with a before b in field order get atoms; the entry \
+(b, a) is the same polynomial at ",
+ StyleBox["\[Minus]\[Omega]",
+  FontFamily->"Noto Sans"],
+ ", which is the factor ",
+ StyleBox["I If[i <= j, 1, -1] ww",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". ",
+ StyleBox["Propagator.atomForm",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " substitutes the values back and requires the result to equal ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2 + R exactly."
+}], "Text",ExpressionUUID->"0018d065-62a6-4a04-b8c4-0346e794f9be"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Assigning to an association",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["assoc[key] = value",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " adds or replaces one entry of an association stored in a variable.",
+ "\n\n",
+ "Unlike ",
+ StyleBox["Append",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["Association",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "), this modifies the variable in place, like ",
+ StyleBox["AppendTo",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " for lists (",
+ StyleBox["AppendTo",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 01)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "). It is used here inside a ",
+ StyleBox["Module",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", on a local variable: the stage itself is still built once and never \
+modified."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"cbc9b96b-6032-4c58-824b-b2c7ef9358e1"],
+
+Cell["3. The block structure and \[CapitalDelta]", "Section",ExpressionUUID->"3a30249a-1572-474a-b9a0-5def9762473f"],
+
+Cell["\<\
+(* Kernel/Propagator.wl:56-69 *)
+   (* block structure in the order (phi_1..phi_N | phibar_1..phibar_N) *)
+   iphi = pos /@ phis; ibar = pos /@ bars;
+   AppendTo[checks, assertCheck[\"Propagator.causalBlock\", \
+Flatten[abs[[iphi, iphi]]] === ConstantArray[0, n^2], abs[[iphi, iphi]],
+     \"the (phi, phi) block of Gamma2 + R must vanish (causality)\", \"(phi, \
+phi) block = 0\"]];
+   B[w_] := abs[[iphi, ibar]] /. ww -> w;              (* rows phi at w, \
+columns phibar *)
+   C = abs[[ibar, ibar]];                              (* noise block *)
+   detB = Expand[Det[B[ww]]];
+   deg = Exponent[detB, ww];
+   AppendTo[checks, assertCheck[\"Propagator.deltaDegree\", 1 <= deg <= 2, deg,
+     If[deg == 0, \"Delta(w) does not depend on w: the frequency integrals \
+diverge (is a dt term missing?)\",
+      \"deg_w Delta = \" <> ToString[deg] <> \" > 2: not supported in v1 \
+(future extension, docs/FUTURE.md)\"],
+     \"deg_w Delta = \" <> ToString[deg]]];
+   cs = Table[Expand[Coefficient[detB, ww, m] / I^m], {m, 0, 2}];
+   FRGAssert[\"Propagator.deltaCoefficients\", Expand[Sum[cs[[m + 1]] (I \
+ww)^m, {m, 0, 2}] - detB] === 0 && FreeQ[cs, ww], cs, \"internal\"];\
+\>", "Program",ExpressionUUID->"99c9d54d-3b33-483c-a6ee-1bfe88d34247"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Part with lists",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["m[[{1, 3}, {2}]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " extracts the rows 1, 3 and the column 2 of a matrix; the same form on the \
+left of ",
+ StyleBox["=",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " assigns a block.",
+ "\n\n",
+ StyleBox["abs[[iphi, ibar]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the (",
+ StyleBox["\[CurlyPhi]",
+  FontFamily->"Noto Sans"],
+ ", ",
+ StyleBox["\[CurlyPhi]\:0304",
+  FontFamily->"Noto Sans"],
+ ") block B: the rows at the positions of the physical fields, the columns at \
+those of the response fields. ",
+ StyleBox["Det",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the determinant. ",
+ StyleBox["B[w_] := ... /. ww -> w",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is a local function giving B at any frequency."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"76eb190a-d0ac-449b-be98-d21b831bd3da"],
+
+Cell["\<\
+mm = ConstantArray[0, {3, 3}]; mm[[{1, 3}, {1, 3}]] = {{1, 2}, {3, 4}}; {mm, \
+mm[[{1, 3}, {3}]]}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"44a91269-453a-416d-b31e-b02d35d70d25"],
+
+Cell[TextData[{
+ StyleBox["Propagator.deltaDegree",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " requires 1 ",
+ StyleBox["\[LessEqual]",
+  FontFamily->"Noto Sans"],
+ " deg_",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[LessEqual]",
+  FontFamily->"Noto Sans"],
+ " 2: degree 0 means there is no ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "t term and the frequency integrals diverge; degree 3 or more is beyond v1 (",
+ StyleBox["docs/FUTURE.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "). With two scalars, deg ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ " = 2 is the common case; KPZ has degree 1."
+}], "Text",ExpressionUUID->"f9df33aa-28a8-4ccd-bff3-c43e403dce6a"],
+
+Cell["4. The inverse in closed form", "Section",ExpressionUUID->"f1a2b229-c2e5-4108-964a-4d001fdb2bf0"],
+
+Cell["\<\
+(* Kernel/Propagator.wl:71-84 *)
+   (* G = M^-1 with M = [[0, B(w)], [B(-w)^T, C]] in the (phi | phibar) \
+order:
+      G_{phibar phi} = B(w)^-1, G_{phi phibar} = (B(-w)^T)^-1, G_{phi phi} = \
+-(B(-w)^T)^-1 C B(w)^-1, G_{phibar phibar} = 0 *)
+   Module[{binv, dinv, gpp},
+    binv = adjugate[B[ww]]/\\[CapitalDelta][ww, ss];
+    dinv = adjugate[Transpose[B[-ww]]]/\\[CapitalDelta][-ww, ss];
+    gpp = -dinv . C . binv;
+    G = ConstantArray[0, {nf, nf}];
+    G[[iphi, iphi]] = Map[Together, gpp, {2}]; G[[iphi, ibar]] = dinv; \
+G[[ibar, iphi]] = binv];
+   ex = {\\[CapitalDelta][w_, ss] :> (detB /. ww -> w)};
+   AppendTo[checks, assertCheck[\"Propagator.inverse\",
+     ExactlyZeroQ[(G /. ex) . abs - IdentityMatrix[nf]],
+     G, \"internal: G (Gamma2 + R) != 1\", \"G.(Gamma2 + R) = 1 exactly \
+(random rationals for every atom, w, q^2)\"]];
+   AppendTo[checks, assertCheck[\"Propagator.inverseRight\", ExactlyZeroQ[abs \
+. (G /. ex) - IdentityMatrix[nf]], G, \"internal\", \"(Gamma2 + R).G = 1\"]];
+   AppendTo[checks, assertCheck[\"Propagator.responseBlock\", \
+Flatten[G[[ibar, ibar]]] === ConstantArray[0, n^2], G, \"internal\", \
+\"G_{phibar phibar} = 0\"]];\
+\>", "Program",ExpressionUUID->"1321fd2e-4c34-407a-9d0f-0dc6051e2b90"],
+
+Cell["\<\
+(* Kernel/Propagator.wl:26 *)
+adjugate[m_] := If[Length[m] == 1, {{1}}, Transpose[Table[(-1)^(i + j) \
+Det[Drop[m, {i}, {j}]], {i, Length[m]}, {j, Length[m]}]]];\
+\>", "Program",ExpressionUUID->"83d1dfa1-e9de-4577-87b3-26c1c4094798"],
+
+Cell[TextData[{
+ "The inverse of B is its adjugate divided by its determinant. The adjugate \
+is computed from cofactors: ",
+ StyleBox["Drop[m, {i}, {j}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " removes row i and column j, ",
+ StyleBox["Det",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " of what remains is the minor. Instead of the determinant itself, the \
+formula uses the inert symbol ",
+ StyleBox["\[CapitalDelta][w, s]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (and ",
+ StyleBox["\[CapitalDelta][-w, s]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " for the advanced block), so G is written in atoms and ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ " only."
+}], "Text",ExpressionUUID->"85f2d891-f81a-4d98-8037-4b4e49ebf8fb"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Matrix algebra",
+  FontWeight->Bold],
+ "\n",
+ StyleBox[".",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " multiplies matrices (and vectors); ",
+ StyleBox["Transpose",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["Det",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["IdentityMatrix[n]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " work on nested lists.",
+ "\n\n",
+ "Matrices are lists of rows, nothing more: ",
+ StyleBox["{{a, b}, {c, d}} . {{e, f}, {g, h}}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the matrix product. ",
+ StyleBox["-dinv . C . binv",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the correlation block ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "(B(",
+ StyleBox["\[Minus]\[Omega]",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\:1d40",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\:207b\.b9",
+  FontFamily->"Noto Sans"],
+ " C B(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\:207b\.b9",
+  FontFamily->"Noto Sans"],
+ ", and ",
+ StyleBox["Map[Together, gpp, {2}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["Map at a level",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 04)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ", ",
+ StyleBox["Exact numbers",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ") puts each entry over a common denominator."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"f3c6e15b-fa7f-44b1-9b5c-5c7ac726eea1"],
+
+Cell["\<\
+{{{a, b}, {c, d}} . {{1, 0}, {0, 2}}, Det[{{a, b}, {c, d}}], Drop[{{a, b}, \
+{c, d}}, {1}, {2}]}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"e856f500-0f27-4dc0-a037-6f6240093a32"],
+
+Cell[TextData[{
+ StyleBox["Propagator.inverse",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["Propagator.inverseRight",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " multiply G by ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2 + R in both orders, with ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ " replaced by its value, and require the identity matrix exactly (",
+ StyleBox["Exact numbers",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ " through ",
+ StyleBox["ExactlyZeroQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "): every atom, ",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ " and q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " gets a random rational."
+}], "Text",ExpressionUUID->"a809eea8-567d-4e87-8217-14692e7695a9"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Use the structure, then check the result",
+  
+  FontWeight->Bold],
+ "\n\n",
+ "A generic symbolic ",
+ StyleBox["Inverse",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " of a 4",
+ StyleBox["\[Times]",
+  FontFamily->"Noto Sans"],
+ "4 matrix of polynomials works, but produces a large expression with the \
+determinant expanded everywhere and no visible structure. Using the MSR block \
+form gives a short closed formula in which each block has a physical meaning \
+and ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ " appears explicitly, as needed by the frequency integration (lesson 09). \
+Because the formula is written by hand, it is then checked against the \
+definition of an inverse, in both orders, which costs a few rational \
+evaluations."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"3409c7b8-2817-41d9-826f-784b90543f3f"],
+
+Cell["5. Validity of the poles: an assumption, not a check", "Section",ExpressionUUID->"3ba0987c-0061-4d4b-b3f8-3e42fa476c16"],
+
+Cell["\<\
+(* Kernel/Propagator.wl:86-92 *)
+   (* validity: roots of Delta in w in the upper half plane <=> roots u = I w \
+of c0 + c1 u + c2 u^2 have negative real part *)
+   {valid, explanation} = If[deg == 2,
+     {{DeltaCoefficient[1][ss]/DeltaCoefficient[2][ss] > 0, \
+DeltaCoefficient[0][ss]/DeltaCoefficient[2][ss] > 0},
+      \"both roots of Delta(w) lie in the upper half w-plane (causal poles) \
+iff c1/c2 > 0 and c0/c2 > 0: writing u = I w, a quadratic \\
+c2 u^2 + c1 u + c0 has both roots with Re u < 0 exactly when its three \
+coefficients have the same sign\"},
+     {{DeltaCoefficient[0][ss]/DeltaCoefficient[1][ss] > 0}, \"the root of \
+Delta(w) = c0 + c1 (I w) is w = I c0/c1: upper half plane iff c0/c1 > 0\"}];
+   AppendTo[warns, infoCheck[\"ASSUMPTION\", \"Propagator.validity\", \
+displayString[valid /. ss -> Symbol[\"FRGscalarMSR`Propagator`Private`s\"]] \
+<> \" at every loop momentum q (not checked by the library: exported as \
+causal_poles by ExportJulia)\"]];\
+\>", "Program",ExpressionUUID->"f041811a-e64b-426c-a1d1-21582f1e6308"],
+
+Cell[TextData[{
+ "With u = i",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ", a root of ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ " in the upper half ",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ "-plane is a root u with negative real part. For degree 1, ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ " = c0 + c1 u has its root at u = ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "c0/c1, so the condition is c0/c1 > 0; for degree 2 it is c1/c2 > 0 and \
+c0/c2 > 0. The conditions are expressions like ",
+ StyleBox["DeltaCoefficient[0][s]/DeltaCoefficient[1][s] > 0",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", which stay unevaluated as long as their atoms have no values: they are \
+data (",
+ StyleBox["If and TrueQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ " explained why such an inequality cannot be decided)."
+}], "Text",ExpressionUUID->"2b8fc6d7-cb24-4aa5-9f37-cf25eebacced"],
+
+Cell["ValidityConditions[propagator][s]", "Input",ExpressionUUID->"aabf36cd-1cbd-4bf3-af2e-a0147824e6b0"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Why an ASSUMPTION line instead of a check",
+  FontWeight->Bold],
+ "\n\n",
+ "Whether the poles are causal depends on the values of the couplings at \
+every q, which are only known while the flow is integrated numerically. The \
+library cannot decide it, so it does not pretend to: the card shows an \
+ASSUMPTION, Adimensional (lesson 14) rewrites the conditions in dimensionless \
+form, and ExportJulia (lesson 15) writes them as ",
+ StyleBox["causal_poles",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " for FlowRG to check during integration (",
+ StyleBox["design/CAUSALITY.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "). An honest card distinguishes what was verified (PASS) from what was \
+assumed."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"ebec1906-fa6b-4d1c-98f1-9af16de14beb"],
+
+Cell["6. The stage and its accessors", "Section",ExpressionUUID->"3a65b243-9c80-45e0-abb7-fe1040ab11e4"],
+
+Cell[BoxData[
+ $CellContext`regionCells[
+ "Kernel/Propagator.wl", "stage = stampStage[<", 
+  "\"Stage\" -> \"Propagator\"", 
+  "\"Checks\" -> checks, \"Warnings\" -> warns"]], "Input",ExpressionUUID->\
+"ef955632-562b-42ef-9b1c-6cddbb1967ec"],
+
+Cell["\<\
+(* Kernel/Propagator.wl:106-110 *)
+PropagatorMatrix[p_Association, w_, s_] := p[\"G\"][w, s];
+FullMatrix[p_Association, w_, s_] := p[\"M\"][w, s];
+AtomRules[p_Association] := Normal[p[\"AtomValues\"]];
+DeltaRules[p_Association] := {\\[CapitalDelta][w_, s_] :> p[\"Delta\"][w, s], \
+DeltaCoefficient[m_][s_] :> p[\"DeltaCoefficients\"][s][[m + 1]]};
+ValidityConditions[p_Association] := p[\"ValidityConditions\"];\
+\>", "Program",ExpressionUUID->"71e1ebf0-4a32-4f76-9e86-07a204ac74e6"],
+
+Cell[TextData[{
+ StyleBox["DeltaRules",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " returns rules with patterns on the left, ",
+ StyleBox["\[CapitalDelta][w_, s_] :> ...",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ": one rule replaces ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ " at every frequency and momentum where it occurs (",
+ StyleBox["Rules and replacement",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "). ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is a symbol whose name is a Greek letter (written ",
+ StyleBox["\\[CapitalDelta]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " in the source file); Mathematica allows such names like any other."
+}], "Text",ExpressionUUID->"721a4e86-ca08-4e86-aa1f-5ed195bcaf44"],
+
+Cell["Exercises", "Section",ExpressionUUID->"368fd255-f93d-45a4-ace2-de51e09db5b8"],
+
+Cell["Exercise: The correlation function", "Subsection",ExpressionUUID->"8d91e6ce-64b3-4a62-8711-a4c947dda7fa"],
+
+Cell[TextData[{
+ "From the result of section 1, write G_{hh}(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ", q) and check that it is 2D(1 + r_d) / (",
+ StyleBox["\[Omega]\.b2",
+  FontFamily->"Noto Sans"],
+ " + ",
+ StyleBox["\[Nu]\.b2",
+  FontFamily->"Noto Sans"],
+ " q",
+ StyleBox["\:2074",
+  FontFamily->"Noto Sans"],
+ " (1 + r_n)",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ")."
+}], "Text",ExpressionUUID->"5d268a1c-975a-4279-a48a-b89db1fd038c"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"ca0f9ab9-34b7-4f3b-8d46-9f700597835f"],
+
+Cell["\<\
+gExplicit = PropagatorMatrix[propagator, w, s] /. DeltaRules[propagator] /. \
+AtomRules[propagator];
+ExactlyZeroQ[gExplicit[[1, 1]] - 2 Dk (1 + rd[s/k^2])/(w^2 + nuk^2 s^2 (1 + \
+rn[s/k^2])^2)]\
+\>", "Input",ExpressionUUID->"2295362d-e67a-4024-befd-606ceaa6f579"]
+}, Closed]],
+
+Cell["Exercise: Why G_{h\:0304h\:0304} = 0", "Subsection",ExpressionUUID->"62558ec0-319a-4f0d-b3f7-04296f38aa3e"],
+
+Cell[TextData[{
+ "Using the block form, explain why G_{",
+ StyleBox["\[CurlyPhi]\:0304\[CurlyPhi]\:0304",
+  FontFamily->"Noto Sans"],
+ "} always vanishes, and check it on ",
+ StyleBox["propagator",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",ExpressionUUID->"4cf39485-9529-476b-ae38-990ffe313018"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"91622631-fd9f-435d-a4b8-3f6c2b084d06"],
+
+Cell[TextData[{
+ "The inverse of [[0, B(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ")], [B(",
+ StyleBox["\[Minus]\[Omega]",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\:1d40",
+  FontFamily->"Noto Sans"],
+ ", C]] has a zero block where the original has C: multiplying out shows that \
+the (",
+ StyleBox["\[CurlyPhi]\:0304",
+  FontFamily->"Noto Sans"],
+ ", ",
+ StyleBox["\[CurlyPhi]\:0304",
+  FontFamily->"Noto Sans"],
+ ") block of the inverse must be 0 for the product to be the identity. This \
+is the statement that ",
+ StyleBox["\:27e8\[CurlyPhi]\:0304",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[CurlyPhi]\:0304\:27e9",
+  FontFamily->"Noto Sans"],
+ " = 0 in MSR."
+}], "Text",ExpressionUUID->"d455d397-1176-4108-b16b-87d15d91e520"],
+
+Cell["PropagatorMatrix[propagator, w, s][[2, 2]]", "Input",ExpressionUUID->"745bf42f-3af9-4405-a05e-2a9054e5dc91"]
+}, Closed]],
+
+Cell["Exercise: Mixing two ans\[ADoubleDot]tze", "Subsection",ExpressionUUID->"f89d034e-0eb0-4b55-a53b-b96f26a3b951"],
+
+Cell[TextData[{
+ "Build a second KPZ ansatz without the ",
+ StyleBox["\[Lambda]",
+  FontFamily->"Noto Sans"],
+ " term, a regulator on it, and pass that regulator with the original ",
+ StyleBox["vertices",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " to ",
+ StyleBox["BuildPropagator",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Which check fails?"
+}], "Text",ExpressionUUID->"b9526bce-5de9-45e4-b3d4-fea7ebb863c3"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"4d7f3c71-c7f2-47b4-8992-537d2395e4ad"],
+
+Cell["\<\
+ansatz2 = Block[{Print}, DefineAnsatz[kpzTheory, \"Density\" -> hbar (dt[h] - \
+nuk lap[h]) - Dk hbar^2, \"Couplings\" -> {nuk, Dk}]];
+regulator2 = Block[{Print}, DefineRegulator[ansatz2, {hbar, h} -> nuk q^2 \
+rn[q^2/k^2], \"Shapes\" -> {rn}]];
+showFailure[BuildPropagator[vertices, regulator2]]\
+\>", "Input",ExpressionUUID->"99f3429b-e868-4f6a-a9e5-f0641993e8a5"],
+
+Cell[TextData[{
+ StyleBox["Propagator.sameAnsatz",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ": the two stages point to different Ansatz fingerprints, even though the \
+propagators would happen to agree. A stage only accepts inputs with a common \
+history."
+}], "Text",ExpressionUUID->"eb599a2b-e768-439f-97f6-997f62e01836"]
+}, Closed]]
+},
+CellContext->Notebook,
+FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"68ca8ccf-8ceb-4f4a-8543-fab9318d86bc"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 94, 0, 70, "Title",ExpressionUUID->"36eb5704-6353-43d7-8862-47afe2c4b124"],
+Cell[651, 22, 1612, 61, 70, "Text",ExpressionUUID->"2748234b-3b7b-434d-b4f9-a193fcff607d"],
+Cell[2266, 85, 356, 10, 70, "Text",ExpressionUUID->"d71e5a0f-43c1-42de-8a02-1a4315e7f062"],
+Cell[2625, 97, 263, 4, 70, "Input",ExpressionUUID->"96844c05-6f0a-408f-9ba5-b3b6b316699a"],
+Cell[2891, 103, 720, 21, 70, "Text",ExpressionUUID->"af6d8ce2-94c9-4eac-b4a5-1066d775f050"],
+Cell[3614, 126, 85, 0, 70, "Section",ExpressionUUID->"f3d7d420-2df4-4664-85d4-9c9717e3aadd"],
+Cell[3702, 128, 122, 0, 70, "Input",ExpressionUUID->"c58e9045-15d6-468f-bf5d-568ab229df2e"],
+Cell[3827, 130, 205, 7, 70, "Text",ExpressionUUID->"fb803250-9993-4bf0-8c7e-a19aed458a96"],
+Cell[4035, 139, 146, 2, 70, "Input",ExpressionUUID->"77cf2b4a-d08c-459d-a7d3-1628cf708483"],
+Cell[4184, 143, 1059, 41, 70, "Text",ExpressionUUID->"3484fda9-fa3f-417c-ab5a-2dca0955de58"],
+Cell[5246, 186, 93, 0, 70, "Input",ExpressionUUID->"52d86cae-5540-4189-9c16-af61cd0dd38d"],
+Cell[5342, 188, 330, 8, 70, "Text",ExpressionUUID->"563b96d4-db9e-4be2-bb22-219a5c49cc3f"],
+Cell[5675, 198, 177, 3, 70, "Input",ExpressionUUID->"d0a3ae7d-8b26-4e12-9742-8b5f6f46885a"],
+Cell[5855, 203, 2242, 60, 70, "Text",ExpressionUUID->"cb9872de-19a5-427b-9d90-075caff55e18"],
+Cell[8100, 265, 111, 0, 70, "Section",ExpressionUUID->"197fa8e9-b0ae-4229-b5d1-974b61cd5bbe"],
+Cell[8214, 267, 2143, 41, 70, "Program",ExpressionUUID->"8fb94f28-7ecc-4707-a678-e287c9a2d212"],
+Cell[10360, 310, 665, 19, 70, "Text",ExpressionUUID->"e0ad8979-b96a-4a66-be18-547916410e6e"],
+Cell[11028, 331, 792, 27, 70, "Text",ExpressionUUID->"5b72d830-b682-4480-9983-7173ad8fbeb8"],
+Cell[11823, 360, 1831, 56, 70, "Text",ExpressionUUID->"5a4b57f6-3b7d-45c6-9ee5-deeb41d15a56"],
+Cell[13657, 418, 293, 7, 70, "Input",ExpressionUUID->"73ee255e-eab7-44c8-855b-ddf321cf0938"],
+Cell[13953, 427, 709, 19, 70, "Text",ExpressionUUID->"0018d065-62a6-4a04-b8c4-0346e794f9be"],
+Cell[14665, 448, 1503, 47, 70, "Text",ExpressionUUID->"cbc9b96b-6032-4c58-824b-b2c7ef9358e1"],
+Cell[16171, 497, 116, 0, 70, "Section",ExpressionUUID->"3a30249a-1572-474a-b9a0-5def9762473f"],
+Cell[16290, 499, 1250, 22, 70, "Program",ExpressionUUID->"99c9d54d-3b33-483c-a6ee-1bfe88d34247"],
+Cell[17543, 523, 1361, 42, 70, "Text",ExpressionUUID->"76eb190a-d0ac-449b-be98-d21b831bd3da"],
+Cell[18907, 567, 292, 7, 70, "Input",ExpressionUUID->"44a91269-453a-416d-b31e-b02d35d70d25"],
+Cell[19202, 576, 910, 29, 70, "Text",ExpressionUUID->"f9df33aa-28a8-4ccd-bff3-c43e403dce6a"],
+Cell[20115, 607, 103, 0, 70, "Section",ExpressionUUID->"f1a2b229-c2e5-4108-964a-4d001fdb2bf0"],
+Cell[20221, 609, 1247, 23, 70, "Program",ExpressionUUID->"1321fd2e-4c34-407a-9d0f-0dc6051e2b90"],
+Cell[21471, 634, 243, 4, 70, "Program",ExpressionUUID->"83d1dfa1-e9de-4577-87b3-26c1c4094798"],
+Cell[21717, 640, 1005, 27, 70, "Text",ExpressionUUID->"85f2d891-f81a-4d98-8037-4b4e49ebf8fb"],
+Cell[22725, 669, 2250, 79, 70, "Text",ExpressionUUID->"f3c6e15b-fa7f-44b1-9b5c-5c7ac726eea1"],
+Cell[24978, 750, 291, 7, 70, "Input",ExpressionUUID->"e856f500-0f27-4dc0-a037-6f6240093a32"],
+Cell[25272, 759, 1122, 36, 70, "Text",ExpressionUUID->"a809eea8-567d-4e87-8217-14692e7695a9"],
+Cell[26397, 797, 1047, 27, 70, "Text",ExpressionUUID->"3409c7b8-2817-41d9-826f-784b90543f3f"],
+Cell[27447, 826, 126, 0, 70, "Section",ExpressionUUID->"3ba0987c-0061-4d4b-b3f8-3e42fa476c16"],
+Cell[27576, 828, 1058, 17, 70, "Program",ExpressionUUID->"f041811a-e64b-426c-a1d1-21582f1e6308"],
+Cell[28637, 847, 1155, 32, 70, "Text",ExpressionUUID->"2b8fc6d7-cb24-4aa5-9f37-cf25eebacced"],
+Cell[29795, 881, 105, 0, 70, "Input",ExpressionUUID->"aabf36cd-1cbd-4bf3-af2e-a0147824e6b0"],
+Cell[29903, 883, 1056, 24, 70, "Text",ExpressionUUID->"ebec1906-fa6b-4d1c-98f1-9af16de14beb"],
+Cell[30962, 909, 104, 0, 70, "Section",ExpressionUUID->"3a65b243-9c80-45e0-abb7-fe1040ab11e4"],
+Cell[31069, 911, 241, 5, 70, "Input",ExpressionUUID->"ef955632-562b-42ef-9b1c-6cddbb1967ec"],
+Cell[31313, 918, 494, 8, 70, "Program",ExpressionUUID->"71e1ebf0-4a32-4f76-9e86-07a204ac74e6"],
+Cell[31810, 928, 1170, 32, 70, "Text",ExpressionUUID->"721a4e86-ca08-4e86-aa1f-5ed195bcaf44"],
+Cell[32983, 962, 83, 0, 70, "Section",ExpressionUUID->"368fd255-f93d-45a4-ace2-de51e09db5b8"],
+Cell[33069, 964, 111, 0, 70, "Subsection",ExpressionUUID->"8d91e6ce-64b3-4a62-8711-a4c947dda7fa"],
+Cell[33183, 966, 461, 17, 70, "Text",ExpressionUUID->"5d268a1c-975a-4279-a48a-b89db1fd038c"],
+Cell[CellGroupData[{
+Cell[33669, 987, 88, 0, 70, "Subsubsection",ExpressionUUID->"ca0f9ab9-34b7-4f3b-8d46-9f700597835f"],
+Cell[33760, 989, 273, 5, 70, "Input",ExpressionUUID->"2295362d-e67a-4024-befd-606ceaa6f579"]
+}, Closed]],
+Cell[34048, 997, 113, 0, 70, "Subsection",ExpressionUUID->"62558ec0-319a-4f0d-b3f7-04296f38aa3e"],
+Cell[34164, 999, 373, 10, 70, "Text",ExpressionUUID->"4cf39485-9529-476b-ae38-990ffe313018"],
+Cell[CellGroupData[{
+Cell[34562, 1013, 88, 0, 70, "Subsubsection",ExpressionUUID->"91622631-fd9f-435d-a4b8-3f6c2b084d06"],
+Cell[34653, 1015, 751, 25, 70, "Text",ExpressionUUID->"d455d397-1176-4108-b16b-87d15d91e520"],
+Cell[35407, 1042, 114, 0, 70, "Input",ExpressionUUID->"745bf42f-3af9-4405-a05e-2a9054e5dc91"]
+}, Closed]],
+Cell[35536, 1045, 117, 0, 70, "Subsection",ExpressionUUID->"f89d034e-0eb0-4b55-a53b-b96f26a3b951"],
+Cell[35656, 1047, 541, 15, 70, "Text",ExpressionUUID->"b9526bce-5de9-45e4-b3d4-fea7ebb863c3"],
+Cell[CellGroupData[{
+Cell[36222, 1066, 88, 0, 70, "Subsubsection",ExpressionUUID->"4d7f3c71-c7f2-47b4-8992-537d2395e4ad"],
+Cell[36313, 1068, 376, 6, 70, "Input",ExpressionUUID->"99f3429b-e868-4f6a-a9e5-f0641993e8a5"],
+Cell[36692, 1076, 387, 8, 70, "Text",ExpressionUUID->"eb599a2b-e768-439f-97f6-997f62e01836"]
+}, Closed]]
+}
+]
+*)
+
+(* End of internal cache information *)

@@ -1,0 +1,967 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[     38160,        958]
+NotebookOptionsPosition[     32081,        879]
+NotebookOutlinePosition[     32418,        894]
+CellTagsIndexPosition[     32375,        891]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["Lesson 06 - Symmetries", "Title",ExpressionUUID->"e839bebe-21ea-4c72-93c7-484a5c0c05a1"],
+
+Cell[TextData[{
+ StyleBox["Physics step.",
+  FontWeight->Bold],
+ " Decide, ",
+ StyleBox["before",
+  FontSlant->Italic],
+ " computing any loop, what happens to every monomial (i",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ")^m (q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ")^n of every ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2 entry up to the truncation orders: it is a coupling of the ansatz (its \
+flow is an equation), protected by a symmetry (its flow must vanish), \
+neglected (its flow is computed, reported and dropped), or zero by structure. \
+Ward identities are declared by you, not derived: the card says so."
+}], "Text",ExpressionUUID->"61b5bbf6-c0bd-44de-b174-d2a6ffafbdf6"],
+
+Cell[TextData[{
+ StyleBox["Stage.",
+  FontWeight->Bold],
+ " Input: the Ansatz stage, tags ",
+ StyleBox["Protected[...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["Neglected[...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["NonRenormalised[...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", and ",
+ StyleBox["\"TruncationOrders\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Output: the ",
+ StyleBox["\"Symmetries\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stage, with one record per monomial. It is used by the projection (lesson \
+08) and the closure check (lesson 10)."
+}], "Text",ExpressionUUID->"fa9e58c1-ccda-4eeb-b621-736dc4dff86a"],
+
+Cell["\<\
+Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
+ansatz = lessonUpTo[\"Ansatz\"];\
+\>", "Input",ExpressionUUID->"85264bc4-acf7-4b43-b840-3065a9078ef9"],
+
+Cell["1. Using it", "Section",ExpressionUUID->"b0a09d2e-910f-4fc0-8bb3-67a00ff42075"],
+
+Cell[TextData[{
+ "For KPZ: the coefficient of i",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ " in ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2_{",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ "h} is protected by the Galilean Ward identity, the mass term by the shift \
+symmetry h ",
+ StyleBox["\[RightArrow]",
+  FontFamily->"Noto Sans"],
+ " h + c, ",
+ StyleBox["\[Lambda]",
+  FontFamily->"Noto Sans"],
+ " is not renormalised (Galilean invariance), and every other monomial up to \
+(i",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " (q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\.b9",
+  FontFamily->"Noto Sans"],
+ " is neglected."
+}], "Text",ExpressionUUID->"c020256a-9c5a-451f-a3e6-4bd865a7a2af"],
+
+Cell["\<\
+symmetries = DeclareSymmetries[ansatz,
+   Protected[{hbar, h}, \"Frequency\" -> 1, \"Momentum\" -> 0, \"Reason\" -> \
+\"Galilean Ward identity\"],
+   Protected[{h, hbar}, \"Frequency\" -> 0, \"Momentum\" -> 0, \"Reason\" -> \
+\"h -> h + c (shift symmetry)\"],
+   Neglected[_, \"Reason\" -> \"beyond the ansatz\"], NonRenormalised[lamk, \
+\"Reason\" -> \"Galilean invariance\"],
+   \"TruncationOrders\" -> <|\"Frequency\" -> 2, \"Momentum\" -> 1|>];\
+\>", "Input",ExpressionUUID->"b82b65d4-e7de-4b13-b54a-225a19cdb8d5"],
+
+Cell[TextData[{
+ "The table has 18 rows: 3 pairs ",
+ StyleBox["\[Times]",
+  FontFamily->"Noto Sans"],
+ " 3 frequency powers ",
+ StyleBox["\[Times]",
+  FontFamily->"Noto Sans"],
+ " 2 momentum powers. Each row is a record:"
+}], "Text",ExpressionUUID->"ad5d1b96-1a9a-48d9-9dc0-7985e3c2be01"],
+
+Cell["\<\
+Select[symmetries[\"Classification\"], #Class === \"Declared\" &]\
+\>", "Input",ExpressionUUID->"977187b1-35f7-4c13-8248-36cbdb0148f4"],
+
+Cell["2. Tags are expressions", "Section",ExpressionUUID->"97324cd2-d6d0-45f7-83f9-afd82cc99558"],
+
+Cell["\<\
+(* Kernel/Symmetries.wl:13-15 *)
+Neglected::usage = \"Neglected[pairPattern, \\\"Frequency\\\" -> m | {m..} | \
+All, \\\"Momentum\\\" -> n | {n..} | All, \\\"Reason\\\" -> text]: \\
+the flow of these monomials is computed and reported as a warning, then \
+dropped.\";
+NonRenormalised::usage = \"NonRenormalised[coupling, \\\"Reason\\\" -> text]: \
+a vertex coupling assumed not to flow (not checkable in v1: needs d_s \
+Gamma3).\";\
+\>", "Program",ExpressionUUID->"a09d9a56-b119-41e9-ae65-4d169b7a8952"],
+
+Cell["\<\
+(* Kernel/Symmetries.wl:23-24 *)
+(* Protected is a System symbol (attribute); the tag is used in the \
+unambiguous form Protected[pattern, opts] *)
+SetAttributes[{Neglected, NonRenormalised}, Protected];\
+\>", "Program",ExpressionUUID->"b9625236-6cf0-4d4e-b2a0-dbb2f84e37e4"],
+
+Cell[TextData[{
+ StyleBox["Neglected",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["NonRenormalised",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " are ",
+ StyleBox["Inert heads",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 01)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ". ",
+ StyleBox["Protected",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is more unusual: it is the System symbol of the attribute (",
+ StyleBox["Attributes and Protected",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "). As a ",
+ StyleBox["function",
+  FontSlant->Italic],
+ " it has no definitions, so ",
+ StyleBox["Protected[{hbar, h}, ...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stays unevaluated, and the library reuses it as a tag."
+}], "Text",ExpressionUUID->"bc7338a5-961b-46bd-a503-48c2fdc76d45"],
+
+Cell["{Attributes[Protected], Protected[{a, b}, \"x\" -> 1]}", "Input",ExpressionUUID->"927d1f3b-bdc4-4e15-90a3-77d1a35761dc"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Declarations as data",
+  FontWeight->Bold],
+ "\n\n",
+ "A tag like ",
+ StyleBox["Protected[{hbar, h}, \"Frequency\" -> 1, \"Momentum\" -> 0, \
+\"Reason\" -> \"...\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is an inert expression: the library can read it, match it, print it on the \
+card, and store it in the stage. Requiring a ",
+ StyleBox["\"Reason\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " makes every assumption about the physics explicit and readable later on \
+the card, next to the PASS lines. The alternative, a set of options or flags, \
+would carry the same information without the explanation, and would be easy \
+to forget."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"6d49886f-6901-4fc9-8eb8-9dcfdcd8c770"],
+
+Cell["3. Reading the tags", "Section",ExpressionUUID->"386dac08-e8bc-44fd-9dcb-287cc5d685c0"],
+
+Cell["\<\
+(* Kernel/Symmetries.wl:26-29 *)
+specMatchQ[All, _] := True;
+specMatchQ[l_List, x_] := MemberQ[l, x];
+specMatchQ[i_Integer, x_] := i === x;
+specMatchQ[_, _] := False;\
+\>", "Program",ExpressionUUID->"2d5c7b59-69f9-4241-8566-9d1a8e16c4f5"],
+
+Cell["\<\
+(* Kernel/Symmetries.wl:31 *)
+pairMatchQ[pat_, {a_, b_}] := MatchQ[{a, b}, pat] || MatchQ[{b, a}, pat];\
+\>", "Program",ExpressionUUID->"ef16a159-16e1-4c28-9aac-084f233beb95"],
+
+Cell["\<\
+(* Kernel/Symmetries.wl:33-38 *)
+tagRecord[tag_, kind_] := Module[{pat = First[tag], o = Association[Rest[List \
+@@ tag]]},
+   FRGAssert[\"Symmetries.tagOptions\", SubsetQ[{\"Frequency\", \"Momentum\", \
+\"Reason\"}, Keys[o]], tag,
+    kind <> \"[pairPattern, \\\"Frequency\\\" -> .., \\\"Momentum\\\" -> .., \
+\\\"Reason\\\" -> \\\"..\\\"]\"];
+   FRGAssert[\"Symmetries.reason\", StringQ[Lookup[o, \"Reason\", None]] && \
+Lookup[o, \"Reason\"] =!= \"\", tag, \"every tag needs a \\\"Reason\\\" -> \\\
+\"...\\\"\"];
+   <|\"Kind\" -> kind, \"Pattern\" -> pat, \"Frequency\" -> Lookup[o, \
+\"Frequency\", All], \"Momentum\" -> Lookup[o, \"Momentum\", All],
+    \"Reason\" -> o[\"Reason\"], \"Tag\" -> tag|>];\
+\>", "Program",ExpressionUUID->"20e8fe16-ddcc-4726-b5eb-21ea332f4bb9"],
+
+Cell["\<\
+(* Kernel/Symmetries.wl:40 *)
+tagMatchQ[t_, {a_, b_}, m_, n_] := pairMatchQ[t[\"Pattern\"], {a, b}] && \
+specMatchQ[t[\"Frequency\"], m] && specMatchQ[t[\"Momentum\"], n];\
+\>", "Program",ExpressionUUID->"2ebd116a-6b43-4be4-bea7-50f08be1dec9"],
+
+Cell[TextData[{
+ StyleBox["specMatchQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " dispatches on the form of the spec (",
+ StyleBox["Several definitions of one function",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 02)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "): ",
+ StyleBox["All",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", a list of orders, or one integer. ",
+ StyleBox["pairMatchQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " matches a pair pattern against the unordered pair, so ",
+ StyleBox["{hbar, _}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " matches ",
+ StyleBox["{h, hbar}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " too. In ",
+ StyleBox["tagRecord",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["Association[Rest[List @@ tag]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " turns the options of a tag into an association: ",
+ StyleBox["List @@ tag",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["Apply",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 01)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ") gives ",
+ StyleBox["{pattern, opt1, opt2, ...}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["Rest",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " drops the pattern."
+}], "Text",ExpressionUUID->"47929c81-7f87-4ef7-a6a5-6e1148354317"],
+
+Cell["\<\
+(* Kernel/Symmetries.wl:45-65 *)
+DeclareSymmetries[ansatz_, args___] := Block[{$FRGModule = \"Symmetries\"},
+  Module[{t0 = AbsoluteTime[], theory, fields, phis, pos, opts, trunc, mf, \
+mp, tags, prot, negl, nonren, v, g2, pairs, cls, checks = {}, warns = {},
+    used = {}, stage, cps, bad, declOutside},
+   validateStage[ansatz, \"Ansatz\"];
+   theory = ansatz[\"Theory\"]; fields = theory[\"Fields\"]; phis = \
+theory[\"Scalars\"]; cps = ansatz[\"Couplings\"];
+   pos[a_] := First[FirstPosition[fields, a]];
+   opts = Cases[{args}, (Rule | RuleDelayed)[_String, _]];
+   tags = Complement[{args}, opts];
+   FRGAssert[\"Symmetries.arguments\", AllTrue[tags, MatchQ[#, _Protected | \
+_Neglected | _NonRenormalised] &] && MatchQ[opts, {\"TruncationOrders\" -> _}],
+    Select[{args}, ! MatchQ[#, _Protected | _Neglected | _NonRenormalised | (\
+\"TruncationOrders\" -> _)] &],
+    \"arguments: Protected[...], Neglected[...], NonRenormalised[...] and \
+\\\"TruncationOrders\\\" -> <|\\\"Frequency\\\" -> mf, \\\"Momentum\\\" -> \
+mp|> (required)\"];
+   trunc = Lookup[opts, \"TruncationOrders\"];
+   FRGAssert[\"Symmetries.truncationOrders\", AssociationQ[trunc] && \
+Sort[Keys[trunc]] === {\"Frequency\", \"Momentum\"} && AllTrue[Values[trunc], \
+IntegerQ[#] && # >= 0 &],
+    trunc, \"\\\"TruncationOrders\\\" -> <|\\\"Frequency\\\" -> 2, \
+\\\"Momentum\\\" -> 1|> (non-negative integers)\"];
+   {mf, mp} = {trunc[\"Frequency\"], trunc[\"Momentum\"]};
+   AppendTo[checks, assertCheck[\"Symmetries.truncation\", True, mp, \"\",
+     \"truncation: (I w)^\" <> ToString[mf] <> \", (q^2)^\" <> ToString[mp]]];
+
+   prot = tagRecord[#, \"Protected\"] & /@ Cases[tags, _Protected];
+   negl = tagRecord[#, \"Neglected\"] & /@ Cases[tags, _Neglected];
+   nonren = Cases[tags, _NonRenormalised];\
+\>", "Program",ExpressionUUID->"857526d7-f6c7-4aee-9d2b-af897be7b870"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Multiple assignment",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["{a, b} = {1, 2}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " assigns element by element.",
+ "\n\n",
+ StyleBox["{mf, mp} = {trunc[\"Frequency\"], trunc[\"Momentum\"]}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " reads both truncation orders at once. Later, ",
+ StyleBox["{cl, reason} = Which[...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " gets a class and its reason from one ",
+ StyleBox["Which",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 02)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"5b7cf624-430a-4f46-98f7-a251e752e600"],
+
+Cell["4. Classifying every monomial", "Section",ExpressionUUID->"bfe43285-b3c4-4019-a7f2-d6699f3db699"],
+
+Cell["\<\
+(* Kernel/Symmetries.wl:69-90 *)
+   (* Gamma_k coefficients (regulator off) from the vertices; silent: \
+BuildVertices prints its own table *)
+   v = Block[{Print}, BuildVertices[ansatz]];
+   pairs = Select[Tuples[fields, 2], pos[#[[1]]] <= pos[#[[2]]] &];
+   cls = Flatten[Table[Module[{a = pr[[1]], b = pr[[2]], e, coef, cl, reason, \
+pt, nt},
+       e = VertexValue[v, {a, b}, {{nu, p}}];
+       coef = gammaCoefficient[e, nu, p, m, n];
+       pt = Select[prot, tagMatchQ[#, {a, b}, m, n] &]; nt = Select[negl, \
+tagMatchQ[#, {a, b}, m, n] &];
+       {cl, reason} = Which[
+         ! IntersectingQ[{a, b}, theory[\"ResponseFields\"]], {\"Causality\", \
+\"Gamma_{phi phi} = 0 (causality); its flow is checked to vanish\"},
+         a === b && OddQ[m], {\"Structure\", \"Gamma2_aa(w) = Gamma2_aa(-w): \
+odd powers of w vanish identically\"},
+         coef =!= 0 && ! NumericQ[coef] && pt =!= {}, \
+FRGAssert[\"Symmetries.contradiction\", False, {{a, b}, m, n, coef, pt[[All, \
+\"Tag\"]]},
+           \"this monomial carries a coupling of the ansatz and is also \
+Protected (its flow would have to vanish): drop the tag or the coupling\"],
+         pt =!= {}, (used = Join[used, pt[[All, \"Tag\"]]]; {\"Protected\", \
+First[pt][\"Reason\"]}),
+         coef =!= 0 && NumericQ[coef], {\"DeclaredNumeric\", \"numeric \
+coefficient \" <> ToString[coef] <> \" in the ansatz: its flow must \
+vanish\"},
+         coef =!= 0, {\"Declared\", \"flow equation for \" <> inputForm[coef]},
+         nt =!= {}, (used = Join[used, nt[[All, \"Tag\"]]]; {\"Neglected\", \
+First[nt][\"Reason\"]}),
+         True, {\"Untagged\", \"\"}];
+       <|\"Pair\" -> {a, b}, \"Frequency\" -> m, \"Momentum\" -> n, \"Class\" \
+-> cl, \"GammaK\" -> coef, \"Reason\" -> reason|>],
+      {pr, pairs}, {m, 0, mf}, {n, 0, mp}], 2];
+   bad = Select[cls, #Class === \"Untagged\" &];
+   AppendTo[checks, assertCheck[\"Symmetries.allTagged\", bad === {}, {#Pair, \
+\"(I w)^\" <> ToString[#Frequency], \"(q^2)^\" <> ToString[#Momentum]} & /@ \
+bad,
+     \"every monomial up to the truncation orders must be declared in the \
+ansatz, Protected or Neglected\", ToString[Length[cls]] <> \" monomials \
+classified\"]];\
+\>", "Program",ExpressionUUID->"bafea5ae-c4b7-48a1-bb62-c899022805bb"],
+
+Cell["\<\
+(* Kernel/Symmetries.wl:42-43 *)
+(* coefficient of (I nu)^m (p^2)^n in a Gamma2 entry written with scal[p, p] *)
+gammaCoefficient[e_, nu_, p_, m_, n_] := \
+Expand[Coefficient[Coefficient[Expand[e /. scal[p, p] -> pp2], pp2, n], nu, \
+m]/I^m];\
+\>", "Program",ExpressionUUID->"c153a71d-66fa-45e8-bd55-5e8f21d41e5d"],
+
+Cell[TextData[{
+ "The module rebuilds the vertices itself, silently (",
+ StyleBox["Block[{Print}, BuildVertices[ansatz]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "): it needs the coefficients of ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "_k (without regulator), and taking them from its own ansatz input avoids a \
+second stage argument that could come from a different ansatz. ",
+ StyleBox["gammaCoefficient",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " extracts the coefficient of (i",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ ")^m (p",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ")^n with two nested ",
+ StyleBox["Coefficient and Exponent",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 05)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "."
+}], "Text",ExpressionUUID->"0d202074-2c15-479e-a23a-cf380c18a88b"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Iterators that depend on each other",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Table[expr, {pr, pairs}, {m, 0, mf}, {n, 0, mp}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " runs over every combination; ",
+ StyleBox["Flatten[t, 2]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " removes two levels of nesting.",
+ "\n\n",
+ "The result of a three-iterator ",
+ StyleBox["Table",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is a list of lists of lists. ",
+ StyleBox["Flatten[..., 2]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " flattens the first two levels only, leaving a flat list of records (each \
+record is an association and must not be flattened further). ",
+ StyleBox["Flatten[l, n]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " with a level is the safe form whenever the elements themselves are lists \
+or associations."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"e8e65699-17ed-47f3-8b26-ebccc29d2560"],
+
+Cell["\<\
+{Table[{i, j}, {i, 2}, {j, 2}], Flatten[Table[{i, j}, {i, 2}, {j, 2}], 1]}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"029f87b6-5cf9-46b3-869b-3548e7f4d6ea"],
+
+Cell[TextData[{
+ "The order of the ",
+ StyleBox["Which",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 02)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ " is the precedence of the classes:"
+}], "Text",ExpressionUUID->"03d803ea-8fd1-4819-aa34-33a6065733c8"],
+
+Cell[TextData[{
+ StyleBox["Causality",
+  FontWeight->Bold],
+ ": an entry between two physical fields; ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "_",
+ StyleBox["\[CurlyPhi]\[CurlyPhi]",
+  FontFamily->"Noto Sans"],
+ " = 0, and its flow will be checked to vanish."
+}], "Item",ExpressionUUID->"57ae81c9-e2dd-48c6-805c-e0ea599ba084"],
+
+Cell[TextData[{
+ StyleBox["Structure",
+  FontWeight->Bold],
+ ": an odd frequency power in a diagonal entry; ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2_aa(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ") = ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2_aa(",
+ StyleBox["\[Minus]\[Omega]",
+  FontFamily->"Noto Sans"],
+ "), so it vanishes identically and is not computed."
+}], "Item",ExpressionUUID->"94f55450-1933-464e-9339-bee63bf69ff5"],
+
+Cell[TextData[{
+ StyleBox["Protected",
+  FontWeight->Bold],
+ " wins over everything else, but a Protected monomial that carries a \
+coupling is a contradiction, and aborts."
+}], "Item",ExpressionUUID->"67d23b54-6405-48f5-b4e8-3f00acf2db1c"],
+
+Cell[TextData[{
+ StyleBox["DeclaredNumeric",
+  FontWeight->Bold],
+ ": a number in the ansatz, like the 1 in front of i",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ "; its flow must vanish."
+}], "Item",ExpressionUUID->"3f4a3123-a4a4-4bab-9313-a02d4de8b7bf"],
+
+Cell[TextData[{
+ StyleBox["Declared",
+  FontWeight->Bold],
+ ": a coefficient with couplings; it gets a flow equation."
+}], "Item",ExpressionUUID->"11168695-38a5-4340-8d90-29c3ccf9cc96"],
+
+Cell[TextData[{
+ StyleBox["Neglected",
+  FontWeight->Bold],
+ "; anything left is ",
+ StyleBox["Untagged",
+  FontWeight->Bold],
+ ", and ",
+ StyleBox["Symmetries.allTagged",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " aborts."
+}], "Item",ExpressionUUID->"5a534a0f-79e1-4bd3-a4cb-ef081dcd0e81"],
+
+Cell["\<\
+showFailure[DeclareSymmetries[ansatz, Protected[{hbar, h}, \"Frequency\" -> \
+0, \"Momentum\" -> 1, \"Reason\" -> \"a mistake\"], Neglected[_, \"Reason\" \
+-> \"rest\"],
+  \"TruncationOrders\" -> <|\"Frequency\" -> 2, \"Momentum\" -> 1|>]]\
+\>", "Input",ExpressionUUID->"54e4e4c2-e1e1-418f-9dfe-ab29574341fa"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Classify before computing",
+  FontWeight->Bold],
+ "\n\n",
+ "The loops of lessons 07",
+ StyleBox["\[Dash]",
+  FontFamily->"Noto Sans"],
+ "10 are the expensive part of the pipeline. A forgotten monomial, a \
+contradictory tag or a truncation that misses a term of the ansatz are \
+mistakes in the ",
+ StyleBox["declaration",
+  FontSlant->Italic],
+ ", which can be found by looking only at ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "_k. Doing it here means they abort in a fraction of a second, with a table \
+that names the monomial, instead of after minutes of loop computation, or not \
+at all (",
+ StyleBox["docs/MODULES.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ": \"the classification needs no flow, so it can fail early\"). Aborting on \
+an untagged monomial forces every truncation decision to be written down."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"3f5ee3d1-f681-4ced-a050-81ea2d7591b5"],
+
+Cell["5. Checks on the declaration as a whole", "Section",ExpressionUUID->"b6c28670-81da-490b-ba62-25210d82b8b1"],
+
+Cell["\<\
+(* Kernel/Symmetries.wl:92-100 *)
+   (* declared monomials of the ansatz beyond the truncation orders would be \
+silently ignored *)
+   declOutside = Select[Flatten[Table[{pr, m, n}, {pr, pairs}, {m, 0, 2 mf + \
+4}, {n, 0, Max[2, Max[ansatz[\"Monomials\"][[All, \"MomentumOrder\"]]]/2]}], \
+2],
+     (#[[2]] > mf || #[[3]] > mp) && gammaCoefficient[VertexValue[v, #[[1]], \
+{{nu, p}}], nu, p, #[[2]], #[[3]]] =!= 0 &];
+   AppendTo[checks, assertCheck[\"Symmetries.truncationCoversAnsatz\", \
+declOutside === {}, declOutside,
+     \"the ansatz contains Gamma2 monomials beyond \\\"TruncationOrders\\\": \
+raise the orders\", \"the truncation contains every monomial of the ansatz\"]];
+
+   Scan[If[! MemberQ[used, #Tag], AppendTo[warns, infoCheck[\"WARN\", \
+\"Symmetries.unusedTag\", inputForm[#Tag] <> \" matches no monomial \
+(precedence)\"]]] &, Join[prot, negl]];
+   warns = Join[warns, infoCheck[\"ASSUMPTION\", \"NonRenormalised[\" <> \
+ToString[#[[1]]] <> \"]\", #[[2, 2]] <> \" (not checkable in v1: needs d_s \
+Gamma3)\"] & /@ nonren];
+   AppendTo[warns, infoCheck[\"ASSUMPTION\", \"Symmetries.wardIdentities\", \
+\"Protected tags are user-declared Ward identities, not derived\"]];\
+\>", "Program",ExpressionUUID->"f5a3cf6a-daa0-4dfe-b4d8-5a3c05a94634"],
+
+Cell["\<\
+A truncation lower than the ansatz would silently drop a coupling's equation:\
+\
+\>", "Text",ExpressionUUID->"f03b583d-d8f9-48a1-a5ba-13ef48f02fc3"],
+
+Cell["\<\
+showFailure[DeclareSymmetries[ansatz, Neglected[_, \"Reason\" -> \"rest\"], \
+\"TruncationOrders\" -> <|\"Frequency\" -> 2, \"Momentum\" -> 0|>]]\
+\>", "Input",ExpressionUUID->"c99268a2-a66e-4226-9208-fd4884abbdc9"],
+
+Cell[TextData[{
+ "A tag that matches no monomial, because a tag of higher precedence took \
+them all, gets a WARN. ",
+ StyleBox["NonRenormalised",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " produces an ASSUMPTION line: in v1 it cannot be checked, because that \
+would need the flow of ",
+ StyleBox["\[CapitalGamma]\:207d\.b3\:207e",
+  FontFamily->"Noto Sans"],
+ ". And one ASSUMPTION line always reminds that the Protected tags are \
+declared Ward identities."
+}], "Text",ExpressionUUID->"e2d130a6-ad03-44f8-8cbe-b47d96ebf93e"],
+
+Cell["6. The table", "Section",ExpressionUUID->"0d3b359c-dc1d-40af-b6ca-315247bb2948"],
+
+Cell["\<\
+(* Kernel/Symmetries.wl:110-116 *)
+ShowClassification[s_Association] := Module[{rows},
+   rows = {ToString[#Pair], \"(I w)^\" <> ToString[#Frequency] <> \" (q^2)^\" \
+<> ToString[#Momentum], #Class,
+       If[#GammaK === 0, \"\", inputForm[#GammaK]], #Reason} & /@ \
+s[\"Classification\"];
+   Print[\"Monomial classification (Gamma2_ab, a before b in field order; \
+precedence Protected > declared > Neglected):\"];
+   Print[If[$FrontEnd === Null,
+     StringRiffle[StringRiffle[MapThread[StringPadRight, {#, {18, 16, 16, 18, \
+1}}], \" | \"] & /@ Prepend[rows, {\"pair\", \"monomial\", \"class\", \
+\"Gamma_k coeff.\", \"reason\"}], \"\\n\"],
+     Grid[Prepend[rows, {\"pair\", \"monomial\", \"class\", \"Gamma_k \
+coeff.\", \"reason\"}], Frame -> All, Alignment -> Left]]]];\
+\>", "Program",ExpressionUUID->"2bd33ef9-4b3f-4256-a500-db7697748ac3"],
+
+Cell[TextData[{
+ "The same structure as ",
+ StyleBox["ShowMonomials",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (lesson 02): a ",
+ StyleBox["Grid",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " in a notebook, padded text in a script."
+}], "Text",ExpressionUUID->"2564bc67-8152-4d86-b515-5a194c430219"],
+
+Cell["Exercises", "Section",ExpressionUUID->"ad3f00d2-5d14-4c19-be23-139ed73aae1c"],
+
+Cell["Exercise: A forgotten Neglected", "Subsection",ExpressionUUID->"56e3c36f-06f9-4567-8eac-d5313790346f"],
+
+Cell[TextData[{
+ "Declare only the two Protected tags, without ",
+ StyleBox["Neglected",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Read the FAIL block: which monomials are untagged, and why are those of \
+",
+ StyleBox["{h, h}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " not among them?"
+}], "Text",ExpressionUUID->"fdab1d63-4fdf-427a-bab1-05b791bdfc18"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"40193541-fbc3-431d-bbbd-5be6e5fff0d2"],
+
+Cell["\<\
+showFailure[DeclareSymmetries[ansatz, Protected[{hbar, h}, \"Frequency\" -> \
+1, \"Momentum\" -> 0, \"Reason\" -> \"Galilean\"],
+  Protected[{h, hbar}, \"Frequency\" -> 0, \"Momentum\" -> 0, \"Reason\" -> \
+\"shift\"], \"TruncationOrders\" -> <|\"Frequency\" -> 2, \"Momentum\" -> \
+1|>]]\
+\>", "Input",ExpressionUUID->"3f04e352-733d-404a-9fbd-fe0b4222308c"],
+
+Cell[TextData[{
+ "The six (i",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ")^m (q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ")^n of ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ "h and ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ " that are neither declared nor protected. The ",
+ StyleBox["{h, h}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " entries are classified as Causality before any tag is looked at, and the \
+odd powers of ",
+ StyleBox["{hbar, hbar}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " as Structure."
+}], "Text",ExpressionUUID->"4e01c9da-8a21-46b1-9bed-003adfad223b"]
+}, Closed]],
+
+Cell["Exercise: Precedence", "Subsection",ExpressionUUID->"5eceb87c-5253-40b4-9ca0-008dcfd21df6"],
+
+Cell[TextData[{
+ "Add ",
+ StyleBox["Neglected[{hbar, h}, \"Frequency\" -> 1, \"Momentum\" -> 0, \
+\"Reason\" -> \"test\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " to the KPZ declaration, before the general ",
+ StyleBox["Neglected[_]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". What does the card say about it, and why?"
+}], "Text",ExpressionUUID->"16ba3006-705d-44f8-94df-ecf9b6632a9a"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"cb0ce3a2-e5e2-412e-8d5c-5ae0bd2a6586"],
+
+Cell["\<\
+DeclareSymmetries[ansatz,
+   Protected[{hbar, h}, \"Frequency\" -> 1, \"Momentum\" -> 0, \"Reason\" -> \
+\"Galilean Ward identity\"],
+   Protected[{h, hbar}, \"Frequency\" -> 0, \"Momentum\" -> 0, \"Reason\" -> \
+\"h -> h + c (shift symmetry)\"],
+   Neglected[{hbar, h}, \"Frequency\" -> 1, \"Momentum\" -> 0, \"Reason\" -> \
+\"test\"],
+   Neglected[_, \"Reason\" -> \"beyond the ansatz\"], NonRenormalised[lamk, \
+\"Reason\" -> \"Galilean invariance\"],
+   \"TruncationOrders\" -> <|\"Frequency\" -> 2, \"Momentum\" -> 1|>];\
+\>", "Input",ExpressionUUID->"eae825a5-e808-45a5-8824-cadcc9375692"],
+
+Cell[TextData[{
+ "A WARN ",
+ StyleBox["Symmetries.unusedTag",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ": the monomial (i",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\.b9",
+  FontFamily->"Noto Sans"],
+ "(q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\:2070",
+  FontFamily->"Noto Sans"],
+ " of ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ "h is already Protected, and Protected takes precedence over Neglected, so \
+the new tag matches nothing."
+}], "Text",ExpressionUUID->"94a521e9-b570-474b-932d-8106f03b84eb"]
+}, Closed]],
+
+Cell["Exercise: Query the classification", "Subsection",ExpressionUUID->"a23e4804-bd07-43a1-b0ff-72fe37e76e66"],
+
+Cell[TextData[{
+ "List, as ",
+ StyleBox["{pair, m, n}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", the monomials whose flow must vanish exactly (Protected, DeclaredNumeric \
+or Causality)."
+}], "Text",ExpressionUUID->"934c4683-49c6-4acb-b5e8-814dc2dee40e"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"abc5420c-acf6-4833-aae4-e1076bdda07b"],
+
+Cell["\<\
+{#Pair, #Frequency, #Momentum} & /@ Select[symmetries[\"Classification\"], \
+MemberQ[{\"Protected\", \"DeclaredNumeric\", \"Causality\"}, #Class] &]\
+\>", "Input",ExpressionUUID->"998a1170-2c65-4e16-bf0a-6fb2f02a926a"]
+}, Closed]]
+},
+CellContext->Notebook,
+FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"68ca8ccf-8ceb-4f4a-8543-fab9318d86bc"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 94, 0, 70, "Title",ExpressionUUID->"e839bebe-21ea-4c72-93c7-484a5c0c05a1"],
+Cell[651, 22, 725, 19, 70, "Text",ExpressionUUID->"61b5bbf6-c0bd-44de-b174-d2a6ffafbdf6"],
+Cell[1379, 43, 994, 30, 70, "Text",ExpressionUUID->"fa9e58c1-ccda-4eeb-b621-736dc4dff86a"],
+Cell[2376, 75, 233, 4, 70, "Input",ExpressionUUID->"85264bc4-acf7-4b43-b840-3065a9078ef9"],
+Cell[2612, 81, 85, 0, 70, "Section",ExpressionUUID->"b0a09d2e-910f-4fc0-8bb3-67a00ff42075"],
+Cell[2700, 83, 810, 31, 70, "Text",ExpressionUUID->"c020256a-9c5a-451f-a3e6-4bd865a7a2af"],
+Cell[3513, 116, 528, 9, 70, "Input",ExpressionUUID->"b82b65d4-e7de-4b13-b54a-225a19cdb8d5"],
+Cell[4044, 127, 288, 8, 70, "Text",ExpressionUUID->"ad5d1b96-1a9a-48d9-9dc0-7985e3c2be01"],
+Cell[4335, 137, 145, 2, 70, "Input",ExpressionUUID->"977187b1-35f7-4c13-8248-36cbdb0148f4"],
+Cell[4483, 141, 97, 0, 70, "Section",ExpressionUUID->"97324cd2-d6d0-45f7-83f9-afd82cc99558"],
+Cell[4583, 143, 513, 9, 70, "Program",ExpressionUUID->"a09d9a56-b119-41e9-ae65-4d169b7a8952"],
+Cell[5099, 154, 285, 5, 70, "Program",ExpressionUUID->"b9625236-6cf0-4d4e-b2a0-dbb2f84e37e4"],
+Cell[5387, 161, 1297, 40, 70, "Text",ExpressionUUID->"bc7338a5-961b-46bd-a503-48c2fdc76d45"],
+Cell[6687, 203, 126, 0, 70, "Input",ExpressionUUID->"927d1f3b-bdc4-4e15-90a3-77d1a35761dc"],
+Cell[6816, 205, 1000, 24, 70, "Text",ExpressionUUID->"6d49886f-6901-4fc9-8eb8-9dcfdcd8c770"],
+Cell[7819, 231, 93, 0, 70, "Section",ExpressionUUID->"386dac08-e8bc-44fd-9dcb-287cc5d685c0"],
+Cell[7915, 233, 248, 6, 70, "Program",ExpressionUUID->"2d5c7b59-69f9-4241-8566-9d1a8e16c4f5"],
+Cell[8166, 241, 185, 3, 70, "Program",ExpressionUUID->"ef16a159-16e1-4c28-9aac-084f233beb95"],
+Cell[8354, 246, 788, 14, 70, "Program",ExpressionUUID->"20e8fe16-ddcc-4726-b5eb-21ea332f4bb9"],
+Cell[9145, 262, 253, 4, 70, "Program",ExpressionUUID->"2ebd116a-6b43-4be4-bea7-50f08be1dec9"],
+Cell[9401, 268, 2126, 67, 70, "Text",ExpressionUUID->"47929c81-7f87-4ef7-a6a5-6e1148354317"],
+Cell[11530, 337, 1867, 32, 70, "Program",ExpressionUUID->"857526d7-f6c7-4aee-9d2b-af897be7b870"],
+Cell[13400, 371, 1070, 32, 70, "Text",ExpressionUUID->"5b7cf624-430a-4f46-98f7-a251e752e600"],
+Cell[14473, 405, 103, 0, 70, "Section",ExpressionUUID->"bfe43285-b3c4-4019-a7f2-d6699f3db699"],
+Cell[14579, 407, 2257, 41, 70, "Program",ExpressionUUID->"bafea5ae-c4b7-48a1-bb62-c899022805bb"],
+Cell[16839, 450, 324, 6, 70, "Program",ExpressionUUID->"c153a71d-66fa-45e8-bd55-5e8f21d41e5d"],
+Cell[17166, 458, 1065, 30, 70, "Text",ExpressionUUID->"0d202074-2c15-479e-a23a-cf380c18a88b"],
+Cell[18234, 490, 1360, 37, 70, "Text",ExpressionUUID->"e8e65699-17ed-47f3-8b26-ebccc29d2560"],
+Cell[19597, 529, 269, 6, 70, "Input",ExpressionUUID->"029f87b6-5cf9-46b3-869b-3548e7f4d6ea"],
+Cell[19869, 537, 352, 10, 70, "Text",ExpressionUUID->"03d803ea-8fd1-4819-aa34-33a6065733c8"],
+Cell[20224, 549, 347, 10, 70, "Item",ExpressionUUID->"57ae81c9-e2dd-48c6-805c-e0ea599ba084"],
+Cell[20574, 561, 482, 16, 70, "Item",ExpressionUUID->"94f55450-1933-464e-9339-bee63bf69ff5"],
+Cell[21059, 579, 240, 5, 70, "Item",ExpressionUUID->"67d23b54-6405-48f5-b4e8-3f00acf2db1c"],
+Cell[21302, 586, 264, 7, 70, "Item",ExpressionUUID->"3f4a3123-a4a4-4bab-9313-a02d4de8b7bf"],
+Cell[21569, 595, 185, 4, 70, "Item",ExpressionUUID->"11168695-38a5-4340-8d90-29c3ccf9cc96"],
+Cell[21757, 601, 354, 12, 70, "Item",ExpressionUUID->"5a534a0f-79e1-4bd3-a4cb-ef081dcd0e81"],
+Cell[22114, 615, 319, 5, 70, "Input",ExpressionUUID->"54e4e4c2-e1e1-418f-9dfe-ab29574341fa"],
+Cell[22436, 622, 1130, 28, 70, "Text",ExpressionUUID->"3f5ee3d1-f681-4ced-a050-81ea2d7591b5"],
+Cell[23569, 652, 113, 0, 70, "Section",ExpressionUUID->"b6c28670-81da-490b-ba62-25210d82b8b1"],
+Cell[23685, 654, 1272, 22, 70, "Program",ExpressionUUID->"f5a3cf6a-daa0-4dfe-b4d8-5a3c05a94634"],
+Cell[24960, 678, 158, 3, 70, "Text",ExpressionUUID->"f03b583d-d8f9-48a1-a5ba-13ef48f02fc3"],
+Cell[25121, 683, 225, 3, 70, "Input",ExpressionUUID->"c99268a2-a66e-4226-9208-fd4884abbdc9"],
+Cell[25349, 688, 591, 13, 70, "Text",ExpressionUUID->"e2d130a6-ad03-44f8-8cbe-b47d96ebf93e"],
+Cell[25943, 703, 86, 0, 70, "Section",ExpressionUUID->"0d3b359c-dc1d-40af-b6ca-315247bb2948"],
+Cell[26032, 705, 858, 15, 70, "Program",ExpressionUUID->"2bd33ef9-4b3f-4256-a500-db7697748ac3"],
+Cell[26893, 722, 427, 12, 70, "Text",ExpressionUUID->"2564bc67-8152-4d86-b515-5a194c430219"],
+Cell[27323, 736, 83, 0, 70, "Section",ExpressionUUID->"ad3f00d2-5d14-4c19-be23-139ed73aae1c"],
+Cell[27409, 738, 108, 0, 70, "Subsection",ExpressionUUID->"56e3c36f-06f9-4567-8eac-d5313790346f"],
+Cell[27520, 740, 484, 13, 70, "Text",ExpressionUUID->"fdab1d63-4fdf-427a-bab1-05b791bdfc18"],
+Cell[CellGroupData[{
+Cell[28029, 757, 88, 0, 70, "Subsubsection",ExpressionUUID->"40193541-fbc3-431d-bbbd-5be6e5fff0d2"],
+Cell[28120, 759, 368, 6, 70, "Input",ExpressionUUID->"3f04e352-733d-404a-9fbd-fe0b4222308c"],
+Cell[28491, 767, 792, 27, 70, "Text",ExpressionUUID->"4e01c9da-8a21-46b1-9bed-003adfad223b"]
+}, Closed]],
+Cell[29298, 797, 97, 0, 70, "Subsection",ExpressionUUID->"5eceb87c-5253-40b4-9ca0-008dcfd21df6"],
+Cell[29398, 799, 520, 13, 70, "Text",ExpressionUUID->"16ba3006-705d-44f8-94df-ecf9b6632a9a"],
+Cell[CellGroupData[{
+Cell[29943, 816, 88, 0, 70, "Subsubsection",ExpressionUUID->"cb0ce3a2-e5e2-412e-8d5c-5ae0bd2a6586"],
+Cell[30034, 818, 605, 11, 70, "Input",ExpressionUUID->"eae825a5-e808-45a5-8824-cadcc9375692"],
+Cell[30642, 831, 629, 23, 70, "Text",ExpressionUUID->"94a521e9-b570-474b-932d-8106f03b84eb"]
+}, Closed]],
+Cell[31286, 857, 111, 0, 70, "Subsection",ExpressionUUID->"a23e4804-bd07-43a1-b0ff-72fe37e76e66"],
+Cell[31400, 859, 321, 8, 70, "Text",ExpressionUUID->"934c4683-49c6-4acb-b5e8-814dc2dee40e"],
+Cell[CellGroupData[{
+Cell[31746, 871, 88, 0, 70, "Subsubsection",ExpressionUUID->"abc5420c-acf6-4833-aae4-e1076bdda07b"],
+Cell[31837, 873, 228, 3, 70, "Input",ExpressionUUID->"998a1170-2c65-4e16-bf0a-6fb2f02a926a"]
+}, Closed]]
+}
+]
+*)
+
+(* End of internal cache information *)

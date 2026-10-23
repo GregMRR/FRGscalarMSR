@@ -1,0 +1,1030 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[     39471,       1021]
+NotebookOptionsPosition[     33670,        945]
+NotebookOutlinePosition[     34007,        960]
+CellTagsIndexPosition[     33964,        957]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["Lesson 11 - Assemble", "Title",ExpressionUUID->"cd3e1b25-d125-4463-9ed4-19dc24a9168a"],
+
+Cell[TextData[{
+ StyleBox["Physics step.",
+  FontWeight->Bold],
+ " Write each flow equation ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "s(combination) = ",
+ StyleBox["\[Integral]",
+  FontFamily->"Noto Sans"],
+ "d",
+ StyleBox["\:1d48",
+  FontFamily->"Noto Sans"],
+ "q/(2",
+ StyleBox["\[Pi]",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\:1d48",
+  FontFamily->"Noto Sans"],
+ " (integrand) in two forms. The ",
+ StyleBox["compact",
+  FontWeight->Bold],
+ " form uses scale-stripped atoms (",
+ StyleBox["ScaleAtom",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", e.g. 1 + r_n(y)) and the abstract ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "sR entries: short, readable, close to what one writes by hand. The ",
+ StyleBox["explicit",
+  FontWeight->Bold],
+ " form substitutes everything: couplings, ",
+ StyleBox["dsCoupling[c]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", the shapes and their derivatives, ",
+ StyleBox["Dim",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". That is the q-integrand handed to the dimensionless step and to FlowRG."
+}], "Text",ExpressionUUID->"92166778-1a06-4f20-a7eb-678552371634"],
+
+Cell[TextData[{
+ StyleBox["Stage.",
+  FontWeight->Bold],
+ " Input: the Closure stage. Output: the ",
+ StyleBox["\"Equations\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stage, the end of the dimensionful pipeline."
+}], "Text",ExpressionUUID->"777e5054-ce53-448b-8590-33bb9b0e836b"],
+
+Cell["\<\
+Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
+closure = lessonUpTo[\"Closure\"];\
+\>", "Input",ExpressionUUID->"d20d4460-822a-4f23-a76e-a951cc35600c"],
+
+Cell["1. Using it", "Section",ExpressionUUID->"47919cbe-ef3c-4abd-af3d-4749fb749113"],
+
+Cell["equations = AssembleEquations[closure];", "Input",ExpressionUUID->"112bafdb-992a-42d0-a375-5bb00ca2e38f"],
+
+Cell["ShowEquation[equations, nuk]", "Input",ExpressionUUID->"f5c90322-9415-43eb-a409-0e8d19b29bac"],
+
+Cell[TextData[{
+ StyleBox["ShowEquation",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " prints the compact form, the atoms it uses, the ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "sR entries and where the equation is valid (the causal-pole condition of \
+lesson 05, now in explicit form). The explicit integrand of the D equation:"
+}], "Text",ExpressionUUID->"57e5771f-179e-4579-89a2-9c53ca64b618"],
+
+Cell["EquationOf[equations, Dk][\"Integrand\"]", "Input",ExpressionUUID->"bf379df6-3854-4c05-81ca-ed107fe01b77"],
+
+Cell["2. Scale-stripped atoms", "Section",ExpressionUUID->"962dd25e-1d2f-4a6c-8946-0ba288655403"],
+
+Cell["\<\
+(* Kernel/Assemble.wl:24-30 *)
+(* for an atom value v(s): {cscale, n, X} with v = cscale s^n X, cscale = \
+number x couplings common to all terms *)
+stripScale[v_, s_, cps_, shapes_] := Module[{val = Expand[v], terms, tm, num, \
+ex},
+   terms = If[Head[val] === Plus, List @@ val, {val}];
+   tm = terms /. (Alternatives @@ shapes)[__] -> shapeMark /. \
+Derivative[__][Alternatives @@ shapes][__] -> shapeMark;
+   num = First[FactorTermsList[val]];
+   ex = Table[Min[Exponent[#, x] & /@ tm], {x, Append[cps, s]}];
+   {num Times @@ (cps^Most[ex]), Last[ex], Expand[val/(num Times @@ \
+(cps^Most[ex]) s^Last[ex])]}];\
+\>", "Program",ExpressionUUID->"a79d22ef-6330-4d83-8694-9e32c669fd9d"],
+
+Cell["\<\
+(* Kernel/Assemble.wl:32-45 *)
+(* atom form of GammaAtom[a, b, m] and of its s-derivatives up to jmax: rules \
+at s = LoopMomentumSquared, and atom values *)
+atomSystem[prop_, cps_, shapes_, jmax_] := Module[{rules = {}, vals = <||>, \
+forms = <||>},
+   Do[Module[{cs, n, x, a, b, m, xj, f},
+      {a, b, m} = List @@ g;
+      {cs, n, x} = stripScale[prop[\"AtomValues\"][g][xs], xs, cps, shapes];
+      Do[
+       xj = If[j == 0, x, Expand[D[xs^n x, {xs, j}]]];
+       f = If[Head[xj] === Plus, (vals[ScaleAtom[a, b, m, j]] = \
+Function[Evaluate[xs], Evaluate[xj]]; ScaleAtom[a, b, m, j]), xj /. xs -> \
+LoopMomentumSquared];
+       f = If[j == 0, cs LoopMomentumSquared^n f, cs f];
+       forms[{g, j}] = f;
+       AppendTo[rules, If[j == 0, g[LoopMomentumSquared] -> f, \
+Derivative[j][g][LoopMomentumSquared] -> f]],
+       {j, 0, jmax}]],
+    {g, prop[\"Atoms\"]}];
+   {rules, vals, forms}];\
+\>", "Program",ExpressionUUID->"60ac82a7-6c06-4328-a379-d6f940c678fc"],
+
+Cell[TextData[{
+ "Each propagator atom v(s), s = q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ", is written v = c s",
+ StyleBox["\:207f",
+  FontFamily->"Noto Sans"],
+ " X, where c is the number and couplings common to all its terms, n the \
+smallest power of s, and X what is left. For R_{",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ "h}: ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " s (1 + r_n) gives c = ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ ", n = 1, X = 1 + r_n(y)."
+}], "Text",ExpressionUUID->"0911a562-a568-4ef3-a296-54208043903f"],
+
+Cell["\<\
+FRGscalarMSR`Private`stripScale[nuk s + nuk s rn[s/k^2], s, {nuk, lamk, Dk}, \
+{rn, rd}]\
+\>", "Input",ExpressionUUID->"9af2f9e7-c0d2-42a2-9d78-92d4e2211050"],
+
+Cell[TextData[{
+ "When X is a sum it becomes the atom ",
+ StyleBox["ScaleAtom[a, b, m, 0]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "; its s-derivatives become ",
+ StyleBox["ScaleAtom[a, b, m, j]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". ",
+ StyleBox["atomSystem",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " returns three things: rules from ",
+ StyleBox["GammaAtom",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " to atom forms, the atom values, and the forms, so that ",
+ StyleBox["Assemble.atomSync",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " can check every atom and derivative against the propagator."
+}], "Text",ExpressionUUID->"b108455b-2ad1-4d6b-a6d4-a5806a86fff7"],
+
+Cell["{equations[\"Atoms\"], equations[\"AtomForms\"]}", "Input",ExpressionUUID->"59ff97e2-34cd-4478-b95b-15d3afce9b96"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Generate the atoms the hand calculation \
+would use",
+  FontWeight->Bold],
+ "\n\n",
+ "The original script had hand-written ",
+ StyleBox["toAtoms",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "/",
+ StyleBox["atomVals",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ": names like xE = A + r and xE1 = A + r + y r",
+ StyleBox["\[Prime]",
+  FontFamily->"Noto Sans"],
+ " chosen by a person for readability. Here the same atoms are derived from \
+the propagator by one rule (strip the common scale, name what is left), so a \
+new ansatz gets them for free and they cannot drift from the propagator they \
+stand for (",
+ StyleBox["Assemble.atomSync",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "). In shallow water the rule reproduces the script's atoms exactly (",
+ StyleBox["docs/MODULES.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", Assemble)."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"7a78c5d8-957f-4e8e-8527-1b6dcd61ff54"],
+
+Cell["3. From the closure to the equations", "Section",ExpressionUUID->"5553fd33-47d0-47b1-abd8-bb4b1af08d96"],
+
+Cell["\<\
+(* Kernel/Assemble.wl:70-99 *)
+AssembleEquations[closure_] := Block[{$FRGModule = \"Assemble\"},
+  Module[{t0 = AbsoluteTime[], prop, reg, k, qU, cps, shapes, raw, \
+deltaRules, jmax, rules, vals, forms, atomVals, toQ, d0, d1, orders,
+    eqs, checks = {}, warns = {}, stage, explicitAtoms, validity, dsrRules, \
+bad, private},
+   validateStage[closure, \"Closure\"];
+   prop = closure[\"Integrated\"][\"Projection\"][\"Loops\"][\"Propagator\"];
+   reg = closure[\"Integrated\"][\"Projection\"][\"Loops\"][\"Regulator\"];
+   k = reg[\"Scale\"]; cps = reg[\"Couplings\"]; shapes = reg[\"Shapes\"];
+   qU = Replace[reg[\"LoopMomentum\"], None -> Symbol[\"Global`q\"]];
+   toQ = LoopMomentumSquared -> qU^2;
+
+   (* Delta coefficients and their s-derivatives in GammaAtom atoms *)
+   deltaRules = {DeltaCoefficient[m_][x_] :> \
+prop[\"DeltaCoefficients\"][x][[m + 1]],
+     Derivative[j_][DeltaCoefficient[m_]][x_] :> \
+(D[prop[\"DeltaCoefficients\"][xs][[m + 1]], {xs, j}] /. xs -> x)};
+   raw = (#RHS /. deltaRules) & /@ closure[\"Equations\"];
+   jmax = Max[0, Cases[raw, Derivative[j_][_GammaAtom][_] :> j, Infinity]];
+
+   (* scale-stripped atoms and the sync check: atom form = explicit value, \
+for every atom and derivative *)
+   {rules, vals, forms} = atomSystem[prop, cps, shapes, jmax];
+   atomVals = KeyValueMap[#1 -> #2[qU^2] &, vals];
+   bad = Select[Keys[forms], ! ExactlyZeroQ[(forms[#] /. toQ /. atomVals) - \
+(D[prop[\"AtomValues\"][#[[1]]][xs], {xs, #[[2]]}] /. xs -> qU^2)] &];
+   AppendTo[checks, assertCheck[\"Assemble.atomSync\", bad === {}, bad, \
+\"internal: the scale-stripped atoms do not reproduce the propagator atoms\",
+     ToString[Length[vals]] <> \" scale-stripped atoms; atom form = explicit \
+value for \" <> ToString[Length[forms]] <> \" atoms and derivatives\"]];
+
+   (* collection orders: derivative atoms first (they pair with a dsR), then \
+the others in two orders *)
+   d1 = Select[Keys[vals], Last[#] > 0 &]; d0 = Select[Keys[vals], Last[#] == \
+0 &];
+   orders = {Join[d1, Reverse[d0]], Join[d1, d0]};
+   dsrRules = DsRRules[reg, qU^2];
+   AppendTo[checks, assertCheck[\"Assemble.dsRLinear\", \
+AllTrue[dsrRules[[All, 2]], PolynomialQ[#, Cases[#, _dsCoupling, {0, \
+Infinity}]] &&
+        Max[0, Exponent[#, Cases[#, _dsCoupling, {0, Infinity}]]] <= 1 &], \
+dsrRules, \"internal: d_s R is not linear in the dsCoupling symbols\",
+     \"d_s R linear in dsCoupling[c]\"]];\
+\>", "Program",ExpressionUUID->"85b9dc4b-34ec-4921-9424-bdb4b2d5766e"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Replace and ReplaceAll",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Replace[e, rule]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " tries the rule on the whole of e only; ",
+ StyleBox["e /. rule",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["ReplaceAll",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ") tries every part.",
+ "\n\n",
+ StyleBox["Replace[reg[\"LoopMomentum\"], None -> Symbol[\"Global",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "q\"]]",
+ StyleBox[" replaces the value only if it *is* ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "None",
+ StyleBox[". With ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "/.",
+ StyleBox[", a ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "None",
+ StyleBox[" buried anywhere inside would be replaced too. ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "Replace[e, rules, {1}]",
+ StyleBox[", seen in lesson 02's ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "splitTerm`, applies at level 1 only."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"b673614d-c7bc-4d0e-9f1b-b47c10b81e54"],
+
+Cell["\<\
+{Replace[None, None -> 1], Replace[{None}, None -> 1], {None} /. None -> 1}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"f2a7dc61-b244-4776-8866-6ce202b980be"],
+
+Cell[TextData[{
+ "The ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ " coefficients and their q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "-derivatives are first expressed in ",
+ StyleBox["GammaAtom",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " atoms (",
+ StyleBox["deltaRules",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "), then the atoms in scale-stripped form. The loop is proportional to ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "sR, so each right-hand side must be linear and homogeneous in the ",
+ StyleBox["dsR",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " entries: ",
+ StyleBox["Assemble.linearInDsR",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " tests that doubling every ",
+ StyleBox["dsR",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " doubles the result, and that setting them to 0 gives 0."
+}], "Text",ExpressionUUID->"213bdf29-201e-44cc-93e4-d762a72a7bb6"],
+
+Cell[BoxData[
+ $CellContext`regionCells[
+ "Kernel/Assemble.wl", "eqs = MapThread[Function[{r, rw}", 
+  "\"Seconds\" -> AbsoluteTime[] - t1", 
+  ">]]], {closure[\"Equations\"], raw}];"]], "Input",ExpressionUUID->\
+"e4784a58-a69d-4552-a3e5-1e07f8abaaa2"],
+
+Cell[TextData[{
+ StyleBox["MapThread[f, {list1, list2}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["Map at a level",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 04)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ " for the cousin ",
+ StyleBox["Map",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ") runs over the equations and their raw right-hand sides in parallel."
+}], "Text",ExpressionUUID->"5c4c58f0-7ed3-4d92-970f-01303c544378"],
+
+Cell["4. Choosing a compact form", "Section",ExpressionUUID->"54b1e17d-f0e3-4316-9787-c89395f6e4bf"],
+
+Cell["\<\
+(* Kernel/Assemble.wl:47-48 *)
+(* LeafCount with every atom ScaleAtom[..] and dsR[..] counted as one leaf, \
+as the script's xE, dsNh *)
+atomLeaves[e_] := LeafCount[e /. (ScaleAtom | dsR)[__] -> atomLeaf];\
+\>", "Program",ExpressionUUID->"ef33e7b0-90f5-4c48-894d-ad5b7a38c1cc"],
+
+Cell["\<\
+(* Kernel/Assemble.wl:52-53 *)
+collectNum[o_][num_] := Module[{ftl = FactorTermsList[num, o]}, (Times @@ \
+Most[ftl]) Collect[Last[ftl], o, Factor]];
+compactFrac[o_][r_] := collectNum[o][Numerator[r]]/Factor[Denominator[r]];\
+\>", "Program",ExpressionUUID->"c0c8802b-e308-4381-9365-554ac160911c"],
+
+Cell["\<\
+(* Kernel/Assemble.wl:55-68 *)
+(* candidates: per dsR coefficient or as one fraction, numerator content \
+pulled out and nested-Collected over the atoms; small results
+   also get a time-limited Simplify per dsR coefficient; the smallest \
+explicit LeafCount wins and is checked exactly *)
+compactify[a_, dsList_, orders_, explicit_] := Module[{tg, cands, best},
+   If[a === 0, Return[{0, \"zero\"}]];
+   tg = Together[a];
+   cands = Join[
+     Table[{\"perDs\" <> ToString[i], Collect[a, dsList, \
+Collect[Numerator[#], orders[[i]], Factor]/Factor[Denominator[#]] &]}, {i, \
+Length[orders]}],
+     Table[{\"whole\" <> ToString[i], compactFrac[orders[[i]]][tg]}, {i, \
+Length[orders]}]];
+   best = First[SortBy[cands, LeafCount[explicit[#[[2]]]] &]];
+   If[LeafCount[explicit[best[[2]]]] < 15000,
+    AppendTo[cands, {\"perDsSimplify\", Collect[a, dsList, \
+TimeConstrained[Simplify[#], 10, #] &]}];
+    best = First[SortBy[cands, LeafCount[explicit[#[[2]]]] &]]];
+   FRGAssert[\"Assemble.compactExact\", ExactlyZeroQ[best[[2]] - a], \
+best[[1]], \"internal: compactify changed the expression\"];
+   {best[[2]], best[[1]]}];\
+\>", "Program",ExpressionUUID->"ee958ed7-9a0a-4802-8fd1-c8fd5966bb4a"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Collect and Factor",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Collect[e, vars, f]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " groups e by powers of vars and applies f to each coefficient; ",
+ StyleBox["Factor",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " factors a polynomial.",
+ "\n\n",
+ StyleBox["Collect[a, dsList, Together]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " writes the right-hand side as ",
+ StyleBox["\[CapitalSigma]",
+  FontFamily->"Noto Sans"],
+ " (coefficient) ",
+ StyleBox["\[Times]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["dsR[...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " with each coefficient over a common denominator. ",
+ StyleBox["compactify",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " tries several such forms (per ",
+ StyleBox["dsR",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " coefficient or as one fraction, atoms collected in two orders) and keeps \
+the one with the smallest explicit ",
+ StyleBox["LeafCount",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"c3ad9d02-73f0-4f31-a8f3-13c40b923446"],
+
+Cell["\<\
+{Collect[a^2 x^2 + 2 a b x^2 + b^2 x^2 + c x, x], Collect[a^2 x^2 + 2 a b x^2 \
++ b^2 x^2 + c x, x, Factor], Factor[x^2 - 1]}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"edde53b0-c1c9-47c7-85a1-5ab5fbf98795"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: TimeConstrained",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["TimeConstrained[expr, t, alt]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " evaluates expr for at most t seconds, and returns alt if time runs out.",
+ "\n\n",
+ "For small results only (explicit ",
+ StyleBox["LeafCount",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " below 15000), ",
+ StyleBox["compactify",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " also tries ",
+ StyleBox["Simplify",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " on each coefficient, limited to 10 seconds, falling back to the \
+coefficient unchanged."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"35181c59-0422-464c-92a3-5214f0638df9"],
+
+Cell["TimeConstrained[Pause[3]; \"finished\", 0.5, \"timed out\"]", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"c636f3e3-752c-431e-bd43-03bb01e67a65"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: The one place where Simplify is allowed",
+  FontWeight->Bold],
+ "\n\n",
+ "CLAUDE.md forbids ",
+ StyleBox["Simplify",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " on large expressions and as a zero test (lesson 00, section 5). Here it is \
+used for presentation only, on small expressions, with a time limit, as one \
+candidate among several, and the winner is checked exactly against the \
+canonical form (",
+ StyleBox["Assemble.compactExact",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", with ",
+ StyleBox["ExactlyZeroQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "). If ",
+ StyleBox["Simplify",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is slow, or makes things worse, nothing is lost. This is how the library \
+uses heuristics in general: never trusted, always checked, never needed for \
+correctness."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"0b40fe44-58c7-4037-ac6f-322094cbbd32"],
+
+Cell[TextData[{
+ StyleBox["atomLeaves",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " counts each ",
+ StyleBox["ScaleAtom",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["dsR",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " as a single leaf, so the compact ",
+ StyleBox["LeafCount",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " on the card is comparable with the script's hand-made compact forms."
+}], "Text",ExpressionUUID->"82265207-97b6-4993-a8cb-d3d1a89f858c"],
+
+Cell["5. The explicit form and the final checks", "Section",ExpressionUUID->"64b6bbdf-521b-42bb-8c03-1d0a3deb7c26"],
+
+Cell[TextData[{
+ "The explicit integrand is ",
+ StyleBox["cpt /. atomVals /. dsrRules",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ": atom values, then the derived ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "sR of lesson 04, substituted only now. ",
+ StyleBox["Assemble.noIntermediates",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " requires that nothing internal survives: no ",
+ StyleBox["GammaAtom",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["ScaleAtom",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["DeltaCoefficient",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["dsR",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["LoopMomentumSquared",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", and no symbol from a ",
+ StyleBox["Private",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " context (",
+ StyleBox["StringContainsQ[Context[x], \"Private",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "\"]`)."
+}], "Text",ExpressionUUID->"a1c65cfb-f8c0-4184-9abe-e62b22ebb568"],
+
+Cell["\<\
+(* Kernel/Assemble.wl:124-135 *)
+   validity = prop[\"ValidityConditions\"][LoopMomentumSquared] /. deltaRules \
+/. rules /. toQ;
+   explicitAtoms = validity /. atomVals;
+   AppendTo[warns, infoCheck[\"ASSUMPTION\", \"Assemble.validity\", \
+displayString[validity] <> \" at every q (causal poles; not checked by the \
+library: exported as causal_poles by ExportJulia)\"]];
+   AppendTo[warns, infoCheck[\"INFO\", \"Assemble.contract\", \"Integrand: \
+d^dq/(2 Pi)^d integrand of d_s(comb) in the couplings, dsCoupling[c] = k \
+dc/dk (linear), \" <>
+      \"shapes \" <> inputForm[shapes] <> \" of y = \" <> ToString[qU] <> \
+\"^2/\" <> ToString[k] <> \"^2 with derivatives, \" <> \
+If[closure[\"Symmetries\"][\"Dimension\"] === 2, \"d = 2 (declared)\", \
+ToString[closure[\"Symmetries\"][\"Dimension\"]] <> \" symbolic\"]]];
+
+   stage = stampStage[<|\"Stage\" -> \"Equations\", \"Pipeline\" -> \
+\"DerivativeExpansion\", \"Upstream\" -> {closure[\"Fingerprint\"]},
+      \"Closure\" -> closure, \"Equations\" -> eqs, \"Atoms\" -> \
+Association[atomVals], \"AtomForms\" -> Association[KeyValueMap[#1 -> (#2 /. \
+toQ) &, forms]],
+      \"ValidityConditions\" -> <|\"Atoms\" -> validity, \"Explicit\" -> \
+explicitAtoms|>, \"DsRRules\" -> dsrRules,
+      \"LoopMomentum\" -> qU, \"Scale\" -> k, \"Shapes\" -> shapes, \
+\"Couplings\" -> cps, \"Dimension\" -> \
+closure[\"Symmetries\"][\"Dimension\"],
+      \"Checks\" -> checks, \"Warnings\" -> warns, \"Timing\" -> \
+AbsoluteTime[] - t0|>];
+   PrintCard[stage];\
+\>", "Program",ExpressionUUID->"37925e61-4a8e-4ec2-b7f5-1d3c3da1050f"],
+
+Cell[TextData[{
+ "The stage records everything a reader of the equations needs: the atoms, \
+the ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "sR rules, the loop momentum and scale symbols, the shapes, the couplings, \
+the dimension and the validity conditions."
+}], "Text",ExpressionUUID->"e8dc7c16-4d70-434d-b108-e643415672e3"],
+
+Cell["\<\
+(* Kernel/Assemble.wl:138 *)
+EquationOf[e_Association, comb_] := SelectFirst[e[\"Equations\"], \
+Expand[#Flowing - comb] === 0 &];\
+\>", "Program",ExpressionUUID->"2234caf6-3f99-40bb-a29e-784ac8a8db99"],
+
+Cell["\<\
+(* Kernel/Assemble.wl:140-148 *)
+ShowEquation[e_Association, comb_] := Module[{r = EquationOf[e, comb], used},
+   If[MissingQ[r], Print[\"no equation for \", comb, \"; equations: \", \
+e[\"Equations\"][[All, \"Flowing\"]]]; Return[Null]];
+   Print[\"d_s(\", displayString[comb], \") = Int d^dq/(2 Pi)^d of (\", \
+r[\"CompactForm\"], \", LeafCount \", r[\"LeafCount\"][\"Compact\"], \", \
+explicit \",
+    r[\"LeafCount\"][\"Integrand\"], \"):\"];
+   Print[\"  \", displayString[r[\"Compact\"]]];
+   used = Union[Cases[r[\"Compact\"], _ScaleAtom, {0, Infinity}]];
+   If[used =!= {}, Print[\"atoms:\"]; Scan[Print[\"  \", displayString[#], \" \
+= \", displayString[e[\"Atoms\"][#]]] &, used]];
+   Print[\"d_s R entries:\"]; Scan[Print[\"  \", displayString[#[[1]]], \" = \
+\", displayString[#[[2]]]] &, Select[e[\"DsRRules\"], MemberQ[r[\"DsR\"], \
+#[[1]]] &]];
+   Print[\"valid where: \", \
+displayString[e[\"ValidityConditions\"][\"Atoms\"]]]];\
+\>", "Program",ExpressionUUID->"746e88b0-2658-44b6-9c75-19b292ea3e96"],
+
+Cell["Exercises", "Section",ExpressionUUID->"2c165910-02cb-40c8-ad47-515d6ba47e08"],
+
+Cell["Exercise: The size of the result", "Subsection",ExpressionUUID->"db9421f1-99c9-4eaa-a220-84f30f8acc29"],
+
+Cell[TextData[{
+ "For both equations, print ",
+ StyleBox["#LeafCount",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["#CompactForm",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (which candidate won). How much smaller is the compact form than the \
+explicit integrand?"
+}], "Text",ExpressionUUID->"d40f11f9-cfb6-4633-8ddd-f8cf77415acd"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"e54ce94c-013d-4b12-9920-497950c6eca9"],
+
+Cell["\<\
+{#Flowing, #CompactForm, #LeafCount} & /@ equations[\"Equations\"]\
+\>", "Input",ExpressionUUID->"a2eba469-59c0-43b8-959c-ca10a8773f7a"]
+}, Closed]],
+
+Cell["Exercise: Linearity in dsCoupling", "Subsection",ExpressionUUID->"654d6785-0b0e-40b0-9d28-7b3be477bcc5"],
+
+Cell[TextData[{
+ "The explicit integrand is linear in ",
+ StyleBox["dsCoupling[nuk]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["dsCoupling[Dk]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Extract the coefficient of ",
+ StyleBox["dsCoupling[Dk]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " in the D equation."
+}], "Text",ExpressionUUID->"2aee9e5a-017b-4bcd-af9d-6fcf319d63c6"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"f1987960-3495-41c4-b806-18246922015d"],
+
+Cell["\<\
+Together[Coefficient[EquationOf[equations, Dk][\"Integrand\"], \
+dsCoupling[Dk]]]\
+\>", "Input",ExpressionUUID->"b96a5f79-4aa8-400b-8949-bbd7a2cfcb7a"],
+
+Cell[TextData[{
+ "Downstream, ",
+ StyleBox["dsCoupling[Dk]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " becomes ",
+ StyleBox["\[Minus]\[Eta]",
+  FontFamily->"Noto Sans"],
+ "_D D, and this coefficient multiplies ",
+ StyleBox["\[Eta]",
+  FontFamily->"Noto Sans"],
+ "_D in the linear system for the anomalous dimensions (lesson 14)."
+}], "Text",ExpressionUUID->"83aea52c-e029-4518-93cb-de01fed6c3eb"]
+}, Closed]],
+
+Cell["Exercise: Canet's KPZ flow", "Subsection",ExpressionUUID->"61924324-3208-4cb0-b67a-fa89182e95c8"],
+
+Cell[TextData[{
+ "With the Litim cutoff r(y) = (1/y ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ " 1) ",
+ StyleBox["\[Theta]",
+  FontFamily->"Noto Sans"],
+ "(1 ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ " y) in both sectors, and ",
+ StyleBox["\[Integral]",
+  FontFamily->"Noto Sans"],
+ "d",
+ StyleBox["\:1d48",
+  FontFamily->"Noto Sans"],
+ "q/(2",
+ StyleBox["\[Pi]",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\:1d48",
+  FontFamily->"Noto Sans"],
+ " f = v_d k^d/2 ",
+ StyleBox["\[Integral]\:2080\.b9",
+  FontFamily->"Noto Sans"],
+ " y^{d/2",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "1} f dy, integrate the ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " and D equations, solve for ",
+ StyleBox["\[Eta]",
+  FontFamily->"Noto Sans"],
+ "_",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " and ",
+ StyleBox["\[Eta]",
+  FontFamily->"Noto Sans"],
+ "_D, and check that d ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ " 2 ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[Eta]",
+  FontFamily->"Noto Sans"],
+ "_D + 3",
+ StyleBox["\[Eta]",
+  FontFamily->"Noto Sans"],
+ "_",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " equals the ratio of Canet's Eq. (20) (arXiv:2509.01472), with g = v_d k^{d",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "2} ",
+ StyleBox["\[Lambda]\.b2",
+  FontFamily->"Noto Sans"],
+ " D/",
+ StyleBox["\[Nu]\.b3",
+  FontFamily->"Noto Sans"],
+ ". This is the test that fixes the loop normalisation of lesson 07."
+}], "Text",ExpressionUUID->"f6b0607c-2f08-4b32-b541-a9063384a6b0"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"bb712aa0-70a3-4168-8348-1e1accf843b8"],
+
+Cell[TextData[{
+ StyleBox["litimIntegral",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " replaces q by k",
+ StyleBox["\[Sqrt]",
+  FontFamily->"Noto Sans"],
+ "y, inserts the Litim shape (valid for y < 1, where ",
+ StyleBox["\[Theta]",
+  FontFamily->"Noto Sans"],
+ " = 1), and integrates each power of y from 0 to 1."
+}], "Text",ExpressionUUID->"c5c48f5d-c504-4caa-8a6c-5e8c93a60508"],
+
+Cell["\<\
+litim = {rn -> Function[y, 1/y - 1], rd -> Function[y, 1/y - 1]};
+litimIntegral[f_] := Module[{gg = Expand[Together[f /. q -> k Sqrt[y] /. \
+litim] y^(d/2 - 1)], terms},
+  terms = If[Head[gg] === Plus, List @@ gg, {gg}];
+  vd k^d/2 Total[(# /. y -> 1)/(Exponent[#, y] + 1) & /@ terms]];
+flowOf[c_] := litimIntegral[EquationOf[equations, c][\"Integrand\"] /. Dim -> \
+d];\
+\>", "Input",ExpressionUUID->"39a5b874-7864-40ec-8640-367fd4d3ce7a"],
+
+Cell["\<\
+etas = First[Solve[{-etanu nuk == (flowOf[nuk] /. {dsCoupling[nuk] -> -etanu \
+nuk, dsCoupling[Dk] -> -etaD Dk}),
+     -etaD Dk == (flowOf[Dk] /. {dsCoupling[nuk] -> -etanu nuk, \
+dsCoupling[Dk] -> -etaD Dk})}, {etanu, etaD}]];
+bracket = Together[(d - 2 - etaD + 3 etanu) /. etas /. lamk -> Sqrt[g \
+nuk^3/(vd k^(d - 2) Dk)]]\
+\>", "Input",ExpressionUUID->"5e495f10-239a-4966-93bc-e0c7f1b780cf"],
+
+Cell["\<\
+canet = (2 d^6 + 4 d^5 - d^4 (7 g + 8) - 2 d^3 (3 g + 8) + d^2 g (3 g + 20) - \
+d (g - 8) g - 2 g^2)/
+   (2 d^5 + 8 d^4 + d^3 (8 - 3 g) - 2 d^2 g + d g (g + 8) - g^2);
+Together[bracket - canet]\
+\>", "Input",ExpressionUUID->"55143f74-877b-4651-9f27-1bc7ae2c77e5"],
+
+Cell[TextData[{
+ "0, for every d and g. The same computation is ",
+ StyleBox["tests/acceptance/KPZ.wl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and the last section of ",
+ StyleBox["examples/KPZ.nb",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",ExpressionUUID->"663c02d0-6dbb-48c9-b08c-4516f17edf21"]
+}, Closed]]
+},
+CellContext->Notebook,
+FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"68ca8ccf-8ceb-4f4a-8543-fab9318d86bc"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 92, 0, 70, "Title",ExpressionUUID->"cd3e1b25-d125-4463-9ed4-19dc24a9168a"],
+Cell[649, 22, 1321, 43, 70, "Text",ExpressionUUID->"92166778-1a06-4f20-a7eb-678552371634"],
+Cell[1973, 67, 347, 9, 70, "Text",ExpressionUUID->"777e5054-ce53-448b-8590-33bb9b0e836b"],
+Cell[2323, 78, 235, 4, 70, "Input",ExpressionUUID->"d20d4460-822a-4f23-a76e-a951cc35600c"],
+Cell[2561, 84, 85, 0, 70, "Section",ExpressionUUID->"47919cbe-ef3c-4abd-af3d-4749fb749113"],
+Cell[2649, 86, 111, 0, 70, "Input",ExpressionUUID->"112bafdb-992a-42d0-a375-5bb00ca2e38f"],
+Cell[2763, 88, 100, 0, 70, "Input",ExpressionUUID->"f5c90322-9415-43eb-a409-0e8d19b29bac"],
+Cell[2866, 90, 473, 10, 70, "Text",ExpressionUUID->"57e5771f-179e-4579-89a2-9c53ca64b618"],
+Cell[3342, 102, 112, 0, 70, "Input",ExpressionUUID->"bf379df6-3854-4c05-81ca-ed107fe01b77"],
+Cell[3457, 104, 97, 0, 70, "Section",ExpressionUUID->"962dd25e-1d2f-4a6c-8946-0ba288655403"],
+Cell[3557, 106, 695, 13, 70, "Program",ExpressionUUID->"a79d22ef-6330-4d83-8694-9e32c669fd9d"],
+Cell[4255, 121, 978, 21, 70, "Program",ExpressionUUID->"60ac82a7-6c06-4328-a379-d6f940c678fc"],
+Cell[5236, 144, 572, 18, 70, "Text",ExpressionUUID->"0911a562-a568-4ef3-a296-54208043903f"],
+Cell[5811, 164, 168, 3, 70, "Input",ExpressionUUID->"9af2f9e7-c0d2-42a2-9d78-92d4e2211050"],
+Cell[5982, 169, 994, 27, 70, "Text",ExpressionUUID->"b108455b-2ad1-4d6b-a6d4-a5806a86fff7"],
+Cell[6979, 198, 120, 0, 70, "Input",ExpressionUUID->"59ff97e2-34cd-4478-b95b-15d3afce9b96"],
+Cell[7102, 200, 1316, 36, 70, "Text",ExpressionUUID->"7a78c5d8-957f-4e8e-8527-1b6dcd61ff54"],
+Cell[8421, 238, 110, 0, 70, "Section",ExpressionUUID->"5553fd33-47d0-47b1-abd8-bb4b1af08d96"],
+Cell[8534, 240, 2492, 45, 70, "Program",ExpressionUUID->"85b9dc4b-34ec-4921-9424-bdb4b2d5766e"],
+Cell[11029, 287, 1728, 54, 70, "Text",ExpressionUUID->"b673614d-c7bc-4d0e-9f1b-b47c10b81e54"],
+Cell[12760, 343, 270, 6, 70, "Input",ExpressionUUID->"f2a7dc61-b244-4776-8866-6ce202b980be"],
+Cell[13033, 351, 1219, 36, 70, "Text",ExpressionUUID->"213bdf29-201e-44cc-93e4-d762a72a7bb6"],
+Cell[14255, 389, 252, 5, 70, "Input",ExpressionUUID->"e4784a58-a69d-4552-a3e5-1e07f8abaaa2"],
+Cell[14510, 396, 669, 19, 70, "Text",ExpressionUUID->"5c4c58f0-7ed3-4d92-970f-01303c544378"],
+Cell[15182, 417, 100, 0, 70, "Section",ExpressionUUID->"54b1e17d-f0e3-4316-9787-c89395f6e4bf"],
+Cell[15285, 419, 287, 5, 70, "Program",ExpressionUUID->"ef33e7b0-90f5-4c48-894d-ad5b7a38c1cc"],
+Cell[15575, 426, 306, 5, 70, "Program",ExpressionUUID->"c0c8802b-e308-4381-9365-554ac160911c"],
+Cell[15884, 433, 1206, 23, 70, "Program",ExpressionUUID->"ee958ed7-9a0a-4802-8fd1-c8fd5966bb4a"],
+Cell[17093, 458, 1664, 51, 70, "Text",ExpressionUUID->"c3ad9d02-73f0-4f31-a8f3-13c40b923446"],
+Cell[18760, 511, 320, 7, 70, "Input",ExpressionUUID->"edde53b0-c1c9-47c7-85a1-5ab5fbf98795"],
+Cell[19083, 520, 1049, 31, 70, "Text",ExpressionUUID->"35181c59-0422-464c-92a3-5214f0638df9"],
+Cell[20135, 553, 246, 4, 70, "Input",ExpressionUUID->"c636f3e3-752c-431e-bd43-03bb01e67a65"],
+Cell[20384, 559, 1285, 34, 70, "Text",ExpressionUUID->"0b40fe44-58c7-4037-ac6f-322094cbbd32"],
+Cell[21672, 595, 725, 21, 70, "Text",ExpressionUUID->"82265207-97b6-4993-a8cb-d3d1a89f858c"],
+Cell[22400, 618, 115, 0, 70, "Section",ExpressionUUID->"64b6bbdf-521b-42bb-8c03-1d0a3deb7c26"],
+Cell[22518, 620, 1731, 55, 70, "Text",ExpressionUUID->"a1c65cfb-f8c0-4184-9abe-e62b22ebb568"],
+Cell[24252, 677, 1588, 29, 70, "Program",ExpressionUUID->"37925e61-4a8e-4ec2-b7f5-1d3c3da1050f"],
+Cell[25843, 708, 341, 7, 70, "Text",ExpressionUUID->"e8dc7c16-4d70-434d-b108-e643415672e3"],
+Cell[26187, 717, 212, 4, 70, "Program",ExpressionUUID->"2234caf6-3f99-40bb-a29e-784ac8a8db99"],
+Cell[26402, 723, 1026, 18, 70, "Program",ExpressionUUID->"746e88b0-2658-44b6-9c75-19b292ea3e96"],
+Cell[27431, 743, 83, 0, 70, "Section",ExpressionUUID->"2c165910-02cb-40c8-ad47-515d6ba47e08"],
+Cell[27517, 745, 109, 0, 70, "Subsection",ExpressionUUID->"db9421f1-99c9-4eaa-a220-84f30f8acc29"],
+Cell[27629, 747, 476, 13, 70, "Text",ExpressionUUID->"d40f11f9-cfb6-4633-8ddd-f8cf77415acd"],
+Cell[CellGroupData[{
+Cell[28130, 764, 88, 0, 70, "Subsubsection",ExpressionUUID->"e54ce94c-013d-4b12-9920-497950c6eca9"],
+Cell[28221, 766, 146, 2, 70, "Input",ExpressionUUID->"a2eba469-59c0-43b8-959c-ca10a8773f7a"]
+}, Closed]],
+Cell[28382, 771, 110, 0, 70, "Subsection",ExpressionUUID->"654d6785-0b0e-40b0-9d28-7b3be477bcc5"],
+Cell[28495, 773, 587, 17, 70, "Text",ExpressionUUID->"2aee9e5a-017b-4bcd-af9d-6fcf319d63c6"],
+Cell[CellGroupData[{
+Cell[29107, 794, 88, 0, 70, "Subsubsection",ExpressionUUID->"f1987960-3495-41c4-b806-18246922015d"],
+Cell[29198, 796, 161, 3, 70, "Input",ExpressionUUID->"b96a5f79-4aa8-400b-8949-bbd7a2cfcb7a"],
+Cell[29362, 801, 461, 13, 70, "Text",ExpressionUUID->"83aea52c-e029-4518-93cb-de01fed6c3eb"]
+}, Closed]],
+Cell[29838, 817, 103, 0, 70, "Subsection",ExpressionUUID->"61924324-3208-4cb0-b67a-fa89182e95c8"],
+Cell[29944, 819, 1569, 65, 70, "Text",ExpressionUUID->"f6b0607c-2f08-4b32-b541-a9063384a6b0"],
+Cell[CellGroupData[{
+Cell[31538, 888, 88, 0, 70, "Subsubsection",ExpressionUUID->"bb712aa0-70a3-4168-8348-1e1accf843b8"],
+Cell[31629, 890, 443, 12, 70, "Text",ExpressionUUID->"c5c48f5d-c504-4caa-8a6c-5e8c93a60508"],
+Cell[32075, 904, 450, 8, 70, "Input",ExpressionUUID->"39a5b874-7864-40ec-8640-367fd4d3ce7a"],
+Cell[32528, 914, 405, 7, 70, "Input",ExpressionUUID->"5e495f10-239a-4966-93bc-e0c7f1b780cf"],
+Cell[32936, 923, 273, 5, 70, "Input",ExpressionUUID->"55143f74-877b-4651-9f27-1bc7ae2c77e5"],
+Cell[33212, 930, 442, 12, 70, "Text",ExpressionUUID->"663c02d0-6dbb-48c9-b08c-4516f17edf21"]
+}, Closed]]
+}
+]
+*)
+
+(* End of internal cache information *)

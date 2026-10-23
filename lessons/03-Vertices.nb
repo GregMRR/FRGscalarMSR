@@ -1,0 +1,1755 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[     60914,       1746]
+NotebookOptionsPosition[     52706,       1645]
+NotebookOutlinePosition[     53043,       1660]
+CellTagsIndexPosition[     53000,       1657]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["Lesson 03 - Vertices", "Title",ExpressionUUID->"91fba141-d19d-4310-ae52-6d8bc73b8882"],
+
+Cell[TextData[{
+ StyleBox["Physics step.",
+  FontWeight->Bold],
+ " Fourier-transform the parsed density (",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "t ",
+ StyleBox["\[RightArrow]",
+  FontFamily->"Noto Sans"],
+ " +i",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ", ",
+ StyleBox["\[Del]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[RightArrow]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "iq, all momenta incoming) and build every vertex ",
+ StyleBox["\[CapitalGamma]\:207d\:207f\:207e",
+  FontFamily->"Noto Sans"],
+ ", n = 2..4, as the symmetrised n-th functional derivative of ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "_k with the ",
+ StyleBox["\[Delta]",
+  FontFamily->"Noto Sans"],
+ " function stripped. ",
+ StyleBox["\[CapitalGamma]\:207d\.b2\:207e",
+  FontFamily->"Noto Sans"],
+ " gives the matrix ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2_ab(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ", q); ",
+ StyleBox["\[CapitalGamma]\:207d\.b3\:207e",
+  FontFamily->"Noto Sans"],
+ " the cubic vertices of the one-loop flow."
+}], "Text",ExpressionUUID->"b72bce56-bdc5-442c-9c0d-83791cc4912f"],
+
+Cell[TextData[{
+ StyleBox["Stage.",
+  FontWeight->Bold],
+ " Input: the Ansatz stage. Output: the ",
+ StyleBox["\"Vertices\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stage, whose ",
+ StyleBox["\"VertexTable\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " maps each field multiset to its vertex."
+}], "Text",ExpressionUUID->"203bd0cd-d87d-424e-bf64-3ee58349f2fe"],
+
+Cell["\<\
+Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
+ansatz = lessonUpTo[\"Ansatz\"];\
+\>", "Input",ExpressionUUID->"34189940-8c7a-4933-94be-1f0dd6199166"],
+
+Cell["1. Using it", "Section",ExpressionUUID->"ffc45b61-54e8-40a7-9df9-b4871702be93"],
+
+Cell["vertices = BuildVertices[ansatz];", "Input",ExpressionUUID->"2479e8d3-f2ee-4cd3-8b03-9c4fde564442"],
+
+Cell[TextData[{
+ "The table starts with the conventions (",
+ StyleBox["docs/CONVENTIONS.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "), then ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2 and the higher vertices. For KPZ: ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2_{h ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ "}(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ", q) = i",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ " + ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ", ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2_{",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ "} = ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "2D, and one cubic vertex ",
+ StyleBox["\[CapitalGamma]\:207d\.b3\:207e",
+  FontFamily->"Noto Sans"],
+ "_{h h ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ "}(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ "1, q1; ",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ "2, q2) = ",
+ StyleBox["\[Lambda]",
+  FontFamily->"Noto Sans"],
+ " q1",
+ StyleBox["\[CenterDot]",
+  FontFamily->"Noto Sans"],
+ "q2. Three accessors evaluate vertices in the leg convention:"
+}], "Text",ExpressionUUID->"d6c4d4ef-d3b3-4e1f-b834-ad2918f25271"],
+
+Cell["\<\
+{Gamma2Matrix[vertices, w, q], VertexValue[vertices, {hbar, h, h}, {{w1, p1}, \
+{w2, p2}}], Gamma3Matrix[vertices, hbar, {nu, p}, {w, q}]}\
+\>", "Input",ExpressionUUID->"d6fa7c6e-2730-4443-9c75-0efdee4becd9"],
+
+Cell[TextData[{
+ StyleBox["VertexValue[v, {a1, ..., an}, {{\[Omega]1, q1}, ..., {\[Omega](n\
+\[Minus]1), q(n\[Minus]1)}}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " puts leg j at (",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ "j, qj) and the last leg at minus their sum. In ",
+ StyleBox["{hbar, h, h}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " above, the last ",
+ StyleBox["h",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " carries ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "(p1 + p2), so ",
+ StyleBox["\[Lambda]",
+  FontFamily->"Noto Sans"],
+ " p2",
+ StyleBox["\[CenterDot]",
+  FontFamily->"Noto Sans"],
+ "(",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "p1 ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ " p2) = ",
+ StyleBox["\[Minus]\[Lambda]",
+  FontFamily->"Noto Sans"],
+ "(p1",
+ StyleBox["\[CenterDot]",
+  FontFamily->"Noto Sans"],
+ "p2 + p2",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ")."
+}], "Text",ExpressionUUID->"650e3cdc-45f8-4e61-abab-1541ebf664fe"],
+
+Cell["2. What is stored", "Section",ExpressionUUID->"43794782-4f5b-4bc4-b8a1-55fd7610ec90"],
+
+Cell["vertices[\"VertexTable\"]", "Input",ExpressionUUID->"9d7e24ed-97dc-4051-97ff-78560def0b42"],
+
+Cell[TextData[{
+ "The keys are field ",
+ StyleBox["multisets",
+  FontWeight->Bold],
+ " sorted in field order: ",
+ StyleBox["{h, h, hbar}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stands for every ordering of the legs. The values are the vertices with \
+*all n* momenta independent, written with private leg symbols ",
+ StyleBox["wv[l]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["qv[l]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (frequency and momentum of leg l), before the momentum conservation is \
+used."
+}], "Text",ExpressionUUID->"fb704c95-fe55-4445-a46b-477f29126ce8"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Store one vertex per multiset, evaluate \
+any ordering on demand",
+  FontWeight->Bold],
+ "\n\n",
+ StyleBox["\[CapitalGamma]\:207d\.b3\:207e",
+  FontFamily->"Noto Sans"],
+ "_{h h ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ "}, ",
+ StyleBox["\[CapitalGamma]\:207d\.b3\:207e",
+  FontFamily->"Noto Sans"],
+ "_{h ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ " h} and ",
+ StyleBox["\[CapitalGamma]\:207d\.b3\:207e",
+  FontFamily->"Noto Sans"],
+ "_{",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ " h h} are the same function with the legs relabelled. Storing the fully \
+symmetrised vertex once, as a function of all n momenta, and relabelling at \
+evaluation time keeps the table small (a quartic vertex of two fields would \
+otherwise need up to 4! entries) and makes the symmetry impossible to get \
+wrong: there is only one expression. The last leg is fixed by momentum \
+conservation only when a vertex is evaluated, so the stored form never \
+depends on which leg was chosen as \"last\"."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"3679258c-5168-4edf-a040-c69dedf7ccc7"],
+
+Cell["3. Fourier symbols of a monomial", "Section",ExpressionUUID->"aa297e7f-5ab7-4a83-a037-1e268ff3f99d"],
+
+Cell["\<\
+(* Kernel/Vertices.wl:26-27 *)
+(* leg l carries frequency wv[l] and momentum qv[l]; a factor dt^nt d_i.. phi \
+at leg l gives (I wv[l])^nt (-I qv[l]_i)... *)
+factorSymbol[FieldFactor[_, nt_, ix_], l_] := {(I wv[l])^nt (-I)^Length[ix], \
+Thread[ix -> qv[l]]};\
+\>", "Program",ExpressionUUID->"1b1be62b-0453-4a29-bbd5-9420a6269db1"],
+
+Cell["\<\
+(* Kernel/Vertices.wl:29-33 *)
+(* a SpaceIndex pair gives scal[qa, qb]; the eps pair EpsIndex[1], \
+EpsIndex[2] gives wedge[q(slot 1), q(slot 2)] *)
+monomialAt[m_Association, perm_List] := Module[{parts = \
+MapThread[factorSymbol, {m[\"Factors\"], perm}], g},
+   g = GroupBy[Flatten[parts[[All, 2]]], First -> Last];
+   m[\"Coefficient\"] Times @@ parts[[All, 1]] Times @@ (scal @@ # & /@ \
+Values[KeySelect[g, FreeQ[#, EpsIndex] &]]) *
+    If[KeyExistsQ[g, EpsIndex[1]], wedge[First[g[EpsIndex[1]]], \
+First[g[EpsIndex[2]]]], 1]];\
+\>", "Program",ExpressionUUID->"24051c02-43e4-46a9-b60b-05aafb0ccc67"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Complex numbers",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["I",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the exact imaginary unit; ",
+ StyleBox["Im",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["Re",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["Conjugate",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " work on exact and symbolic expressions.",
+ "\n\n",
+ StyleBox["(I wv[l])^nt (-I)^Length[ix]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the symbol of ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "t^nt ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "_i... at leg l: one factor i",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ " per time derivative and one ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "i per spatial index (the vector itself, ",
+ StyleBox["qv[l]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", is attached to each index by the rule ",
+ StyleBox["Thread[ix -> qv[l]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "). ",
+ StyleBox["I",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is exact like a rational number, so ",
+ StyleBox["(-I)^2",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is exactly ",
+ StyleBox["-1",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"06b26a4a-a3e3-4e16-8458-7fca714f3fd4"],
+
+Cell[TextData[{
+ StyleBox["factorSymbol",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " returns two things for each factor: its scalar prefactor, and rules saying \
+which momentum each index carries. ",
+ StyleBox["monomialAt",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " then groups the rules by index (",
+ StyleBox["GroupBy[..., First -> Last]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["GroupBy and KeyValueMap",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 02)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "): each ",
+ StyleBox["SpaceIndex",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " appears on two factors, so it collects two momenta, and ",
+ StyleBox["scal @@ {qa, qb}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " contracts them. The ",
+ StyleBox["\[CurlyEpsilon]",
+  FontFamily->"Noto Sans"],
+ " pair becomes a ",
+ StyleBox["wedge",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["FixedPoint",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ " showed its algebra)."
+}], "Text",ExpressionUUID->"0cf7a7de-f2a8-4703-a921-73828aeff2b9"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: KeySelect and Values",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["KeySelect[assoc, test]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " keeps the entries whose key passes test; ",
+ StyleBox["Values[assoc]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " lists the values.",
+ "\n\n",
+ StyleBox["Values[KeySelect[g, FreeQ[#, EpsIndex] &]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " takes the momentum pairs of the ordinary indices and leaves out the ",
+ StyleBox["\[CurlyEpsilon]",
+  FontFamily->"Noto Sans"],
+ " slots, which are handled separately."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"ef5c2b75-98d8-4a3c-84be-c06ef5d0774c"],
+
+Cell[TextData[{
+ "For the cubic KPZ monomial ",
+ StyleBox["\[Minus]\[Lambda]",
+  FontFamily->"Noto Sans"],
+ "/2 ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[Del]",
+  FontFamily->"Noto Sans"],
+ "h",
+ StyleBox["\[CenterDot]\[Del]",
+  FontFamily->"Noto Sans"],
+ "h, with ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ " at leg 1 and the two h at legs 2 and 3:"
+}], "Text",ExpressionUUID->"341ab4f1-c991-4cd1-bb02-bd039261fa1c"],
+
+Cell["\<\
+m = ansatz[\"Monomials\"][[4]];
+{FRGscalarMSR`Private`factorSymbol[m[\"Factors\"][[2]], 2], \
+FRGscalarMSR`Private`monomialAt[m, {1, 2, 3}]}\
+\>", "Input",ExpressionUUID->"a4c529c5-e53b-4ab6-ba0c-78bd7c2ce7bc"],
+
+Cell[TextData[{
+ "(",
+ StyleBox["\[Minus]\[Lambda]",
+  FontFamily->"Noto Sans"],
+ "/2)(",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "i)",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " q2",
+ StyleBox["\[CenterDot]",
+  FontFamily->"Noto Sans"],
+ "q3 = ",
+ StyleBox["\[Lambda]",
+  FontFamily->"Noto Sans"],
+ "/2 q2",
+ StyleBox["\[CenterDot]",
+  FontFamily->"Noto Sans"],
+ "q3."
+}], "Text",ExpressionUUID->"71ba66e0-5fcf-4910-9958-2827afa3e131"],
+
+Cell["4. Symmetrisation: summing over assignments of legs", "Section",ExpressionUUID->"b288eaca-8c02-4cc4-9726-627068b2b142"],
+
+Cell["\<\
+(* Kernel/Vertices.wl:35-39 *)
+(* Gamma^(n) for the field multiset ms (sorted in field order), all n momenta \
+independent (before delta stripping):
+   sum over every assignment of the monomial's factors to the legs carrying \
+the same field = full symmetrisation *)
+vertexExpr[ms_List, mons_List, sortF_] := Expand[Total[Function[m,
+      Total[monomialAt[m, #] & /@ Select[Permutations[Range[Length[ms]]], \
+m[\"Fields\"] === ms[[#]] &]]] /@
+     Select[mons, #FieldCount == Length[ms] && sortF[#Fields] === ms &]]];\
+\>", "Program",ExpressionUUID->"98ca4b40-8603-4ec5-90dc-37f8e7748539"],
+
+Cell[TextData[{
+ "The functional derivative of ",
+ StyleBox["\[Integral]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[Del]",
+  FontFamily->"Noto Sans"],
+ "h",
+ StyleBox["\[CenterDot]\[Del]",
+  FontFamily->"Noto Sans"],
+ "h with respect to ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ "(1) h(2) h(3) is the sum over the two ways of attaching the two h factors \
+to legs 2 and 3. ",
+ StyleBox["vertexExpr",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " does exactly this: among all ",
+ StyleBox["Permutations",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " of the legs (",
+ StyleBox["Sort and canonical order",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 02)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ") it keeps those that put each factor on a leg of the same field, and adds \
+the symbols. Identical fields therefore give the multiplicity factors \
+automatically (2 for ",
+ StyleBox["h\:0304\.b2",
+  FontFamily->"Noto Sans"],
+ ", 3! for ",
+ StyleBox["\[CurlyPhi]\:0304\[CurlyPhi]\.b3",
+  FontFamily->"Noto Sans"],
+ "). Here the two terms are equal and give ",
+ StyleBox["\[Lambda]",
+  FontFamily->"Noto Sans"],
+ " q2",
+ StyleBox["\[CenterDot]",
+  FontFamily->"Noto Sans"],
+ "q3, the entry of the table."
+}], "Text",ExpressionUUID->"f14081d6-bb5f-48a0-9e4b-12a06cdc3455"],
+
+Cell["5. Building the table", "Section",ExpressionUUID->"41a89b57-3e85-425f-8e4a-42aa20d58769"],
+
+Cell["\<\
+(* Kernel/Vertices.wl:109-118 *)
+BuildVertices[ansatz_] := Block[{$FRGModule = \"Vertices\"},
+  Module[{t0 = AbsoluteTime[], theory, fields, phis, bars, sortF, mons, nmax, \
+msets, table, checks = {}, warns = {}, stage, w, q, g2, bad,
+    pw, conv, nc},
+   validateStage[ansatz, \"Ansatz\"];
+   theory = ansatz[\"Theory\"]; fields = theory[\"Fields\"]; phis = \
+theory[\"Scalars\"]; bars = theory[\"ResponseFields\"];
+   mons = ansatz[\"Monomials\"];
+   sortF[l_] := SortBy[l, First[FirstPosition[fields, #]] &];
+   nmax = Max[4, Max[#FieldCount & /@ mons]];
+   msets = Join @@ Table[Union[sortF /@ Tuples[fields, n]], {n, 2, nmax}];
+   table = Association[DeleteCases[(# -> vertexExpr[#, mons, sortF]) & /@ \
+msets, _ -> 0]];\
+\>", "Program",ExpressionUUID->"f3b5cfb8-60ad-4481-8af3-299cf9c8072f"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Tuples",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Tuples[list, n]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " gives every list of n elements drawn from list, with repetition and in \
+every order.",
+ "\n\n",
+ StyleBox["Tuples[{h, hbar}, 3]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " has 8 elements. Sorting each in field order and taking the ",
+ StyleBox["Union",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " leaves the 4 multisets {h,h,h}, {h,h,",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ "}, {h,",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ ",",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ "}, {",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ ",",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ ",",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ "}. ",
+ StyleBox["Join @@ Table[..., {n, 2, nmax}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " concatenates the lists for n = 2, 3, 4 (",
+ StyleBox["Apply",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 01)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ " with head ",
+ StyleBox["Join",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ")."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"6dd8f7f6-2434-4dab-9667-a7f310c8993a"],
+
+Cell["{Tuples[{h, hbar}, 2], Union[Sort /@ Tuples[{h, hbar}, 3]]}", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"bf61bffd-4b41-4f32-b00e-724502a5ce52"],
+
+Cell[TextData[{
+ StyleBox["sortF",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is a local function (",
+ StyleBox["Local functions",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 02)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ") sorting by position in the field order (",
+ StyleBox["DeleteCases, SortBy and FirstPosition",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 02)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "); ",
+ StyleBox["Sort",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " alone would sort alphabetically, which is not the field order in general. ",
+ StyleBox["Association[DeleteCases[{key -> vertex, ...}, _ -> 0]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " drops the multisets with no vertex: the pattern ",
+ StyleBox["_ -> 0",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " matches any rule whose right-hand side is 0."
+}], "Text",ExpressionUUID->"2fff8642-6a53-4604-83f4-9184a64c7cc5"],
+
+Cell["6. Evaluating in the leg convention", "Section",ExpressionUUID->"3967e14b-7dc6-4462-9026-60c5b0fd460f"],
+
+Cell["\<\
+(* Kernel/Vertices.wl:43 *)
+fieldPos[v_, a_] := First[FirstPosition[v[\"Fields\"], a, {0}]];\
+\>", "Program",ExpressionUUID->"565bb056-3b51-40ce-876c-8b66d7f02e10"],
+
+Cell["\<\
+(* Kernel/Vertices.wl:45-53 *)
+VertexValue[v_Association, tuple_List, legs_List] := Module[{full, ord, ms, e},
+   FRGAssert[\"Vertices.legCount\", Length[legs] == Length[tuple] - 1 && \
+AllTrue[legs, Length[#] == 2 &], {tuple, legs},
+    \"give n - 1 pairs {w, q} for an n-point vertex (the last leg carries \
+minus their sum)\"];
+   FRGAssert[\"Vertices.knownFields\", AllTrue[tuple, fieldPos[v, #] > 0 &], \
+tuple, \"unknown field\"];
+   full = Append[legs, -Total[legs]];
+   ord = Ordering[fieldPos[v, #] & /@ tuple];   (* canonical leg j is \
+original leg ord[[j]]; ties are identical fields *)
+   ms = tuple[[ord]];
+   e = Lookup[v[\"VertexTable\"], Key[ms], 0];
+   Expand[e /. {wv[j_] :> full[[ord[[j]], 1]], qv[j_] :> full[[ord[[j]], \
+2]]}]];\
+\>", "Program",ExpressionUUID->"c4bbec94-bc98-4f44-b61c-4538ca0eec54"],
+
+Cell["\<\
+(* Kernel/Vertices.wl:55 *)
+Gamma2Matrix[v_Association, w_, q_] := Table[VertexValue[v, {a, b}, {{w, \
+q}}], {a, v[\"Fields\"]}, {b, v[\"Fields\"]}];\
+\>", "Program",ExpressionUUID->"54c86a4c-a276-4e2d-b74c-93d6b6eb7d37"],
+
+Cell["\<\
+(* Kernel/Vertices.wl:57-58 *)
+Gamma3Matrix[v_Association, i0_, {nu_, p_}, {w_, q_}] := Module[{i = \
+If[IntegerQ[i0], v[\"Fields\"][[i0]], i0]},
+   Table[VertexValue[v, {i, a, b}, {{nu, p}, {w, q}}], {a, v[\"Fields\"]}, \
+{b, v[\"Fields\"]}]];\
+\>", "Program",ExpressionUUID->"07d5edaa-a458-49a1-943f-70bcf808e527"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Ordering",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Ordering[list]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " gives the positions that would sort list: ",
+ StyleBox["list[[Ordering[list]]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is sorted.",
+ "\n\n",
+ StyleBox["VertexValue",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " receives the fields in your order, say ",
+ StyleBox["{hbar, h, h}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". ",
+ StyleBox["ord = Ordering[...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " finds which of your legs goes to each slot of the canonical multiset ",
+ StyleBox["{h, h, hbar}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "; the stored ",
+ StyleBox["wv[j]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["qv[j]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " are then replaced by the frequency and momentum of your leg ",
+ StyleBox["ord[[j]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"073db4d8-c032-4df6-bec0-2e9e1235ff99"],
+
+Cell["{Ordering[{3, 1, 2}], {c, a, b}[[Ordering[{c, a, b}]]]}", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"6ac56165-d318-450a-9013-6cb2002778db"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Key",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Key[k]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " wraps a key so that it is never read as something else; ",
+ StyleBox["Lookup[assoc, Key[{a, b}], 0]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " looks up the key ",
+ StyleBox["{a, b}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ".",
+ "\n\n",
+ "The keys of the vertex table are lists. ",
+ StyleBox["Lookup[table, {h, hbar}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " would mean \"look up the keys ",
+ StyleBox["h",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["hbar",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "\" (a list of keys) and return two missing values. ",
+ StyleBox["Key",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " says \"this list is one key\"."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"7e03421d-75b0-42ea-b1d2-e02dd37e8191"],
+
+Cell["\<\
+{Lookup[vertices[\"VertexTable\"], {h, hbar}, 0], \
+Lookup[vertices[\"VertexTable\"], Key[{h, hbar}], 0]}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"180192b7-17fe-4284-9161-304a762eba44"],
+
+Cell[TextData[{
+ StyleBox["Table[expr, {a, list}, {b, list}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " with two iterators (",
+ StyleBox["MapAt, Table and Sum",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 02)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ") builds a matrix whose entries run over the field order: that is all ",
+ StyleBox["Gamma2Matrix",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["Gamma3Matrix",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " do."
+}], "Text",ExpressionUUID->"bf1c0bdc-01d1-41fe-b480-fbe018cca057"],
+
+Cell["7. An independent check: plane waves into the raw density", "Section",ExpressionUUID->"c890fab4-5116-4397-86d8-8e5d8d773883"],
+
+Cell["\<\
+The card's first line says that the vertices agree with a second derivation \
+that shares no code with the first:\
+\>", "Text",ExpressionUUID->"1a43cbf3-7f1d-469d-8227-9327ec3b72c1"],
+
+Cell["\<\
+(* Kernel/Vertices.wl:62-73 *)
+(* phi_a(t, x) = sum over the legs l of field a of eps[l] Exp[I (ww[l] t - \
+kq[l].X)]  (nc = 3 components, 2 for a declared d = 2);
+   the coefficient of eps[1]...eps[n] Exp[I sum(ww t - kq.X)] in the density \
+is Gamma^(n)(all legs) *)
+planeWaveCoefficient[dens_, fields_, ms_List, nc_] := Module[{n = Length[ms], \
+X = Array[xx, nc], kq, phase, rules, e},
+   kq[l_] := Table[kc[l, c], {c, nc}];
+   phase = I Sum[ww[l] tt - kq[l] . X, {l, n}];
+   rules = Thread[fields -> (Sum[If[ms[[l]] === #, eps[l] Exp[I (ww[l] tt - \
+kq[l] . X)], 0], {l, n}] & /@ fields)];
+   e = (dens /. rules) /. {dt -> (D[#, tt] &), grad -> (Grad[#, X] &), div -> \
+(If[# === 0, 0, Div[#, X]] &), lap -> (Laplacian[#, X] &),
+      jac -> (D[#1, xx[1]] D[#2, xx[2]] - D[#1, xx[2]] D[#2, xx[1]] &)};
+   e = D[e, Sequence @@ Table[eps[l], {l, n}]] /. eps[_] -> 0;
+   e = Expand[e] /. Power[E, z_] :> Exp[Expand[z - phase]];
+   FRGAssert[\"Vertices.planeWavePhase\", FreeQ[e, tt | xx], e, \"internal: \
+the plane-wave coefficient still depends on t or x\"];
+   Expand[e]];\
+\>", "Program",ExpressionUUID->"d1f5d9c4-f0b8-456c-82ef-248cc65c113a"],
+
+Cell["\<\
+(* Kernel/Vertices.wl:75-76 *)
+symbolAsPlaneWave[e_, nc_] := Module[{vec = # /. qv[l_] :> Table[kc[l, c], \
+{c, nc}] &},
+   Expand[e /. {scal[a_, b_] :> vec[a] . vec[b], wedge[a_, b_] :> vec[a][[1]] \
+vec[b][[2]] - vec[a][[2]] vec[b][[1]]} /. wv[l_] :> ww[l]]];\
+\>", "Program",ExpressionUUID->"785e4544-3543-4735-a3f7-17aec64838e1"],
+
+Cell[TextData[{
+ "Each field is replaced by a sum of plane waves, ",
+ StyleBox["\[CurlyPhi]",
+  FontFamily->"Noto Sans"],
+ "_a(t, x) = ",
+ StyleBox["\[CapitalSigma]",
+  FontFamily->"Noto Sans"],
+ "_l ",
+ StyleBox["\[CurlyEpsilon]",
+  FontFamily->"Noto Sans"],
+ "_l e^{i(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ "_l t ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ " q_l",
+ StyleBox["\[CenterDot]",
+  FontFamily->"Noto Sans"],
+ "x)}, with explicit 3-component vectors (2 in a declared d = 2). The package \
+operators are replaced by Mathematica's own derivatives, acting on explicit \
+coordinates ",
+ StyleBox["xx[1], xx[2], xx[3]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". The coefficient of ",
+ StyleBox["\[CurlyEpsilon]",
+  FontFamily->"Noto Sans"],
+ "_1",
+ StyleBox["\[CenterEllipsis]\[CurlyEpsilon]",
+  FontFamily->"Noto Sans"],
+ "_n is then the vertex, and it must equal the table entry written in \
+components."
+}], "Text",ExpressionUUID->"e44776f8-a59d-4827-bb44-125a3858457d"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Array and explicit vectors",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Array[f, n]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is ",
+ StyleBox["{f[1], ..., f[n]}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "; ",
+ StyleBox[".",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (Dot) contracts explicit lists; ",
+ StyleBox["D",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["Grad",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["Div",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["Laplacian",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " differentiate with respect to explicit variables.",
+ "\n\n",
+ "With ",
+ StyleBox["X = Array[xx, 3]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["kq[l] = {kc[l, 1], kc[l, 2], kc[l, 3]}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["kq[l] . X",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the explicit sum kc[l,1] xx[1] + ... . ",
+ StyleBox["Grad[e, X]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the gradient with respect to those three variables. These are the \
+System operators the ansatz forbids: here they are safe, because the \
+coordinates are explicit symbols that the fields really depend on."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"76c0895c-d442-47ce-8b26-1051958cea40"],
+
+Cell["Grad[Exp[I (w t - {k1, k2} . {x1, x2})], {x1, x2}]", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"4e6c484a-6fb4-4676-ae3a-e431c775e435"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Replacing heads by functions",
+  FontWeight->Bold],
+ "\n",
+ "A rule ",
+ StyleBox["dt -> (D[#, tt] &)",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " turns ",
+ StyleBox["dt[e]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " into ",
+ StyleBox["(D[#, tt] &)[e]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", which evaluates to ",
+ StyleBox["D[e, tt]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ".",
+ "\n\n",
+ "Replacing the ",
+ StyleBox["head",
+  FontSlant->Italic],
+ " of ",
+ StyleBox["dt[...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " by a pure function (",
+ StyleBox["Pure functions",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ") gives the inert operator its meaning in one rule. ",
+ StyleBox["D[e, Sequence @@ Table[eps[l], {l, n}]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " then differentiates once with respect to each ",
+ StyleBox["\[CurlyEpsilon]",
+  FontFamily->"Noto Sans"],
+ "_l (",
+ StyleBox["Sequence",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 02)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "); setting all ",
+ StyleBox["\[CurlyEpsilon]",
+  FontFamily->"Noto Sans"],
+ " to 0 afterwards keeps exactly the coefficient of ",
+ StyleBox["\[CurlyEpsilon]",
+  FontFamily->"Noto Sans"],
+ "_1",
+ StyleBox["\[CenterEllipsis]\[CurlyEpsilon]",
+  FontFamily->"Noto Sans"],
+ "_n."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"c79d8b96-17d3-497f-a7e2-1e3057bd236d"],
+
+Cell["\<\
+FRGscalarMSR`Private`planeWaveCoefficient[ansatz[\"Density\"], {h, hbar}, {h, \
+h, hbar}, 3]\
+\>", "Input",ExpressionUUID->"2fac0576-03aa-4ed4-a34f-57156bfa9354"],
+
+Cell[TextData[{
+ "This is ",
+ StyleBox["\[Lambda]",
+  FontFamily->"Noto Sans"],
+ " (k1",
+ StyleBox["\[CenterDot]",
+  FontFamily->"Noto Sans"],
+ "k2) written in components, as the table says."
+}], "Text",ExpressionUUID->"86a91848-17b3-4240-815b-6bd7126436c9"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Two derivations instead of one",
+  FontWeight->Bold],
+ "\n\n",
+ "The first derivation (sections 3",
+ StyleBox["\[Dash]",
+  FontFamily->"Noto Sans"],
+ "4) is fast and produces the structured form the pipeline needs, but it \
+depends on the parser of lesson 02 and on the Fourier rules. The second goes \
+back to the density you typed, uses only Mathematica's own calculus, and \
+knows nothing about ",
+ StyleBox["FieldFactor",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", canonical forms or symbol rules. If both agree on every multiset \
+(including those that should have no vertex: nothing may be lost), the parser \
+and the transform are right. This is the library's general strategy: when a \
+step can be computed in two independent ways, compute both and compare \
+exactly. The second way is too slow for the later steps, but cheap enough \
+here."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"62b5b5fa-a471-4753-8234-f451b6cc56ff"],
+
+Cell["8. The other checks", "Section",ExpressionUUID->"4b350e18-a179-4d35-abfc-5c8204dd54aa"],
+
+Cell[BoxData[
+ $CellContext`regionCells[
+ "Kernel/Vertices.wl", "stage = <", "\"Fields\" -> fields", 
+  "checks = Join[checks"]], "Input",ExpressionUUID->"56143b24-2cfb-4a5f-9e92-\
+92264d895bf4"],
+
+Cell[TextData[{
+ StyleBox["Gamma2Matrix",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is first called on a provisional association that has only the keys it \
+needs (",
+ StyleBox["\"Fields\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["\"VertexTable\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "): the accessors are plain functions of associations (",
+ StyleBox["Association",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "), not tied to a finished stage."
+}], "Text",ExpressionUUID->"30298552-bce1-4985-aa96-f561e4a551d2"],
+
+Cell[TextData[{
+ "The three \"(implementation check)\" lines are near-tautological: by \
+construction they cannot fail unless the code above is broken (review E11). \
+They are labelled as such so that the card does not pretend to test more than \
+it does. ",
+ StyleBox["PolynomialQ[e, {w, ss}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " tests whether e is a polynomial in those variables; ",
+ StyleBox["ConstantArray[0, dims]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is a zero matrix of the given dimensions."
+}], "Text",ExpressionUUID->"f4b45d4b-f724-4b9a-aaf9-089059156c36"],
+
+Cell[TextData[{
+ "The last check is physical. The free response function G_{",
+ StyleBox["\[CurlyPhi]\:0304\[CurlyPhi]",
+  FontFamily->"Noto Sans"],
+ "}(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ") = 1/",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2_{",
+ StyleBox["\[CurlyPhi]\[CurlyPhi]\:0304",
+  FontFamily->"Noto Sans"],
+ "}(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ") must have its pole in the upper half ",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ "-plane (causality, with the Fourier sign of ",
+ StyleBox["docs/CONVENTIONS.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ")."
+}], "Text",ExpressionUUID->"091041ed-f0ec-4a5a-8765-3978a6f795e5"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Solve",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Solve[eqn, x]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " gives the solutions as lists of rules ",
+ StyleBox["{{x -> s1}, ...}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "; ",
+ StyleBox["x /. Solve[...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " extracts the values.",
+ "\n\n",
+ "The couplings get random positive rationals (",
+ StyleBox["RandomRationalPoint",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", lesson 00), q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " is set to 1/2, and ",
+ StyleBox["Solve",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " finds the poles exactly. ",
+ StyleBox["Exponent[e, w]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the degree of e in w; ",
+ StyleBox["Im",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " takes the imaginary part. The result is checked with ",
+ StyleBox["Which",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 02)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ": no pole (WARN), a pole below the real axis (FAIL), a pole on the axis \
+(WARN, no damping), otherwise PASS."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"74b9ed9a-3c16-40f4-8d93-b9e7151c7172"],
+
+Cell["A damping term with the wrong sign is caught:", "Text",ExpressionUUID->"877ae965-ae7f-4c60-857c-cde7600aef45"],
+
+Cell["\<\
+badAnsatz = Block[{Print}, DefineAnsatz[lessonUpTo[\"Theory\"], \"Density\" \
+-> hbar (dt[h] + nuk lap[h]) - Dk hbar^2, \"Couplings\" -> {nuk, Dk}]];
+showFailure[BuildVertices[badAnsatz]]\
+\>", "Input",ExpressionUUID->"aa9c1a3c-9aff-477d-b47c-bf53eade5784"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: A physical convention check",
+  FontWeight->Bold],
+ "\n\n",
+ "A sign error in the Fourier convention gives the time-mirrored theory: \
+every formula is consistent, every algebraic check passes, and the flow \
+equations are wrong. Only a physical requirement can catch it: the response \
+function must be retarded. The check costs one ",
+ StyleBox["Solve",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " per scalar and is the first place in the pipeline where a convention is \
+tested against physics rather than against itself (review E1)."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"957cfb02-a18d-477c-81c4-53dac5145d21"],
+
+Cell["9. Display", "Section",ExpressionUUID->"3075104c-278b-4a92-8d9f-e751b22ae52a"],
+
+Cell["\<\
+(* Kernel/Vertices.wl:80 *)
+legSymbols[n_] := Table[{Symbol[\"FRGscalarMSR`Vertices`Private`\\[Omega]\" \
+<> ToString[j]], Symbol[\"FRGscalarMSR`Vertices`Private`q\" <> ToString[j]]}, \
+{j, n}];\
+\>", "Program",ExpressionUUID->"64cd3b5b-b7a4-4ea7-baeb-0828f2594458"],
+
+Cell["\<\
+(* Kernel/Vertices.wl:91-92 *)
+ShowVertex[v_Association, tuple_List] := Module[{legs = \
+legSymbols[Length[tuple] - 1]},
+   Print[vertexName[tuple], legString[legs], \" = \", \
+displayString[VertexValue[v, tuple, legs]]]];\
+\>", "Program",ExpressionUUID->"7a3f1ae3-ab32-4e77-bcf6-10860050be0c"],
+
+Cell["\<\
+(* Kernel/Vertices.wl:94-98 *)
+ShowGamma2[v_Association] := Module[{w = \
+Symbol[\"FRGscalarMSR`Vertices`Private`\\[Omega]\"], q = \
+Symbol[\"FRGscalarMSR`Vertices`Private`q\"], m},
+   m = Gamma2Matrix[v, w, q];
+   Print[\"Gamma2_ab(\", displayString[w], \",q), leg a at (\", \
+displayString[w], \",q), leg b at (-\", displayString[w], \",-q), regulator \
+not included:\"];
+   Do[If[m[[a, b]] =!= 0, Print[\"  Gamma2[\", v[\"Fields\"][[a]], \", \", v[\
+\"Fields\"][[b]], \"] = \", displayString[Collect[m[[a, b]], w]]]],
+    {a, Length[m]}, {b, Length[m]}]];\
+\>", "Program",ExpressionUUID->"7906fc7b-a073-4839-ac43-119702ffbaae"],
+
+Cell[TextData[{
+ "The display uses its own symbols, created in yet another context, `",
+ StyleBox["FRGscalarMSR",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "Vertices",
+ StyleBox["Private",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[", with names ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ "1",
+ StyleBox[", ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "q1",
+ StyleBox[", .... ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "displayString",
+ StyleBox[" (lesson 00's ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "Core",
+ StyleBox[") strips every ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox["FRGscalarMSR",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox["\[Ellipsis]",
+  FontFamily->"Noto Sans"],
+ "`",
+ StyleBox[" context when printing, so they print as plain ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ "1",
+ StyleBox[", but they can never collide with a symbol of yours called ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "q1",
+ StyleBox[". ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "Collect[e, w]",
+ StyleBox[" groups the terms of e by powers of w. ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "Do[expr, {a, n}, {b, n}]` is a loop with two iterators, for side effects \
+only."
+}], "Text",ExpressionUUID->"911d6b70-8283-4e27-bcde-75a54b220fae"],
+
+Cell["ShowVertex[vertices, {hbar, h, h}]", "Input",ExpressionUUID->"18fdb3f2-9f59-4ffc-8e6d-e53e4bc38e08"],
+
+Cell["Exercises", "Section",ExpressionUUID->"e8025a66-0c7e-4066-b695-14be86ee2cfe"],
+
+Cell["Exercise: \[CapitalGamma]2 by hand", "Subsection",ExpressionUUID->"a83d56da-3510-43e1-b87f-b6c52271c01f"],
+
+Cell[TextData[{
+ "From the KPZ density, derive ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2_{",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ " h}(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ", q) by hand (leg ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ " at (",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ", q), leg h at (",
+ StyleBox["\[Minus]\[Omega]",
+  FontFamily->"Noto Sans"],
+ ", ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "q)) and compare with ",
+ StyleBox["Gamma2Matrix",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",ExpressionUUID->"5e6276f3-0b47-4309-be40-52da93f0c340"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"3d1cc0db-9612-4694-9b2b-50af9f73419a"],
+
+Cell[TextData[{
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "t h gives i",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ " at the h leg, here at ",
+ StyleBox["\[Minus]\[Omega]",
+  FontFamily->"Noto Sans"],
+ ": ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "i",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ". ",
+ StyleBox["\[Minus]\[Nu]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[Del]\.b2",
+  FontFamily->"Noto Sans"],
+ "h gives ",
+ StyleBox["\[Minus]\[Nu]",
+  FontFamily->"Noto Sans"],
+ " (",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "i)",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " (",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "q)",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " = +",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ". So ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2_{",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ " h}(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ", q) = ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "i",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ " + ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ":"
+}], "Text",ExpressionUUID->"84ba50d5-c251-469a-8226-88893d06ba6a"],
+
+Cell["Gamma2Matrix[vertices, w, q][[2, 1]]", "Input",ExpressionUUID->"4d08311d-69b5-4ffe-aa29-1175508c8c75"]
+}, Closed]],
+
+Cell["Exercise: The symmetry of identical legs", "Subsection",ExpressionUUID->"0b92a048-06a3-4392-bef1-6a3feab66dbf"],
+
+Cell[TextData[{
+ "Check with ",
+ StyleBox["VertexValue",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " that ",
+ StyleBox["\[CapitalGamma]\:207d\.b3\:207e",
+  FontFamily->"Noto Sans"],
+ "_{h h ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ "} does not change when the two h legs exchange their momenta, and that ",
+ StyleBox["\[CapitalGamma]\:207d\.b3\:207e",
+  FontFamily->"Noto Sans"],
+ "_{h ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ " h} at legs (p1, p2) is a relabelling of ",
+ StyleBox["\[CapitalGamma]\:207d\.b3\:207e",
+  FontFamily->"Noto Sans"],
+ "_{h h ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ "}."
+}], "Text",ExpressionUUID->"8ad526dd-cf12-4ace-95c7-bfd95f2d297c"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"76eeddeb-71d4-4a86-8583-64fbadcd635f"],
+
+Cell["\<\
+{Expand[VertexValue[vertices, {h, h, hbar}, {{w1, p1}, {w2, p2}}] - \
+VertexValue[vertices, {h, h, hbar}, {{w2, p2}, {w1, p1}}]],
+ Expand[VertexValue[vertices, {h, hbar, h}, {{w1, p1}, {w2, p2}}] - \
+VertexValue[vertices, {h, h, hbar}, {{w1, p1}, {-w1 - w2, -p1 - p2}}]]}\
+\>", "Input",ExpressionUUID->"95e3be9b-f998-4bfa-a854-f06ae56dc7a9"],
+
+Cell[TextData[{
+ "In the second, leg 3 of ",
+ StyleBox["{h, hbar, h}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (an h at ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "(p1+p2)) moves to slot 2, and ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ " moves to the last slot, where it automatically sits at ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "(p1 + (",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "p1 ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ " p2)) = p2."
+}], "Text",ExpressionUUID->"4b8e87c6-159e-44c1-8945-e83ee74beaba"]
+}, Closed]],
+
+Cell["Exercise: A new vertex, and a check that cannot run", "Subsection",ExpressionUUID->"a64e5ba3-ecc1-41be-8380-65c9458adba6"],
+
+Cell[TextData[{
+ "Add the term ",
+ StyleBox["g hbar grad[h].grad[hbar]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " to the KPZ density (with a new coupling ",
+ StyleBox["g",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ") and look at the new entry of the vertex table. Then remove ",
+ StyleBox["hbar dt[h]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " too: what does the card say?"
+}], "Text",ExpressionUUID->"8568c423-53a0-4c8c-9782-043b86a6da11"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"3d972837-b787-47c3-8496-54b70393f7fc"],
+
+Cell["\<\
+a2 = Block[{Print}, DefineAnsatz[lessonUpTo[\"Theory\"], \"Density\" -> hbar \
+(dt[h] - nuk lap[h]) - Dk hbar^2 + g hbar grad[h].grad[hbar], \"Couplings\" \
+-> {nuk, Dk, g}]];
+Block[{Print}, BuildVertices[a2]][\"VertexTable\"]\
+\>", "Input",ExpressionUUID->"edb14796-3753-47b4-89f0-062b37f1ca1e"],
+
+Cell["\<\
+a3 = Block[{Print}, DefineAnsatz[lessonUpTo[\"Theory\"], \"Density\" -> - nuk \
+hbar lap[h] - Dk hbar^2, \"Couplings\" -> {nuk, Dk}]];
+BuildVertices[a3];\
+\>", "Input",ExpressionUUID->"db4cd3dc-df5b-4632-8280-35aa6ffac798"],
+
+Cell[TextData[{
+ "The new cubic vertex is ",
+ StyleBox["{h, hbar, hbar}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Without the ",
+ StyleBox["dt",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " term, ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2_{h ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ "} has no ",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ", the pole check has nothing to test, and the card shows the WARN ",
+ StyleBox["Vertices.retardedPole[h]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",ExpressionUUID->"dff2fd87-4228-4720-99d8-38d18699dd60"]
+}, Closed]]
+},
+CellContext->Notebook,
+FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"68ca8ccf-8ceb-4f4a-8543-fab9318d86bc"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 92, 0, 70, "Title",ExpressionUUID->"91fba141-d19d-4310-ae52-6d8bc73b8882"],
+Cell[649, 22, 1205, 43, 70, "Text",ExpressionUUID->"b72bce56-bdc5-442c-9c0d-83791cc4912f"],
+Cell[1857, 67, 492, 14, 70, "Text",ExpressionUUID->"203bd0cd-d87d-424e-bf64-3ee58349f2fe"],
+Cell[2352, 83, 233, 4, 70, "Input",ExpressionUUID->"34189940-8c7a-4933-94be-1f0dd6199166"],
+Cell[2588, 89, 85, 0, 70, "Section",ExpressionUUID->"ffc45b61-54e8-40a7-9df9-b4871702be93"],
+Cell[2676, 91, 105, 0, 70, "Input",ExpressionUUID->"2479e8d3-f2ee-4cd3-8b03-9c4fde564442"],
+Cell[2784, 93, 1426, 58, 70, "Text",ExpressionUUID->"d6c4d4ef-d3b3-4e1f-b834-ad2918f25271"],
+Cell[4213, 153, 218, 3, 70, "Input",ExpressionUUID->"d6fa7c6e-2730-4443-9c75-0efdee4becd9"],
+Cell[4434, 158, 1195, 44, 70, "Text",ExpressionUUID->"650e3cdc-45f8-4e61-abab-1541ebf664fe"],
+Cell[5632, 204, 91, 0, 70, "Section",ExpressionUUID->"43794782-4f5b-4bc4-b8a1-55fd7610ec90"],
+Cell[5726, 206, 97, 0, 70, "Input",ExpressionUUID->"9d7e24ed-97dc-4051-97ff-78560def0b42"],
+Cell[5826, 208, 787, 22, 70, "Text",ExpressionUUID->"fb704c95-fe55-4445-a46b-477f29126ce8"],
+Cell[6616, 232, 1237, 33, 70, "Text",ExpressionUUID->"3679258c-5168-4edf-a040-c69dedf7ccc7"],
+Cell[7856, 267, 106, 0, 70, "Section",ExpressionUUID->"aa297e7f-5ab7-4a83-a037-1e268ff3f99d"],
+Cell[7965, 269, 340, 6, 70, "Program",ExpressionUUID->"1b1be62b-0453-4a29-bbd5-9420a6269db1"],
+Cell[8308, 277, 613, 11, 70, "Program",ExpressionUUID->"24051c02-43e4-46a9-b60b-05aafb0ccc67"],
+Cell[8924, 290, 2093, 71, 70, "Text",ExpressionUUID->"06b26a4a-a3e3-4e16-8458-7fca714f3fd4"],
+Cell[11020, 363, 1687, 51, 70, "Text",ExpressionUUID->"0cf7a7de-f2a8-4703-a921-73828aeff2b9"],
+Cell[12710, 416, 954, 27, 70, "Text",ExpressionUUID->"ef5c2b75-98d8-4a3c-84be-c06ef5d0774c"],
+Cell[13667, 445, 456, 17, 70, "Text",ExpressionUUID->"341ab4f1-c991-4cd1-bb02-bd039261fa1c"],
+Cell[14126, 464, 220, 4, 70, "Input",ExpressionUUID->"a4c529c5-e53b-4ab6-ba0c-78bd7c2ce7bc"],
+Cell[14349, 470, 453, 20, 70, "Text",ExpressionUUID->"71ba66e0-5fcf-4910-9958-2827afa3e131"],
+Cell[14805, 492, 125, 0, 70, "Section",ExpressionUUID->"b288eaca-8c02-4cc4-9726-627068b2b142"],
+Cell[14933, 494, 600, 10, 70, "Program",ExpressionUUID->"98ca4b40-8603-4ec5-90dc-37f8e7748539"],
+Cell[15536, 506, 1561, 50, 70, "Text",ExpressionUUID->"f14081d6-bb5f-48a0-9e4b-12a06cdc3455"],
+Cell[17100, 558, 95, 0, 70, "Section",ExpressionUUID->"41a89b57-3e85-425f-8e4a-42aa20d58769"],
+Cell[17198, 560, 808, 15, 70, "Program",ExpressionUUID->"f3b5cfb8-60ad-4481-8af3-299cf9c8072f"],
+Cell[18009, 577, 1750, 61, 70, "Text",ExpressionUUID->"6dd8f7f6-2434-4dab-9667-a7f310c8993a"],
+Cell[19762, 640, 246, 4, 70, "Input",ExpressionUUID->"bf61bffd-4b41-4f32-b00e-724502a5ce52"],
+Cell[20011, 646, 1350, 37, 70, "Text",ExpressionUUID->"2fff8642-6a53-4604-83f4-9184a64c7cc5"],
+Cell[21364, 685, 109, 0, 70, "Section",ExpressionUUID->"3967e14b-7dc6-4462-9026-60c5b0fd460f"],
+Cell[21476, 687, 174, 3, 70, "Program",ExpressionUUID->"565bb056-3b51-40ce-876c-8b66d7f02e10"],
+Cell[21653, 692, 832, 16, 70, "Program",ExpressionUUID->"c4bbec94-bc98-4f44-b61c-4538ca0eec54"],
+Cell[22488, 710, 231, 4, 70, "Program",ExpressionUUID->"54c86a4c-a276-4e2d-b74c-93d6b6eb7d37"],
+Cell[22722, 716, 326, 6, 70, "Program",ExpressionUUID->"07d5edaa-a458-49a1-943f-70bcf808e527"],
+Cell[23051, 724, 1726, 54, 70, "Text",ExpressionUUID->"073db4d8-c032-4df6-bec0-2e9e1235ff99"],
+Cell[24780, 780, 242, 4, 70, "Input",ExpressionUUID->"6ac56165-d318-450a-9013-6cb2002778db"],
+Cell[25025, 786, 1436, 45, 70, "Text",ExpressionUUID->"7e03421d-75b0-42ea-b1d2-e02dd37e8191"],
+Cell[26464, 833, 300, 7, 70, "Input",ExpressionUUID->"180192b7-17fe-4284-9161-304a762eba44"],
+Cell[26767, 842, 837, 24, 70, "Text",ExpressionUUID->"bf1c0bdc-01d1-41fe-b480-fbe018cca057"],
+Cell[27607, 868, 131, 0, 70, "Section",ExpressionUUID->"c890fab4-5116-4397-86d8-8e5d8d773883"],
+Cell[27741, 870, 192, 3, 70, "Text",ExpressionUUID->"1a43cbf3-7f1d-469d-8227-9327ec3b72c1"],
+Cell[27936, 875, 1159, 20, 70, "Program",ExpressionUUID->"d1f5d9c4-f0b8-456c-82ef-248cc65c113a"],
+Cell[29098, 897, 343, 6, 70, "Program",ExpressionUUID->"785e4544-3543-4735-a3f7-17aec64838e1"],
+Cell[29444, 905, 1071, 34, 70, "Text",ExpressionUUID->"e44776f8-a59d-4827-bb44-125a3858457d"],
+Cell[30518, 941, 2122, 67, 70, "Text",ExpressionUUID->"76c0895c-d442-47ce-8b26-1051958cea40"],
+Cell[32643, 1010, 237, 4, 70, "Input",ExpressionUUID->"4e6c484a-6fb4-4676-ae3a-e431c775e435"],
+Cell[32883, 1016, 2134, 72, 70, "Text",ExpressionUUID->"c79d8b96-17d3-497f-a7e2-1e3057bd236d"],
+Cell[35020, 1090, 172, 3, 70, "Input",ExpressionUUID->"2fac0576-03aa-4ed4-a34f-57156bfa9354"],
+Cell[35195, 1095, 258, 8, 70, "Text",ExpressionUUID->"86a91848-17b3-4240-815b-6bd7126436c9"],
+Cell[35456, 1105, 1141, 25, 70, "Text",ExpressionUUID->"62b5b5fa-a471-4753-8234-f451b6cc56ff"],
+Cell[36600, 1132, 93, 0, 70, "Section",ExpressionUUID->"4b350e18-a179-4d35-abfc-5c8204dd54aa"],
+Cell[36696, 1134, 195, 4, 70, "Input",ExpressionUUID->"56143b24-2cfb-4a5f-9e92-92264d895bf4"],
+Cell[36894, 1140, 877, 25, 70, "Text",ExpressionUUID->"30298552-bce1-4985-aa96-f561e4a551d2"],
+Cell[37774, 1167, 710, 15, 70, "Text",ExpressionUUID->"f4b45d4b-f724-4b9a-aaf9-089059156c36"],
+Cell[38487, 1184, 761, 25, 70, "Text",ExpressionUUID->"091041ed-f0ec-4a5a-8765-3978a6f795e5"],
+Cell[39251, 1211, 1838, 57, 70, "Text",ExpressionUUID->"74b9ed9a-3c16-40f4-8d93-b9e7151c7172"],
+Cell[41092, 1270, 116, 0, 70, "Text",ExpressionUUID->"877ae965-ae7f-4c60-857c-cde7600aef45"],
+Cell[41211, 1272, 267, 4, 70, "Input",ExpressionUUID->"aa9c1a3c-9aff-477d-b47c-bf53eade5784"],
+Cell[41481, 1278, 827, 18, 70, "Text",ExpressionUUID->"957cfb02-a18d-477c-81c4-53dac5145d21"],
+Cell[42311, 1298, 84, 0, 70, "Section",ExpressionUUID->"3075104c-278b-4a92-8d9f-e751b22ae52a"],
+Cell[42398, 1300, 276, 5, 70, "Program",ExpressionUUID->"64cd3b5b-b7a4-4ea7-baeb-0828f2594458"],
+Cell[42677, 1307, 304, 6, 70, "Program",ExpressionUUID->"7a3f1ae3-ab32-4e77-bcf6-10860050be0c"],
+Cell[42984, 1315, 640, 12, 70, "Program",ExpressionUUID->"7906fc7b-a073-4839-ac43-119702ffbaae"],
+Cell[43627, 1329, 2126, 67, 70, "Text",ExpressionUUID->"911d6b70-8283-4e27-bcde-75a54b220fae"],
+Cell[45756, 1398, 106, 0, 70, "Input",ExpressionUUID->"18fdb3f2-9f59-4ffc-8e6d-e53e4bc38e08"],
+Cell[45865, 1400, 83, 0, 70, "Section",ExpressionUUID->"e8025a66-0c7e-4066-b695-14be86ee2cfe"],
+Cell[45951, 1402, 111, 0, 70, "Subsection",ExpressionUUID->"a83d56da-3510-43e1-b87f-b6c52271c01f"],
+Cell[46065, 1404, 718, 28, 70, "Text",ExpressionUUID->"5e6276f3-0b47-4309-be40-52da93f0c340"],
+Cell[CellGroupData[{
+Cell[46808, 1436, 88, 0, 70, "Subsubsection",ExpressionUUID->"3d1cc0db-9612-4694-9b2b-50af9f73419a"],
+Cell[46899, 1438, 1441, 70, 70, "Text",ExpressionUUID->"84ba50d5-c251-469a-8226-88893d06ba6a"],
+Cell[48343, 1510, 108, 0, 70, "Input",ExpressionUUID->"4d08311d-69b5-4ffe-aa29-1175508c8c75"]
+}, Closed]],
+Cell[48466, 1513, 117, 0, 70, "Subsection",ExpressionUUID->"0b92a048-06a3-4392-bef1-6a3feab66dbf"],
+Cell[48586, 1515, 763, 25, 70, "Text",ExpressionUUID->"8ad526dd-cf12-4ace-95c7-bfd95f2d297c"],
+Cell[CellGroupData[{
+Cell[49374, 1544, 88, 0, 70, "Subsubsection",ExpressionUUID->"76eeddeb-71d4-4a86-8583-64fbadcd635f"],
+Cell[49465, 1546, 351, 5, 70, "Input",ExpressionUUID->"95e3be9b-f998-4bfa-a854-f06ae56dc7a9"],
+Cell[49819, 1553, 636, 22, 70, "Text",ExpressionUUID->"4b8e87c6-159e-44c1-8945-e83ee74beaba"]
+}, Closed]],
+Cell[50470, 1578, 128, 0, 70, "Subsection",ExpressionUUID->"a64e5ba3-ecc1-41be-8380-65c9458adba6"],
+Cell[50601, 1580, 635, 17, 70, "Text",ExpressionUUID->"8568c423-53a0-4c8c-9782-043b86a6da11"],
+Cell[CellGroupData[{
+Cell[51261, 1601, 88, 0, 70, "Subsubsection",ExpressionUUID->"3d972837-b787-47c3-8496-54b70393f7fc"],
+Cell[51352, 1603, 306, 5, 70, "Input",ExpressionUUID->"edb14796-3753-47b4-89f0-062b37f1ca1e"],
+Cell[51661, 1610, 233, 4, 70, "Input",ExpressionUUID->"db4cd3dc-df5b-4632-8280-35aa6ffac798"],
+Cell[51897, 1616, 793, 26, 70, "Text",ExpressionUUID->"dff2fd87-4228-4720-99d8-38d18699dd60"]
+}, Closed]]
+}
+]
+*)
+
+(* End of internal cache information *)

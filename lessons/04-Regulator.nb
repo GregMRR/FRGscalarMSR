@@ -1,0 +1,1287 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[     45939,       1278]
+NotebookOptionsPosition[     39647,       1197]
+NotebookOutlinePosition[     39984,       1212]
+CellTagsIndexPosition[     39941,       1209]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["Lesson 04 - Regulator", "Title",ExpressionUUID->"eb60ae1f-3280-4f6b-ab85-d4422bce1f7c"],
+
+Cell[TextData[{
+ StyleBox["Physics step.",
+  FontWeight->Bold],
+ " Declare the regulator R_k(q) that is added to ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2, entry by entry, with ",
+ StyleBox["abstract",
+  FontWeight->Bold],
+ " shape functions r(y), y = q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "/k",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ", and derive its scale derivative ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "s R = k ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "k R by the chain rule. The couplings depend on k, so ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "s R contains ",
+ StyleBox["dsCoupling[c]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " = k dc/dk, which later becomes ",
+ StyleBox["\[Minus]\[Eta]",
+  FontFamily->"Noto Sans"],
+ " c."
+}], "Text",ExpressionUUID->"5955997a-356d-4d8d-bd78-fdf1b1817f03"],
+
+Cell[TextData[{
+ StyleBox["Stage.",
+  FontWeight->Bold],
+ " Input: the Ansatz stage, rules ",
+ StyleBox["{a, b} -> R_ab",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["\"Shapes\" -> {...}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Output: the ",
+ StyleBox["\"Regulator\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stage. Regulator does not need the Vertices stage: the two are independent \
+and meet in the Propagator (lesson 05)."
+}], "Text",ExpressionUUID->"920055a0-5fec-45cd-ac60-4ad2a172052e"],
+
+Cell["\<\
+Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
+ansatz = lessonUpTo[\"Ansatz\"];\
+\>", "Input",ExpressionUUID->"d9599b41-11ac-4c66-a0fa-c98c8646ef96"],
+
+Cell["1. Using it", "Section",ExpressionUUID->"1e5b20d9-1fdf-4d7d-ab77-85aa3c0edeac"],
+
+Cell[TextData[{
+ "KPZ: R_{",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ "h}(q) = ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " r_n(y) and R_{",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ "}(q) = ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "2D r_d(y)."
+}], "Text",ExpressionUUID->"38222833-2291-4eea-b271-3b6fc1a88d64"],
+
+Cell["\<\
+regulator = DefineRegulator[ansatz, {hbar, h} -> nuk q^2 rn[q^2/k^2], {hbar, \
+hbar} -> -2 Dk rd[q^2/k^2], \"Shapes\" -> {rn, rd}];\
+\>", "Input",ExpressionUUID->"d9f00e5b-a8a3-4b7a-8378-c965e79fdf4c"],
+
+Cell[TextData[{
+ "Each entry is a ",
+ StyleBox["\[CapitalGamma]2-level",
+  FontWeight->Bold],
+ " entry: what is added to ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2_ab, including the factor 2 of a diagonal pair (",
+ StyleBox["docs/MODULES.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", convention E10), so that (",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2 + R)_{",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ "} = ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "2D(1 + r_d). The accessors give matrices in field order at q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " = s:"
+}], "Text",ExpressionUUID->"81089925-e8b1-4e06-a9da-651bc58a6710"],
+
+Cell["\<\
+{RegulatorMatrix[regulator, s], DsRAbstractMatrix[regulator]}\
+\>", "Input",ExpressionUUID->"80cd205c-7cb3-4aa3-8d6f-200344fec44e"],
+
+Cell["DsRRules[regulator, s]", "Input",ExpressionUUID->"69c1386b-170b-424f-97b0-5a19ed3b188a"],
+
+Cell[TextData[{
+ StyleBox["dsR[h, hbar]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is a placeholder for the entry of ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "s R: the loop integrands of lesson 07 are written with it, and it is \
+replaced by the derived expression only at assembly (lesson 11), so that \
+intermediate expressions stay small."
+}], "Text",ExpressionUUID->"53a50f20-3fc5-4b9e-9871-c051918e21b9"],
+
+Cell["2. Arguments: rules and an option", "Section",ExpressionUUID->"f85924de-585c-46e0-952e-cbd795796a27"],
+
+Cell["\<\
+(* Kernel/Regulator.wl:30-46 *)
+Options[DefineRegulator] = {\"Shapes\" -> {}};
+
+DefineRegulator[ansatz_, args___] := Block[{$FRGModule = \"Regulator\"},
+  Module[{t0 = AbsoluteTime[], theory, fields, resp, cps, pairs, opts, \
+shapes, qs, ks, kk, entries, checks = {}, warns = {}, allowed, bad,
+    rmat, dsmat, dsAbs, pos, stage, used},
+   validateStage[ansatz, \"Ansatz\"];
+   theory = ansatz[\"Theory\"]; fields = theory[\"Fields\"]; resp = \
+theory[\"ResponseFields\"]; cps = ansatz[\"Couplings\"];
+   pairs = Cases[{args}, ({_, _} -> _) | ({_, _} :> _)];
+   opts = Cases[{args}, (Rule | RuleDelayed)[_String, _]];
+   FRGAssert[\"Regulator.arguments\", Length[pairs] + Length[opts] == \
+Length[{args}] && MatchQ[opts, {(\"Shapes\" -> _) ...}],
+    Complement[{args}, pairs, opts], \"arguments are {a, b} -> R_ab rules and \
+\\\"Shapes\\\" -> {r1, ...}\"];
+   shapes = Lookup[opts, \"Shapes\", {}];
+   FRGAssert[\"Regulator.shapeList\", ListQ[shapes] && shapes =!= {}, shapes, \
+\"\\\"Shapes\\\" -> {r1, r2, ...} is required: the shape functions stay \
+abstract\"];
+   assertFreshSymbols[\"Regulator.shapes\", shapes, \"shape functions\"];
+   FRGAssert[\"Regulator.shapesDistinct\", Intersection[shapes, Join[fields, \
+cps, {theory[\"Dimension\"]}]] === {}, Intersection[shapes, Join[fields, cps]],
+    \"a shape function has the name of a field, a coupling or the dimension\"];
+   FRGAssert[\"Regulator.pairs\", pairs =!= {}, {args}, \"give at least one \
+pair {a, b} -> R_ab\"];\
+\>", "Program",ExpressionUUID->"5df52f96-d735-4270-98d8-4071be27c121"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Sequence patterns",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["x__",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " matches a sequence of one or more arguments, ",
+ StyleBox["x___",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " of zero or more; inside the body, ",
+ StyleBox["{x}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the list of them.",
+ "\n\n",
+ StyleBox["DefineRegulator[ansatz_, args___]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " accepts any number of arguments after the ansatz. ",
+ StyleBox["OptionsPattern[]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " would not do here: the entries ",
+ StyleBox["{hbar, h} -> ...",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " are rules too, but their keys are lists, not option names. The constructor \
+sorts ",
+ StyleBox["{args}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " itself with ",
+ StyleBox["Cases",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["Cases and level specifications",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "): rules with a two-element list as key are entries, rules with a string \
+key are options, and anything else is an error (",
+ StyleBox["Regulator.arguments",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ")."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"69a98a73-f875-4a9f-a8dd-e12f9212c606"],
+
+Cell[TextData[{
+ StyleBox["Lookup[opts, \"Shapes\", {}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " works on a list of rules as well as on an association (",
+ StyleBox["Association",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ")."
+}], "Text",ExpressionUUID->"e035d3fc-5609-4b09-8363-06b07ca7a351"],
+
+Cell["3. Which pairs are allowed", "Section",ExpressionUUID->"084a6a8b-63cc-4fa7-b570-41ce82b473fb"],
+
+Cell["\<\
+(* Kernel/Regulator.wl:48-57 *)
+   (* pairs: fields of the theory, at least one response field, each \
+unordered pair once *)
+   AppendTo[checks, assertCheck[\"Regulator.pairFields\", AllTrue[pairs[[All, \
+1]], SubsetQ[fields, #] &], Select[pairs[[All, 1]], ! SubsetQ[fields, #] &],
+     \"regulator pairs must be fields of the theory\", \"pairs are fields of \
+the theory\"]];
+   AppendTo[checks, assertCheck[\"Regulator.responsePair\", \
+AllTrue[pairs[[All, 1]], IntersectingQ[#, resp] &], Select[pairs[[All, 1]], ! \
+IntersectingQ[#, resp] &],
+     \"a regulator entry between two physical fields would break causality \
+(Gamma2_{phi phi} = 0): only phibar phi and phibar phibar pairs\",
+     \"only phibar-phi / phibar-phibar pairs\"]];
+   pos[a_] := First[FirstPosition[fields, a]];
+   pairs = (SortBy[#[[1]], pos] -> #[[2]]) & /@ pairs;
+   AppendTo[checks, assertCheck[\"Regulator.pairOnce\", \
+DuplicateFreeQ[pairs[[All, 1]]], pairs[[All, 1]],
+     \"a pair is given twice ({a, b} and {b, a} are the same entry: R is \
+symmetric because it is even in q and w-independent)\", \"each pair given \
+once\"]];\
+\>", "Program",ExpressionUUID->"05b17090-d43b-4d1d-a602-5a5e8391dbd1"],
+
+Cell[TextData[{
+ StyleBox["SubsetQ[fields, pair]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " tests that both fields belong to the theory, and ",
+ StyleBox["IntersectingQ[pair, responseFields]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " that the pair contains a response field. A ",
+ StyleBox["\[CurlyPhi]\[CurlyPhi]",
+  FontFamily->"Noto Sans"],
+ " entry would give ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2_{",
+ StyleBox["\[CurlyPhi]\[CurlyPhi]",
+  FontFamily->"Noto Sans"],
+ "} ",
+ StyleBox["\[NotEqual]",
+  FontFamily->"Noto Sans"],
+ " 0 and break causality:"
+}], "Text",ExpressionUUID->"6c6519b1-8452-4eda-8ebc-b3f66a89841b"],
+
+Cell["\<\
+showFailure[DefineRegulator[ansatz, {h, h} -> nuk q^2 rn[q^2/k^2], \"Shapes\" \
+-> {rn}]]\
+\>", "Input",ExpressionUUID->"12d6de3d-1593-4abb-8086-53355c507cd2"],
+
+Cell[TextData[{
+ "Each pair is then put in field order (",
+ StyleBox["SortBy[#[[1]], pos]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["DeleteCases, SortBy and FirstPosition",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 02)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "): R is even in q and ",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ "-independent, hence symmetric, so ",
+ StyleBox["{hbar, h}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["{h, hbar}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " are the same entry and may be given only once."
+}], "Text",ExpressionUUID->"b19de27b-e015-453f-9509-f99be5f14b65"],
+
+Cell["4. Your q and your k", "Section",ExpressionUUID->"f3d4bfa4-7d81-4bb3-95a8-cb5f98e19805"],
+
+Cell["\<\
+(* Kernel/Regulator.wl:59-67 *)
+   (* the user writes q (loop momentum) and k (scale): any context, matched \
+by name *)
+   qs = symbolsNamed[pairs[[All, 2]], \"q\"]; ks = symbolsNamed[pairs[[All, \
+2]], \"k\"];
+   FRGAssert[\"Regulator.momentumSymbol\", Length[qs] <= 1 && Length[ks] == \
+1, {qs, ks},
+    \"write the entries with one loop-momentum symbol q and one scale symbol \
+k, shapes as r[q^2/k^2]\"];
+   kk = First[ks];
+   FRGAssert[\"Regulator.scaleFree\", AllTrue[Join[ks, qs], OwnValues[#] === \
+{} && DownValues[#] === {} &], Join[ks, qs], \"k and q must have no \
+values\"];
+   entries = Association[(#[[1]] -> If[qs === {}, #[[2]], toS[#[[2]], \
+First[qs]]]) & /@ pairs];
+   AppendTo[checks, assertCheck[\"Regulator.evenInQ\", FreeQ[Values[entries], \
+Alternatives @@ qs], Select[entries, ! FreeQ[#, Alternatives @@ qs] &],
+     \"R_ab must depend on q through q^2 only (even powers of q)\", \"R \
+depends on q^2 only\"]];\
+\>", "Program",ExpressionUUID->"3d17d770-2d6a-49be-8122-3b8461056a6c"],
+
+Cell["\<\
+(* Kernel/Regulator.wl:25 *)
+symbolsNamed[e_, name_] := Union[Cases[e, x_Symbol /; SymbolName[x] === name, \
+{0, Infinity}, Heads -> True]];\
+\>", "Program",ExpressionUUID->"df8a2f60-bf0b-4195-946b-e2fd3e5f4a59"],
+
+Cell["\<\
+(* Kernel/Regulator.wl:27-28 *)
+(* q^n -> sq^(n/2), n even: R depends on q only through q^2 *)
+toS[e_, qsym_] := e /. Power[qsym, n_Integer?EvenQ] :> sq^(n/2);\
+\>", "Program",ExpressionUUID->"d247f98b-1f69-4dca-b581-f492b6a2f592"],
+
+Cell[TextData[{
+ "The entries are written with ",
+ StyleBox["your",
+  FontSlant->Italic],
+ " symbols ",
+ StyleBox["q",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["k",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". In these lessons they live in the notebook's own context (lesson 00), in \
+a script in `",
+ StyleBox["Global",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" : the library cannot know in advance which symbol ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "q",
+ StyleBox[" is, so ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "symbolsNamed",
+ StyleBox[" finds them by their short name (",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "SymbolName",
+ StyleBox[", [[Symbol and SymbolName]]). ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "k",
+ StyleBox[" remains the scale symbol in every later stage, and your ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "q",
+ StyleBox[" is stored as ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "\"LoopMomentum\"`."
+}], "Text",ExpressionUUID->"f53e883b-05d1-4c9c-a4d0-cce114f43a0e"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: PatternTest",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["x_?test",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " matches x only if ",
+ StyleBox["test[x]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is True; ",
+ StyleBox["n_Integer?EvenQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " matches even integers.",
+ "\n\n",
+ StyleBox["toS",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " replaces ",
+ StyleBox["q^n",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " with n even by ",
+ StyleBox["sq^(n/2)",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ": from here on, R is a function of q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " only. An odd power of ",
+ StyleBox["q",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " survives the replacement, and ",
+ StyleBox["Regulator.evenInQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " catches it. ",
+ StyleBox["p_?test",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " differs from ",
+ StyleBox["p_ /; cond",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["Patterns",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ") only in form: the test is a function applied to the match."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"55680862-81b3-4237-bc50-4c37147caa68"],
+
+Cell["\<\
+showFailure[DefineRegulator[ansatz, {hbar, h} -> nuk q^2 rn[q/k], \"Shapes\" \
+-> {rn}]]\
+\>", "Input",ExpressionUUID->"567d13ec-b2f5-49be-9ee6-8e67df432235"],
+
+Cell[TextData[{
+ StyleBox["sq",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is a private helper symbol standing for q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ". It is the example of the shared-private-context gotcha in CLAUDE.md: \
+every module's helpers live in `",
+ StyleBox["FRGscalarMSR",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "Private`",
+ StyleBox[" (lesson 00, section 2), so a helper called ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "sq` in another module would be the same symbol."
+}], "Text",ExpressionUUID->"402581f4-7b86-4a16-a295-e918cc249c2a"],
+
+Cell["Context[FRGscalarMSR`Private`sq]", "Input",ExpressionUUID->"9cb11130-f0cf-49d2-bafb-6cbe96c9024a"],
+
+Cell["5. What may appear in an entry", "Section",ExpressionUUID->"6c2f1209-da04-4a92-933e-731acc3c4726"],
+
+Cell["\<\
+(* Kernel/Regulator.wl:69-81 *)
+   allowed = Join[cps, {kk, sq}];
+   bad = Complement[Cases[Values[entries], x_Symbol /; Context[x] =!= \
+\"System`\", {0, Infinity}, Heads -> False], allowed];
+   AppendTo[checks, assertCheck[\"Regulator.knownSymbols\", bad === {}, bad,
+     \"R_ab may contain the couplings of the ansatz, q, k and the declared \
+shapes only (in particular no frequency: R is w-independent)\",
+     \"only couplings, q, k and shapes; w-independent\"]];
+   bad = Complement[Cases[Values[entries], (h_Symbol /; Context[h] =!= \
+\"System`\")[___] :> h, {0, Infinity}], shapes];
+   AppendTo[checks, assertCheck[\"Regulator.onlyDeclaredShapes\", bad === {}, \
+bad, \"every function in R_ab must be a declared shape\", \"the declared \
+shapes are the only free functions\"]];
+   bad = Cases[Values[entries], (r : Alternatives @@ shapes)[x___] /; {x} =!= \
+{sq/kk^2}, {0, Infinity}];
+   AppendTo[checks, assertCheck[\"Regulator.shapeArgument\", bad === {} && \
+FreeQ[Values[entries], Derivative[__][Alternatives @@ shapes]] && \
+FreeQ[Values[entries] /. (Alternatives @@ shapes)[sq/kk^2] -> 1, Alternatives \
+@@ shapes],
+     bad, \"shapes appear only as r[q^2/k^2] (no derivatives, no other \
+argument)\", \"shapes appear as r[q^2/k^2]\"]];
+   used = Select[shapes, ! FreeQ[Values[entries], #] &];
+   If[used =!= shapes, AppendTo[warns, infoCheck[\"WARN\", \
+\"Regulator.unusedShapes\", \"declared but unused: \" <> \
+ToString[Complement[shapes, used]]]]];
+   AppendTo[checks, assertCheck[\"Regulator.nonzero\", \
+AllTrue[Values[entries], # =!= 0 &], Select[entries, # === 0 &], \"drop pairs \
+with R_ab = 0\", \"no zero entry\"]];\
+\>", "Program",ExpressionUUID->"500be4e3-c4d4-49a5-a377-aecc596fa5b4"],
+
+Cell[TextData[{
+ "Three separate checks: only couplings, ",
+ StyleBox["k",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " and shapes as symbols (no frequency, since R is ",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ "-independent); only the declared shapes as functions (",
+ StyleBox["(h_Symbol /; ...)[___] :> h",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " collects the heads of all function calls); and every shape only in the \
+form r[q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "/k",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "], with no derivative and no other argument."
+}], "Text",ExpressionUUID->"6726ca8b-29e7-428d-b844-6a8544c63de4"],
+
+Cell["\<\
+showFailure[DefineRegulator[ansatz, {hbar, h} -> nuk q^2 rn[q^2/k^2] w, \
+\"Shapes\" -> {rn}]]\
+\>", "Input",ExpressionUUID->"268c32f5-a36d-4003-857c-374f03c960c3"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Shapes stay abstract",
+  FontWeight->Bold],
+ "\n\n",
+ "The shape functions are never given a formula. The flow equations come out \
+as functionals of r(y), r",
+ StyleBox["\[Prime]",
+  FontFamily->"Noto Sans"],
+ "(y), r",
+ StyleBox["\[DoublePrime]",
+  FontFamily->"Noto Sans"],
+ "(y), ..., valid for every regulator, and the choice (Litim, exponential, \
+...) is made in FlowRG, after the export (lesson 15). Abstract shapes also \
+make the symbolic checks stronger: ",
+ StyleBox["ExactlyZeroQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " gives every atom r(y), r",
+ StyleBox["\[Prime]",
+  FontFamily->"Noto Sans"],
+ "(y) its own random value (lesson 00, section 5), so an identity that passes \
+holds for arbitrary shapes, not by luck for one of them. The price is that \
+the shapes must appear in one fixed form, r[q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "/k",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "], which is what the checks of this section enforce."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"aa703440-34c3-4652-a424-5935f17f55ec"],
+
+Cell["6. The scale derivative, two ways", "Section",ExpressionUUID->"5ad58b7b-b33d-4f13-8ca2-58e259821ac0"],
+
+Cell["\<\
+(* Kernel/Regulator.wl:83-91 *)
+   (* d_s R by the chain rule: k d/dk at fixed q; couplings c(k) -> \
+dsCoupling[c] *)
+   rmat = Table[Lookup[entries, Key[SortBy[{a, b}, pos]], 0], {a, fields}, \
+{b, fields}];
+   dsmat = Map[Expand[Sum[D[#, c] dsCoupling[c], {c, cps}] + kk D[#, kk]] &, \
+rmat, {2}];
+   dsAbs = Table[If[rmat[[i, j]] === 0, 0, dsR @@ SortBy[{fields[[i]], \
+fields[[j]]}, pos]], {i, Length[fields]}, {j, Length[fields]}];
+   (* the same derivative by a second route: couplings as functions c(k), \
+total k d/dk, c'(k) -> dsCoupling[c]/k *)
+   AppendTo[checks, assertCheck[\"Regulator.dsRChainRule\",
+     AllTrue[Flatten[dsmat - Map[(kk D[# /. Thread[cps -> (cf[#][kk] & /@ \
+cps)], kk] /. Derivative[1][cf[c_]][kk] :> dsCoupling[c]/kk /. cf[c_][kk] :> \
+c) &, rmat, {2}]], ExactlyZeroQ],
+     dsmat, \"internal: the two computations of d_s R differ\",
+     \"d_s R = sum_c dR/dc dsCoupling[c] + k dR/dk  (k d/dk r(q^2/k^2) = -2 y \
+r'(y)); checked by a second route\"]];\
+\>", "Program",ExpressionUUID->"500a3bc8-dbdf-4f23-8211-024933c2e753"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: D and unknown functions",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["D[e, x]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " differentiates; on a function with no definition it applies the chain rule \
+and writes the derivative as ",
+ StyleBox["Derivative[1][r][arg]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", displayed ",
+ StyleBox["r'[arg]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ".",
+ "\n\n",
+ StyleBox["k D[rn[q^2/k^2], k]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " gives ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "2 q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "/k",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " r_n",
+ StyleBox["\[Prime]",
+  FontFamily->"Noto Sans"],
+ "(q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "/k",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "), that is ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "2 y r",
+ StyleBox["\[Prime]",
+  FontFamily->"Noto Sans"],
+ "(y): Mathematica knows the chain rule without knowing r. ",
+ StyleBox["Derivative[1][rn]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is itself an expression, the derivative of the function ",
+ StyleBox["rn",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", which is why ",
+ StyleBox["ExactlyZeroQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " treats ",
+ StyleBox["Derivative[1][rn][y]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " as one atom."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"6c2696ea-ce2b-4105-8670-ca818d51890e"],
+
+Cell["k D[rn[q^2/k^2], k]", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"d2c9d288-8202-4af8-b8a8-0fef9b58d003"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Map at a level",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Map[f, matrix, {2}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " applies f to every element at depth 2, that is, to every entry of a \
+matrix.",
+ "\n\n",
+ StyleBox["Map[f, {{1, 2}, {3, 4}}, {2}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is ",
+ StyleBox["{{f[1], f[2]}, {f[3], f[4]}}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Without the level specification, ",
+ StyleBox["Map",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " would apply f to the rows."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"7d2fc755-d4eb-4ee0-8466-1e70453c1e51"],
+
+Cell[TextData[{
+ "The first route differentiates at fixed couplings and adds ",
+ StyleBox["\[CapitalSigma]",
+  FontFamily->"Noto Sans"],
+ "_c ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "R/",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "c ",
+ StyleBox["\[CenterDot]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["dsCoupling[c]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". The second route makes each coupling an explicit function ",
+ StyleBox["cf[c][k]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", takes the total derivative k d/dk, and replaces ",
+ StyleBox["cf[c]'[k]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " by ",
+ StyleBox["dsCoupling[c]/k",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". ",
+ StyleBox["Regulator.dsRChainRule",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " requires the two to agree, with ",
+ StyleBox["ExactlyZeroQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",ExpressionUUID->"17532b9b-ea8a-46b4-9ca1-aaa850317615"],
+
+Cell["7. The stage stores functions", "Section",ExpressionUUID->"794c05c5-b07b-4eb6-aa24-3056f0f2ac75"],
+
+Cell[BoxData[
+ $CellContext`regionCells[
+ "Kernel/Regulator.wl", "stage = stampStage[<", "\"Stage\" -> \"Regulator\"", 
+  "\"Checks\" -> checks, \"Warnings\" -> warns"]], "Input",ExpressionUUID->\
+"9f8ad7c2-2eb2-4fa8-ac7c-2c72f9f7fb0e"],
+
+Cell["\<\
+(* Kernel/Regulator.wl:102-105 *)
+RegulatorMatrix[r_Association, s_] := r[\"RMatrix\"][s];
+DsRegulatorMatrix[r_Association, s_] := r[\"DsRMatrix\"][s];
+DsRAbstractMatrix[r_Association] := r[\"DsRAbstract\"];
+DsRRules[r_Association, s_] := \
+DeleteDuplicates[DeleteCases[Flatten[MapThread[Rule, {r[\"DsRAbstract\"], \
+r[\"DsRMatrix\"][s]}, 2]], 0 -> _]];\
+\>", "Program",ExpressionUUID->"2e134696-2ffb-4278-9385-199598a7a8f1"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Function and Evaluate",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Function[{x}, body]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " holds its body unevaluated; ",
+ StyleBox["Function[{x}, Evaluate[body]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " evaluates it first, so the stored function contains the computed result.",
+ "\n\n",
+ StyleBox["\"RMatrix\" -> Function[Evaluate[{sq}], Evaluate[rmat]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stores the matrix as a function of q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ": ",
+ StyleBox["regulator[\"RMatrix\"][s]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " substitutes ",
+ StyleBox["s",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " for ",
+ StyleBox["sq",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". ",
+ StyleBox["Function",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " has the attribute ",
+ StyleBox["HoldAll",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["Hold attributes",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "); without ",
+ StyleBox["Evaluate",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", the body would be the ",
+ StyleBox["symbol",
+  FontSlant->Italic],
+ " ",
+ StyleBox["rmat",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", a ",
+ StyleBox["Module",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " variable that is gone after the call. The first ",
+ StyleBox["Evaluate",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is needed for the same reason: ",
+ StyleBox["{sq}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " must be the list of the actual private symbol."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"b0783109-c295-441d-8ae2-37215e7bf1de"],
+
+Cell["\<\
+{Function[{x}, Expand[(x + 1)^2]], Function[{x}, Evaluate[Expand[(x + \
+1)^2]]], regulator[\"RMatrix\"]}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"e16497a5-39e4-4f71-b13c-6e931a6906e9"],
+
+Cell[TextData[{
+ StyleBox["DsRRules",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " pairs each abstract ",
+ StyleBox["dsR[a, b]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " with its derived entry (",
+ StyleBox["MapThread[Rule, {m1, m2}, 2]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " builds rules entry by entry) and removes the zero entries and the \
+duplicates (",
+ StyleBox["DeleteDuplicates",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ": R is symmetric, so ",
+ StyleBox["dsR[h, hbar]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " appears twice)."
+}], "Text",ExpressionUUID->"c57c8adc-cbbd-4066-bfe0-3849053a36d7"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Matrices as functions of q\.b2",
+  FontWeight->Bold],
+ "\n\n",
+ "The later modules need R and ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "s R at the loop momentum q, and at shifted momenta such as (q + p)",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " for the momentum projection (lesson 08). Storing a function of q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " lets each caller pass whatever it needs, ",
+ StyleBox["scal[q, q]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " or ",
+ StyleBox["scal[q + p, q + p]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", without the regulator knowing about it. Since R depends on q only through \
+q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " (section 4), one argument is enough."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"987faa08-4740-4b51-94d9-4b18ec297505"],
+
+Cell["Exercises", "Section",ExpressionUUID->"143e4f58-1b4e-4cde-9c90-3b44c42bc1f8"],
+
+Cell["Exercise: \[PartialD]s R by hand", "Subsection",ExpressionUUID->"b59f6c98-06b7-4932-8627-830a463eb7a9"],
+
+Cell[TextData[{
+ "Compute k ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "k of R_{",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ "h} = ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ "(k) q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " r_n(q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "/k",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ") by hand and compare with ",
+ StyleBox["DsRRules",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",ExpressionUUID->"6403d197-a89f-4e79-8767-97ef4c846d18"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"6ba020f0-98c8-4d65-a2a7-4c500f711a8c"],
+
+Cell[TextData[{
+ "k ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "k gives (k ",
+ StyleBox["\[Nu]\[Prime]",
+  FontFamily->"Noto Sans"],
+ ") q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " r_n + ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " (",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "2 q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "/k",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ") r_n",
+ StyleBox["\[Prime]",
+  FontFamily->"Noto Sans"],
+ " = q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["dsCoupling[nuk]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " r_n(y) ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ " 2 ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " q",
+ StyleBox["\:2074",
+  FontFamily->"Noto Sans"],
+ "/k",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " r_n",
+ StyleBox["\[Prime]",
+  FontFamily->"Noto Sans"],
+ "(y), the first rule of:"
+}], "Text",ExpressionUUID->"fd1bff23-f7b6-4793-bae6-211e2cee8fd9"],
+
+Cell["DsRRules[regulator, s]", "Input",ExpressionUUID->"7a931a35-3f94-4de1-a533-8bfa0140cfb4"]
+}, Closed]],
+
+Cell["Exercise: An unused shape", "Subsection",ExpressionUUID->"0df3f44a-f199-4805-aa5a-b537ea82b473"],
+
+Cell[TextData[{
+ "Regulate only the ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ "h entry but declare both ",
+ StyleBox["rn",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["rd",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". What does the card say? Is the result usable?"
+}], "Text",ExpressionUUID->"5cd188c7-dc82-41fa-b712-bda75e04edd3"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"00e77061-80cd-412e-971c-b6c4f5a6840c"],
+
+Cell["\<\
+DefineRegulator[ansatz, {hbar, h} -> nuk q^2 rn[q^2/k^2], \"Shapes\" -> {rn, \
+rd}];\
+\>", "Input",ExpressionUUID->"1455a2a2-ad1c-4648-a62e-1ae8efdfe99f"],
+
+Cell[TextData[{
+ "A WARN ",
+ StyleBox["Regulator.unusedShapes",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "; the stage is valid (a regulator need not touch every entry), the warning \
+only flags a likely typo."
+}], "Text",ExpressionUUID->"f71a479f-0f4b-4807-8684-9a7ddd57c2fa"]
+}, Closed]],
+
+Cell["Exercise: Recognition by name", "Subsection",ExpressionUUID->"12cfcce3-1900-4203-ba04-abf842008142"],
+
+Cell[TextData[{
+ "Write the regulator with the momentum called ",
+ StyleBox["p",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " instead of ",
+ StyleBox["q",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Which check fails, and why?"
+}], "Text",ExpressionUUID->"3fa63140-a79e-4ef2-bdfe-ecd25fac0c6b"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"0451f74c-8ecd-4480-b559-6f7efb71e3fb"],
+
+Cell["\<\
+showFailure[DefineRegulator[ansatz, {hbar, h} -> nuk p^2 rn[p^2/k^2], \
+\"Shapes\" -> {rn}]]\
+\>", "Input",ExpressionUUID->"0f19bf93-68eb-4865-8160-d92933a6ee02"],
+
+Cell[TextData[{
+ StyleBox["symbolsNamed",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " finds no symbol called ",
+ StyleBox["q",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", so ",
+ StyleBox["p",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is just an unknown symbol: ",
+ StyleBox["Regulator.knownSymbols",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". The loop momentum must be called ",
+ StyleBox["q",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (it is a reserved name, lesson 00, section 6)."
+}], "Text",ExpressionUUID->"c3dde35a-d38a-4751-be68-42906002285d"]
+}, Closed]]
+},
+CellContext->Notebook,
+FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"68ca8ccf-8ceb-4f4a-8543-fab9318d86bc"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 93, 0, 70, "Title",ExpressionUUID->"eb60ae1f-3280-4f6b-ab85-d4422bce1f7c"],
+Cell[650, 22, 961, 33, 70, "Text",ExpressionUUID->"5955997a-356d-4d8d-bd78-fdf1b1817f03"],
+Cell[1614, 57, 707, 20, 70, "Text",ExpressionUUID->"920055a0-5fec-45cd-ac60-4ad2a172052e"],
+Cell[2324, 79, 233, 4, 70, "Input",ExpressionUUID->"d9599b41-11ac-4c66-a0fa-c98c8646ef96"],
+Cell[2560, 85, 85, 0, 70, "Section",ExpressionUUID->"1e5b20d9-1fdf-4d7d-ab77-85aa3c0edeac"],
+Cell[2648, 87, 451, 19, 70, "Text",ExpressionUUID->"38222833-2291-4eea-b271-3b6fc1a88d64"],
+Cell[3102, 108, 211, 3, 70, "Input",ExpressionUUID->"d9f00e5b-a8a3-4b7a-8378-c965e79fdf4c"],
+Cell[3316, 113, 814, 27, 70, "Text",ExpressionUUID->"81089925-e8b1-4e06-a9da-651bc58a6710"],
+Cell[4133, 142, 141, 2, 70, "Input",ExpressionUUID->"80cd205c-7cb3-4aa3-8d6f-200344fec44e"],
+Cell[4277, 146, 94, 0, 70, "Input",ExpressionUUID->"69c1386b-170b-424f-97b0-5a19ed3b188a"],
+Cell[4374, 148, 491, 11, 70, "Text",ExpressionUUID->"53a50f20-3fc5-4b9e-9871-c051918e21b9"],
+Cell[4868, 161, 107, 0, 70, "Section",ExpressionUUID->"f85924de-585c-46e0-952e-cbd795796a27"],
+Cell[4978, 163, 1564, 27, 70, "Program",ExpressionUUID->"5df52f96-d735-4270-98d8-4071be27c121"],
+Cell[6545, 192, 2138, 64, 70, "Text",ExpressionUUID->"69a98a73-f875-4a9f-a8dd-e12f9212c606"],
+Cell[8686, 258, 511, 14, 70, "Text",ExpressionUUID->"e035d3fc-5609-4b09-8363-06b07ca7a351"],
+Cell[9200, 274, 100, 0, 70, "Section",ExpressionUUID->"084a6a8b-63cc-4fa7-b570-41ce82b473fb"],
+Cell[9303, 276, 1193, 21, 70, "Program",ExpressionUUID->"05b17090-d43b-4d1d-a602-5a5e8391dbd1"],
+Cell[10499, 299, 781, 23, 70, "Text",ExpressionUUID->"6c6519b1-8452-4eda-8ebc-b3f66a89841b"],
+Cell[11283, 324, 169, 3, 70, "Input",ExpressionUUID->"12d6de3d-1593-4abb-8086-53355c507cd2"],
+Cell[11455, 329, 942, 28, 70, "Text",ExpressionUUID->"b19de27b-e015-453f-9509-f99be5f14b65"],
+Cell[12400, 359, 94, 0, 70, "Section",ExpressionUUID->"f3d4bfa4-7d81-4bb3-95a8-cb5f98e19805"],
+Cell[12497, 361, 1019, 20, 70, "Program",ExpressionUUID->"3d17d770-2d6a-49be-8122-3b8461056a6c"],
+Cell[13519, 383, 222, 4, 70, "Program",ExpressionUUID->"df8a2f60-bf0b-4195-946b-e2fd3e5f4a59"],
+Cell[13744, 389, 241, 4, 70, "Program",ExpressionUUID->"d247f98b-1f69-4dca-b581-f492b6a2f592"],
+Cell[13988, 395, 1610, 50, 70, "Text",ExpressionUUID->"f53e883b-05d1-4c9c-a4d0-cce114f43a0e"],
+Cell[15601, 447, 2105, 70, 70, "Text",ExpressionUUID->"55680862-81b3-4237-bc50-4c37147caa68"],
+Cell[17709, 519, 168, 3, 70, "Input",ExpressionUUID->"567d13ec-b2f5-49be-9ee6-8e67df432235"],
+Cell[17880, 524, 761, 20, 70, "Text",ExpressionUUID->"402581f4-7b86-4a16-a295-e918cc249c2a"],
+Cell[18644, 546, 104, 0, 70, "Input",ExpressionUUID->"9cb11130-f0cf-49d2-bafb-6cbe96c9024a"],
+Cell[18751, 548, 104, 0, 70, "Section",ExpressionUUID->"6c2f1209-da04-4a92-933e-731acc3c4726"],
+Cell[18858, 550, 1724, 29, 70, "Program",ExpressionUUID->"500be4e3-c4d4-49a5-a377-aecc596fa5b4"],
+Cell[20585, 581, 841, 25, 70, "Text",ExpressionUUID->"6726ca8b-29e7-428d-b844-6a8544c63de4"],
+Cell[21429, 608, 174, 3, 70, "Input",ExpressionUUID->"268c32f5-a36d-4003-857c-374f03c960c3"],
+Cell[21606, 613, 1265, 34, 70, "Text",ExpressionUUID->"aa703440-34c3-4652-a424-5935f17f55ec"],
+Cell[22874, 649, 107, 0, 70, "Section",ExpressionUUID->"5ad58b7b-b33d-4f13-8ca2-58e259821ac0"],
+Cell[22984, 651, 1069, 19, 70, "Program",ExpressionUUID->"500a3bc8-dbdf-4f23-8211-024933c2e753"],
+Cell[24056, 672, 2102, 74, 70, "Text",ExpressionUUID->"6c2696ea-ce2b-4105-8670-ca818d51890e"],
+Cell[26161, 748, 206, 4, 70, "Input",ExpressionUUID->"d2c9d288-8202-4af8-b8a8-0fef9b58d003"],
+Cell[26370, 754, 989, 30, 70, "Text",ExpressionUUID->"7d2fc755-d4eb-4ee0-8466-1e70453c1e51"],
+Cell[27362, 786, 1357, 44, 70, "Text",ExpressionUUID->"17532b9b-ea8a-46b4-9ca1-aaa850317615"],
+Cell[28722, 832, 103, 0, 70, "Section",ExpressionUUID->"794c05c5-b07b-4eb6-aa24-3056f0f2ac75"],
+Cell[28828, 834, 236, 4, 70, "Input",ExpressionUUID->"9f8ad7c2-2eb2-4fa8-ac7c-2c72f9f7fb0e"],
+Cell[29067, 840, 435, 8, 70, "Program",ExpressionUUID->"2e134696-2ffb-4278-9385-199598a7a8f1"],
+Cell[29505, 850, 2729, 88, 70, "Text",ExpressionUUID->"b0783109-c295-441d-8ae2-37215e7bf1de"],
+Cell[32237, 940, 299, 7, 70, "Input",ExpressionUUID->"e16497a5-39e4-4f71-b13c-6e931a6906e9"],
+Cell[32539, 949, 933, 27, 70, "Text",ExpressionUUID->"c57c8adc-cbbd-4066-bfe0-3849053a36d7"],
+Cell[33475, 978, 1100, 32, 70, "Text",ExpressionUUID->"987faa08-4740-4b51-94d9-4b18ec297505"],
+Cell[34578, 1012, 83, 0, 70, "Section",ExpressionUUID->"143e4f58-1b4e-4cde-9c90-3b44c42bc1f8"],
+Cell[34664, 1014, 109, 0, 70, "Subsection",ExpressionUUID->"b59f6c98-06b7-4932-8627-830a463eb7a9"],
+Cell[34776, 1016, 598, 25, 70, "Text",ExpressionUUID->"6403d197-a89f-4e79-8767-97ef4c846d18"],
+Cell[CellGroupData[{
+Cell[35399, 1045, 88, 0, 70, "Subsubsection",ExpressionUUID->"6ba020f0-98c8-4d65-a2a7-4c500f711a8c"],
+Cell[35490, 1047, 1109, 52, 70, "Text",ExpressionUUID->"fd1bff23-f7b6-4793-bae6-211e2cee8fd9"],
+Cell[36602, 1101, 94, 0, 70, "Input",ExpressionUUID->"7a931a35-3f94-4de1-a533-8bfa0140cfb4"]
+}, Closed]],
+Cell[36711, 1104, 102, 0, 70, "Subsection",ExpressionUUID->"0df3f44a-f199-4805-aa5a-b537ea82b473"],
+Cell[36816, 1106, 485, 15, 70, "Text",ExpressionUUID->"5cd188c7-dc82-41fa-b712-bda75e04edd3"],
+Cell[CellGroupData[{
+Cell[37326, 1125, 88, 0, 70, "Subsubsection",ExpressionUUID->"00e77061-80cd-412e-971c-b6c4f5a6840c"],
+Cell[37417, 1127, 164, 3, 70, "Input",ExpressionUUID->"1455a2a2-ad1c-4648-a62e-1ae8efdfe99f"],
+Cell[37584, 1132, 340, 8, 70, "Text",ExpressionUUID->"f71a479f-0f4b-4807-8684-9a7ddd57c2fa"]
+}, Closed]],
+Cell[37939, 1143, 106, 0, 70, "Subsection",ExpressionUUID->"12cfcce3-1900-4203-ba04-abf842008142"],
+Cell[38048, 1145, 420, 12, 70, "Text",ExpressionUUID->"3fa63140-a79e-4ef2-bdfe-ecd25fac0c6b"],
+Cell[CellGroupData[{
+Cell[38493, 1161, 88, 0, 70, "Subsubsection",ExpressionUUID->"0451f74c-8ecd-4480-b559-6f7efb71e3fb"],
+Cell[38584, 1163, 172, 3, 70, "Input",ExpressionUUID->"0f19bf93-68eb-4865-8160-d92933a6ee02"],
+Cell[38759, 1168, 872, 26, 70, "Text",ExpressionUUID->"c3dde35a-d38a-4751-be68-42906002285d"]
+}, Closed]]
+}
+]
+*)
+
+(* End of internal cache information *)

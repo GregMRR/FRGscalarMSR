@@ -1,0 +1,1312 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[     47708,       1303]
+NotebookOptionsPosition[     41029,       1218]
+NotebookOutlinePosition[     41366,       1233]
+CellTagsIndexPosition[     41323,       1230]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["Lesson 08 - Projection", "Title",ExpressionUUID->"142907e7-e14e-4c42-af67-b3e5e74a083e"],
+
+Cell[TextData[{
+ StyleBox["Physics step.",
+  FontWeight->Bold],
+ " The flow of a coupling is the coefficient of its monomial (i",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ ")^m (p",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ")^n in ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "s",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2_ab(",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ ", p). The module extracts it from the loop integrand: (",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "/",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "(i",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ "))^m/m! at ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " = 0, and the (p",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ")^n coefficient at p = 0 as the direction average of the s^{2n} Taylor \
+coefficient along p = s e (",
+ StyleBox["design/MOMENTUMPROJECTION.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", M1, valid for any n). The external variables are set to zero first \
+(\"pipeline 1\"), so the only frequency poles left are those of ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ "(",
+ StyleBox["\[PlusMinus]\[Omega]",
+  FontFamily->"Noto Sans"],
+ ")."
+}], "Text",ExpressionUUID->"68327c09-7e04-4095-8bfb-9c8faab87916"],
+
+Cell[TextData[{
+ StyleBox["Stage.",
+  FontWeight->Bold],
+ " Input: the Loops and Symmetries stages. Output: the ",
+ StyleBox["\"Projection\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stage, with one ",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ "-integrand per classified monomial (every class except Structure), as a \
+function of ",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ " and q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " = ",
+ StyleBox["LoopMomentumSquared",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",ExpressionUUID->"f3713c6e-5d85-4736-9cba-f73b56a34276"],
+
+Cell["\<\
+Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
+loops = lessonUpTo[\"Loops\"]; symmetries = kpzSymmetries;\
+\>", "Input",ExpressionUUID->"f9a1bdbe-5fe8-41a4-bb75-d1305d7a68d2"],
+
+Cell["1. Using it", "Section",ExpressionUUID->"98b5d2ef-9f20-4ff3-bc31-3dfeec1709fd"],
+
+Cell["projected = ProjectOnMonomials[loops, symmetries];", "Input",ExpressionUUID->"31b5b61a-daf0-496f-8852-0bebbfa78d7d"],
+
+Cell[TextData[{
+ "16 integrands: the 18 monomials of lesson 06 minus the 2 of class \
+Structure. The one that gives the flow of ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ ":"
+}], "Text",ExpressionUUID->"1bc2ec9e-3c84-45e3-8f43-618c22f855c1"],
+
+Cell["ShowIntegrand[projected, nuk]", "Input",ExpressionUUID->"8dd5d298-7e1e-475c-ac17-187fc83daa33"],
+
+Cell[TextData[{
+ "It is a rational function of the atoms at q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " (written ",
+ StyleBox["LoopMomentumSquared",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "), of ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ "(",
+ StyleBox["\[PlusMinus]\[Omega]",
+  FontFamily->"Noto Sans"],
+ "), and of the loop frequency ",
+ StyleBox["wL",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". ",
+ StyleBox["ShowIntegrand[projected, nuk]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " finds the record by its ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "_k coefficient; ",
+ StyleBox["ShowIntegrand[projected, {h, hbar}, {0, 1}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " would find it by pair and orders."
+}], "Text",ExpressionUUID->"15e992cb-166e-4d2f-afce-ed8674ef0fe1"],
+
+Cell["2. The operator", "Section",ExpressionUUID->"7cd31455-7708-4990-b476-e38759b71788"],
+
+Cell["\<\
+(* Kernel/Projection.wl:82-90 *)
+(* (d/d(I nu))^m / m! at nu = 0, and the (p^2)^n coefficient by \
+directionalAverage *)
+project[e0_, m_, n_, {nu_, p_}, {w_, q_}, dim_, deg_, eps_ : False] := \
+Module[{e = e0},
+   If[eps, e = dropWedge[e, m, n, {nu, p}, {w, q}]];
+   If[m > 0, e = D[e, {nu, m}]];
+   e = directionalAverage[e, n, p, q, dim] /. nu -> 0;
+   e = e /. scal[q, q] -> LoopMomentumSquared /. deltaCompletion[deg];
+   FRGAssert[\"Projection.complete\", FreeQ[e, q | p | nu | projS | projC | \
+wedge | Derivative[__][scal] | Derivative[__][\\[CapitalDelta]]], e,
+    \"internal: external variables, vectors or Delta derivatives left after \
+the projection\"];
+   e/(I^m m!)];\
+\>", "Program",ExpressionUUID->"39c280a2-9631-451f-81aa-4651038d0885"],
+
+Cell[TextData[{
+ StyleBox["project",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " takes the integrand at general (",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ ", p), differentiates m times in ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ ", takes the p-projection, sets ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " = 0, renames q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " and completes the derivatives of ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ " (section 4). ",
+ StyleBox["eps_ : False",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is an optional argument with a default (",
+ StyleBox["Patterns",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ")."
+}], "Text",ExpressionUUID->"12698de4-1ed5-4e43-9728-192947a3afa8"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Repeated derivatives",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["D[e, {x, n}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the n-th derivative of e in x; ",
+ StyleBox["D[e, {x, n}, {y, m}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " mixes variables.",
+ "\n\n",
+ StyleBox["D[e, {nu, m}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " followed by ",
+ StyleBox["/I^m m!",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[RightArrow]",
+  FontFamily->"Noto Sans"],
+ " 0 is the coefficient of (i",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ ")^m in the Taylor series. The same ",
+ StyleBox["D[e, {projS, 2 n}]/(2 n)!",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " at s = 0 gives the s^{2n} coefficient in ",
+ StyleBox["directionalAverage",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"4406ff1b-ae6b-4761-852e-0e7550573f5c"],
+
+Cell["3. The momentum projection: a direction average", "Section",ExpressionUUID->"a57b4400-fb4e-4946-84f8-e784763b8b38"],
+
+Cell["\<\
+(* Kernel/Projection.wl:21-22 *)
+(* <c^k> |q|^k, c = cosine between a random unit direction e and q in d \
+dimensions (design/MOMENTUMPROJECTION.md M1) *)
+projCAverage[k_, dim_, qq_] := If[OddQ[k], 0, qq^(k/2) (k - 1)!!/Product[dim \
++ 2 j, {j, 0, k/2 - 1}]];\
+\>", "Program",ExpressionUUID->"2be4db07-fc4c-4a18-b61c-3482e17a9fcd"],
+
+Cell["\<\
+(* Kernel/Projection.wl:24-32 *)
+(* M1: the (p^2)^n coefficient of f(p) is the direction average of the s^(2n) \
+Taylor coefficient of f(p = s e). The loop holds p only
+   in scal[p, p] = s^2 and scal[p, q] = s c (scal is bilinear: (p + q)^2 is \
+already expanded); c^k averages to projCAverage *)
+directionalAverage[e0_, n_, p_, q_, dim_] := Module[{e = e0 /. {scal[p, p] -> \
+projS^2, scal[p, q] -> projS projC}, odd},
+   If[n == 0, Return[e /. projS -> 0]];
+   e = (D[e, {projS, 2 n}] /. projS -> 0)/(2 n)!;
+   odd = Table[D[e, {projC, k}] /. projC -> 0, {k, 1, 2 n - 1, 2}];
+   FRGAssert[\"Projection.noOddC\", ExactlyZeroQ[odd, \"Seeds\" -> {1}], \
+Short[odd],
+    \"internal invariant: a term odd in p.q survived at order s^(2n) \
+(impossible by degree counting: c-degree is 2n - 2a)\"];
+   Sum[(D[e, {projC, k}] /. projC -> 0)/k! projCAverage[k, dim, scal[q, q]], \
+{k, 0, 2 n, 2}]];\
+\>", "Program",ExpressionUUID->"947bdf9c-03dc-4360-af2b-9cb2fc5aa9a9"],
+
+Cell[TextData[{
+ "The loop depends on p only through ",
+ StyleBox["scal[p, p]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["scal[p, q]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["scal",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is bilinear, so (p + q)",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " is already expanded, lesson 00, section 7). Write p = s e with e a unit \
+vector at angle c = cos ",
+ StyleBox["\[Theta]",
+  FontFamily->"Noto Sans"],
+ " to q: ",
+ StyleBox["scal[p, p]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " ",
+ StyleBox["\[RightArrow]",
+  FontFamily->"Noto Sans"],
+ " s",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ", ",
+ StyleBox["scal[p, q]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " ",
+ StyleBox["\[RightArrow]",
+  FontFamily->"Noto Sans"],
+ " s c. The s^{2n} coefficient is a polynomial in c, and averaging over the \
+directions e uses ",
+ StyleBox["\:27e8",
+  FontFamily->"Noto Sans"],
+ "c^{2k}",
+ StyleBox["\:27e9",
+  FontFamily->"Noto Sans"],
+ " = (2k",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "1)!!/(d(d+2)",
+ StyleBox["\[CenterEllipsis]",
+  FontFamily->"Noto Sans"],
+ "(d+2k",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "2)) times |q|^{2k}; odd powers average to zero."
+}], "Text",ExpressionUUID->"4b0c65ef-8614-4d72-88ac-950a91ea0081"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Special functions and products",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["k!!",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the double factorial, ",
+ StyleBox["Product[f, {j, a, b}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " a product, ",
+ StyleBox["Pochhammer[a, n]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " = a(a+1)",
+ StyleBox["\[CenterEllipsis]",
+  FontFamily->"Noto Sans"],
+ "(a+n",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "1), ",
+ StyleBox["Gamma[x]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " the ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ " function; ",
+ StyleBox["FunctionExpand",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " rewrites special values in elementary form.",
+ "\n\n",
+ "These turn the direction average into a closed rational function of d, \
+symbolic to the end (",
+ StyleBox["Iterators that depend on each other",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 06)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ " for ",
+ StyleBox["Product",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "'s iterator)."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"8ccde178-d97f-42b5-9e71-8ec04958205e"],
+
+Cell["{7!!, Pochhammer[d/2, 2], FunctionExpand[Gamma[5/2]]}", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"e48ee756-5e38-46ec-9da0-23c6b9395e22"],
+
+Cell["\<\
+{FRGscalarMSR`Private`directionalAverage[scal[p, q]^2, 1, p, q, Dim], \
+FRGscalarMSR`Private`directionalAverage[scal[p, q]^4, 2, p, q, Dim]}\
+\>", "Input",ExpressionUUID->"1592f465-1325-4361-be28-7c4267694b63"],
+
+Cell[TextData[{
+ StyleBox["\:27e8",
+  FontFamily->"Noto Sans"],
+ "(p",
+ StyleBox["\[CenterDot]",
+  FontFamily->"Noto Sans"],
+ "q)",
+ StyleBox["\.b2\:27e9",
+  FontFamily->"Noto Sans"],
+ " = p",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "/d gives q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "/d as the (p",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\.b9",
+  FontFamily->"Noto Sans"],
+ " coefficient; at order p",
+ StyleBox["\:2074",
+  FontFamily->"Noto Sans"],
+ ", 3 q",
+ StyleBox["\:2074",
+  FontFamily->"Noto Sans"],
+ "/(d(d+2))."
+}], "Text",ExpressionUUID->"c4405bee-4993-42cd-aef6-1fd82315a102"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: A direction average instead of a \
+Laplacian",
+  FontWeight->Bold],
+ "\n\n",
+ "The usual trick takes (",
+ StyleBox["\[Del]\.b2",
+  FontFamily->"Noto Sans"],
+ "_p)",
+ StyleBox["\:207f",
+  FontFamily->"Noto Sans"],
+ " at p = 0 and divides by its value on (p",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\:207f",
+  FontFamily->"Noto Sans"],
+ ". It needs explicit vectors or a hand-coded Laplacian on ",
+ StyleBox["scal",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " expressions, and the previous version of the library got it right only for \
+n ",
+ StyleBox["\[LessEqual]",
+  FontFamily->"Noto Sans"],
+ " 1. The direction average works with ",
+ StyleBox["scal[p, p]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["scal[p, q]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " as two scalars, any n, with one table of ",
+ StyleBox["\:27e8",
+  FontFamily->"Noto Sans"],
+ "c^{2k}",
+ StyleBox["\:27e9",
+  FontFamily->"Noto Sans"],
+ ". The old operator is kept as a test-only reference (",
+ StyleBox["tests/reference/OldProjection.wl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "), and the new one is required to agree with it on every existing integrand \
+(",
+ StyleBox["design/MOMENTUMPROJECTION.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ")."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"3f7316b1-c2ee-4a67-91ac-f6d44566814a"],
+
+Cell["4. Derivatives of \[CapitalDelta]", "Section",ExpressionUUID->"6b3763f5-b1da-4bb9-8237-c568cc06e07d"],
+
+Cell[TextData[{
+ "Differentiating ",
+ StyleBox["\[CapitalDelta][nu + wL, s]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " with respect to ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " produces the derivative of the inert function ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ ":"
+}], "Text",ExpressionUUID->"04c6443e-fe40-4c18-8882-ef53da85aa0e"],
+
+Cell["D[\[CapitalDelta][nu + w, s], nu]", "Input",ExpressionUUID->"dba72eff-88a3-4f2e-b27c-025739697b6a"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Derivative of several arguments",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Derivative[i, j][f][x, y]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is ",
+ StyleBox["\[PartialD]\:2071",
+  FontFamily->"Noto Sans"],
+ "_x ",
+ StyleBox["\[PartialD]\:02b2",
+  FontFamily->"Noto Sans"],
+ "_y f; a pattern ",
+ StyleBox["Derivative[i_, j_][\[CapitalDelta]][w_, s_]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " matches any such derivative.",
+ "\n\n",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " has no definition, so ",
+ StyleBox["D",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " writes its derivatives with ",
+ StyleBox["Derivative",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["D and unknown functions",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 04)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "). ",
+ StyleBox["deltaCompletion",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is a rule that replaces any derivative of ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ " by the derivative of its polynomial form ",
+ StyleBox["\[CapitalSigma]",
+  FontFamily->"Noto Sans"],
+ "_m c_m(s) (i",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ")^m, so derivatives come out in the atoms ",
+ StyleBox["DeltaCoefficient[m][s]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and their s-derivatives."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"2758cb1c-e618-4eb0-99a9-1d9e0f6dbb9e"],
+
+Cell["\<\
+(* Kernel/Projection.wl:17-19 *)
+(* derivatives of Delta(w, s) = sum_m c_m(s) (I w)^m *)
+deltaCompletion[deg_] := Derivative[i_, j_][\\[CapitalDelta]][w_, s_] :>
+   (D[Sum[DeltaCoefficient[mm][xs] (I yw)^mm, {mm, 0, deg}], {yw, i}, {xs, \
+j}] /. {yw -> w, xs -> s});\
+\>", "Program",ExpressionUUID->"eb0a0ba5-88c5-4927-bc26-edb15b544bb1"],
+
+Cell["\<\
+D[\[CapitalDelta][nu + w, s], nu] /. FRGscalarMSR`Private`deltaCompletion[1]\
+\>", "Input",ExpressionUUID->"f5b4f298-9490-4167-b35c-c6d7f5889306"],
+
+Cell["5. Building the integrands, and the checks", "Section",ExpressionUUID->"46762ae7-5cc2-466d-a158-6e520626f0d4"],
+
+Cell["\<\
+(* Kernel/Projection.wl:92-123 *)
+ProjectOnMonomials[loops_, symmetries_] := Block[{$FRGModule = \"Projection\"},
+  Module[{t0 = AbsoluteTime[], v, prop, dim, deg, targets, lhsBad, byPair, \
+res, nmax, nExplicit, checks = {}, warns = {}, stage, wq, eps},
+   validateStage[loops, \"Loops\"]; validateStage[symmetries, \
+\"Symmetries\"];
+   v = loops[\"Vertices\"]; prop = loops[\"Propagator\"];
+   FRGAssert[\"Projection.sameAnsatz\", v[\"Upstream\"] === \
+symmetries[\"Upstream\"], {v[\"Upstream\"], symmetries[\"Upstream\"]},
+    \"the loops and the symmetries were built from different ansatz \
+stages\"];
+   dim = symmetries[\"Dimension\"]; deg = prop[\"DeltaDegree\"]; wq = \
+LoopVariables[loops];
+   eps = Lookup[v[\"Ansatz\"], \"Epsilon\", False];
+   If[eps, AppendTo[checks, assertCheck[\"Projection.epsilonDimension\", dim \
+=== 2, dim, \"internal: eps (jac) needs the declared d = 2\", \"eps with d = \
+2\"]]];
+   $wedgeDropped = 0;
+   targets = Select[symmetries[\"Classification\"], #Class =!= \"Structure\" \
+&];
+   nmax = Max[0, targets[[All, \"Momentum\"]]];
+
+   (* the d-normalisation of the momentum projection, against an independent \
+closed form (LHS cannot see it: review E2) *)
+   If[nmax >= 1, checkNormalisation[nmax, dim];
+    AppendTo[checks, assertCheck[\"Projection.normalisation\", True, Null, \"\
+\",
+      \"(p.q)^(2k) (p^2)^(n-k) -> <c^(2k)> q^(2k) = q^(2k) Gamma(k+1/2) \
+Gamma(d/2)/(Sqrt[Pi] Gamma(k+d/2)), n <= \" <> ToString[nmax] <> \", d = \" \
+<> ToString[dim]]]];
+   If[nmax >= 2, AppendTo[warns, infoCheck[\"ASSUMPTION\", \
+\"Projection.shapeSmoothness\",
+      \"p^{2n} flows contain shape derivatives up to order 2n (here \" <> \
+ToString[2 nmax] <> \"): any explicit shape substituted later must be C^\" <> \
+ToString[2 nmax]]]];
+
+   (* LHS check: the projection operator applied to Gamma_k (regulator off) \
+reproduces the classified coefficient *)
+   lhsBad = Select[targets, Expand[project[VertexValue[v, #Pair, {{nu, p}}], \
+#Frequency, #Momentum, {nu, p}, {zz, zq}, dim, deg, eps] - #GammaK] =!= 0 &];
+   AppendTo[checks, assertCheck[\"Projection.LHS\", lhsBad === {}, lhsBad,
+     \"internal: the projection operator does not reproduce the Gamma_k \
+coefficient (normalisation of the frequency or momentum projection)\",
+     \"projection of Gamma_k = its coefficient, \" <> \
+ToString[Length[targets]] <> \" monomials ((d/d(I nu))^m/m!, (p^2)^n \
+coefficient; not the d-normalisation)\"]];
+
+   byPair = GroupBy[targets, #Pair &];
+   res = Join @@ KeyValueMap[Function[{pair, ms}, Module[{loop = \
+LoopIntegrand[loops, pair, nu, p]},
+        Function[r, With[{ig = project[loop, r[\"Frequency\"], \
+r[\"Momentum\"], {nu, p}, wq, dim, deg, eps]},
+           (* n >= 2: the directional average against explicit vectors (n <= \
+1 is certified by the regression vs the old operator) *)
+           If[r[\"Momentum\"] >= 2, checkExplicitVectors[loop, ig, \
+r[\"Frequency\"], r[\"Momentum\"], {nu, p}, wq, dim, deg]];
+           Append[r, \"Integrand\" -> ig]]] /@ ms]], byPair];\
+\>", "Program",ExpressionUUID->"4054e266-5bbf-41af-b741-610cb3fa0a07"],
+
+Cell[TextData[{
+ "The integrands are computed per pair: ",
+ StyleBox["GroupBy[targets, #Pair &]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["GroupBy and KeyValueMap",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 02)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ") groups the monomials, and ",
+ StyleBox["LoopIntegrand",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (lesson 07) is called once per pair, then projected once per monomial."
+}], "Text",ExpressionUUID->"559ee080-04c4-43e6-b0b4-fc1cc4a2b7e7"],
+
+Cell["\<\
+Three checks guard the operator, each independent of the others:\
+\>", "Text",ExpressionUUID->"b015b4a5-d0ad-4219-be25-c12b0e9b3e27"],
+
+Cell[TextData[{
+ StyleBox["`Projection.LHS`",
+  FontWeight->Bold],
+ ": the same ",
+ StyleBox["project",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", applied to ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "_k itself (regulator off), must give back each classified coefficient. It \
+tests the frequency normalisation and the order in s; ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "_k depends on p only through p",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ", so it cannot see the d-normalisation (review E2)."
+}], "Item",ExpressionUUID->"aef70371-696b-4b27-b263-57ba10465bed"],
+
+Cell[TextData[{
+ StyleBox["`Projection.normalisation`",
+  FontWeight->Bold],
+ ": the projection of (p",
+ StyleBox["\[CenterDot]",
+  FontFamily->"Noto Sans"],
+ "q)^{2k} (p",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ")^{n",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "k} against the closed form q^{2k} ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "(k+",
+ StyleBox["\.bd",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "(d/2)/(",
+ StyleBox["\[Sqrt]\[Pi]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "(k+d/2)), written with ",
+ StyleBox["Gamma",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " instead of ",
+ StyleBox["projCAverage",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (review E17)."
+}], "Item",ExpressionUUID->"0d637f9b-7705-4d76-a464-fbbde5b5fa62"],
+
+Cell[TextData[{
+ StyleBox["`Projection.explicitVectors`",
+  FontWeight->Bold],
+ ", for n ",
+ StyleBox["\[GreaterEqual]",
+  FontFamily->"Noto Sans"],
+ " 2: the result against (",
+ StyleBox["\[Del]\.b2",
+  FontFamily->"Noto Sans"],
+ "_p)",
+ StyleBox["\:207f",
+  FontFamily->"Noto Sans"],
+ "/N_n computed on explicit d-component vectors, at the declared d, or at d = \
+1, ",
+ StyleBox["\[Ellipsis]",
+  FontFamily->"Noto Sans"],
+ ", n+1 for a symbolic d."
+}], "Item",ExpressionUUID->"e2eb9a12-e83a-4cee-94d4-d9f0a7157003"],
+
+Cell["\<\
+(* Kernel/Projection.wl:34-35 *)
+(* N_n = (Laplacian_p)^n (p^2)^n = 4^n n! (d/2)_n  (M2) *)
+lapNorm[n_, d_] := 4^n n! Pochhammer[d/2, n];\
+\>", "Program",ExpressionUUID->"2a6c248f-acbf-43a9-bb0d-27a32589694b"],
+
+Cell["\<\
+(* Kernel/Projection.wl:37-44 *)
+(* the same projection on explicit d-vectors: (Laplacian_p)^n at p = 0 / N_n; \
+returns {coefficient, q.q}. Independent of
+   directionalAverage and projCAverage (used by Projection.explicitVectors \
+and the tests) *)
+explicitProjection[e0_, m_, n_, {nu_, p_}, {w_, q_}, d_Integer, deg_] := \
+Module[{pc = Array[projPc, d], qc = Array[projQc, d], vec, e},
+   vec = {p -> pc, q -> qc};
+   e = e0 /. {scal[a_, b_] :> Expand[(a /. vec) . (b /. vec)], wedge[a_, b_] \
+:> With[{x = a /. vec, y = b /. vec}, x[[1]] y[[2]] - x[[2]] y[[1]]]};
+   If[m > 0, e = D[e, {nu, m}]];
+   e = Nest[Function[g, Sum[D[g, {x, 2}], {x, pc}]], e, n] /. Thread[pc -> 0] \
+/. nu -> 0;
+   {(e /. deltaCompletion[deg])/(I^m m! lapNorm[n, d]), qc . qc}];\
+\>", "Program",ExpressionUUID->"8c8429ae-808e-4b02-84f7-dab3c1c39ba5"],
+
+Cell["\<\
+(* Kernel/Projection.wl:54-61 *)
+(* Projection.normalisation: the full projection of (p.q)^(2k) (p^2)^(n-k) \
+against <c^(2k)> q^(2k) = q^(2k) Gamma(k+1/2) Gamma(d/2) /
+   (Sqrt[Pi] Gamma(k+d/2)), written independently of projCAverage (review \
+E17) *)
+checkNormalisation[nmax_, dim_] := Module[{bad},
+   bad = Select[Flatten[Table[{n, k}, {n, 1, nmax}, {k, 0, n}], 1], \
+Function[nk, With[{n = nk[[1]], k = nk[[2]]},
+        Together[FunctionExpand[project[scal[nP, nQ]^(2 k) scal[nP, nP]^(n - \
+k), 0, n, {nNu, nP}, {nW, nQ}, dim, 0] -
+            LoopMomentumSquared^k Gamma[k + 1/2] Gamma[dim/2]/(Sqrt[Pi] \
+Gamma[k + dim/2])]] =!= 0]]];
+   FRGAssert[\"Projection.normalisation\", bad === {}, bad,
+    \"internal: the projection of (p.q)^(2k) (p^2)^(n-k) differs from \
+<c^(2k)> q^(2k) (these {n, k})\"]];\
+\>", "Program",ExpressionUUID->"7462321d-e2b2-4ee8-bb4e-66ffbd8878b9"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Nest",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Nest[f, x, n]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " applies f to x n times: ",
+ StyleBox["f[f[f[x]]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " for n = 3.",
+ "\n\n",
+ StyleBox["Nest[Function[g, Sum[D[g, {x, 2}], {x, pc}]], e, n]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " applies the explicit Laplacian n times. (",
+ StyleBox["Nest",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " appeared in lesson 02's ",
+ StyleBox["fieldString",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " on strings; here it iterates an operator.)"
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"c90661b0-0d5c-44a3-83b2-1df7f768688c"],
+
+Cell["\<\
+{Nest[f, x, 3], FRGscalarMSR`Private`explicitProjection[scal[p, q]^2, 0, 1, \
+{nu, p}, {w, q}, 3, 1]}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"2a10be93-56f8-4284-a5d7-062bd8923c48"],
+
+Cell[TextData[{
+ "In 3 explicit dimensions, (",
+ StyleBox["\[Del]\.b2",
+  FontFamily->"Noto Sans"],
+ "_p)(p",
+ StyleBox["\[CenterDot]",
+  FontFamily->"Noto Sans"],
+ "q)",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " / N_1 = 2q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "/6 = q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "/3, the same as q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "/d at d = 3."
+}], "Text",ExpressionUUID->"25202f00-2e4e-482d-a471-c353b54f59d4"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Why the explicit check is needed only for \
+n \[GreaterEqual] 2, at n+1 dimensions",
+  FontWeight->Bold],
+ "\n\n",
+ "A p^{2n} projection is a rational function of d whose numerator can be \
+written with n+1 independent d-structures, so agreeing at n+1 integer \
+dimensions pins it down for every d (review E4). For n ",
+ StyleBox["\[LessEqual]",
+  FontFamily->"Noto Sans"],
+ " 1 the regression against the old operator certifies the result already, \
+and the KPZ example of these lessons has n ",
+ StyleBox["\[LessEqual]",
+  FontFamily->"Noto Sans"],
+ " 1, so its card has no ",
+ StyleBox["explicitVectors",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " line. The p",
+ StyleBox["\:2074",
+  FontFamily->"Noto Sans"],
+ " flows are tested against the literature in ",
+ StyleBox["benchmarks/KuramotoSivashinsky",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"6ef5af28-09c4-48b4-ae35-868f6862bb2b"],
+
+Cell["6. With \[CurlyEpsilon] (d = 2)", "Section",ExpressionUUID->"00c8c3b8-63e7-4c29-8719-cd099c457493"],
+
+Cell["\<\
+(* Kernel/Projection.wl:63-80 *)
+(* with eps (d = 2): products of wedges are reduced by F2; every term is then \
+wedge[p, q]^e f(p^2, p.q, q^2, nu) with e = 0 or 1, and
+   the e = 1 part has a vanishing (I nu)^m (p^2)^n projection for every n \
+(M3; F4 of design/LEVICIVITA.md): it is dropped, after
+   checking that its projection vanishes on explicit 2-vectors. $wedgeDropped \
+counts the integrands with a nonzero dropped part. *)
+dropWedge[e0_, m_, n_, {nu_, p_}, {w_, q_}] := Module[{e = \
+FRGscalarMSR`Internal`reduceWedge2D[e0], ew, odd, ex, pc, qc, vec},
+   ew = e /. {wedge[p, q] -> wz, wedge[q, p] -> -wz};
+   FRGAssert[\"Projection.wedgeOdd\", FreeQ[ew, wedge] && Exponent[ew, wz] <= \
+1 && FreeQ[ew, Power[wz, _?Negative]],
+    Cases[ew, _wedge | Power[wz, _], {0, Infinity}], \"internal: a wedge \
+other than +-wedge[p, q] to the power <= 1 is left after the 2D reduction\"];
+   odd = Coefficient[ew, wz, 1];
+   If[odd =!= 0,
+    vec = {p -> {pc[1], pc[2]}, q -> {qc[1], qc[2]}};
+    ex = (pc[1] qc[2] - pc[2] qc[1]) odd /. scal[a_, b_] :> Expand[(a /. vec) \
+. (b /. vec)];
+    If[m > 0, ex = D[ex, {nu, m}]];
+    ex = Nest[D[#, {pc[1], 2}] + D[#, {pc[2], 2}] &, ex, n];
+    ex = ex /. {pc[_] -> 0, nu -> 0};
+    FRGAssert[\"Projection.wedgeOdd\", ExactlyZeroQ[ex, \"Seeds\" -> {1}], \
+Short[ex],
+     \"internal: the part odd in wedge[p, q] has a nonzero projection \
+(explicit 2-vectors)\"];
+    $wedgeDropped++];
+   ew /. wz -> 0];\
+\>", "Program",ExpressionUUID->"6bd9f879-229a-4743-9e94-3d6da25fa96f"],
+
+Cell[TextData[{
+ "With ",
+ StyleBox["jac",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", products of wedges are first reduced to scalar products (",
+ StyleBox["reduceWedge2D",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", lesson 00, section 7). Every term is then wedge[p, q]^e f(p",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ", p",
+ StyleBox["\[CenterDot]",
+  FontFamily->"Noto Sans"],
+ "q, q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ", ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ ") with e = 0 or 1, and the e = 1 part has a vanishing projection for every \
+m and n: reflecting e about q keeps c and flips the sign of wedge[e, q] (M3, ",
+ StyleBox["design/LEVICIVITA.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " F4). It is dropped, after checking on explicit 2-vectors that its \
+projection really vanishes."
+}], "Text",ExpressionUUID->"87f9587a-0024-4f36-916d-21583f22fba1"],
+
+Cell[TextData[{
+ StyleBox["$wedgeDropped",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is one of the few global variables of the library: a private counter, \
+reset by ",
+ StyleBox["ProjectOnMonomials",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and read for its card line. ",
+ StyleBox["$wedgeDropped++",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " adds 1 to it."
+}], "Text",ExpressionUUID->"2524f7c7-7f9f-48cf-8124-0f203e09d96f"],
+
+Cell["7. The stage", "Section",ExpressionUUID->"81a0bba6-cb38-466e-9b5e-d41a2c3f7c47"],
+
+Cell[BoxData[
+ $CellContext`regionCells[
+ "Kernel/Projection.wl", "stage = stampStage[<", 
+  "\"Stage\" -> \"Projection\"", "PrintCard[stage];"]], "Input",ExpressionUUID\
+->"20af194f-722c-408e-9508-9fce7444d257"],
+
+Cell["\<\
+(* Kernel/Projection.wl:140-145 *)
+ShowIntegrand[pr_Association, {a_, b_}, {m_, n_}] := Module[{r = \
+SelectFirst[pr[\"Integrands\"], #Pair === {a, b} && #Frequency == m && \
+#Momentum == n &]},
+   If[MissingQ[r], Print[\"no such monomial (class Structure, or outside the \
+truncation)\"],
+    Print[\"w-integrand of (I nu)^\", m, \" (p^2)^\", n, \" in d_s Gamma2[\", \
+a, \", \", b, \"] (\", r[\"Class\"], \", LeafCount \", \
+LeafCount[r[\"Integrand\"]], \"):\"];
+    Print[displayString[r[\"Integrand\"]]]]];
+ShowIntegrand[pr_Association, coef_] := Module[{r = \
+SelectFirst[pr[\"Integrands\"], Expand[#GammaK - coef] === 0 &]},
+   If[MissingQ[r], Print[\"no monomial with Gamma_k coefficient \", coef], \
+ShowIntegrand[pr, r[\"Pair\"], {r[\"Frequency\"], r[\"Momentum\"]}]]];\
+\>", "Program",ExpressionUUID->"3a859585-b20a-4b39-82cb-ae276ad3f1b4"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: SelectFirst and Missing",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["SelectFirst[list, test]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " gives the first element that passes test, or ",
+ StyleBox["Missing[\"NotFound\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "; ",
+ StyleBox["MissingQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " tests for it.",
+ "\n\n",
+ StyleBox["ShowIntegrand",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " has two definitions (",
+ StyleBox["Several definitions of one function",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 02)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "): one by pair and orders, one by ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "_k coefficient, which searches the records with ",
+ StyleBox["SelectFirst",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and then calls the first."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"8256c63b-5cc9-43af-9a1e-ab51b0c39f84"],
+
+Cell["\<\
+{SelectFirst[{1, 2, 3}, # > 1 &], SelectFirst[{1, 2, 3}, # > 5 &], \
+MissingQ[SelectFirst[{1, 2, 3}, # > 5 &]]}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"6ffae88e-e8db-4c16-8804-f088321b70d4"],
+
+Cell["Exercises", "Section",ExpressionUUID->"d32e73a4-8a7d-4a43-b2fd-9985f8d199b3"],
+
+Cell["Exercise: The frequency projection by hand", "Subsection",ExpressionUUID->"f60dae5f-69af-4f21-aa17-b355436ccaea"],
+
+Cell[TextData[{
+ "Apply ",
+ StyleBox["project",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (with m = 1, n = 0) to ",
+ StyleBox["I nu + 3 nu^2 + nuk scal[p, p]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". What do you expect, and why does the ",
+ StyleBox["scal[p, p]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " term not contribute?"
+}], "Text",ExpressionUUID->"b6b6a841-1d28-4060-923e-7a4cba989fb4"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"27ae2760-d0b9-4021-ba22-48dcb11e1ce4"],
+
+Cell["\<\
+FRGscalarMSR`Private`project[I nu + 3 nu^2 + nuk scal[p, p], 1, 0, {nu, p}, \
+{w, q}, Dim, 1]\
+\>", "Input",ExpressionUUID->"538c5f3c-4ad4-4515-aca3-08d32f199b24"],
+
+Cell[TextData[{
+ "1: the coefficient of (i",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\.b9",
+  FontFamily->"Noto Sans"],
+ ". The ",
+ StyleBox["\[Nu]\.b2",
+  FontFamily->"Noto Sans"],
+ " term has no linear part, and the p",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " term is removed by the n = 0 projection (p = 0)."
+}], "Text",ExpressionUUID->"02826000-8432-45e4-93bb-450965f02fd9"]
+}, Closed]],
+
+Cell["Exercise: The p\:2074 direction average against the closed form", \
+"Subsection",ExpressionUUID->"ede66502-da3d-41ff-b144-5e11f8fd02dc"],
+
+Cell[TextData[{
+ "Check ",
+ StyleBox["directionalAverage[scal[p, q]^4, 2, p, q, Dim]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " against q",
+ StyleBox["\:2074",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "(5/2)",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "(d/2)/(",
+ StyleBox["\[Sqrt]\[Pi]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "(2 + d/2))."
+}], "Text",ExpressionUUID->"4a49a0c3-a695-46a9-a15a-0e7930769c0c"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"bc58b9be-534b-4de1-a97d-c5e078c40a13"],
+
+Cell["\<\
+Together[FunctionExpand[FRGscalarMSR`Private`directionalAverage[scal[p, q]^4, \
+2, p, q, Dim] - scal[q, q]^2 Gamma[5/2] Gamma[Dim/2]/(Sqrt[Pi] Gamma[2 + \
+Dim/2])]]\
+\>", "Input",ExpressionUUID->"c69dd3aa-35d3-47b3-a93a-3920bd8dbd8b"],
+
+Cell[TextData[{
+ "0: this is the k = 2 case of ",
+ StyleBox["Projection.normalisation",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",ExpressionUUID->"d8f03c19-5b57-4ef0-bfca-22b7ddf22150"]
+}, Closed]],
+
+Cell["Exercise: Integrands of the protected monomials", "Subsection",ExpressionUUID->"577295d2-3da9-47a6-bf92-172ae20eb271"],
+
+Cell[TextData[{
+ "Which records of ",
+ StyleBox["projected[\"Integrands\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " have a class whose flow must vanish? Are their integrands zero already? \
+When does the vanishing get checked?"
+}], "Text",ExpressionUUID->"ee5206dd-8032-4d85-88d2-9f9133c3dce4"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"b668e15c-ca94-40c6-bda4-4fa064cc9d20"],
+
+Cell["\<\
+{#Pair, #Frequency, #Momentum, #Class, LeafCount[#Integrand]} & /@ \
+Select[projected[\"Integrands\"], MemberQ[{\"Protected\", \"Causality\", \
+\"DeclaredNumeric\"}, #Class] &]\
+\>", "Input",ExpressionUUID->"10a7cdad-66d9-4d65-a926-093ef2b177a7"],
+
+Cell[TextData[{
+ "Some are already 0 (LeafCount 1), most are not: the vanishing holds only \
+after the frequency integral (and, for Ward identities, sometimes only after \
+the q integral). ",
+ StyleBox["CheckClosure",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (lesson 10) tests it after the frequency integration."
+}], "Text",ExpressionUUID->"9ed8cac9-7ad9-48d1-9a25-497645b6f300"]
+}, Closed]]
+},
+CellContext->Notebook,
+FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"68ca8ccf-8ceb-4f4a-8543-fab9318d86bc"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 94, 0, 70, "Title",ExpressionUUID->"142907e7-e14e-4c42-af67-b3e5e74a083e"],
+Cell[651, 22, 1363, 47, 70, "Text",ExpressionUUID->"68327c09-7e04-4095-8bfb-9c8faab87916"],
+Cell[2017, 71, 733, 24, 70, "Text",ExpressionUUID->"f3713c6e-5d85-4736-9cba-f73b56a34276"],
+Cell[2753, 97, 259, 4, 70, "Input",ExpressionUUID->"f9a1bdbe-5fe8-41a4-bb75-d1305d7a68d2"],
+Cell[3015, 103, 85, 0, 70, "Section",ExpressionUUID->"98b5d2ef-9f20-4ff3-bc31-3dfeec1709fd"],
+Cell[3103, 105, 122, 0, 70, "Input",ExpressionUUID->"31b5b61a-daf0-496f-8852-0bebbfa78d7d"],
+Cell[3228, 107, 249, 6, 70, "Text",ExpressionUUID->"1bc2ec9e-3c84-45e3-8f43-618c22f855c1"],
+Cell[3480, 115, 101, 0, 70, "Input",ExpressionUUID->"8dd5d298-7e1e-475c-ac17-187fc83daa33"],
+Cell[3584, 117, 1079, 34, 70, "Text",ExpressionUUID->"15e992cb-166e-4d2f-afce-ed8674ef0fe1"],
+Cell[4666, 153, 89, 0, 70, "Section",ExpressionUUID->"7cd31455-7708-4990-b476-e38759b71788"],
+Cell[4758, 155, 764, 15, 70, "Program",ExpressionUUID->"39c280a2-9631-451f-81aa-4651038d0885"],
+Cell[5525, 172, 1035, 34, 70, "Text",ExpressionUUID->"12698de4-1ed5-4e43-9728-192947a3afa8"],
+Cell[6563, 208, 1453, 48, 70, "Text",ExpressionUUID->"4406ff1b-ae6b-4761-852e-0e7550573f5c"],
+Cell[8019, 258, 121, 0, 70, "Section",ExpressionUUID->"a57b4400-fb4e-4946-84f8-e784763b8b38"],
+Cell[8143, 260, 341, 6, 70, "Program",ExpressionUUID->"2be4db07-fc4c-4a18-b61c-3482e17a9fcd"],
+Cell[8487, 268, 972, 17, 70, "Program",ExpressionUUID->"947bdf9c-03dc-4360-af2b-9cb2fc5aa9a9"],
+Cell[9462, 287, 1650, 59, 70, "Text",ExpressionUUID->"4b0c65ef-8614-4d72-88ac-950a91ea0081"],
+Cell[11115, 348, 1755, 58, 70, "Text",ExpressionUUID->"8ccde178-d97f-42b5-9e71-8ec04958205e"],
+Cell[12873, 408, 240, 4, 70, "Input",ExpressionUUID->"e48ee756-5e38-46ec-9da0-23c6b9395e22"],
+Cell[13116, 414, 220, 3, 70, "Input",ExpressionUUID->"1592f465-1325-4361-be28-7c4267694b63"],
+Cell[13339, 419, 683, 31, 70, "Text",ExpressionUUID->"c4405bee-4993-42cd-aef6-1fd82315a102"],
+Cell[14025, 452, 1813, 58, 70, "Text",ExpressionUUID->"3f7316b1-c2ee-4a67-91ac-f6d44566814a"],
+Cell[15841, 512, 107, 0, 70, "Section",ExpressionUUID->"6b3763f5-b1da-4bb9-8237-c568cc06e07d"],
+Cell[15951, 514, 431, 13, 70, "Text",ExpressionUUID->"04c6443e-fe40-4c18-8882-ef53da85aa0e"],
+Cell[16385, 529, 105, 0, 70, "Input",ExpressionUUID->"dba72eff-88a3-4f2e-b27c-025739697b6a"],
+Cell[16493, 531, 2096, 67, 70, "Text",ExpressionUUID->"2758cb1c-e618-4eb0-99a9-1d9e0f6dbb9e"],
+Cell[18592, 600, 348, 6, 70, "Program",ExpressionUUID->"eb0a0ba5-88c5-4927-bc26-edb15b544bb1"],
+Cell[18943, 608, 156, 2, 70, "Input",ExpressionUUID->"f5b4f298-9490-4167-b35c-c6d7f5889306"],
+Cell[19102, 612, 116, 0, 70, "Section",ExpressionUUID->"46762ae7-5cc2-466d-a158-6e520626f0d4"],
+Cell[19221, 614, 3103, 58, 70, "Program",ExpressionUUID->"4054e266-5bbf-41af-b741-610cb3fa0a07"],
+Cell[22327, 674, 742, 20, 70, "Text",ExpressionUUID->"559ee080-04c4-43e6-b0b4-fc1cc4a2b7e7"],
+Cell[23072, 696, 143, 2, 70, "Text",ExpressionUUID->"b015b4a5-d0ad-4219-be25-c12b0e9b3e27"],
+Cell[23218, 700, 677, 19, 70, "Item",ExpressionUUID->"aef70371-696b-4b27-b263-57ba10465bed"],
+Cell[23898, 721, 1002, 38, 70, "Item",ExpressionUUID->"0d637f9b-7705-4d76-a464-fbbde5b5fa62"],
+Cell[24903, 761, 518, 17, 70, "Item",ExpressionUUID->"e2eb9a12-e83a-4cee-94d4-d9f0a7157003"],
+Cell[25424, 780, 219, 4, 70, "Program",ExpressionUUID->"2a6c248f-acbf-43a9-bb0d-27a32589694b"],
+Cell[25646, 786, 841, 15, 70, "Program",ExpressionUUID->"8c8429ae-808e-4b02-84f7-dab3c1c39ba5"],
+Cell[26490, 803, 891, 16, 70, "Program",ExpressionUUID->"7462321d-e2b2-4ee8-bb4e-66ffbd8878b9"],
+Cell[27384, 821, 1114, 34, 70, "Text",ExpressionUUID->"c90661b0-0d5c-44a3-83b2-1df7f768688c"],
+Cell[28501, 857, 296, 7, 70, "Input",ExpressionUUID->"2a10be93-56f8-4284-a5d7-062bd8923c48"],
+Cell[28800, 866, 486, 20, 70, "Text",ExpressionUUID->"25202f00-2e4e-482d-a471-c353b54f59d4"],
+Cell[29289, 888, 1205, 32, 70, "Text",ExpressionUUID->"6ef5af28-09c4-48b4-ae35-868f6862bb2b"],
+Cell[30497, 922, 105, 0, 70, "Section",ExpressionUUID->"00c8c3b8-63e7-4c29-8719-cd099c457493"],
+Cell[30605, 924, 1530, 29, 70, "Program",ExpressionUUID->"6bd9f879-229a-4743-9e94-3d6da25fa96f"],
+Cell[32138, 955, 1088, 31, 70, "Text",ExpressionUUID->"87f9587a-0024-4f36-916d-21583f22fba1"],
+Cell[33229, 988, 621, 17, 70, "Text",ExpressionUUID->"2524f7c7-7f9f-48cf-8124-0f203e09d96f"],
+Cell[33853, 1007, 86, 0, 70, "Section",ExpressionUUID->"81a0bba6-cb38-466e-9b5e-d41a2c3f7c47"],
+Cell[33942, 1009, 212, 4, 70, "Input",ExpressionUUID->"20af194f-722c-408e-9508-9fce7444d257"],
+Cell[34157, 1015, 860, 15, 70, "Program",ExpressionUUID->"3a859585-b20a-4b39-82cb-ae276ad3f1b4"],
+Cell[35020, 1032, 1473, 45, 70, "Text",ExpressionUUID->"8256c63b-5cc9-43af-9a1e-ab51b0c39f84"],
+Cell[36496, 1079, 306, 7, 70, "Input",ExpressionUUID->"6ffae88e-e8db-4c16-8804-f088321b70d4"],
+Cell[36805, 1088, 83, 0, 70, "Section",ExpressionUUID->"d32e73a4-8a7d-4a43-b2fd-9985f8d199b3"],
+Cell[36891, 1090, 119, 0, 70, "Subsection",ExpressionUUID->"f60dae5f-69af-4f21-aa17-b355436ccaea"],
+Cell[37013, 1092, 592, 17, 70, "Text",ExpressionUUID->"b6b6a841-1d28-4060-923e-7a4cba989fb4"],
+Cell[CellGroupData[{
+Cell[37630, 1113, 88, 0, 70, "Subsubsection",ExpressionUUID->"27ae2760-d0b9-4021-ba22-48dcb11e1ce4"],
+Cell[37721, 1115, 173, 3, 70, "Input",ExpressionUUID->"538c5f3c-4ad4-4515-aca3-08d32f199b24"],
+Cell[37897, 1120, 411, 14, 70, "Text",ExpressionUUID->"02826000-8432-45e4-93bb-450965f02fd9"]
+}, Closed]],
+Cell[38323, 1137, 142, 1, 70, "Subsection",ExpressionUUID->"ede66502-da3d-41ff-b144-5e11f8fd02dc"],
+Cell[38468, 1140, 594, 22, 70, "Text",ExpressionUUID->"4a49a0c3-a695-46a9-a15a-0e7930769c0c"],
+Cell[CellGroupData[{
+Cell[39087, 1166, 88, 0, 70, "Subsubsection",ExpressionUUID->"bc58b9be-534b-4de1-a97d-c5e078c40a13"],
+Cell[39178, 1168, 244, 4, 70, "Input",ExpressionUUID->"c69dd3aa-35d3-47b3-a93a-3920bd8dbd8b"],
+Cell[39425, 1174, 263, 7, 70, "Text",ExpressionUUID->"d8f03c19-5b57-4ef0-bfca-22b7ddf22150"]
+}, Closed]],
+Cell[39703, 1184, 124, 0, 70, "Subsection",ExpressionUUID->"577295d2-3da9-47a6-bf92-172ae20eb271"],
+Cell[39830, 1186, 362, 8, 70, "Text",ExpressionUUID->"ee5206dd-8032-4d85-88d2-9f9133c3dce4"],
+Cell[CellGroupData[{
+Cell[40217, 1198, 88, 0, 70, "Subsubsection",ExpressionUUID->"b668e15c-ca94-40c6-bda4-4fa064cc9d20"],
+Cell[40308, 1200, 256, 4, 70, "Input",ExpressionUUID->"10a7cdad-66d9-4d65-a926-093ef2b177a7"],
+Cell[40567, 1206, 446, 9, 70, "Text",ExpressionUUID->"9ed8cac9-7ad9-48d1-9a25-497645b6f300"]
+}, Closed]]
+}
+]
+*)
+
+(* End of internal cache information *)

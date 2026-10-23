@@ -1,0 +1,1116 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[     45602,       1107]
+NotebookOptionsPosition[     39227,       1025]
+NotebookOutlinePosition[     39564,       1040]
+CellTagsIndexPosition[     39521,       1037]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["Lesson 14 - Adimensional", "Title",ExpressionUUID->"3f3dea13-680d-4843-be77-fcb8617c2b8d"],
+
+Cell[TextData[{
+ StyleBox["Physics step.",
+  FontWeight->Bold],
+ " Turn the dimensionful equations ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "s(comb) = ",
+ StyleBox["\[Integral]",
+  FontFamily->"Noto Sans"],
+ "d",
+ StyleBox["\:1d48",
+  FontFamily->"Noto Sans"],
+ "q/(2",
+ StyleBox["\[Pi]",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\:1d48",
+  FontFamily->"Noto Sans"],
+ " I(q) into dimensionless ",
+ StyleBox["\[Beta]",
+  FontFamily->"Noto Sans"],
+ " functions. Each state coupling c becomes ",
+ StyleBox["\:0109",
+  FontFamily->"Noto Sans"],
+ " = c/[c], with"
+}], "Text",ExpressionUUID->"df64aa47-7717-4e49-9a1d-4d05cb2d1142"],
+
+Cell[TextData[{
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "s ",
+ StyleBox["\:0109",
+  FontFamily->"Noto Sans"],
+ " = BetaL + ",
+ StyleBox["\[Integral]",
+  FontFamily->"Noto Sans"],
+ "daq LoopMeasure(d, aq) BetaNL,  LoopMeasure = S_d aq^{d",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "1}/(2",
+ StyleBox["\[Pi]",
+  FontFamily->"Noto Sans"],
+ ")^d,"
+}], "Text",ExpressionUUID->"c66343e5-5f78-40e9-8baa-688863a42539"],
+
+Cell[TextData[{
+ "where BetaL is the local part (canonical scaling and Leibniz terms, not \
+integrated) and BetaNL the loop integrand in the dimensionless momentum aq = \
+q/k. The reference couplings do not get a ",
+ StyleBox["\[Beta]",
+  FontFamily->"Noto Sans"],
+ ": their running gives a linear system for the anomalous dimensions ",
+ StyleBox["\[Eta]",
+  FontFamily->"Noto Sans"],
+ ". The module proves that nothing depends on k or on the references any more."
+}], "Text",ExpressionUUID->"fa92de8a-62cc-42af-a71d-c6502ffe2fbf"],
+
+Cell[TextData[{
+ StyleBox["Stage.",
+  FontWeight->Bold],
+ " Input: the Equations stage (lesson 11) and the Dimensions stage (lesson \
+13), from the same ansatz. Output: the ",
+ StyleBox["\"Adimensional\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stage, the input of the Julia export."
+}], "Text",ExpressionUUID->"eab5092a-4eae-48f5-84ce-cd444e544807"],
+
+Cell["\<\
+Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
+equations = lessonUpTo[\"Equations\"];
+dims = Block[{Print}, DeriveDimensions[kpzAnsatz, \"References\" -> {nuk -> \
+\"nu\", Dk -> \"D\"}, \"Scale\" -> k]];\
+\>", "Input",ExpressionUUID->"4492d0ab-f0c7-40cf-8930-2b960c6534b5"],
+
+Cell["1. Using it", "Section",ExpressionUUID->"f98509aa-6e6a-48fc-9827-9b3eda2eab16"],
+
+Cell["adim = AdimensionalEquations[equations, dims];", "Input",ExpressionUUID->"f0695905-390f-48c6-bcb6-b60c8ef495c8"],
+
+Cell[TextData[{
+ "KPZ has one state coupling, ",
+ StyleBox["\[Lambda]",
+  FontFamily->"Noto Sans"],
+ " (",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " and D are references). Its flow is purely canonical, because ",
+ StyleBox["\[Lambda]",
+  FontFamily->"Noto Sans"],
+ " is not renormalised (lesson 06):"
+}], "Text",ExpressionUUID->"53d8b4e3-9f31-4e98-8508-93594d1927f2"],
+
+Cell["ShowBeta[adim, lamk]", "Input",ExpressionUUID->"b0e66999-26d0-48b3-884d-44ed1f7d2866"],
+
+Cell[TextData[{
+ "The anomalous dimensions solve (EtaML + ",
+ StyleBox["\[Integral]",
+  FontFamily->"Noto Sans"],
+ " Measure EtaMNL) ",
+ StyleBox["\[Eta]",
+  FontFamily->"Noto Sans"],
+ " = EtaBL + ",
+ StyleBox["\[Integral]",
+  FontFamily->"Noto Sans"],
+ " Measure EtaBNL, one row per running reference:"
+}], "Text",ExpressionUUID->"fc03f513-371f-4a3a-82a1-fbe7d9868dd5"],
+
+Cell["ShowEtaSystem[adim]", "Input",ExpressionUUID->"2ee7839a-d498-48c5-8095-bf766efa10e9"],
+
+Cell["ShowCausalPoles[adim]", "Input",ExpressionUUID->"2d978fac-d760-4127-9eb6-d3c994e7b4ce"],
+
+Cell[TextData[{
+ "The propagator's validity condition of lesson 05 has become 1 + r_n(aq",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ") > 0, in minimal dimensionless form: this is what FlowRG will check during \
+the integration (",
+ StyleBox["causal_poles",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", lesson 15)."
+}], "Text",ExpressionUUID->"1a5a3b6d-b4e3-418b-bb75-5522b9d3d525"],
+
+Cell["2. Units out, by Leibniz", "Section",ExpressionUUID->"9349cdba-e085-4f0e-b698-24528f9f580b"],
+
+Cell["\<\
+(* Kernel/Adimensional.wl:92-123 *)
+AdimensionalEquations[equations_, dims_, opts : OptionsPattern[]] := \
+Block[{$FRGModule = \"Adimensional\"},
+  Module[{t0 = AbsoluteTime[], checks = {}, warns = {}, ansatz, theory, \
+fields, cps, refs, etas, names, vecs, basis, nb, unitIndex, kk, qU, aq,
+    dimSym, nonren, regC, reg, eqs, combs, toUnits, form, gamma2Dim, kind, \
+defEq, running, fixed, state, dsC, lhs, unknowns, uEqs, mat, rhsVec,
+    sol, loopSym, dsOf, betaL, betaNL, betaNLExplicit, atomVals, atomVecs, \
+adimAtoms, compactPiece, explicitPiece, etaRows, mL, mNL, bL, bNL,
+    mustFix, stage, testDims, cand, bad, compactAtoms, etaRowsExplicit, mNLx, \
+bNLx, causalRaw, causalOrig, causalStripped, causalMin,
+    causalExpl, causalKeep},
+   validateStage[equations, \"Equations\"]; validateStage[dims, \
+\"Dimensions\"];
+   FRGAssert[\"Adimensional.options\", MatchQ[{opts}, {(Rule | \
+RuleDelayed)[\"State\", _] ...}], {opts}, \"only the option \\\"State\\\" is \
+accepted\"];
+   ansatz = AnsatzOf[equations];
+   AppendTo[checks, assertCheck[\"Adimensional.sameAnsatz\", \
+ansatz[\"Fingerprint\"] === dims[\"Ansatz\"][\"Fingerprint\"],
+     {ansatz[\"Fingerprint\"], dims[\"Ansatz\"][\"Fingerprint\"]}, \"the \
+dimensions were derived from another ansatz: \
+DeriveDimensions[AnsatzOf[equations], ...]\",
+     \"dimensions and equations from the same ansatz\"]];
+   theory = ansatz[\"Theory\"]; fields = theory[\"Fields\"]; cps = \
+ansatz[\"Couplings\"];
+   refs = dims[\"References\"]; etas = dims[\"Etas\"]; names = \
+dims[\"Names\"]; vecs = dims[\"Vectors\"]; basis = dims[\"Basis\"]; nb = \
+Length[basis];
+   kk = dims[\"Scale\"]; dimSym = dims[\"Dimension\"]; qU = \
+equations[\"LoopMomentum\"]; aq = Symbol[\"Global`aq\"];
+   FRGAssert[\"Adimensional.scale\", equations[\"Scale\"] === kk, {equations[\
+\"Scale\"], kk}, \"the regulator scale and the \\\"Scale\\\" of \
+DeriveDimensions differ\"];
+   unitIndex = AssociationThread[basis -> Range[nb]];
+   nonren = First /@ EmbeddedStage[equations, \
+\"Symmetries\"][\"NonRenormalised\"];
+   testDims = If[dimSym === 2, {2}, {2, 3}];
+
+   AppendTo[checks, assertCheck[\"Adimensional.referencesFlow\", \
+Intersection[refs, nonren] === {}, Intersection[refs, nonren],
+     \"a NonRenormalised coupling cannot be a reference: choose another \
+one\", \"no reference is NonRenormalised\"]];
+
+   (* D4: d_s R may contain d_s of reference couplings only *)
+   regC = Union[Cases[equations[\"DsRRules\"][[All, 2]], dsCoupling[c_] :> c, \
+{0, Infinity}]];
+   AppendTo[checks, assertCheck[\"Adimensional.regulatorReferences\", \
+SubsetQ[refs, regC], Complement[regC, refs],
+     \"regulator prefactors may contain reference couplings only (e.g. nk q^2 \
+arnh, not nk (1 + Ak) q^2 arnh); lifting this is in docs/FUTURE.md\",
+     \"regulator prefactors contain references only: \" <> \
+StringRiffle[ToString /@ regC, \", \"]]];
+   (* units: c -> chat [c] for non-references, q -> k aq, d_s ref -> -eta ref \
+*)
+   form[c_] := basisForm[vecs[c], basis];
+   toUnits = Join[(# -> names[#] form[#]) & /@ Complement[cps, refs], {qU -> \
+kk aq}, (dsCoupling[#] -> -etas[#] #) & /@ refs];
+   gamma2Dim[{a_, b_}] := Expand[dimSym UnitVector[nb, 1] - dims[\"Time\"] - \
+vecs[a] - vecs[b]];\
+\>", "Program",ExpressionUUID->"d47379d7-c62a-4147-8ed9-041730dc6831"],
+
+Cell[TextData[{
+ "The substitution ",
+ StyleBox["toUnits",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " writes each non-reference coupling as ",
+ StyleBox["\:0109",
+  FontFamily->"Noto Sans"],
+ " times its dimension, q = k aq, and ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "s ref = ",
+ StyleBox["\[Minus]\[Eta]",
+  FontFamily->"Noto Sans"],
+ " ref. ",
+ StyleBox["Adimensional.scale",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " compares the regulator's ",
+ StyleBox["k",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " with the ",
+ StyleBox["\"Scale\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " of ",
+ StyleBox["DeriveDimensions",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ": this is where a wrong default ",
+ StyleBox["\"Scale\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (lesson 13) would be caught."
+}], "Text",ExpressionUUID->"55b7345e-a06a-4cf1-bc0e-096930132099"],
+
+Cell["\<\
+(* Kernel/Adimensional.wl:162-187 *)
+   (* Leibniz: d_s(comb) = sum_c (d comb/d c) d_s c, d_s ref = -eta ref, d_s \
+c = 0 for NonRenormalised c; one loop symbol per equation *)
+   loopSym = Array[loopOf, Length[eqs]];
+   lhs = Function[comb, Expand[Total[(D[comb, #] dsC[#]) & /@ \
+Variables[comb]] /. Join[(dsC[#] -> -etas[#] #) & /@ refs, (dsC[#] -> 0) & /@ \
+nonren]]] /@ combs;
+   unknowns = Union[Cases[lhs, _dsC, {0, Infinity}]];
+   uEqs = Select[Range[Length[eqs]], ! FreeQ[lhs[[#]], dsC] &];
+   bad = Complement[Range[Length[eqs]], uEqs, Values[defEq]];
+   FRGAssert[\"Adimensional.unusedEquation\", bad === {}, combs[[bad]], \
+\"these equations determine no coupling and no eta (check the references and \
+NonRenormalised tags)\"];
+   FRGAssert[\"Adimensional.leibnizSquare\", Length[uEqs] == \
+Length[unknowns], {combs[[uEqs]], unknowns},
+    \"the equations do not determine each flowing coupling exactly once \
+(Leibniz system not square)\"];
+   sol = If[unknowns === {}, <||>,
+     mat = Table[Coefficient[lhs[[e]], u], {e, uEqs}, {u, unknowns}];
+     FRGAssert[\"Adimensional.leibnizSolvable\", ! ExactlyZeroQ[Det[mat]], \
+{combs[[uEqs]], unknowns}, \"the Leibniz system is singular\"];
+     rhsVec = loopSym[[uEqs]] - (lhs[[uEqs]] /. _dsC -> 0);
+     AssociationThread[(First /@ unknowns) -> Expand[LinearSolve[mat, \
+rhsVec]]]];
+   AppendTo[checks, assertCheck[\"Adimensional.leibniz\", True, Null, \"\", \
+ToString[Length[unknowns]] <> \" flowing couplings solved from \" <>
+       ToString[Length[uEqs]] <> \" equations: \" <> StringRiffle[ToString /@ \
+Keys[sol], \", \"]]];
+
+   (* state *)
+   state = Replace[OptionValue[\"State\"], Automatic -> Select[cps, ! \
+MemberQ[refs, #] &]];
+   FRGAssert[\"Adimensional.state\", ListQ[state] && DuplicateFreeQ[state] && \
+SubsetQ[Complement[cps, refs], state], state,
+    \"\\\"State\\\" -> {couplings of the ansatz that are not references}\"];
+   bad = Select[state, ! KeyExistsQ[sol, #] && ! MemberQ[nonren, #] &];
+   FRGAssert[\"Adimensional.noBeta\", bad === {}, bad, \"these state \
+couplings get no flow: no equation determines them and they are not \
+NonRenormalised\"];
+   bad = Complement[Keys[sol], state];
+   FRGAssert[\"Adimensional.stateMissing\", bad === {}, bad, \"these \
+couplings have a flow equation but are missing from \\\"State\\\"\"];
+   dsOf[c_] := Lookup[sol, c, 0];\
+\>", "Program",ExpressionUUID->"6736cc38-67ae-4a86-a56f-a1d57f0103bc"],
+
+Cell[TextData[{
+ "A flowing combination such as ",
+ StyleBox["\[Nu]\[CenterDot]",
+  FontFamily->"Noto Sans"],
+ "A gives ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "s(",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ "A) = A ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "s",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " + ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "sA: the equations are linear in the unknown ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "s c, and the system must be square and regular. ",
+ StyleBox["Array[loopOf, n]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " makes the placeholder symbols ",
+ StyleBox["loopOf[1], ..., loopOf[n]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " for the loop integrals, so that the linear algebra runs on short symbols \
+(lesson 05's abstract atoms, once more). ",
+ StyleBox["Variables[poly]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " lists the variables of a polynomial."
+}], "Text",ExpressionUUID->"c2ad8e28-b92b-4aa4-b245-a37ae23a7f10"],
+
+Cell["{Variables[nuk Dk + lamk^2], Array[loopOf, 3]}", "Input",ExpressionUUID->"6533c029-0512-4254-9fb8-26900bd1fccd"],
+
+Cell["3. Proving homogeneity", "Section",ExpressionUUID->"f13b102a-1da1-42d4-9ca1-2c2ed3f404f7"],
+
+Cell["\<\
+(* Kernel/Adimensional.wl:28-45 *)
+(* ---------- homogeneity in the units (generalises HomVec/HomClean of \
+AdimensionalFlowEQGenericRegLargeScale.nb) ----------
+   hom[e] = {v, rest}: e = (product of units with exponent vector v) x rest, \
+rest free of units. Every term of a sum must carry the
+   same v; units may not appear in exponents or in function arguments. \
+Exponents may depend on the symbolic dimension. *)
+homVec[e_, unitIndex_Association, nb_] := Module[{zero = ConstantArray[0, \
+nb], hv},
+   hv[s_Symbol] := If[KeyExistsQ[unitIndex, s], {UnitVector[nb, \
+unitIndex[s]], 1}, {zero, s}];
+   hv[x_?NumericQ] := {zero, x};
+   hv[x_Plus] := Module[{h = hv /@ List @@ x, v},
+     v = h[[1, 1]];
+     If[! AllTrue[h[[All, 1]], AllTrue[Expand[# - v], # === 0 &] &], \
+Throw[{\"a sum mixes dimensions\", DeleteDuplicates[h[[All, 1]]], x}, homTag]];
+     {v, Plus @@ h[[All, 2]]}];
+   hv[x_Times] := Module[{h = hv /@ List @@ x}, {Expand[Total[h[[All, 1]]]], \
+Times @@ h[[All, 2]]}];
+   hv[Power[b_, n_]] := Module[{hb = hv[b], hn = hv[n]},
+     If[hn[[1]] =!= zero, Throw[{\"a unit in an exponent\", Power[b, n]}, \
+homTag]];
+     {Expand[n hb[[1]]], hb[[2]]^n}];
+   hv[f_[args___]] := Module[{h = hv /@ {args}},
+     If[! AllTrue[h[[All, 1]], # === zero &], Throw[{\"a unit inside a \
+function argument\", f[args]}, homTag]];
+     {zero, f @@ h[[All, 2]]}];
+   hv[e]];\
+\>", "Program",ExpressionUUID->"320a3984-f07c-433c-9015-3f350827c1a0"],
+
+Cell["\<\
+(* Kernel/Adimensional.wl:47-55 *)
+(* dimension vector of e (units substituted); aborts with the reason if e is \
+not homogeneous *)
+dimensionVector[check_, e_, unitIndex_, nb_, what_] := Module[{r = \
+Catch[homVec[e, unitIndex, nb], homTag]},
+   FRGAssert[check, MatchQ[r, {_List, _}] && Length[r[[1]]] == nb, {what, r}, \
+\"not homogeneous in the units k, references: \" <> ToString[First[r]]];
+   r];
+(* rest of e after asserting that its dimension is exactly v *)
+homClean[check_, e_, v_, unitIndex_, nb_, what_] := Module[{r = \
+dimensionVector[check, e, unitIndex, nb, what]},
+   FRGAssert[check, AllTrue[Expand[r[[1]] - v], # === 0 &], {what, \"residual \
+dimension\" -> Expand[r[[1]] - v]},
+    \"the expression still depends on the units k, references (dimension \
+mismatch)\"];
+   r[[2]]];\
+\>", "Program",ExpressionUUID->"7bf7ebd7-3365-4cf7-abc1-3e42febf3bb0"],
+
+Cell[TextData[{
+ StyleBox["homVec",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " walks an expression (",
+ StyleBox["Several definitions of one function",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 02)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ", one rule per head) and returns ",
+ StyleBox["{exponent vector, rest}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ": the units it contains and what is left. Every term of a sum must carry \
+the same vector; a unit may not appear in an exponent or inside a function \
+argument (a shape argument must reduce to aq",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ")."
+}], "Text",ExpressionUUID->"4a451713-9fd1-41d0-b0f8-249653878bed"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Catch and Throw",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Throw[value, tag]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " jumps out of any depth of evaluation to the enclosing ",
+ StyleBox["Catch[expr, tag]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", which returns value.",
+ "\n\n",
+ "A recursive walk that finds a problem deep inside a sum has to stop and \
+report it. ",
+ StyleBox["Throw",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " does that without every level of the recursion checking a return value. ",
+ StyleBox["dimensionVector",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " catches the reason with the tag ",
+ StyleBox["homTag",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and turns it into a named check: the library's convention (lesson 00, \
+section 3) is kept at the boundary, while the inner walk uses the cheaper \
+mechanism."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"325abd51-a2b4-4835-95f4-d80ac74d01d8"],
+
+Cell["\<\
+ui = <|k -> 1, nuk -> 2, Dk -> 3|>;
+{Catch[Throw[\"jumped out\", myTag]; \"never reached\", myTag],
+ FRGscalarMSR`Private`homVec[k^2 nuk x, ui, 3],
+ Catch[FRGscalarMSR`Private`homVec[k + nuk, ui, 3], \
+FRGscalarMSR`Private`homTag]}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"28a106f3-9225-49fd-aeb5-94e52d1fd41a"],
+
+Cell["\<\
+(* Kernel/Adimensional.wl:57-69 *)
+(* independent route (review E8): e must be unchanged when every unit is \
+multiplied by a random factor. Units are random perfect
+   powers so that every fractional power stays rational; d is set to each \
+test dimension. *)
+unitInvariantQ[e_, units_, dimSym_, ds_, seed_] := AllTrue[ds, Function[d, \
+Module[{ed = e /. dimSym -> d, den, pt, lam, memo, atom, val, syms},
+     den = LCM @@ Denominator[Cases[ed, Power[_, x_?NumericQ] :> x, {0, \
+Infinity}] /. {} -> {1}];
+     SeedRandom[seed + d];
+     syms = Complement[Union[Cases[ed, s_Symbol /; Context[s] =!= \
+\"System`\", {0, Infinity}, Heads -> False]], units];
+     pt = Thread[syms -> RandomInteger[{2, 40}, \
+Length[syms]]/RandomInteger[{41, 97}, Length[syms]]];
+     lam = Thread[units -> (RandomInteger[{2, 7}, \
+Length[units]]/RandomInteger[{2, 7}, Length[units]])^den];
+     memo[x_] := memo[x] = RandomInteger[{2, 60}]/RandomInteger[{61, 97}];
+     (* not Core's whole-atom rule (design/MOMENTUMPROJECTION.md step 0): \
+enough here, AdimAtom[..] takes no argument and shapes are symbols *)
+     atom = x : (Derivative[__][_Symbol][___] | (h_Symbol /; Context[h] =!= \
+\"System`\")[___]) :> memo[x];
+     val[u_] := Together[(ed /. Thread[units -> (u units)] /. pt /. \
+Thread[units -> (Last /@ lam)] /. atom)];
+     Together[val[1] - val[Last /@ lam]] === 0]]];\
+\>", "Program",ExpressionUUID->"985c997c-d536-4233-9a8d-a1e5ee727a5c"],
+
+Cell["\<\
+The independent route (review E8): every loop piece, before the units are \
+stripped, is evaluated with every unit multiplied by a random factor, in d = \
+2 and 3, and must not change. Structural homogeneity and numerical invariance \
+are two different arguments for the same fact.\
+\>", "Text",ExpressionUUID->"4ce09917-884b-4cfd-b6c5-a3fdebb1f5d3"],
+
+Cell["4. The \[Beta] functions and the \[Eta] system", "Section",ExpressionUUID->"df6dbdf2-fe8b-49f9-87bd-12016a1da30c"],
+
+Cell["\<\
+(* Kernel/Adimensional.wl:221-242 *)
+   (* a loop piece  alpha x Integral d^dq/(2 Pi)^d I(q) / [c]  as the \
+integrand of Integral daq LoopMeasure: alpha k^d I(k aq)/[c] *)
+   explicitPiece[alpha_, e_, v_, what_] := Module[{x = (alpha kk^dimSym \
+eqs[[e]][\"Integrand\"]) /. toUnits},
+     FRGAssert[\"Adimensional.unitInvariance\", unitInvariantQ[x, basis, \
+dimSym, testDims, e], what,
+      \"the loop integrand changes when the units are rescaled: it is not \
+dimensionless (independent route)\"];
+     homClean[\"Adimensional.homogeneous\", x, v, unitIndex, nb, what]];
+   compactPiece[alpha_, e_, v_, what_] := Module[{x = (alpha kk^dimSym \
+(eqs[[e]][\"Compact\"] /. equations[\"DsRRules\"] /. compactAtoms)) /. \
+toUnits},
+     homClean[\"Adimensional.homogeneousCompact\", x, v, unitIndex, nb, what]];
+
+   (* beta functions: d_s chat = chat (-x + Sum y eta) + (d_s c)/[c], local \
+part not integrated, loop part per Integral daq *)
+   betaL = <||>; betaNL = <||>; betaNLExplicit = <||>;
+   Do[Module[{ds = dsOf[c], v = vecs[c], hat = names[c], local, alphas},
+      alphas = Coefficient[ds, #] & /@ loopSym;
+      local = Expand[ds /. Thread[loopSym -> 0]];
+      betaL[c] = Expand[hat linearPart[v, Values[etas]] + \
+homClean[\"Adimensional.homogeneousLocal\", (local/form[c]) /. toUnits, \
+ConstantArray[0, nb], unitIndex, nb, c]];
+      betaNL[c] = Total[MapThread[If[#1 === 0 || \
+eqs[[#2]][\"IdenticallyZero\"], 0, compactPiece[#1/form[c], #2, \
+ConstantArray[0, nb], c]] &, {alphas, Range[Length[eqs]]}]];
+      betaNLExplicit[c] = Total[MapThread[If[#1 === 0 || \
+eqs[[#2]][\"IdenticallyZero\"], 0, explicitPiece[#1/form[c], #2, \
+ConstantArray[0, nb], c]] &, {alphas, Range[Length[eqs]]}]]],
+    {c, state}];
+   AppendTo[checks, assertCheck[\"Adimensional.homogeneous\", True, Null, \"\",
+     \"every beta free of k and the references: homogeneity of every sum \
+(structural) and invariance under random unit rescaling (numerical, d = \" <>
+      StringRiffle[ToString /@ testDims, \", \"] <> \")\"]];
+   AppendTo[checks, assertCheck[\"Adimensional.linearNoMomentum\", \
+FreeQ[Values[betaL], aq | qU | kk], Select[betaL, ! FreeQ[#, aq | qU | kk] \
+&],
+     \"internal: a linear part depends on the loop momentum\", \"linear parts \
+free of aq (not integrated)\"]];\
+\>", "Program",ExpressionUUID->"50960fed-98ea-4876-8856-8bd440b11271"],
+
+Cell[TextData[{
+ StyleBox["linearPart",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (lesson 13) gives the canonical part, ",
+ StyleBox["\:0109",
+  FontFamily->"Noto Sans"],
+ "(",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "x + ",
+ StyleBox["\[CapitalSigma]",
+  FontFamily->"Noto Sans"],
+ " y_j ",
+ StyleBox["\[Eta]",
+  FontFamily->"Noto Sans"],
+ "_j). The loop pieces become integrands of ",
+ StyleBox["\[Integral]",
+  FontFamily->"Noto Sans"],
+ "daq with k^d from the measure."
+}], "Text",ExpressionUUID->"a007a06c-f0f8-426d-9f58-152482c3df1d"],
+
+Cell["\<\
+(* Kernel/Adimensional.wl:26 *)
+LoopMeasure[d_, aq_] := 2 Pi^(d/2)/Gamma[d/2] aq^(d - 1)/(2 Pi)^d;\
+\>", "Program",ExpressionUUID->"4879191e-f7b0-4f92-b2a8-254920631213"],
+
+Cell["{LoopMeasure[3, aq], LoopMeasure[Dim, aq]}", "Input",ExpressionUUID->"1a41783c-bec5-4d25-b270-4831002cfcce"],
+
+Cell["\<\
+(* Kernel/Adimensional.wl:244-255 *)
+   (* eta system: running ref r: eta_r = -(loop of its equation)/r (amplitude \
+counted as 1); fixed ref: placeholder row eta = 0 *)
+   etaRows = Table[If[kind[r] === \"Running\", compactPiece[-1/r, defEq[r], \
+ConstantArray[0, nb], \"eta\" <> dims[\"EtaNames\"][r]], None], {r, refs}];
+   etaRowsExplicit = Table[If[kind[r] === \"Running\", explicitPiece[-1/r, \
+defEq[r], ConstantArray[0, nb], \"eta\" <> dims[\"EtaNames\"][r]], 0], {r, \
+refs}];
+   {bNL, mNL} = Module[{rows = Replace[etaRows, None -> 0, {1}], ca},
+     ca = Normal[CoefficientArrays[rows, Values[etas]]];
+     FRGAssert[\"Adimensional.etaLinear\", Length[ca] == 2, rows, \"the eta \
+system is not linear in the etas\"];
+     {ca[[1]], -ca[[2]]}];
+   {bNLx, mNLx} = Module[{ca = Normal[CoefficientArrays[etaRowsExplicit, \
+Values[etas]]]}, {ca[[1]], -ca[[2]]}];
+   mL = IdentityMatrix[Length[refs]]; bL = ConstantArray[0, Length[refs]];
+   mustFix = dims[\"EtaNames\"] /@ fixed;
+   AppendTo[checks, assertCheck[\"Adimensional.etaSystem\", True, Null, \"\",
+     \"eta system: \" <> ToString[Length[running]] <> \" running row(s)\" <> \
+If[fixed === {}, \"\", \", placeholder row(s) eta = 0 for \" <>\
+\>", "Program",ExpressionUUID->"2620078c-3bb0-4b56-bc12-06fc9b4cf9e0"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: CoefficientArrays",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["CoefficientArrays[{p1, p2, ...}, {x1, x2, ...}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " writes linear (or polynomial) equations as ",
+ StyleBox["{b, m, ...}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " with p = b + m.x + ...",
+ "\n\n",
+ "The ",
+ StyleBox["\[Eta]",
+  FontFamily->"Noto Sans"],
+ " rows are linear in the ",
+ StyleBox["\[Eta]",
+  FontFamily->"Noto Sans"],
+ "'s: ",
+ StyleBox["CoefficientArrays",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " returns the constant vector and the matrix in one call (",
+ StyleBox["Normal",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " turns its sparse arrays into lists). ",
+ StyleBox["Length[ca] == 2",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " means \"nothing beyond linear\", the check ",
+ StyleBox["Adimensional.etaLinear",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"1b76e6c6-f0a2-469b-9430-07493ff4caa4"],
+
+Cell["Normal[CoefficientArrays[{a e1 + b e2 + c, d e1}, {e1, e2}]]", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"3e06f51b-8e52-4997-8419-3c111d6b6fef"],
+
+Cell["5. References: running or fixed", "Section",ExpressionUUID->"16ab855c-e4c2-4812-b1d2-1448e1806e47"],
+
+Cell["\<\
+(* Kernel/Adimensional.wl:140-158 *)
+   (* references: running (eta from the equation of ref or ref x amplitude) \
+or fixed (eta given at run time) *)
+   cand[r_] := Select[Range[Length[eqs]], With[{q = Together[combs[[#]]/r]},
+        PolynomialQ[q, cps] && FreeQ[q /. Thread[dims[\"Dimensionless\"] -> \
+1], Alternatives @@ cps] && Exponent[combs[[#]], r] == 1] &];
+   kind = <||>; defEq = <||>;
+   Do[Module[{c = cand[r], alone, mode = dims[\"ReferenceModes\"][r], eqSpec \
+= dims[\"ReferenceEquations\"][r]},
+      alone = Select[c, Expand[combs[[#]] - r] === 0 &];
+      Which[
+       alone =!= {},
+       FRGAssert[\"Adimensional.referenceMode\", mode =!= \"Fixed\", r, \
+\"this reference appears alone in an equation, so its eta is determined \
+(Running); drop \\\"Mode\\\" -> \\\"Fixed\\\"\"];
+       kind[r] = \"Running\"; defEq[r] = First[alone],
+       c === {},
+       FRGAssert[\"Adimensional.referenceEquation\", False, r, \"no equation \
+has this reference alone or times dimensionless amplitudes: it cannot set an \
+eta\"],
+       mode === \"Running\",
+       If[eqSpec =!= Automatic, c = Select[c, Expand[combs[[#]] - eqSpec] === \
+0 &]];
+       FRGAssert[\"Adimensional.referenceEquation\", Length[c] == 1, {r, \
+combs[[cand[r]]]},
+        \"several (or no) equations can define this eta: choose one with \
+\\\"Equation\\\" -> comb in DeriveDimensions \\\"References\\\"\"];
+       kind[r] = \"Running\"; defEq[r] = First[c],
+       True, kind[r] = \"Fixed\"]], {r, refs}];
+   running = Select[refs, kind[#] === \"Running\" &]; fixed = Select[refs, \
+kind[#] === \"Fixed\" &];\
+\>", "Program",ExpressionUUID->"b509423c-63de-4ff8-a987-bea6dca58950"],
+
+Cell[TextData[{
+ "A reference that appears alone in an equation (KPZ: ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " and D) is ",
+ StyleBox["running",
+  FontWeight->Bold],
+ ": its ",
+ StyleBox["\[Eta]",
+  FontFamily->"Noto Sans"],
+ " is read from that equation. A reference that appears only multiplied by \
+dimensionless amplitudes (the shallow-water ",
+ StyleBox["Dphik aDphik",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ") is ",
+ StyleBox["fixed",
+  FontWeight->Bold],
+ ": its ",
+ StyleBox["\[Eta]",
+  FontFamily->"Noto Sans"],
+ " is a parameter given at run time, and its row in the ",
+ StyleBox["\[Eta]",
+  FontFamily->"Noto Sans"],
+ " system is a placeholder ",
+ StyleBox["\[Eta]",
+  FontFamily->"Noto Sans"],
+ " = 0, listed as ",
+ StyleBox["MustFix",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " for FlowRG's ",
+ StyleBox["fixed_etas",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["design/ADIMENSIONAL.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ")."
+}], "Text",ExpressionUUID->"232c2e1e-d443-4089-8b0c-d84d3cd61553"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Which part of the flow is integrated",
+  FontWeight->Bold],
+ "\n\n",
+ "BetaL contains no momentum integral and BetaNL contains nothing but the \
+integrand. Keeping them apart lets FlowRG evaluate the local part exactly and \
+spend its quadrature only on the loop, and keeps the ",
+ StyleBox["\[Eta]",
+  FontFamily->"Noto Sans"],
+ " system in the form (M_L + ",
+ StyleBox["\[Integral]",
+  FontFamily->"Noto Sans"],
+ "M_NL) ",
+ StyleBox["\[Eta]",
+  FontFamily->"Noto Sans"],
+ " = b_L + ",
+ StyleBox["\[Integral]",
+  FontFamily->"Noto Sans"],
+ "b_NL that is solved after the integrals are done. The library could \
+integrate nothing here: the shapes are still abstract (lesson 04), and the \
+integrals depend on the state at which FlowRG evaluates them."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"dcc50390-5966-41d7-b892-0ffdc19f1e6a"],
+
+Cell["6. Causal poles in minimal form", "Section",ExpressionUUID->"5b173f40-2420-4ce5-84c0-2d460664a91d"],
+
+Cell["\<\
+(* Kernel/Adimensional.wl:73-86 *)
+(* numeric coefficient of one term of an expanded polynomial *)
+causalPolesCoefficient[t_] := Which[NumberQ[t], t, Head[t] === Times, Times \
+@@ Select[List @@ t, NumberQ], True, 1];
+(* exponent of aq in one term, outside function arguments: rn[aq^2] does not \
+count *)
+causalPolesAqExponent[t_, aq_] := Exponent[t /. (h_Symbol /; Context[h] =!= \
+\"System`\")[___] :> 1, aq];
+(* {content, minimal}: rest = content minimal, content = positive numeric \
+content x aq^(smallest exponent) *)
+causalPolesStrip[rest_, aq_] := Module[{e = Expand[rest], terms, num, m},
+   If[e === 0, Return[{1, 0}]];
+   terms = If[Head[e] === Plus, List @@ e, {e}];
+   num = Abs[GCD @@ (causalPolesCoefficient /@ terms)];
+   m = Min[causalPolesAqExponent[#, aq] & /@ terms];
+   {num aq^m, Expand[e/(num aq^m)]}];
+(* a product of a positive number and powers of the given symbols *)
+causalPolesPositiveQ[s_, syms_] := AllTrue[If[Head[s] === Times, List @@ s, \
+{s}],
+   (NumberQ[#] && # > 0) || MatchQ[#, Alternatives @@ syms] || MatchQ[#, \
+Power[Alternatives @@ syms, _]] &];\
+\>", "Program",ExpressionUUID->"b267eae4-5780-497c-acba-5d01cfb4d781"],
+
+Cell[TextData[{
+ "Each condition e > 0 is brought to p > 0 with p a polynomial (",
+ StyleBox["NumeratorDenominator",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", then numerator ",
+ StyleBox["\[Times]",
+  FontFamily->"Noto Sans"],
+ " denominator, or the numerator times the sign of a numeric denominator), \
+the units are taken out (references, k and aq are positive: an ASSUMPTION \
+line), and the positive numeric content and lowest power of aq are stripped (",
+ StyleBox["GCD",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["Abs",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["Sign",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "). ",
+ StyleBox["Adimensional.causalPolesMinimal",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " checks exactly that original = stripped factor ",
+ StyleBox["\[Times]",
+  FontFamily->"Noto Sans"],
+ " minimal (",
+ StyleBox["design/CAUSALITY.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ")."
+}], "Text",ExpressionUUID->"6c97a9e6-cfe4-42be-8ffc-7527ae439a57"],
+
+Cell["{NumeratorDenominator[(a + b)/c], GCD[6, 9, 12], Sign[-3]}", "Input",ExpressionUUID->"3ee89b28-3628-4232-a651-1c840c44e745"],
+
+Cell["7. The stage", "Section",ExpressionUUID->"a12455ea-8597-4ae6-a1eb-989d54ade073"],
+
+Cell[BoxData[
+ $CellContext`regionCells[
+ "Kernel/Adimensional.wl", "stage = stampStage[<", 
+  "\"Stage\" -> \"Adimensional\"", "PrintCard[stage];"]], "Input",ExpressionUU\
+ID->"24a7ed8d-fbb4-486a-88b6-373251a39101"],
+
+Cell[TextData[{
+ StyleBox["\"Couplings\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " are the dimensionless names (",
+ StyleBox["alamk",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "), ",
+ StyleBox["\"Etas\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " the ",
+ StyleBox["\[Eta]",
+  FontFamily->"Noto Sans"],
+ " symbols, ",
+ StyleBox["\"Atoms\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " the dimensionless atoms ",
+ StyleBox["AdimAtom[...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and their values, ",
+ StyleBox["\"LoopMomentum\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " the symbol ",
+ StyleBox["aq",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",ExpressionUUID->"cb44d064-2b32-47a3-8077-4022af0c7001"],
+
+Cell["\<\
+{adim[\"State\"], adim[\"Couplings\"], adim[\"Etas\"], adim[\"Atoms\"]}\
+\>", "Input",ExpressionUUID->"ae7fd438-16d0-482a-91dd-584a37fc656a"],
+
+Cell["Exercises", "Section",ExpressionUUID->"bf652ffb-45fd-4d0d-bbe2-bbf5d8438333"],
+
+Cell["Exercise: A NonRenormalised reference", "Subsection",ExpressionUUID->"ba8ece16-35c0-44e1-8742-db26dd3514ce"],
+
+Cell[TextData[{
+ "Use ",
+ StyleBox["\[Lambda]",
+  FontFamily->"Noto Sans"],
+ " as a reference instead of D. Which check fails, and why must a reference \
+flow?"
+}], "Text",ExpressionUUID->"3cd6f247-cf10-4640-8f84-d01cd2bdb198"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"7339dd0c-d76c-4793-a24c-45476630cc61"],
+
+Cell["\<\
+dims2 = Block[{Print}, DeriveDimensions[kpzAnsatz, \"References\" -> {nuk -> \
+\"nu\", lamk -> \"l\"}, \"Scale\" -> k]];
+showFailure[AdimensionalEquations[equations, dims2]]\
+\>", "Input",ExpressionUUID->"a495fa82-eaeb-4150-8d11-9ffb6e4d751d"],
+
+Cell[TextData[{
+ StyleBox["Adimensional.referencesFlow",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". A reference defines an ",
+ StyleBox["\[Eta]",
+  FontFamily->"Noto Sans"],
+ " through its own flow; ",
+ StyleBox["\[Lambda]",
+  FontFamily->"Noto Sans"],
+ " is declared not to flow, so ",
+ StyleBox["\[Eta]",
+  FontFamily->"Noto Sans"],
+ "_",
+ StyleBox["\[Lambda]",
+  FontFamily->"Noto Sans"],
+ " would be fixed to 0 by assumption, not computed."
+}], "Text",ExpressionUUID->"7813e2da-a603-4ce0-bda2-6466ecd4a112"]
+}, Closed]],
+
+Cell["Exercise: The \[Eta] system with the Litim shape", "Subsection",ExpressionUUID->"ea56acb3-fb93-42fe-8639-666a98ecd639"],
+
+Cell[TextData[{
+ "Substitute the Litim shape r(y) = 1/y ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ " 1 into the first row of EtaMNL (valid for aq < 1). Which atoms simplify?"
+}], "Text",ExpressionUUID->"830ba44c-3a0d-45e1-967c-f3f0e8fa30fc"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"5ae1229d-fca9-4d9d-a267-fb98ea41f43c"],
+
+Cell["\<\
+litim = {rn -> Function[y, 1/y - 1], rd -> Function[y, 1/y - 1]};
+Together[adim[\"EtaMNL\"][[1]] /. adim[\"Atoms\"] /. litim]\
+\>", "Input",ExpressionUUID->"8a8e8d9f-cff6-4bf6-9d40-e2cf1ab1e5ff"],
+
+Cell[TextData[{
+ StyleBox["AdimAtom[h, hbar, 0, 0]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " = 1 + r_n(aq",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ") becomes 1/aq",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ", and ",
+ StyleBox["AdimAtom[h, hbar, 0, 1]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " = 1 + r_n + aq",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " r_n",
+ StyleBox["\[Prime]",
+  FontFamily->"Noto Sans"],
+ " becomes 0: the Litim shape makes the second atom vanish for aq < 1."
+}], "Text",ExpressionUUID->"1de638c7-779b-42f7-a565-0deec1e51cb2"]
+}, Closed]],
+
+Cell["Exercise: The dimensionless measure", "Subsection",ExpressionUUID->"df3381db-ca9d-4c97-886d-94b8cb56ea7e"],
+
+Cell[TextData[{
+ "Check that ",
+ StyleBox["LoopMeasure[d, aq]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " integrates to the volume of the unit ball over (2",
+ StyleBox["\[Pi]",
+  FontFamily->"Noto Sans"],
+ ")^d: ",
+ StyleBox["\[Integral]\:2080\.b9",
+  FontFamily->"Noto Sans"],
+ " LoopMeasure daq = V_d/(2",
+ StyleBox["\[Pi]",
+  FontFamily->"Noto Sans"],
+ ")^d with V_d = ",
+ StyleBox["\[Pi]",
+  FontFamily->"Noto Sans"],
+ "^{d/2}/",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "(d/2 + 1), for d = 3."
+}], "Text",ExpressionUUID->"0519af04-7936-4122-9b27-8875c2eddf24"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"6ad7f490-e972-4d23-a2a3-78c651183d78"],
+
+Cell["\<\
+{Integrate[LoopMeasure[3, aq], {aq, 0, 1}], Pi^(3/2)/Gamma[5/2]/(2 Pi)^3}\
+\>", "Input",ExpressionUUID->"d1b59c1f-c836-4ce8-885d-61c7403a026f"],
+
+Cell[TextData[{
+ "Both are 1/(6",
+ StyleBox["\[Pi]\.b2",
+  FontFamily->"Noto Sans"],
+ ")."
+}], "Text",ExpressionUUID->"3ce0ec18-1b85-426f-9e33-2fa2febf5df6"]
+}, Closed]]
+},
+CellContext->Notebook,
+FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"68ca8ccf-8ceb-4f4a-8543-fab9318d86bc"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 96, 0, 70, "Title",ExpressionUUID->"3f3dea13-680d-4843-be77-fcb8617c2b8d"],
+Cell[653, 22, 645, 25, 70, "Text",ExpressionUUID->"df64aa47-7717-4e49-9a1d-4d05cb2d1142"],
+Cell[1301, 49, 434, 16, 70, "Text",ExpressionUUID->"c66343e5-5f78-40e9-8baa-688863a42539"],
+Cell[1738, 67, 531, 10, 70, "Text",ExpressionUUID->"fa92de8a-62cc-42af-a71d-c6502ffe2fbf"],
+Cell[2272, 79, 418, 10, 70, "Text",ExpressionUUID->"eab5092a-4eae-48f5-84ce-cd444e544807"],
+Cell[2693, 91, 357, 6, 70, "Input",ExpressionUUID->"4492d0ab-f0c7-40cf-8930-2b960c6534b5"],
+Cell[3053, 99, 85, 0, 70, "Section",ExpressionUUID->"f98509aa-6e6a-48fc-9827-9b3eda2eab16"],
+Cell[3141, 101, 118, 0, 70, "Input",ExpressionUUID->"f0695905-390f-48c6-bcb6-b60c8ef495c8"],
+Cell[3262, 103, 375, 11, 70, "Text",ExpressionUUID->"53d8b4e3-9f31-4e98-8508-93594d1927f2"],
+Cell[3640, 116, 92, 0, 70, "Input",ExpressionUUID->"b0e66999-26d0-48b3-884d-44ed1f7d2866"],
+Cell[3735, 118, 370, 11, 70, "Text",ExpressionUUID->"fc03f513-371f-4a3a-82a1-fbe7d9868dd5"],
+Cell[4108, 131, 91, 0, 70, "Input",ExpressionUUID->"2ee7839a-d498-48c5-8095-bf766efa10e9"],
+Cell[4202, 133, 93, 0, 70, "Input",ExpressionUUID->"2d978fac-d760-4127-9eb6-d3c994e7b4ce"],
+Cell[4298, 135, 450, 11, 70, "Text",ExpressionUUID->"1a5a3b6d-b4e3-418b-bb75-5522b9d3d525"],
+Cell[4751, 148, 98, 0, 70, "Section",ExpressionUUID->"9349cdba-e085-4f0e-b698-24528f9f580b"],
+Cell[4852, 150, 3312, 61, 70, "Program",ExpressionUUID->"d47379d7-c62a-4147-8ed9-041730dc6831"],
+Cell[8167, 213, 1263, 41, 70, "Text",ExpressionUUID->"55b7345e-a06a-4cf1-bc0e-096930132099"],
+Cell[9433, 256, 2435, 44, 70, "Program",ExpressionUUID->"6736cc38-67ae-4a86-a56f-a1d57f0103bc"],
+Cell[11871, 302, 1292, 42, 70, "Text",ExpressionUUID->"c2ad8e28-b92b-4aa4-b245-a37ae23a7f10"],
+Cell[13166, 346, 118, 0, 70, "Input",ExpressionUUID->"6533c029-0512-4254-9fb8-26900bd1fccd"],
+Cell[13287, 348, 96, 0, 70, "Section",ExpressionUUID->"f13b102a-1da1-42d4-9ca1-2c2ed3f404f7"],
+Cell[13386, 350, 1460, 29, 70, "Program",ExpressionUUID->"320a3984-f07c-433c-9015-3f350827c1a0"],
+Cell[14849, 381, 881, 17, 70, "Program",ExpressionUUID->"7bf7ebd7-3365-4cf7-abc1-3e42febf3bb0"],
+Cell[15733, 400, 905, 24, 70, "Text",ExpressionUUID->"4a451713-9fd1-41d0-b0f8-249653878bed"],
+Cell[16641, 426, 1381, 38, 70, "Text",ExpressionUUID->"325abd51-a2b4-4835-95f4-d80ac74d01d8"],
+Cell[18025, 466, 426, 10, 70, "Input",ExpressionUUID->"28a106f3-9225-49fd-aeb5-94e52d1fd41a"],
+Cell[18454, 478, 1445, 25, 70, "Program",ExpressionUUID->"985c997c-d536-4233-9a8d-a1e5ee727a5c"],
+Cell[19902, 505, 360, 5, 70, "Text",ExpressionUUID->"4ce09917-884b-4cfd-b6c5-a3fdebb1f5d3"],
+Cell[20265, 512, 120, 0, 70, "Section",ExpressionUUID->"df6dbdf2-fe8b-49f9-87bd-12016a1da30c"],
+Cell[20388, 514, 2364, 41, 70, "Program",ExpressionUUID->"50960fed-98ea-4876-8856-8bd440b11271"],
+Cell[22755, 557, 616, 21, 70, "Text",ExpressionUUID->"a007a06c-f0f8-426d-9f58-152482c3df1d"],
+Cell[23374, 580, 180, 3, 70, "Program",ExpressionUUID->"4879191e-f7b0-4f92-b2a8-254920631213"],
+Cell[23557, 585, 114, 0, 70, "Input",ExpressionUUID->"1a41783c-bec5-4d25-b270-4831002cfcce"],
+Cell[23674, 587, 1288, 21, 70, "Program",ExpressionUUID->"2620078c-3bb0-4b56-bc12-06fc9b4cf9e0"],
+Cell[24965, 610, 1483, 46, 70, "Text",ExpressionUUID->"1b76e6c6-f0a2-469b-9430-07493ff4caa4"],
+Cell[26451, 658, 247, 4, 70, "Input",ExpressionUUID->"3e06f51b-8e52-4997-8419-3c111d6b6fef"],
+Cell[26701, 664, 105, 0, 70, "Section",ExpressionUUID->"16ab855c-e4c2-4812-b1d2-1448e1806e47"],
+Cell[26809, 666, 1676, 32, 70, "Program",ExpressionUUID->"b509423c-63de-4ff8-a987-bea6dca58950"],
+Cell[28488, 700, 1297, 44, 70, "Text",ExpressionUUID->"232c2e1e-d443-4089-8b0c-d84d3cd61553"],
+Cell[29788, 746, 978, 25, 70, "Text",ExpressionUUID->"dcc50390-5966-41d7-b892-0ffdc19f1e6a"],
+Cell[30769, 773, 105, 0, 70, "Section",ExpressionUUID->"5b173f40-2420-4ce5-84c0-2d460664a91d"],
+Cell[30877, 775, 1172, 22, 70, "Program",ExpressionUUID->"b267eae4-5780-497c-acba-5d01cfb4d781"],
+Cell[32052, 799, 1388, 40, 70, "Text",ExpressionUUID->"6c97a9e6-cfe4-42be-8ffc-7527ae439a57"],
+Cell[33443, 841, 130, 0, 70, "Input",ExpressionUUID->"3ee89b28-3628-4232-a651-1c840c44e745"],
+Cell[33576, 843, 86, 0, 70, "Section",ExpressionUUID->"a12455ea-8597-4ae6-a1eb-989d54ade073"],
+Cell[33665, 845, 216, 4, 70, "Input",ExpressionUUID->"24a7ed8d-fbb4-486a-88b6-373251a39101"],
+Cell[33884, 851, 1166, 39, 70, "Text",ExpressionUUID->"cb44d064-2b32-47a3-8077-4022af0c7001"],
+Cell[35053, 892, 151, 2, 70, "Input",ExpressionUUID->"ae7fd438-16d0-482a-91dd-584a37fc656a"],
+Cell[35207, 896, 83, 0, 70, "Section",ExpressionUUID->"bf652ffb-45fd-4d0d-bbe2-bbf5d8438333"],
+Cell[35293, 898, 114, 0, 70, "Subsection",ExpressionUUID->"ba8ece16-35c0-44e1-8742-db26dd3514ce"],
+Cell[35410, 900, 227, 6, 70, "Text",ExpressionUUID->"3cd6f247-cf10-4640-8f84-d01cd2bdb198"],
+Cell[CellGroupData[{
+Cell[35662, 910, 88, 0, 70, "Subsubsection",ExpressionUUID->"7339dd0c-d76c-4793-a24c-45476630cc61"],
+Cell[35753, 912, 253, 4, 70, "Input",ExpressionUUID->"a495fa82-eaeb-4150-8d11-9ffb6e4d751d"],
+Cell[36009, 918, 576, 18, 70, "Text",ExpressionUUID->"7813e2da-a603-4ce0-bda2-6466ecd4a112"]
+}, Closed]],
+Cell[36600, 939, 125, 0, 70, "Subsection",ExpressionUUID->"ea56acb3-fb93-42fe-8639-666a98ecd639"],
+Cell[36728, 941, 252, 5, 70, "Text",ExpressionUUID->"830ba44c-3a0d-45e1-967c-f3f0e8fa30fc"],
+Cell[CellGroupData[{
+Cell[37005, 950, 88, 0, 70, "Subsubsection",ExpressionUUID->"5ae1229d-fca9-4d9d-a267-fb98ea41f43c"],
+Cell[37096, 952, 205, 3, 70, "Input",ExpressionUUID->"8a8e8d9f-cff6-4bf6-9d40-e2cf1ab1e5ff"],
+Cell[37304, 957, 701, 23, 70, "Text",ExpressionUUID->"1de638c7-779b-42f7-a565-0deec1e51cb2"]
+}, Closed]],
+Cell[38020, 983, 112, 0, 70, "Subsection",ExpressionUUID->"df3381db-ca9d-4c97-886d-94b8cb56ea7e"],
+Cell[38135, 985, 647, 22, 70, "Text",ExpressionUUID->"0519af04-7936-4122-9b27-8875c2eddf24"],
+Cell[CellGroupData[{
+Cell[38807, 1011, 88, 0, 70, "Subsubsection",ExpressionUUID->"6ad7f490-e972-4d23-a2a3-78c651183d78"],
+Cell[38898, 1013, 153, 2, 70, "Input",ExpressionUUID->"d1b59c1f-c836-4ce8-885d-61c7403a026f"],
+Cell[39054, 1017, 157, 5, 70, "Text",ExpressionUUID->"3ce0ec18-1b85-426f-9e33-2fa2febf5df6"]
+}, Closed]]
+}
+]
+*)
+
+(* End of internal cache information *)

@@ -1,0 +1,628 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[     25177,        619]
+NotebookOptionsPosition[     20342,        553]
+NotebookOutlinePosition[     20679,        568]
+CellTagsIndexPosition[     20636,        565]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["Lesson 10 - Closure", "Title",ExpressionUUID->"626a0ed3-8c03-4f2c-ac98-e8a4e4ed12b9"],
+
+Cell[TextData[{
+ StyleBox["Physics step.",
+  FontWeight->Bold],
+ " Decide whether the flow closes on the ansatz. Every flow that a symmetry, \
+causality, or a number in the ansatz forbids must vanish; every neglected \
+flow is reported with a sample value; every declared coefficient gets its \
+equation ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "s(combination) = RHS, where the ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "_k coefficient is split into a pure number and the flowing combination of \
+couplings."
+}], "Text",ExpressionUUID->"f5e3febc-23db-4eaa-8cd7-4b4580f17365"],
+
+Cell[TextData[{
+ StyleBox["Stage.",
+  FontWeight->Bold],
+ " Input: the Integrated stage and the Symmetries stage it was projected \
+with. Output: the ",
+ StyleBox["\"Closure\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stage, with the ",
+ StyleBox["\"Equations\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and a ",
+ StyleBox["\"Report\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " of every monomial."
+}], "Text",ExpressionUUID->"ab609c26-81c0-4894-b8ce-083380b3cb3b"],
+
+Cell["\<\
+Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
+integrated = lessonUpTo[\"FrequencyIntegration\"]; symmetries = kpzSymmetries;\
+\>", "Input",ExpressionUUID->"6c52e28d-5312-470b-a916-6036834f3ebb"],
+
+Cell["1. Using it", "Section",ExpressionUUID->"766bd310-0a0c-41ee-a67d-e40502d981e2"],
+
+Cell["closure = CheckClosure[integrated, symmetries];", "Input",ExpressionUUID->"8d7a2e25-7f4f-479e-afa5-86ca4509af01"],
+
+Cell["\<\
+Three PASS lines say that the protected, numeric and causality flows vanish \
+exactly. The WARN lines are the neglected monomials that the flow generates; \
+their values are a sample at one random physical point, not a bound. The \
+report puts it all in one table:\
+\>", "Text",ExpressionUUID->"25bbf4c7-7610-4fab-8561-9baf290258ec"],
+
+Cell["ShowClosureReport[closure]", "Input",ExpressionUUID->"f72830c7-ea65-4d70-924b-be863f9d87fa"],
+
+Cell["2. The flows that must vanish", "Section",ExpressionUUID->"e4d5d3ea-4524-400d-ad95-30d5fb04bcf8"],
+
+Cell["\<\
+(* Kernel/Closure.wl:24-38 *)
+CheckClosure[integrated_, symmetries_] := Block[{$FRGModule = \"Closure\"},
+  Module[{t0 = AbsoluteTime[], flows, checks = {}, warns = {}, zeroCl, bad, \
+eqs, neg, report, stage},
+   validateStage[integrated, \"Integrated\"]; validateStage[symmetries, \
+\"Symmetries\"];
+   FRGAssert[\"Closure.sameSymmetries\", \
+MemberQ[integrated[\"Projection\"][\"Upstream\"], symmetries[\"Fingerprint\"]],
+    integrated[\"Projection\"][\"Upstream\"], \"the flows were projected with \
+another Symmetries stage\"];
+   flows = integrated[\"Flows\"];
+
+   (* flows that must vanish: one check per class, the hint carries the \
+reasons of the offenders *)
+   Do[Module[{cl = c[[1]], name = c[[2]]},
+      bad = Select[flows, #Class === cl && ! MatchQ[Lookup[#, \"Samples\"], \
+{0 ..}] &];
+      AppendTo[checks, assertCheck[name, bad === {}, {#Pair, #Frequency, \
+#Momentum, N[#Samples, 4]} & /@ bad,
+        \"these flows must vanish but do not: \" <> \
+StringRiffle[(recordString[#] <> \" (\" <> #Reason <> \")\") & /@ bad, \"; \
+\"] <>
+         \". The tag is wrong (the symmetry is not a symmetry of the ansatz \
+and regulator), or the ansatz breaks it\",
+        ToString[Count[flows, KeyValuePattern[\"Class\" -> cl]]] <> \" \" <> \
+cl <> \" flows vanish exactly (3 random rational points each)\"]]],
+    {c, {{\"Protected\", \"Closure.protected\"}, {\"DeclaredNumeric\", \
+\"Closure.declaredNumeric\"}, {\"Causality\", \"Closure.causality\"}}}];\
+\>", "Program",ExpressionUUID->"ed97dfb4-987b-40a1-9f7f-b8630a01120e"],
+
+Cell[TextData[{
+ StyleBox["! MatchQ[Lookup[#, \"Samples\"], {0 ..}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " selects the records whose samples are not all exactly 0 (",
+ StyleBox["MatchQ and repeated patterns",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 01)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "). The ",
+ StyleBox["Do",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " runs over a list of pairs (class, check name), so the three checks share \
+one piece of code. The hint names each offending monomial with the reason of \
+its tag, because a failure here means the tag is wrong or the ansatz breaks \
+the symmetry, and the reason is what you need to decide which."
+}], "Text",ExpressionUUID->"8f2eee03-c587-4b3a-bb01-9d13046b901c"],
+
+Cell[TextData[{
+ "Tagging ",
+ StyleBox["\[Omega]\.b2",
+  FontFamily->"Noto Sans"],
+ " of ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "_{",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ "} as Protected, which it is not:"
+}], "Text",ExpressionUUID->"920a3dec-6c6d-404f-a06c-fb443c54e21b"],
+
+Cell["\<\
+symmetries2 = Block[{Print}, DeclareSymmetries[kpzAnsatz,
+     Protected[{hbar, h}, \"Frequency\" -> 1, \"Momentum\" -> 0, \"Reason\" \
+-> \"Galilean Ward identity\"],
+     Protected[{h, hbar}, \"Frequency\" -> 0, \"Momentum\" -> 0, \"Reason\" \
+-> \"shift\"],
+     Protected[{hbar, hbar}, \"Frequency\" -> 2, \"Momentum\" -> 0, \
+\"Reason\" -> \"wrong on purpose\"],
+     Neglected[_, \"Reason\" -> \"beyond\"], \"TruncationOrders\" -> \
+<|\"Frequency\" -> 2, \"Momentum\" -> 1|>]];
+integrated2 = Block[{Print}, \
+IntegrateFrequencies[ProjectOnMonomials[kpzLoops, symmetries2]]];
+showFailure[CheckClosure[integrated2, symmetries2]]\
+\>", "Input",ExpressionUUID->"b4b0050e-3232-48ce-885e-d8fd415b9ac0"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: A false symmetry is caught, a true one is \
+only assumed",
+  FontWeight->Bold],
+ "\n\n",
+ "The library cannot derive Ward identities; you declare them. What it can do \
+is test the consequence: a declared symmetry forbids certain flows, and those \
+flows are computed and required to be exactly 0. A wrong tag therefore aborts \
+here, with its reason. A correct tag passes, which supports it but does not \
+prove the symmetry (the flows might vanish for another reason, or only at \
+this truncation), and the card keeps the ASSUMPTION line \"Ward identities \
+are assumed, not derived\"."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"5c8cb1bf-647c-4ea0-a62d-a23f6da34bbc"],
+
+Cell["3. The neglected flows", "Section",ExpressionUUID->"1f457c41-c98c-4b59-8401-7dd119e92e16"],
+
+Cell["\<\
+(* Kernel/Closure.wl:40-45 *)
+   (* neglected flows: reported, not asserted *)
+   neg = Select[flows, #Class === \"Neglected\" &];
+   warns = Join[warns, If[First[#Samples] === 0,
+        infoCheck[\"INFO\", \"Closure.neglected \" <> recordString[#], \"flow \
+vanishes at a valid random point (\" <> #Reason <> \")\"],
+        infoCheck[\"WARN\", \"Closure.neglected \" <> recordString[#],
+         \"generated, dropped: value \" <> numString[First[#Samples]] <> \" \
+at one random valid point, not a bound (\" <> #Reason <> \")\"]] & /@ neg];\
+\>", "Program",ExpressionUUID->"8e0c342a-8c64-4527-bd27-584d5d15f028"],
+
+Cell["\<\
+(* Kernel/Closure.wl:17-19 *)
+monomialString[r_] := \"(I w)^\" <> ToString[r[\"Frequency\"]] <> \" (q^2)^\" \
+<> ToString[r[\"Momentum\"]];
+numString[x_] := ToString[CForm[N[x]]];
+recordString[r_] := ToString[r[\"Pair\"]] <> \" \" <> monomialString[r];\
+\>", "Program",ExpressionUUID->"5afffd9a-ea6e-4ba8-8080-1b36f70dd7a3"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: N and CForm",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["N[x]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " gives a machine-precision approximation of an exact number; ",
+ StyleBox["CForm[x]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " writes an expression as C code, here a compact number string.",
+ "\n\n",
+ "The samples are exact rationals; the card shows them as decimals. ",
+ StyleBox["N[x, 4]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " asks for 4 digits."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"234e7bbb-e971-44ad-afc7-c4c98a2c02dc"],
+
+Cell["{N[2/3], N[2/3, 4], ToString[CForm[N[2/3]]]}", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"fcee2c36-cc97-4866-86c2-7ea8d199edbe"],
+
+Cell["4. Declared monomials become equations", "Section",ExpressionUUID->"2ecd70dc-8c8e-4660-a173-9d43aa7c0c6c"],
+
+Cell["\<\
+(* Kernel/Closure.wl:21-22 *)
+(* numeric content (sign included) and flowing combination: -2 Dhk aDhk -> \
+{-2, Dhk aDhk} *)
+splitCoefficient[c_] := Module[{f = FactorTermsList[c]}, {Times @@ Most[f], \
+Last[f]}];\
+\>", "Program",ExpressionUUID->"6b4140e8-0027-450c-8a43-290bc2f3ff81"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: FactorTermsList",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["FactorTermsList[poly]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " pulls out the numeric factors: ",
+ StyleBox["{number, ..., rest}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ".",
+ "\n\n",
+ StyleBox["splitCoefficient",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " multiplies all numeric parts together (",
+ StyleBox["Times @@ Most[f]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["Apply",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 01)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ") and keeps the rest: ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "2 Dk gives normalisation ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "2 and combination Dk, ",
+ StyleBox["\[Minus]\[Lambda]",
+  FontFamily->"Noto Sans"],
+ "/2 gives ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "1/2 and ",
+ StyleBox["\[Lambda]",
+  FontFamily->"Noto Sans"],
+ "."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"95237053-08a2-417e-8444-dbfe04382c8b"],
+
+Cell["\<\
+{FactorTermsList[-2 Dk], FactorTermsList[-lamk/2], FactorTermsList[6 a b + 4 \
+a]}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"ea5b3acc-a710-4a2e-80ea-7b79e4b73cda"],
+
+Cell["\<\
+(* Kernel/Closure.wl:47-54 *)
+   (* declared monomials: d_s(comb) = Value / norm *)
+   eqs = Function[r, Module[{norm, comb},
+       {norm, comb} = splitCoefficient[r[\"GammaK\"]];
+       FRGAssert[\"Closure.normalisation\", NumericQ[norm] && norm =!= 0 && \
+Expand[norm comb - r[\"GammaK\"]] === 0 && ! NumericQ[comb],
+        {r[\"GammaK\"], norm, comb}, \"internal: the Gamma_k coefficient does \
+not split into number x combination\"];
+       Join[r, <|\"Normalisation\" -> norm, \"Flowing\" -> comb, \"RHS\" -> \
+r[\"Value\"]/norm|>]]] /@ Select[flows, #Class === \"Declared\" &];
+   AppendTo[checks, assertCheck[\"Closure.equations\", eqs =!= {}, flows, \
+\"no declared monomial: nothing flows\",
+     ToString[Length[eqs]] <> \" equations d_s(comb) = Value/norm: \" <> \
+StringRiffle[(inputForm[#Flowing] <> \" (/\" <> ToString[#Normalisation, \
+InputForm] <> \")\") & /@ eqs, \", \"]]];\
+\>", "Program",ExpressionUUID->"35ea6ad7-875d-425e-b761-b03dbf27a727"],
+
+Cell[TextData[{
+ "The equation for a coefficient written as ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "2 Dk is ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "s(Dk) = flow/(",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "2): the number is fixed, only the couplings flow (decision Q10 of ",
+ StyleBox["design/FRGDESIGN.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ")."
+}], "Text",ExpressionUUID->"da525a43-3a3f-4d87-a6f6-cbd1cab605b7"],
+
+Cell["\<\
+KeyTake[#, {\"GammaK\", \"Normalisation\", \"Flowing\"}] & /@ \
+closure[\"Equations\"]\
+\>", "Input",ExpressionUUID->"47647f3a-2202-4877-becc-0432f19d2fe8"],
+
+Cell[TextData[{
+ StyleBox["KeyTake[assoc, keys]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " keeps only the listed keys, in that order: the opposite of ",
+ StyleBox["KeyDrop",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["Association",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ")."
+}], "Text",ExpressionUUID->"3e8eabc8-6b91-4d98-bcad-5c4a7a50e5d0"],
+
+Cell["5. The report", "Section",ExpressionUUID->"d184382a-cccb-4975-9136-850d620302bf"],
+
+Cell["\<\
+(* Kernel/Closure.wl:69-73 *)
+outcome[r_] := Switch[r[\"Class\"],
+   \"Declared\", \"equation for d_s(\" <> \
+inputForm[Last[splitCoefficient[r[\"GammaK\"]]]] <> \")\",
+   \"Neglected\", If[First[r[\"Samples\"]] === 0, \"vanishes (dropped)\", \
+\"generated, dropped: \" <> numString[First[r[\"Samples\"]]]],
+   \"Structure\", \"vanishes identically (not computed)\",
+   _, \"flow = 0 (checked)\"];\
+\>", "Program",ExpressionUUID->"692de4fd-6e17-4983-915e-4e34d540d875"],
+
+Cell["\<\
+(* Kernel/Closure.wl:75-76 *)
+ShowClosureReport[c_Association] := Module[{rows},
+   Print[\"Closure report. Declared: the coefficient is in the ansatz and \
+gets a flow equation. Protected: a symmetry (Ward identity, \\\
+\>", "Program",ExpressionUUID->"e36ce28b-a5fb-415d-907e-064b75aa29e6"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Switch",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Switch[expr, form1, value1, form2, value2, ...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " returns the value of the first form (a pattern) that expr matches.",
+ "\n\n",
+ "Like ",
+ StyleBox["Which",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 02)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ", but the tests are patterns matched against one expression: ",
+ StyleBox["_",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " at the end is the default."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"30fa21fa-301c-4309-ab90-7eef75b7db97"],
+
+Cell["\<\
+{Switch[2, 1, \"one\", 2, \"two\", _, \"other\"], Switch[x, _Integer, \
+\"integer\", _, \"other\"]}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"c44833ae-9290-4364-b1a9-e6c5bf7fd889"],
+
+Cell["Exercises", "Section",ExpressionUUID->"e4621c94-3735-46e2-8f80-e20fa8b7408e"],
+
+Cell["Exercise: The wrong Symmetries stage", "Subsection",ExpressionUUID->"c57e584b-d90a-471a-b33f-167a1e6b70a6"],
+
+Cell[TextData[{
+ "Pass ",
+ StyleBox["integrated",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (projected with ",
+ StyleBox["symmetries",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ") together with ",
+ StyleBox["symmetries2",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " to ",
+ StyleBox["CheckClosure",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Which check fails, and why is it needed even though both stages come from \
+the same ansatz?"
+}], "Text",ExpressionUUID->"94219f8a-6bf3-4373-9615-faa5ace12038"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"5a234477-eb14-4e10-9871-9779ea89947f"],
+
+Cell["showFailure[CheckClosure[integrated, symmetries2]]", "Input",ExpressionUUID->"a8c44f36-e095-4173-9317-481e0c3118ff"],
+
+Cell[TextData[{
+ StyleBox["Closure.sameSymmetries",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". The classes decide which flows are asserted to vanish; checking against a \
+classification other than the one used for the projection would assert the \
+wrong things. The fingerprint makes the mismatch impossible to miss."
+}], "Text",ExpressionUUID->"c9f3f7bf-3ef1-42a8-88d1-7ad1093b4f52"]
+}, Closed]],
+
+Cell["Exercise: Read the equations", "Subsection",ExpressionUUID->"f4b21f8f-2f2a-4b1a-b800-7baaa923922b"],
+
+Cell[TextData[{
+ "Print the right-hand side of the ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " equation with ",
+ StyleBox["LeafCount",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", and list the atoms it contains."
+}], "Text",ExpressionUUID->"56553088-1a77-4b8e-a3a4-8352c154cb04"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"a7aa96df-ba8d-45fa-bb44-4ee929395192"],
+
+Cell["\<\
+nuEq = SelectFirst[closure[\"Equations\"], #Flowing === nuk &];
+{LeafCount[nuEq[\"RHS\"]], Union[Cases[nuEq[\"RHS\"], _GammaAtom[_] | _dsR | \
+DeltaCoefficient[_][_] | Derivative[_][DeltaCoefficient[_]][_], Infinity]]}\
+\>", "Input",ExpressionUUID->"98f72d83-58f7-48e4-acaf-8ac0ed07fc36"],
+
+Cell[TextData[{
+ "Still in atoms: ",
+ StyleBox["GammaAtom",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["dsR",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["DeltaCoefficient",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and its q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "-derivatives. They get their values in the next lesson."
+}], "Text",ExpressionUUID->"3095ebd3-402a-431e-983f-0b89d8e54502"]
+}, Closed]],
+
+Cell["Exercise: How big is a neglected term?", "Subsection",ExpressionUUID->"f5013ad4-0a47-4bfc-8197-22953b81e862"],
+
+Cell[TextData[{
+ "Run ",
+ StyleBox["CheckClosure",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " again: do the WARN values change? Why is that the right behaviour?"
+}], "Text",ExpressionUUID->"1bf33b2d-c58a-49ce-98f6-49d8f5a0836d"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"5eaaf247-b8dc-4e76-8d03-a5c71ee69fb2"],
+
+Cell["\<\
+Block[{Print}, CheckClosure[integrated, symmetries]][\"Report\"][[{10, 14}, {\
+\"Pair\", \"Samples\"}]]\
+\>", "Input",ExpressionUUID->"fa50448a-7e8c-4019-b753-3aad2424c94e"],
+
+Cell["\<\
+No: the samples were drawn in lesson 09 with fixed seeds, and Closure only \
+reads them. Reproducible random points make every card the same from one run \
+to the next.\
+\>", "Text",ExpressionUUID->"97f9a32c-9c05-4824-882f-86a60ff65f5b"]
+}, Closed]]
+},
+CellContext->Notebook,
+FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"68ca8ccf-8ceb-4f4a-8543-fab9318d86bc"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 91, 0, 70, "Title",ExpressionUUID->"626a0ed3-8c03-4f2c-ac98-e8a4e4ed12b9"],
+Cell[648, 22, 610, 14, 70, "Text",ExpressionUUID->"f5e3febc-23db-4eaa-8cd7-4b4580f17365"],
+Cell[1261, 38, 664, 20, 70, "Text",ExpressionUUID->"ab609c26-81c0-4894-b8ce-083380b3cb3b"],
+Cell[1928, 60, 279, 4, 70, "Input",ExpressionUUID->"6c52e28d-5312-470b-a916-6036834f3ebb"],
+Cell[2210, 66, 85, 0, 70, "Section",ExpressionUUID->"766bd310-0a0c-41ee-a67d-e40502d981e2"],
+Cell[2298, 68, 119, 0, 70, "Input",ExpressionUUID->"8d7a2e25-7f4f-479e-afa5-86ca4509af01"],
+Cell[2420, 70, 343, 5, 70, "Text",ExpressionUUID->"25bbf4c7-7610-4fab-8561-9baf290258ec"],
+Cell[2766, 77, 98, 0, 70, "Input",ExpressionUUID->"f72830c7-ea65-4d70-924b-be863f9d87fa"],
+Cell[2867, 79, 103, 0, 70, "Section",ExpressionUUID->"e4d5d3ea-4524-400d-ad95-30d5fb04bcf8"],
+Cell[2973, 81, 1548, 29, 70, "Program",ExpressionUUID->"ed97dfb4-987b-40a1-9f7f-b8630a01120e"],
+Cell[4524, 112, 967, 22, 70, "Text",ExpressionUUID->"8f2eee03-c587-4b3a-bb01-9d13046b901c"],
+Cell[5494, 136, 356, 13, 70, "Text",ExpressionUUID->"920a3dec-6c6d-404f-a06c-fb443c54e21b"],
+Cell[5853, 151, 712, 13, 70, "Input",ExpressionUUID->"b4b0050e-3232-48ce-885e-d8fd415b9ac0"],
+Cell[6568, 166, 815, 16, 70, "Text",ExpressionUUID->"5c8cb1bf-647c-4ea0-a62d-a23f6da34bbc"],
+Cell[7386, 184, 96, 0, 70, "Section",ExpressionUUID->"1f457c41-c98c-4b59-8401-7dd119e92e16"],
+Cell[7485, 186, 625, 10, 70, "Program",ExpressionUUID->"8e0c342a-8c64-4527-bd27-584d5d15f028"],
+Cell[8113, 198, 334, 6, 70, "Program",ExpressionUUID->"5afffd9a-ea6e-4ba8-8080-1b36f70dd7a3"],
+Cell[8450, 206, 872, 25, 70, "Text",ExpressionUUID->"234e7bbb-e971-44ad-afc7-c4c98a2c02dc"],
+Cell[9325, 233, 231, 4, 70, "Input",ExpressionUUID->"fcee2c36-cc97-4866-86c2-7ea8d199edbe"],
+Cell[9559, 239, 112, 0, 70, "Section",ExpressionUUID->"2ecd70dc-8c8e-4660-a173-9d43aa7c0c6c"],
+Cell[9674, 241, 295, 6, 70, "Program",ExpressionUUID->"6b4140e8-0027-450c-8a43-290bc2f3ff81"],
+Cell[9972, 249, 1501, 52, 70, "Text",ExpressionUUID->"95237053-08a2-417e-8444-dbfe04382c8b"],
+Cell[11476, 303, 277, 7, 70, "Input",ExpressionUUID->"ea5b3acc-a710-4a2e-80ea-7b79e4b73cda"],
+Cell[11756, 312, 976, 16, 70, "Program",ExpressionUUID->"35ea6ad7-875d-425e-b761-b03dbf27a727"],
+Cell[12735, 330, 528, 16, 70, "Text",ExpressionUUID->"da525a43-3a3f-4d87-a6f6-cbd1cab605b7"],
+Cell[13266, 348, 166, 3, 70, "Input",ExpressionUUID->"47647f3a-2202-4877-becc-0432f19d2fe8"],
+Cell[13435, 353, 639, 19, 70, "Text",ExpressionUUID->"3e8eabc8-6b91-4d98-bcad-5c4a7a50e5d0"],
+Cell[14077, 374, 87, 0, 70, "Section",ExpressionUUID->"d184382a-cccb-4975-9136-850d620302bf"],
+Cell[14167, 376, 479, 9, 70, "Program",ExpressionUUID->"692de4fd-6e17-4983-915e-4e34d540d875"],
+Cell[14649, 387, 301, 5, 70, "Program",ExpressionUUID->"e36ce28b-a5fb-415d-907e-064b75aa29e6"],
+Cell[14953, 394, 940, 28, 70, "Text",ExpressionUUID->"30fa21fa-301c-4309-ab90-7eef75b7db97"],
+Cell[15896, 424, 294, 7, 70, "Input",ExpressionUUID->"c44833ae-9290-4364-b1a9-e6c5bf7fd889"],
+Cell[16193, 433, 83, 0, 70, "Section",ExpressionUUID->"e4621c94-3735-46e2-8f80-e20fa8b7408e"],
+Cell[16279, 435, 113, 0, 70, "Subsection",ExpressionUUID->"c57e584b-d90a-471a-b33f-167a1e6b70a6"],
+Cell[16395, 437, 757, 23, 70, "Text",ExpressionUUID->"94219f8a-6bf3-4373-9615-faa5ace12038"],
+Cell[CellGroupData[{
+Cell[17177, 464, 88, 0, 70, "Subsubsection",ExpressionUUID->"5a234477-eb14-4e10-9871-9779ea89947f"],
+Cell[17268, 466, 122, 0, 70, "Input",ExpressionUUID->"a8c44f36-e095-4173-9317-481e0c3118ff"],
+Cell[17393, 468, 449, 8, 70, "Text",ExpressionUUID->"c9f3f7bf-3ef1-42a8-88d1-7ad1093b4f52"]
+}, Closed]],
+Cell[17857, 479, 105, 0, 70, "Subsection",ExpressionUUID->"f4b21f8f-2f2a-4b1a-b800-7baaa923922b"],
+Cell[17965, 481, 351, 10, 70, "Text",ExpressionUUID->"56553088-1a77-4b8e-a3a4-8352c154cb04"],
+Cell[CellGroupData[{
+Cell[18341, 495, 88, 0, 70, "Subsubsection",ExpressionUUID->"a7aa96df-ba8d-45fa-bb44-4ee929395192"],
+Cell[18432, 497, 298, 4, 70, "Input",ExpressionUUID->"98f72d83-58f7-48e4-acaf-8ac0ed07fc36"],
+Cell[18733, 503, 619, 20, 70, "Text",ExpressionUUID->"3095ebd3-402a-431e-983f-0b89d8e54502"]
+}, Closed]],
+Cell[19367, 526, 115, 0, 70, "Subsection",ExpressionUUID->"f5013ad4-0a47-4bfc-8197-22953b81e862"],
+Cell[19485, 528, 292, 7, 70, "Text",ExpressionUUID->"1bf33b2d-c58a-49ce-98f6-49d8f5a0836d"],
+Cell[CellGroupData[{
+Cell[19802, 539, 88, 0, 70, "Subsubsection",ExpressionUUID->"5eaaf247-b8dc-4e76-8d03-a5c71ee69fb2"],
+Cell[19893, 541, 183, 3, 70, "Input",ExpressionUUID->"fa50448a-7e8c-4019-b753-3aad2424c94e"],
+Cell[20079, 546, 247, 4, 70, "Text",ExpressionUUID->"97f9a32c-9c05-4824-882f-86a60ff65f5b"]
+}, Closed]]
+}
+]
+*)
+
+(* End of internal cache information *)

@@ -1,0 +1,2295 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[     85747,       2286]
+NotebookOptionsPosition[     75143,       2160]
+NotebookOutlinePosition[     75480,       2175]
+CellTagsIndexPosition[     75437,       2172]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["Lesson 02 - Ansatz", "Title",ExpressionUUID->"c454f287-c5ff-4d1b-b4e5-57bc5911527e"],
+
+Cell[TextData[{
+ StyleBox["Physics step.",
+  FontWeight->Bold],
+ " ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "_k = ",
+ StyleBox["\[Integral]",
+  FontFamily->"Noto Sans"],
+ "dt d^dx ",
+ StyleBox["\|01d4db",
+  FontFamily->"Noto Sans"],
+ ". The ansatz is the density ",
+ StyleBox["\|01d4db",
+  FontFamily->"Noto Sans"],
+ ", written by you with the operators ",
+ StyleBox["dt",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["grad",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["div",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["lap",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (and ",
+ StyleBox["jac",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " in d = 2). The module rewrites it as a list of ",
+ StyleBox["monomials",
+  FontWeight->Bold],
+ ": a coefficient (couplings only) times a product of derivatives of single \
+fields. That is the form the next module, Vertices, can Fourier-transform \
+term by term (",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "t ",
+ StyleBox["\[RightArrow]",
+  FontFamily->"Noto Sans"],
+ " +i",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ", ",
+ StyleBox["\[Del]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[RightArrow]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "iq, ",
+ StyleBox["docs/CONVENTIONS.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ")."
+}], "Text",ExpressionUUID->"65c85bda-a6ff-4225-8b0d-6796e7a4159d"],
+
+Cell[TextData[{
+ StyleBox["Stage.",
+  FontWeight->Bold],
+ " Input: the Theory stage, ",
+ StyleBox["\"Density\" -> \|01d4db",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["\"Couplings\" -> {...}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Output: the ",
+ StyleBox["\"Ansatz\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stage, whose key ",
+ StyleBox["\"Monomials\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the parsed list."
+}], "Text",ExpressionUUID->"1b0799a1-97dd-4605-890c-91417c439a92"],
+
+Cell["\<\
+Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
+theory = lessonUpTo[\"Theory\"]\
+\>", "Input",ExpressionUUID->"af076f0c-984a-4f2d-81c0-9b3accf7fd3c"],
+
+Cell["1. Using it", "Section",ExpressionUUID->"5c1b0b3f-5724-4264-afbb-c71e722ca12f"],
+
+Cell[TextData[{
+ "The KPZ ansatz, ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "_k = ",
+ StyleBox["\[Integral]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ " (",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "t h ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[Del]\.b2",
+  FontFamily->"Noto Sans"],
+ "h ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[Lambda]",
+  FontFamily->"Noto Sans"],
+ "/2 (",
+ StyleBox["\[Del]",
+  FontFamily->"Noto Sans"],
+ "h)",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ") ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ " D ",
+ StyleBox["h\:0304\.b2",
+  FontFamily->"Noto Sans"],
+ ":"
+}], "Text",ExpressionUUID->"9c353a7b-fe55-4838-ad8b-fba9432642b4"],
+
+Cell["\<\
+ansatz = DefineAnsatz[theory, \"Density\" -> hbar (dt[h] - nuk lap[h] - \
+lamk/2 grad[h].grad[h]) - Dk hbar^2, \"Couplings\" -> {nuk, lamk, Dk}];\
+\>", "Input",ExpressionUUID->"2291ec46-d362-4daa-82bc-3322c303e34b"],
+
+Cell[TextData[{
+ "The table is printed before the card so you can check the parse by eye. \
+Each row is one record of ",
+ StyleBox["ansatz[\"Monomials\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ":"
+}], "Text",ExpressionUUID->"d502aab1-d50c-450d-863e-87c9bbd5ad4c"],
+
+Cell["ansatz[\"Monomials\"][[4]]", "Input",ExpressionUUID->"f7eef3df-822c-4b31-9dba-e956cdb727f4"],
+
+Cell[TextData[{
+ "A factor ",
+ StyleBox["FieldFactor[\[CurlyPhi], nt, {indices}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "t^nt ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "_i ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "_j ... ",
+ StyleBox["\[CurlyPhi]",
+  FontFamily->"Noto Sans"],
+ ". Repeated ",
+ StyleBox["SpaceIndex[n]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " are summed: ",
+ StyleBox["FieldFactor[h, 0, {SpaceIndex[1], SpaceIndex[1]}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is ",
+ StyleBox["\[Del]\.b2",
+  FontFamily->"Noto Sans"],
+ "h, and two factors carrying ",
+ StyleBox["SpaceIndex[1]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " once each are ",
+ StyleBox["\[Del]",
+  FontFamily->"Noto Sans"],
+ "h",
+ StyleBox["\[CenterDot]\[Del]",
+  FontFamily->"Noto Sans"],
+ "h."
+}], "Text",ExpressionUUID->"cd0e23ca-af4f-46ef-8e8a-0c1da96b7fda"],
+
+Cell["2. A small language of inert operators", "Section",ExpressionUUID->"fe03730d-a8be-4bb0-815e-7d28611bf40b"],
+
+Cell["\<\
+(* Kernel/Ansatz.wl:9-12 *)
+dt::usage = \"dt[e]: time derivative in the ansatz density (package-owned and \
+inert; not System`Dt).\";
+grad::usage = \"grad[e]: spatial gradient (a vector) in the ansatz density; \
+contract two of them with a dot: grad[a].grad[b].\";
+div::usage = \"div[v]: divergence of a vector expression in the ansatz \
+density, e.g. div[H grad[Psi]].\";
+lap::usage = \"lap[e]: Laplacian in the ansatz density.\";\
+\>", "Program",ExpressionUUID->"343605ec-e6c1-4d70-8801-d84e457fedc4"],
+
+Cell["\<\
+(* Kernel/Ansatz.wl:27-30 *)
+SetAttributes[{dt, grad, div, lap, jac, FieldFactor, SpaceIndex, EpsIndex}, \
+Protected];
+
+opHeads = dt | grad | div | lap | jac;
+systemOps = Dt | D | Grad | Div | Laplacian | Curl | Derivative | Integrate | \
+Inactive | Inactivate;\
+\>", "Program",ExpressionUUID->"8af3d4a0-18c4-4182-94ef-a1bbf69bf2e4"],
+
+Cell[TextData[{
+ StyleBox["dt",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["grad",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["div",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["lap",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["jac",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " have usage messages and no definitions: they are ",
+ StyleBox["Inert heads",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 01)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ", protected so nobody gives them one. ",
+ StyleBox["opHeads",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["systemOps",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " store ",
+ StyleBox["patterns",
+  FontWeight->Bold],
+ " in variables, built with ",
+ StyleBox["Alternatives and named patterns",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ": ",
+ StyleBox["FreeQ[e, opHeads]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " reads \"e contains none of the five operators\"."
+}], "Text",ExpressionUUID->"697b7724-eda3-4bde-ada0-316b8b99728d"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: The ansatz has its own operators",
+  FontWeight->Bold],
+ "\n\n",
+ "Mathematica's ",
+ StyleBox["Dt",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the total derivative and knows nothing about which symbols are \
+couplings: it differentiates them too. Its ",
+ StyleBox["Laplacian",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " needs explicit coordinates and, applied to a symbol that does not depend \
+on them, gives zero before the library can see anything (",
+ StyleBox["docs/MODULES.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", Ansatz caveat). With inert operators, the library alone decides what a \
+derivative means: it acts on fields, never on couplings, which depend on k \
+only."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"be4f80a4-7484-4f18-a325-a4b4fb5f913f"],
+
+Cell["{Dt[nuk h], Laplacian[h, {x, y}]}", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"c7775501-fc4a-4f0d-aec0-056b8ca001f2"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: FullForm",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["FullForm[e]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " shows the tree Mathematica actually stores, with every head written out.",
+ "\n\n",
+ "What you type is notation. ",
+ StyleBox["grad[h].grad[h]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is stored as ",
+ StyleBox["Dot[grad[h], grad[h]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["a - b",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " as ",
+ StyleBox["Plus[a, Times[-1, b]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["x^2",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " as ",
+ StyleBox["Power[x, 2]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Patterns match the stored tree, so this is the form to think in when you \
+read the parser."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"dc0cd465-7fd0-4a36-92fe-77b9eb6421dc"],
+
+Cell["\<\
+{FullForm[grad[h].grad[h]], FullForm[hbar (dt[h] - nuk lap[h])]}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"29debae1-deed-44ce-b8ae-2036bfb63788"],
+
+Cell["3. Checks before any work", "Section",ExpressionUUID->"095ea37a-ecbf-4185-a4d0-7bc24e205ce9"],
+
+Cell["\<\
+(* Kernel/Ansatz.wl:138-152 *)
+DefineAnsatz[theory_, opts : OptionsPattern[]] := Block[{$FRGModule = \
+\"Ansatz\"},
+  Module[{t0 = AbsoluteTime[], dens, cps, fields, fld, responses, checks = \
+{}, warns = {}, counter = 0, new, ops, expanded, terms, mons,
+    badSyms, unused, stage, jacQ, epsQ},
+   validateStage[theory, \"Theory\"];
+   FRGAssert[\"Ansatz.options\", MatchQ[{opts}, {(Rule | \
+RuleDelayed)[\"Density\" | \"Couplings\" | \"Pipeline\", _] ...}], {opts},
+    \"only the options \\\"Density\\\", \\\"Couplings\\\", \\\"Pipeline\\\" \
+are accepted\"];
+   dens = OptionValue[\"Density\"]; cps = OptionValue[\"Couplings\"];
+   fields = theory[\"Fields\"]; responses = theory[\"ResponseFields\"]; fld = \
+Alternatives @@ fields;
+   AppendTo[checks, assertCheck[\"Ansatz.pipeline\", \
+OptionValue[\"Pipeline\"] === \"DerivativeExpansion\", OptionValue[\"Pipeline\
+\"],
+     \"v1 implements only \\\"DerivativeExpansion\\\" (couplings depend on k \
+only); see docs/FUTURE.md\", \"DerivativeExpansion\"]];
+   FRGAssert[\"Ansatz.density\", dens =!= None && dens =!= 0, dens, \
+\"\\\"Density\\\" -> expression is required\"];
+   FRGAssert[\"Ansatz.couplingList\", ListQ[cps], cps, \"\\\"Couplings\\\" -> \
+{c1, c2, ...}\"];
+   assertFreshSymbols[\"Ansatz.couplings\", cps, \"couplings\"];
+   FRGAssert[\"Ansatz.couplingsNotFields\", Intersection[cps, Append[fields, \
+theory[\"Dimension\"]]] === {}, Intersection[cps, Append[fields, \
+theory[\"Dimension\"]]],
+    \"a coupling has the name of a field or of the dimension\"];\
+\>", "Program",ExpressionUUID->"c784857b-a1c7-45f0-a26b-706c063ca860"],
+
+Cell[TextData[{
+ StyleBox["validateStage",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " comes first (",
+ StyleBox["Hash",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "): the theory must be a genuine, unmodified Theory stage. Then the options, \
+then the couplings (",
+ StyleBox["OwnValues and DownValues",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ " through ",
+ StyleBox["assertFreshSymbols",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ")."
+}], "Text",ExpressionUUID->"0df7991c-50bd-4d2f-aba4-167cb630b0ba"],
+
+Cell["\<\
+(* Kernel/Ansatz.wl:154-174 *)
+   (* E7: System derivative heads would silently differentiate the couplings \
+(Dt[nk H] = H Dt[nk] + nk Dt[H]) *)
+   AppendTo[checks, assertCheck[\"Ansatz.noSystemDerivatives\", FreeQ[dens, \
+systemOps], Cases[dens, systemOps[___] | Derivative[__][_], {0, Infinity}, \
+Heads -> True],
+     \"use the package operators dt, grad, div, lap (System Dt, Grad, Div, \
+Laplacian, D are not allowed)\", \"no Dt/D/Grad/Div/Laplacian\"]];
+
+   badSyms = Complement[Cases[dens, s_Symbol /; Context[s] =!= \"System`\", \
+{0, Infinity}, Heads -> True], fields, cps, {theory[\"Dimension\"], dt, grad, \
+div, lap, jac}];
+   AppendTo[checks, assertCheck[\"Ansatz.knownSymbols\", badSyms === {}, \
+badSyms,
+     If[MemberQ[SymbolName /@ badSyms, \"t\" | \"x\"], \"couplings depend on \
+k only: no explicit t or x dependence is allowed\",
+      \"every symbol must be a declared coupling (\\\"Couplings\\\") or a \
+field of the theory\"], \"every symbol is a field, a coupling or Dim\"]];
+
+   (* operators act on field expressions only: couplings depend on k only and \
+must stand outside (no dt[nk H], no lap[nk]) *)
+   ops = Cases[dens, opHeads[___], {0, Infinity}];
+   FRGAssert[\"Ansatz.operatorArity\", AllTrue[ops, Length[#] == arity[#] &], \
+Select[ops, Length[#] =!= arity[#] &],
+    \"dt, grad, div, lap take exactly one argument; jac takes two\"];
+   AppendTo[checks, assertCheck[\"Ansatz.couplingsOutsideOperators\", \
+AllTrue[ops, FreeQ[List @@ #, Alternatives @@ cps] &],
+     Select[ops, ! FreeQ[List @@ #, Alternatives @@ cps] &],
+     \"couplings depend on k only: write nk dt[H], not dt[nk H] (and never \
+differentiate a coupling)\", \"no coupling under dt/grad/div/lap\"]];
+   FRGAssert[\"Ansatz.operatorOnField\", AllTrue[ops, AllTrue[List @@ #, ! \
+FreeQ[#, fld] &] &], Select[ops, ! AllTrue[List @@ #, ! FreeQ[#, fld] &] &],
+    \"an operator acts on an expression without fields\"];
+   jacQ = ! FreeQ[dens, jac];
+   If[jacQ, AppendTo[checks, assertCheck[\"Ansatz.epsilonDimension\", theory[\
+\"Dimension\"] === 2, theory[\"Dimension\"],
+      \"jac (eps_ij) exists only in d = 2: declare \\\"Dimension\\\" -> \
+FixedDimension[2]\", \"jac with d = 2 (declared)\"]]];\
+\>", "Program",ExpressionUUID->"2bd7c62e-4ede-48a1-9aea-608f70793f62"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Complement and Intersection",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Complement[all, l1, l2, ...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " gives the elements of all that are in none of the li; ",
+ StyleBox["Intersection[l1, l2]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " the common ones.",
+ "\n\n",
+ StyleBox["badSyms",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " collects every non-System symbol of the density (heads included: ",
+ StyleBox["Heads -> True",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", see ",
+ StyleBox["Cases and level specifications",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ") and removes the fields, the couplings, ",
+ StyleBox["Dim",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and the operators. Anything left is a symbol you forgot to declare."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"03ce2b6e-c362-4aba-996d-5c341ab1a9d9"],
+
+Cell["\<\
+These checks look at the raw input, so their hints can be precise:\
+\>", "Text",ExpressionUUID->"d5ac8483-b7d3-4fd1-8c06-32620e81d89d"],
+
+Cell["\<\
+showFailure[DefineAnsatz[theory, \"Density\" -> hbar dt[nuk h], \"Couplings\" \
+-> {nuk}]]\
+\>", "Input",ExpressionUUID->"b0a23a83-b9e6-40d7-afdc-1ff73421d405"],
+
+Cell["\<\
+showFailure[DefineAnsatz[theory, \"Density\" -> hbar Dt[h] + g hbar^2, \
+\"Couplings\" -> {}]]\
+\>", "Input",ExpressionUUID->"95e4ccef-b4e2-4d74-ab4a-5880c9cbe64c"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Validate the input before transforming it",
+  FontWeight->Bold],
+ "\n\n",
+ "A malformed density caught after the expansion would show up as a strange \
+monomial, far from what you wrote. Checked first, it is reported as you wrote \
+it, with a hint in the vocabulary of the input (",
+ StyleBox["write nk dt[H], not dt[nk H]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "). Each check also documents an assumption of the module: couplings depend \
+on k only, the density is polynomial, only package operators are allowed."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"f8ecae3b-8c8e-4ed4-a73b-b6c135c7701a"],
+
+Cell["4. Vector rank: is this a scalar or a vector?", "Section",ExpressionUUID->"fb119c0f-517d-4406-9ebd-a5e4a2c9e76e"],
+
+Cell[TextData[{
+ "Before expanding, the module checks the vector algebra: ",
+ StyleBox["grad",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " makes a vector, ",
+ StyleBox["div",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox[".",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " make scalars, a sum cannot mix the two."
+}], "Text",ExpressionUUID->"3179f880-e1f7-45a1-a5c9-c299a5180fbe"],
+
+Cell["\<\
+(* Kernel/Ansatz.wl:34-52 *)
+rank[e_, fld_] := Which[
+   FreeQ[e, fld | opHeads], 0,
+   MatchQ[e, fld], 0,
+   True, rankOf[e, fld]];
+rankOf[grad[a_], fld_] := (needRank[a, 0, fld, \"grad[...] acts on a \
+scalar\"]; 1);
+rankOf[dt[a_], fld_] := rank[a, fld];
+rankOf[div[a_], fld_] := (needRank[a, 1, fld, \"div[...] acts on a vector, \
+e.g. div[H grad[Psi]]\"]; 0);
+rankOf[lap[a_], fld_] := (needRank[a, 0, fld, \"lap[...] acts on a scalar\"]; \
+0);
+rankOf[jac[a_, b_], fld_] := (needRank[a, 0, fld, \"jac[a, b] acts on two \
+scalars\"]; needRank[b, 0, fld, \"jac[a, b] acts on two scalars\"]; 0);
+rankOf[Dot[a_, b_], fld_] := (needRank[a, 1, fld, \"a dot contracts two \
+vectors\"]; needRank[b, 1, fld, \"a dot contracts two vectors\"]; 0);
+rankOf[e_Plus, fld_] := Module[{r = rank[#, fld] & /@ List @@ e},
+   FRGAssert[\"Ansatz.vectorSum\", Equal @@ r, e, \"a sum mixes scalar and \
+vector terms\"]; First[r]];
+rankOf[e_Times, fld_] := Module[{r = Total[rank[#, fld] & /@ List @@ e]},
+   FRGAssert[\"Ansatz.vectorProduct\", r <= 1, e, \"a product of two vectors \
+must be written as a dot: grad[a].grad[b]\"]; r];
+rankOf[Power[a_, n_], fld_] := (FRGAssert[\"Ansatz.polynomial\", IntegerQ[n] \
+&& n > 0, Power[a, n],
+    \"the density must be polynomial in the fields (positive integer powers \
+only)\"]; needRank[a, 0, fld, \"only scalars can be raised to a power\"]; 0);
+rankOf[e_, fld_] := FRGAssert[\"Ansatz.unknownStructure\", False, e,
+   \"unknown structure: use products, sums, positive powers and the operators \
+dt, grad, div, lap, and . between two grads\"];
+needRank[a_, r_, fld_, hint_] := FRGAssert[\"Ansatz.vectorRank\", rank[a, \
+fld] === r, a, hint];\
+\>", "Program",ExpressionUUID->"eb158247-77cd-4397-877d-18fcdb7d5584"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Which",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Which[c1, v1, c2, v2, ..., True, v]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " returns the value of the first condition that is True.",
+ "\n\n",
+ "A chain of ",
+ StyleBox["If",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "s written flat. The final ",
+ StyleBox["True",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the \"otherwise\" case."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"90d81cc5-49f6-452c-9f21-b0906fb72d00"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Several definitions of one function",
+  FontWeight->Bold],
+ "\n",
+ "A function can have many rules; Mathematica tries the more specific \
+patterns first and the most general last.",
+ "\n\n",
+ StyleBox["rankOf",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " has one rule per kind of expression: ",
+ StyleBox["grad[a_]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["dt[a_]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["e_Plus",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["e_Times",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["Power[a_, n_]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", and finally ",
+ StyleBox["rankOf[e_, fld_]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", which matches anything. Mathematica orders the rules by specificity, so \
+the catch-all only runs when nothing else matched. Here it is a failed check: \
+an expression the parser does not know is an error, not something to guess \
+about. ",
+ StyleBox["DownValues",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["OwnValues and DownValues",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ") lists the rules in the order they are tried; the catch-all is last. Each \
+left-hand side stays wrapped in ",
+ StyleBox["HoldPattern",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", which stops it from being evaluated (evaluating ",
+ StyleBox["rankOf[e_, fld_]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " would run the catch-all). This \"dispatch on the head\" is the main way \
+the library structures its code; you will see it in every module."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"74a20d89-3143-4e60-8967-1c046add4e16"],
+
+Cell["\<\
+{Length[DownValues[FRGscalarMSR`Private`rankOf]], \
+DownValues[FRGscalarMSR`Private`rankOf][[-1, 1]]}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"e7b778cd-031c-4045-ac08-721a3fa93928"],
+
+Cell[TextData[{
+ StyleBox["rankOf[e_Plus, ...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " computes the rank of every term (",
+ StyleBox["List @@ e",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["Apply",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 01)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ") and requires them all equal (",
+ StyleBox["Equal @@ r",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is ",
+ StyleBox["Equal[r1, r2, ...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ")."
+}], "Text",ExpressionUUID->"e3adbff2-e106-4876-a960-28ebca923448"],
+
+Cell["\<\
+{FRGscalarMSR`Private`rank[grad[h].grad[h], h | hbar], \
+FRGscalarMSR`Private`rank[grad[h], h | hbar]}\
+\>", "Input",ExpressionUUID->"13ddda77-60d1-4c0d-9d8e-2b69cf789ca1"],
+
+Cell["\<\
+A product of two different gradients without a dot is refused:\
+\>", "Text",ExpressionUUID->"99c0472b-b7e6-41ae-b777-6715a9fb1eca"],
+
+Cell["\<\
+showFailure[FRGscalarMSR`Private`rank[grad[h] grad[hbar], h | hbar]]\
+\>", "Input",ExpressionUUID->"21840e7d-b153-4781-8b73-48ab4c781bba"],
+
+Cell["But try the same with the same gradient twice:", "Text",ExpressionUUID->"ff605827-dc95-4b95-8248-6e0f5b516f09"],
+
+Cell["\<\
+showFailure[FRGscalarMSR`Private`rank[grad[h] grad[h], h | hbar]]\
+\>", "Input",ExpressionUUID->"a90da2d6-4ebf-4b24-ad80-6a01b9c77478"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Automatic simplification of Times and Plus",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Times",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["Plus",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " sort their arguments and combine equal ones as soon as an expression is \
+built: ",
+ StyleBox["x x",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " becomes ",
+ StyleBox["x^2",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["a + a",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " becomes ",
+ StyleBox["2 a",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ".",
+ "\n\n",
+ StyleBox["Times",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " has the attributes ",
+ StyleBox["Flat",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["Orderless",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["OneIdentity",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", and built-in rules that collect powers. So ",
+ StyleBox["grad[h] grad[h]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is already ",
+ StyleBox["Power[grad[h], 2]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " when ",
+ StyleBox["rank",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " sees it, and the failure comes from the ",
+ StyleBox["Power",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " rule (\"only scalars can be raised to a power\"), not from the product \
+rule. Code that walks expressions must be written for the stored form, never \
+for the typed one."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"a4cc048d-700c-42c4-86bf-a263780936aa"],
+
+Cell["{FullForm[grad[h] grad[h]], Attributes[Times]}", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"50a9f8e9-304b-4ff3-b861-40e96ebe8d82"],
+
+Cell["5. Expanding the operators: the Leibniz rule", "Section",ExpressionUUID->"04b79bab-bdec-4a44-9482-9d99be7330f9"],
+
+Cell[TextData[{
+ "Next, every operator is pushed down until it acts on a single field, and \
+every field becomes a ",
+ StyleBox["FieldFactor",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",ExpressionUUID->"e7e64cd2-1301-4641-b1a9-df23e28b01ab"],
+
+Cell["\<\
+(* Kernel/Ansatz.wl:56-61 *)
+(* derivations acting on a sum of products of FieldFactors *)
+derive[op_][e_Plus] := derive[op] /@ e;
+derive[op_][e_Times] := Sum[MapAt[derive[op], e, i], {i, Length[e]}];
+derive[op_][Power[f_, n_Integer]] := n f^(n - 1) derive[op][f];
+derive[op_][FieldFactor[f_, nt_, ix_]] := Replace[op, {\"t\" -> \
+FieldFactor[f, nt + 1, ix], i_ :> FieldFactor[f, nt, Append[ix, i]]}];
+derive[op_][c_] /; FreeQ[c, FieldFactor] := 0;\
+\>", "Program",ExpressionUUID->"6afca148-2289-4edf-882a-61d410b98051"],
+
+Cell["\<\
+(* Kernel/Ansatz.wl:63-84 *)
+toFactors[e_, fld_, new_] := Module[{S, V},
+   S[x_] /; FreeQ[x, fld | opHeads] := x;
+   S[x : fld] := FieldFactor[x, 0, {}];
+   S[x_Plus] := S /@ x;
+   S[x_Times] := S /@ x;
+   (* each factor of a power gets its own dummies: lap[h]^2, (grad h.grad \
+h)^2 (design/MOMENTUMPROJECTION.md, review E14) *)
+   S[Power[x_, n_Integer?Positive]] := Expand[Times @@ Table[S[x], {n}]];
+   S[Power[x_, n_]] := Expand[S[x]^n];
+   S[dt[x_]] := Expand[derive[\"t\"][S[x]]];
+   S[lap[x_]] := With[{j = new[]}, Expand[derive[j][derive[j][S[x]]]]];
+   S[div[v_]] := With[{j = new[]}, Expand[derive[j][V[v, j]]]];
+   S[Dot[u_, v_]] := With[{j = new[]}, Expand[V[u, j] V[v, j]]];
+   S[jac[a_, b_]] := With[{j = new[]}, Expand[derive[EpsIndex[j, 1]][S[a]] \
+derive[EpsIndex[j, 2]][S[b]]]];
+   V[grad[x_], i_] := Expand[derive[i][S[x]]];
+   V[dt[v_], i_] := Expand[derive[\"t\"][V[v, i]]];
+   V[x_Plus, i_] := V[#, i] & /@ x;
+   V[x_Times, i_] := Module[{fs = List @@ x, r},
+     r = rank[#, fld] & /@ fs;
+     Expand[S[Times @@ Pick[fs, r, 0]] V[First[Pick[fs, r, 1]], i]]];
+   V[x_, i_] := FRGAssert[\"Ansatz.vectorRank\", False, x, \"a vector was \
+expected here (grad[...] or a sum/product containing one)\"];
+   S[x_] := FRGAssert[\"Ansatz.vectorRank\", False, x, \"a scalar was \
+expected here; a vector must be contracted (grad[a].grad[b]) or divided \
+(div[...])\"];
+   S[e]];\
+\>", "Program",ExpressionUUID->"5dc505af-cd93-4616-94fc-f24610f18c1c"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Curried definitions",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["f[a_][x_] := ...",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " defines a function of a whose result is itself a function of x.",
+ "\n\n",
+ StyleBox["derive[op]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is \"the derivation in direction op\": ",
+ StyleBox["derive[\"t\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "t, ",
+ StyleBox["derive[SpaceIndex[...]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "_i. Each rule implements one property of a derivation: linearity (",
+ StyleBox["e_Plus",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "), the Leibniz rule (",
+ StyleBox["e_Times",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "), the chain rule for powers, the action on a single field (one more ",
+ StyleBox["dt",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", or one more index), and zero on constants. Such rules are stored in ",
+ StyleBox["SubValues[derive]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " rather than ",
+ StyleBox["DownValues",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"dbbc3b9c-2757-4c74-b5de-3746265dd44b"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: MapAt, Table and Sum",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["MapAt[f, e, i]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " applies f to the i-th part of e only; ",
+ StyleBox["Table[expr, {i, n}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["Sum[expr, {i, n}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " build a list or a sum for i = 1..n.",
+ "\n\n",
+ StyleBox["derive[op][e_Times] := Sum[MapAt[derive[op], e, i], {i, \
+Length[e]}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the Leibniz rule written literally: the sum over i of the product with \
+only the i-th factor differentiated. ",
+ StyleBox["{i, n}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is an ",
+ StyleBox["iterator",
+  FontWeight->Bold],
+ "; ",
+ StyleBox["Table",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["Sum",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["Do",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " all take them."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"8a8746c5-33ca-4e13-9462-1461868a0274"],
+
+Cell["\<\
+FRGscalarMSR`Private`derive[\"t\"][FieldFactor[h, 0, {}] FieldFactor[hbar, 0, \
+{}]]\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"ea4dfff2-738e-4010-b0a2-58e06a76c933"],
+
+Cell[TextData[{
+ StyleBox["toFactors",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " defines two local functions, ",
+ StyleBox["S",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (convert a scalar expression) and ",
+ StyleBox["V",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (convert a vector expression, given the index it carries), with a rule per \
+operator: ",
+ StyleBox["lap[x]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is two derivatives along one fresh index, ",
+ StyleBox["div[v]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " contracts a fresh index of ",
+ StyleBox["v",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", a dot product gives both vectors the same fresh index."
+}], "Text",ExpressionUUID->"9c239bd4-75ae-4dfc-a9a5-4df847f9b8c0"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Local functions",
+  FontWeight->Bold],
+ "\n",
+ "Symbols created by ",
+ StyleBox["Module",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " can be given definitions like any symbol; they are private to that call \
+and can use the other local variables.",
+ "\n\n",
+ StyleBox["S",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["V",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " exist only inside one call of ",
+ StyleBox["toFactors",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", and they see ",
+ StyleBox["fld",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (the pattern of the fields) and ",
+ StyleBox["new",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (the index generator) without these being passed around. ",
+ StyleBox["S[x_] /; FreeQ[x, fld | opHeads] := x",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is a conditional definition (",
+ StyleBox["Patterns",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "): a field-free factor is left as it is. As with ",
+ StyleBox["Several definitions of one function",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 02)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ", the final ",
+ StyleBox["S[x_]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the catch-all failure."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"9f206e66-8ce5-4d76-a892-4c5732cc23c3"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: With",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["With[{j = value}, body]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " evaluates value once and inserts it into body as a constant.",
+ "\n\n",
+ StyleBox["With[{j = new[]}, Expand[derive[j][derive[j][S[x]]]]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " draws one fresh index and uses the ",
+ StyleBox["same",
+  FontSlant->Italic],
+ " one for both derivatives: that is the Laplacian ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "_j",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "_j. Writing ",
+ StyleBox["new[]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " twice would give two different indices. ",
+ StyleBox["With",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the lightest of the three scoping constructs (",
+ StyleBox["Block and Module",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "): it creates no variable at all."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"1452ee4c-2a7f-4c7b-a053-4e5d86c8ede7"],
+
+Cell[TextData[{
+ StyleBox["new[] := SpaceIndex[{\"dummy\", ++counter}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (in ",
+ StyleBox["DefineAnsatz",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ") increments the local ",
+ StyleBox["counter",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["++counter",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " adds 1 and returns the new value), so every call gives an index never used \
+before. ",
+ StyleBox["Expand",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " multiplies out products of sums."
+}], "Text",ExpressionUUID->"2c03d5ff-95f1-4dc8-8243-8775d49ffcfb"],
+
+Cell["\<\
+Module[{c = 0}, FRGscalarMSR`Private`toFactors[lap[h hbar], h | hbar, \
+SpaceIndex[{\"dummy\", ++c}] &]]\
+\>", "Input",ExpressionUUID->"d42553d6-41bb-4ceb-8db1-5a6b19820f53"],
+
+Cell[TextData[{
+ "This is ",
+ StyleBox["\[Del]\.b2",
+  FontFamily->"Noto Sans"],
+ "(h ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ ") = ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[Del]\.b2",
+  FontFamily->"Noto Sans"],
+ "h + 2 ",
+ StyleBox["\[Del]",
+  FontFamily->"Noto Sans"],
+ "h",
+ StyleBox["\[CenterDot]\[Del]",
+  FontFamily->"Noto Sans"],
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ " + h ",
+ StyleBox["\[Del]\.b2",
+  FontFamily->"Noto Sans"],
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ ". The vector case of a product, ",
+ StyleBox["V[x_Times, i_]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", uses ",
+ StyleBox["Pick[fs, r, 0]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", which keeps the factors whose rank is 0: in ",
+ StyleBox["H grad[Psi]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " the scalar ",
+ StyleBox["H",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is converted with ",
+ StyleBox["S",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and the vector ",
+ StyleBox["grad[Psi]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " with ",
+ StyleBox["V",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",ExpressionUUID->"85acabe1-0c39-4946-80e4-87fc822542fc"],
+
+Cell["6. Canonical monomials", "Section",ExpressionUUID->"c3175b2c-98bf-442f-b67d-b5b09b8f1fd3"],
+
+Cell[TextData[{
+ "After expansion the density is a sum of products of ",
+ StyleBox["FieldFactor",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "s with dummy indices. Two monomials that differ only by the names of their \
+dummy indices, or by the order of their factors, are the same term and must \
+be combined."
+}], "Text",ExpressionUUID->"34854250-5ce6-48d1-9e7e-7e89f92c99ea"],
+
+Cell["\<\
+(* Kernel/Ansatz.wl:176-182 *)
+   FRGAssert[\"Ansatz.scalarDensity\", rank[dens, fld] === 0, dens, \"the \
+density must be a scalar (contract gradients with a dot)\"];
+   new[] := SpaceIndex[{\"dummy\", ++counter}];
+   expanded = Expand[toFactors[dens, fld, new]];
+   FRGAssert[\"Ansatz.fieldsInFactors\", FreeQ[expanded /. _FieldFactor -> 1, \
+fld | opHeads | Dot], expanded,
+    \"some field or operator was not converted (internal error, or a \
+non-polynomial structure such as Exp[H])\"];
+   terms = If[Head[expanded] === Plus, List @@ expanded, {expanded}];
+   mons = splitTerm /@ terms;\
+\>", "Program",ExpressionUUID->"da68e3e9-7538-48ed-9b73-de8a3b080492"],
+
+Cell["\<\
+(* Kernel/Ansatz.wl:88-100 *)
+(* canonical form of a monomial, so that equal monomials combine; returns \
+{sign, factors}. For every numbering of the summed
+   indices as SpaceIndex[1..]: sort each factor's index list (derivatives \
+commute), sort the factor list; keep the smallest
+   (a class invariant for any number of contractions: lap[lap[A]] = \
+div[grad[lap[A]]], review E9).
+   With eps (one pair EpsIndex[1], EpsIndex[2]): eps_ij is antisymmetric, so \
+the factor list with the slots swapped is the same
+   monomial with sign -1; the smaller of the two minima is kept, and equal \
+minima mean zero (sign 0). *)
+canonMinForm[factors_List, ix_List] := First[Sort[Function[perm,
+     Sort[(factors /. Thread[ix -> (SpaceIndex /@ perm)]) /. FieldFactor[f_, \
+nt_, i_] :> FieldFactor[f, nt, Sort[i]]]] /@ Permutations[Range[Length[ix]]]]];
+canonical[factors0_List] := Module[{factors = factors0 /. EpsIndex[_, s_] :> \
+EpsIndex[s], ix, l, ls},
+   ix = Union[Cases[Flatten[factors[[All, 3]]], Except[_EpsIndex]]];
+   l = canonMinForm[factors, ix];
+   If[FreeQ[l, EpsIndex], {1, l},
+    ls = canonMinForm[factors /. {EpsIndex[1] -> EpsIndex[2], EpsIndex[2] -> \
+EpsIndex[1]}, ix];
+    Which[ls === l, {0, l}, OrderedQ[{l, ls}], {1, l}, True, {-1, ls}]]];\
+\>", "Program",ExpressionUUID->"f75b6ec1-bcb6-4588-b369-54afa957fa78"],
+
+Cell["\<\
+(* Kernel/Ansatz.wl:105-109 *)
+splitTerm[t_] := Module[{fs = If[Head[t] === Times, List @@ t, {t}]},
+   FRGAssert[\"Ansatz.polynomial\", AllTrue[fs, MatchQ[#, _FieldFactor | \
+Power[_FieldFactor, _Integer?Positive] | _?(FreeQ[#, FieldFactor] &)] &], t,
+    \"the density must be polynomial in the fields\"];
+   {Times @@ Select[fs, FreeQ[#, FieldFactor] &],
+    Flatten[Replace[Select[fs, ! FreeQ[#, FieldFactor] &], {Power[f_, n_] :> \
+Table[f, n], f_ :> {f}}, {1}]]}];\
+\>", "Program",ExpressionUUID->"c2a4c0c7-65db-42cc-bdee-9a313c128455"],
+
+Cell[TextData[{
+ StyleBox["splitTerm",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " separates each term into its coefficient (the factors free of ",
+ StyleBox["FieldFactor",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ") and its list of field factors, writing a power ",
+ StyleBox["f^2",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " as two copies of ",
+ StyleBox["f",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",ExpressionUUID->"f464b894-aeee-45b6-9041-60d74dbc8bce"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Sort and canonical order",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Sort[list]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " puts any expressions in Mathematica's canonical order; ",
+ StyleBox["Permutations[list]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " lists all orderings.",
+ "\n\n",
+ StyleBox["Sort",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " works on arbitrary expressions, not only numbers: every expression has a \
+place in one total order. ",
+ StyleBox["canonMinForm",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " tries every numbering of the summed indices (",
+ StyleBox["Permutations",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "), sorts the indices of each factor (derivatives commute) and then the \
+factors, and keeps the smallest result (",
+ StyleBox["First[Sort[...]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "). Equal monomials give the same minimum, whatever their dummy names. ",
+ StyleBox["Function[perm, ...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is a ",
+ StyleBox["Pure functions",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ " with a named argument."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"529710f4-5f97-4902-a0aa-10589db965d2"],
+
+Cell["\<\
+{Permutations[{1, 2, 3}], Sort[{FieldFactor[hbar, 0, {}], FieldFactor[h, 1, \
+{}], FieldFactor[h, 0, {}]}]}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"e19d5c38-1fef-4f80-bb1c-544706f2efce"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Except",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Except[p]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " matches anything that does not match p.",
+ "\n\n",
+ StyleBox["Cases[..., Except[_EpsIndex]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " collects the summed indices but not the slots of ",
+ StyleBox["\[CurlyEpsilon]",
+  FontFamily->"Noto Sans"],
+ "."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"e3d143b4-12f8-49eb-a742-61367ac5e29a"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Canonical form by brute force",
+  FontWeight->Bold],
+ "\n\n",
+ "Trying every permutation of the dummy indices costs n! steps, which looks \
+wasteful. But a monomial of the derivative expansion carries few contractions \
+(one at order p",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ", two at p",
+ StyleBox["\:2074",
+  FontFamily->"Noto Sans"],
+ "), and the result is a class invariant: two monomials are equal exactly \
+when their minima are, for any number of contractions (review E9 of ",
+ StyleBox["design/MOMENTUMPROJECTION.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "). A cleverer canonicalisation would be faster and much harder to prove \
+right. Because of it, ",
+ StyleBox["lap[lap[h]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["div[grad[lap[h]]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " are recognised as the same term (exercise 2)."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"440b6ffe-0edc-43cc-940d-858e95303553"],
+
+Cell[TextData[{
+ "For ",
+ StyleBox["jac",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", the two slots of ",
+ StyleBox["\[CurlyEpsilon]",
+  FontFamily->"Noto Sans"],
+ "_ij are swapped as well: a monomial equal to its own swap is zero, and when \
+the swapped form is the smaller one the sign is ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "1."
+}], "Text",ExpressionUUID->"9352d940-1514-45af-8ce7-78cde6a91088"],
+
+Cell["7. Combining, recording, sorting", "Section",ExpressionUUID->"8e3c41cf-a3e6-4488-aeaa-e15ba2ebf774"],
+
+Cell["\<\
+(* Kernel/Ansatz.wl:185-190 *)
+   mons = Function[m, With[{c = canonical[m[[2]]]}, {c[[1]] m[[1]], c[[2]]}]] \
+/@ mons;
+   mons = KeyValueMap[{Together[Total[#2]], #1} &, GroupBy[mons, Last -> \
+First]];
+   If[MemberQ[mons[[All, 1]], 0],
+    AppendTo[warns, infoCheck[\"INFO\", \"Ansatz.cancelled\", \
+ToString[Count[mons[[All, 1]], 0]] <> \" monomial(s) cancel and are \
+dropped\"]]];
+   mons = monomialRecord[#, fields, responses] & /@ DeleteCases[mons, {0, \
+_}];
+   mons = SortBy[mons, {#FieldCount, Sort[First /@ (FirstPosition[fields, #] \
+& /@ #Fields)], #TimeOrder, #MomentumOrder} &];\
+\>", "Program",ExpressionUUID->"b5a6db56-8d1a-4353-bb17-6c64b4cf97a8"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: GroupBy and KeyValueMap",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["GroupBy[list, key -> value]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " collects the elements with the same key into an association of lists; ",
+ StyleBox["KeyValueMap[f, assoc]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " applies f[key, value] to each entry.",
+ "\n\n",
+ StyleBox["GroupBy[mons, Last -> First]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " groups the pairs ",
+ StyleBox["{coefficient, factors}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " by their factors (the last part) and keeps the coefficients (the first \
+part). ",
+ StyleBox["KeyValueMap[{Together[Total[#2]], #1} &, ...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " adds the coefficients of each group. Equal monomials are combined in one \
+pass, without comparing them pairwise."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"03f64f57-6d5f-48c9-b9d1-9c0a68055fc1"],
+
+Cell["GroupBy[{{1, x}, {2, y}, {3, x}}, Last -> First]", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"eb483f0a-c036-4bdb-8fd5-2728409f95df"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: DeleteCases, SortBy and FirstPosition",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["DeleteCases[list, patt]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " drops the matching elements; ",
+ StyleBox["SortBy[list, f]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " sorts by the value of f (a list of criteria breaks ties in turn); ",
+ StyleBox["FirstPosition[list, x]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the position of the first x.",
+ "\n\n",
+ StyleBox["DeleteCases[mons, {0, _}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " removes the monomials whose coefficients cancelled; their number is \
+reported as an INFO line. ",
+ StyleBox["SortBy",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " then orders the monomials by number of fields, then by the fields, then by \
+time order, then by momentum order: the order of the printed table."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"d3104c38-5e4a-4650-a789-2d234996a4b8"],
+
+Cell[TextData[{
+ StyleBox["monomialRecord",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " turns each pair into the record you saw in section 1:"
+}], "Text",ExpressionUUID->"d7165b69-00df-482d-9c86-ad606d058948"],
+
+Cell["\<\
+(* Kernel/Ansatz.wl:127-132 *)
+(* factors stored response fields first, then in field order (display order; \
+identity was fixed by canonical) *)
+monomialRecord[{coef_, fac0_}, fieldOrder_, responses_] := Module[{nIx = \
+Length[Flatten[fac0[[All, 3]]]], fac},
+   fac = SortBy[fac0, {! MemberQ[responses, #[[1]]], \
+First[FirstPosition[fieldOrder, #[[1]]]], #[[2]], Length[#[[3]]]} &];
+   <|\"Coefficient\" -> coef, \"Factors\" -> fac, \"Fields\" -> fac[[All, \
+1]],
+    \"FieldCount\" -> Length[fac], \"ResponseCount\" -> Count[fac[[All, 1]], \
+Alternatives @@ responses],
+    \"TimeOrder\" -> Total[fac[[All, 2]]], \"MomentumOrder\" -> nIx|>];\
+\>", "Program",ExpressionUUID->"12ae9496-4d8d-4430-b91c-4483e357a69a"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: One simple record per monomial",
+  FontWeight->Bold],
+ "\n\n",
+ "Every later module reads ",
+ StyleBox["ansatz[\"Monomials\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", never the density you typed. The records state explicitly what they would \
+otherwise recompute: the fields, how many are response fields, the time and \
+momentum orders. The parser is the only code that has to understand the \
+ansatz language; the rest of the pipeline works on a flat list of records. \
+The printed table is the same records shown to you, so the step where your \
+physics turns into data can be checked by eye."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"641ff0b3-ae1b-4f48-a31c-7a837dfdb21f"],
+
+Cell["8. Checks on the monomials, and the stage", "Section",ExpressionUUID->"d5c04ce3-cd1c-4420-80c3-2186f1b0ce2f"],
+
+Cell["\<\
+(* Kernel/Ansatz.wl:191-207 *)
+   epsQ = ! FreeQ[mons[[All, \"Factors\"]], EpsIndex];
+   If[epsQ, AppendTo[checks, assertCheck[\"Ansatz.jacQuadratic\", \
+NoneTrue[mons, #FieldCount == 2 && ! FreeQ[#Factors, EpsIndex] &],
+      MonomialString /@ Select[mons, #FieldCount == 2 && ! FreeQ[#Factors, \
+EpsIndex] &],
+      \"a quadratic jac term is a total derivative and does not contribute: \
+remove it\", \"no quadratic jac term (total derivative)\"]]];
+
+   AppendTo[checks, assertCheck[\"Ansatz.MSR\", AllTrue[mons, #ResponseCount \
+>= 1 &], MonomialString /@ Select[mons, #ResponseCount == 0 &],
+     \"every monomial must contain at least one response field (MSR \
+action)\", \"every monomial has >= 1 response field\"]];
+   AppendTo[checks, assertCheck[\"Ansatz.noLinear\", AllTrue[mons, \
+#FieldCount >= 2 &], MonomialString /@ Select[mons, #FieldCount < 2 &],
+     \"terms linear in the fields are not supported (expand around a \
+stationary point)\", \"no linear term\"]];
+   AppendTo[checks, assertCheck[\"Ansatz.quartic\", AllTrue[mons, #FieldCount \
+<= 4 &], MonomialString /@ Select[mons, #FieldCount > 4 &],
+     \"v1 supports at most quartic monomials\", \"at most quartic (max \" <> \
+ToString[Max[#FieldCount & /@ mons]] <> \")\"]];
+   FRGAssert[\"Ansatz.indexPairs\", AllTrue[mons, indexPairsQ], Select[mons, \
+! indexPairsQ[#] &],
+    \"internal: every spatial index must appear exactly twice, and \
+EpsIndex[1], EpsIndex[2] once each or not at all\"];
+   AppendTo[checks, assertCheck[\"Ansatz.couplingsInCoefficients\", \
+AllTrue[mons, FreeQ[#Coefficient, fld | opHeads | SpaceIndex | EpsIndex] &], \
+mons,
+     \"internal: a coefficient contains a field\", \"coefficients are \
+field-free\"]];
+   unused = Select[cps, FreeQ[mons[[All, \"Coefficient\"]], #] &];
+   If[unused =!= {}, AppendTo[warns, infoCheck[\"WARN\", \
+\"Ansatz.unusedCouplings\", \"declared but absent from the density: \" <> \
+ToString[unused]]]];\
+\>", "Program",ExpressionUUID->"ea25b7be-e2a3-46a0-8942-ee831be066d8"],
+
+Cell[TextData[{
+ "These are the physical assumptions of v1: every monomial contains a \
+response field (MSR structure), there are no terms linear in the fields, at \
+most quartic monomials, and a quadratic ",
+ StyleBox["jac",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " term, a total derivative, is refused rather than silently doing nothing. \
+",
+ StyleBox["Count[list, patt]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " counts the elements that match (",
+ StyleBox["Patterns",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ")."
+}], "Text",ExpressionUUID->"e556b938-c446-4d4e-907f-236c06f25483"],
+
+Cell["\<\
+showFailure[DefineAnsatz[theory, \"Density\" -> hbar dt[h] + nuk h lap[h], \
+\"Couplings\" -> {nuk}]]\
+\>", "Input",ExpressionUUID->"2c211a1b-c159-493f-afb4-f9d431eb3cda"],
+
+Cell[BoxData[
+ $CellContext`regionCells[
+ "Kernel/Ansatz.wl", "stage = stampStage[<", "\"Stage\" -> \"Ansatz\"", 
+  "PrintCard[stage];"]], "Input",ExpressionUUID->"51e0564e-0e88-4bea-a6ab-\
+f9821381f33d"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Sequence",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Sequence[a, b]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is spliced into whatever contains it: ",
+ StyleBox["f[x, Sequence[a, b]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is ",
+ StyleBox["f[x, a, b]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "; ",
+ StyleBox["Sequence[]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " disappears.",
+ "\n\n",
+ StyleBox["Sequence @@ If[epsQ, {\"Epsilon\" -> True}, {}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " adds the key ",
+ StyleBox["\"Epsilon\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " only when a monomial carries ",
+ StyleBox["\[CurlyEpsilon]",
+  FontFamily->"Noto Sans"],
+ ". Without ",
+ StyleBox["\[CurlyEpsilon]",
+  FontFamily->"Noto Sans"],
+ " the key is absent, and later modules read it with ",
+ StyleBox["Lookup[ansatz, \"Epsilon\", False]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"07819d4f-4665-4b2c-8c24-a44af510a040"],
+
+Cell[TextData[{
+ "The Ansatz stage contains the whole Theory stage under ",
+ StyleBox["\"Theory\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", and ",
+ StyleBox["\"Upstream\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " lists its fingerprint. Every stage carries its ancestors, so a later stage \
+is self-contained."
+}], "Text",ExpressionUUID->"454db484-1607-4538-9f43-8460c1f0d96c"],
+
+Cell["9. Printing the table", "Section",ExpressionUUID->"ddf23ce0-bd84-4276-9365-2f1f23b942b8"],
+
+Cell["\<\
+(* Kernel/Ansatz.wl:111-113 *)
+fieldString[FieldFactor[f_, nt_, ix_]] := Nest[\"dt[\" <> # <> \"]\" &,
+   Which[ix === {}, ToString[f], EvenQ[Length[ix]] && AllTrue[Tally[ix][[All, \
+2]], EvenQ], Nest[\"lap[\" <> # <> \"]\" &, ToString[f], Length[ix]/2],
+    Length[ix] == 1, \"grad[\" <> ToString[f] <> \"]\", True, \"d\" <> \
+ToString[ix] <> \"[\" <> ToString[f] <> \"]\"], nt];\
+\>", "Program",ExpressionUUID->"908a93b5-589d-41f5-8406-5c66d28c095f"],
+
+Cell["\<\
+(* Kernel/Ansatz.wl:116-121 *)
+MonomialString[m_Association] := Module[{fs0 = m[\"Factors\"], fs, pair, \
+eps},
+   eps = SortBy[Select[fs0, ! FreeQ[#[[3]], EpsIndex] &], First[Cases[#[[3]], \
+EpsIndex[s_] :> s]] &];
+   fs = Select[fs0, FreeQ[#[[3]], EpsIndex] &];
+   pair = Select[fs, Length[#[[3]]] == 1 &];
+   StringRiffle[Join[fieldString /@ Select[fs, Length[#[[3]]] =!= 1 &], \
+If[pair === {}, {}, {StringRiffle[fieldString /@ pair, \".\"]}],
+     If[eps === {}, {}, {\"jac[\" <> \
+StringRiffle[fieldString[MapAt[DeleteCases[#, _EpsIndex] &, #, 3]] & /@ eps, \
+\", \"] <> \"]\"}]], \" \"]];\
+\>", "Program",ExpressionUUID->"4418c0c8-2ee6-4009-af99-e2131284a09f"],
+
+Cell["\<\
+(* Kernel/Ansatz.wl:216-222 *)
+ShowMonomials[ansatz_Association] := Module[{mons = validateStage[ansatz, \
+\"Ansatz\"][\"Monomials\"], fo = ansatz[\"Theory\"][\"Fields\"], rows},
+   rows = {inputForm[#Coefficient], ToString[#Fields], MonomialString[#],
+       \"dt^\" <> ToString[#TimeOrder] <> \" p^\" <> \
+ToString[#MomentumOrder]} & /@ mons;
+   Print[\"Parsed density: \", Length[mons], \" monomials   (Gamma_k = \
+Integral dt d^dx [ sum of coefficient x operators ])\"];
+   Print[If[$FrontEnd === Null,
+     StringRiffle[StringRiffle[MapThread[StringPadRight, {#, {22, 26, 34, \
+10}}], \" | \"] & /@ Prepend[rows, {\"coefficient\", \"fields\", \
+\"operators\", \"order\"}], \"\\n\"],
+     Grid[Prepend[rows, {\"coefficient\", \"fields\", \"operators\", \
+\"order\"}], Frame -> All, Alignment -> Left]]];];\
+\>", "Program",ExpressionUUID->"59c6262a-8444-44ec-9a6b-b9a091a8b713"],
+
+Cell[TextData[{
+ StyleBox["MonomialString",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " writes a record back in the input language. ",
+ StyleBox["Nest[f, x, n]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " applies f n times (",
+ StyleBox["Nest[\"dt[\" <> # <> \"]\" &, \"h\", 2]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is ",
+ StyleBox["\"dt[dt[h]]\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "), ",
+ StyleBox["StringRiffle[list, sep]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " joins strings with a separator, ",
+ StyleBox["Tally",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " counts repetitions, ",
+ StyleBox["MapThread[f, {l1, l2}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " applies f to pairs of elements. In a notebook the table is a ",
+ StyleBox["Grid",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "; in a script it is padded text, chosen with the same ",
+ StyleBox["$FrontEnd === Null",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " test as the FAIL block (",
+ StyleBox["Abort, CheckAbort, Exit",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ")."
+}], "Text",ExpressionUUID->"de2115b7-170c-43e3-bc3a-890c1df6713f"],
+
+Cell["MonomialString /@ ansatz[\"Monomials\"]", "Input",ExpressionUUID->"96c83a16-2e8a-4cf3-a057-1141e0d1a218"],
+
+Cell["10. jac, in d = 2", "Section",ExpressionUUID->"530ce735-19a8-4a50-b3ed-060bbfdf0fcb"],
+
+Cell[TextData[{
+ StyleBox["jac[a, b]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " = ",
+ StyleBox["\[CurlyEpsilon]",
+  FontFamily->"Noto Sans"],
+ "_ij ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "_i a ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "_j b exists only in d = 2, so its theory must declare ",
+ StyleBox["FixedDimension[2]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (lesson 01). The slots of ",
+ StyleBox["\[CurlyEpsilon]",
+  FontFamily->"Noto Sans"],
+ " are tagged ",
+ StyleBox["EpsIndex[1]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["EpsIndex[2]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ":"
+}], "Text",ExpressionUUID->"0606e606-5d31-40c4-80d6-efe7f39bf452"],
+
+Cell["\<\
+theory2D = DefineTheory[\"Scalars\" -> {A1, A2}, \"Dimension\" -> \
+FixedDimension[2]];
+ansatz2D = DefineAnsatz[theory2D, \"Density\" -> A1bar dt[A1] + A2bar dt[A2] \
++ g A1bar jac[A1, A2] + g2 A1bar jac[A2, A1], \"Couplings\" -> {g, g2}];
+Last[ansatz2D[\"Monomials\"]]\
+\>", "Input",ExpressionUUID->"8454affc-f44b-440f-9393-2359e535532c"],
+
+Cell[TextData[{
+ StyleBox["jac[A2, A1]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is ",
+ StyleBox["\[Minus]jac[A1, A2]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ": the two terms combine into one monomial with coefficient ",
+ StyleBox["g - g2",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". A quadratic ",
+ StyleBox["jac",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is a total derivative and aborts:"
+}], "Text",ExpressionUUID->"42b5cb5d-b13a-4607-a86c-bc32efb73e7a"],
+
+Cell["\<\
+showFailure[DefineAnsatz[theory2D, \"Density\" -> A1bar dt[A1] + g jac[A1bar, \
+A1], \"Couplings\" -> {g}]]\
+\>", "Input",ExpressionUUID->"94338b60-5a1e-48ec-8e65-d1c3da0a7aea"],
+
+Cell[TextData[{
+ "The momentum projection of ",
+ StyleBox["jac",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " terms needs the d = 2 identity of ",
+ StyleBox["wedge",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (lesson 00, section 7); it reappears in lesson 08."
+}], "Text",ExpressionUUID->"bbb74710-0feb-4235-82a6-ccad0efaec5c"],
+
+Cell["Exercises", "Section",ExpressionUUID->"b1e754dd-371b-4b77-9c69-27d3fadb598d"],
+
+Cell["Exercise: Predict the parse", "Subsection",ExpressionUUID->"ef541385-93c4-48d1-aeb9-7c6d027d502d"],
+
+Cell[TextData[{
+ "Write down, by hand, the monomials of ",
+ StyleBox["hbar div[h grad[h]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Then check with ",
+ StyleBox["DefineAnsatz",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (no couplings are needed)."
+}], "Text",ExpressionUUID->"494b83bc-cc0b-424e-a280-712a6725fd60"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"670b5cb3-3190-4461-b55e-3690425aeb8f"],
+
+Cell[TextData[{
+ StyleBox["\[Del]\[CenterDot]",
+  FontFamily->"Noto Sans"],
+ "(h ",
+ StyleBox["\[Del]",
+  FontFamily->"Noto Sans"],
+ "h) = ",
+ StyleBox["\[Del]",
+  FontFamily->"Noto Sans"],
+ "h",
+ StyleBox["\[CenterDot]\[Del]",
+  FontFamily->"Noto Sans"],
+ "h + h ",
+ StyleBox["\[Del]\.b2",
+  FontFamily->"Noto Sans"],
+ "h, so two cubic monomials, each with coefficient 1:"
+}], "Text",ExpressionUUID->"9ef02048-212d-4bd0-b2fb-0a8126c82cc4"],
+
+Cell["\<\
+DefineAnsatz[theory, \"Density\" -> hbar div[h grad[h]], \"Couplings\" -> {}];\
+\>", "Input",ExpressionUUID->"6f26e82c-711e-4651-aaae-3e7a7b8152a7"]
+}, Closed]],
+
+Cell["Exercise: Two ways to write \[Del]\:2074", "Subsection",ExpressionUUID->"497506ad-14db-4bec-a883-974f3c99316c"],
+
+Cell[TextData[{
+ "Give ",
+ StyleBox["lap[lap[h]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["div[grad[lap[h]]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " two different couplings in one density. How many monomials do you expect, \
+and with which coefficient?"
+}], "Text",ExpressionUUID->"0acd16fa-8832-4fb8-8c82-0124181bc82c"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"21e0676d-75b2-4333-9009-4c637f022d3f"],
+
+Cell["\<\
+DefineAnsatz[theory, \"Density\" -> c1 hbar lap[lap[h]] + c2 hbar \
+div[grad[lap[h]]], \"Couplings\" -> {c1, c2}];\
+\>", "Input",ExpressionUUID->"2ae8741d-0587-4042-9d6c-aa016a5a0392"],
+
+Cell[TextData[{
+ "One monomial, ",
+ StyleBox["hbar lap[lap[h]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " with coefficient ",
+ StyleBox["c1 + c2",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", of order p",
+ StyleBox["\:2074",
+  FontFamily->"Noto Sans"],
+ ": the canonical form of section 6 recognises the two as the same term."
+}], "Text",ExpressionUUID->"f50b8cb5-7d84-4e5e-bd06-e200257a77e9"]
+}, Closed]],
+
+Cell["Exercise: Query the records", "Subsection",ExpressionUUID->"5fa844e3-5583-421d-a580-6ec904fa066e"],
+
+Cell[TextData[{
+ "From ",
+ StyleBox["ansatz",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", select the monomials of momentum order 2 and print them in the input \
+language with their coefficients."
+}], "Text",ExpressionUUID->"8f842f30-56ad-4ca9-b00a-8bd716a33f97"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"d82a7a4d-39d8-4e6b-897e-9fa6494eec10"],
+
+Cell["\<\
+{#Coefficient, MonomialString[#]} & /@ Select[ansatz[\"Monomials\"], \
+#MomentumOrder == 2 &]\
+\>", "Input",ExpressionUUID->"70cf2dae-8ddd-44b9-93fb-4d33d05b6ed6"],
+
+Cell[TextData[{
+ StyleBox["#MomentumOrder",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " reads a key of the record (",
+ StyleBox["Association",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "); ",
+ StyleBox["Select",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " keeps the records that pass the test."
+}], "Text",ExpressionUUID->"379de31a-f4fa-4c3c-b0e0-f00bb6a5c0dc"]
+}, Closed]]
+},
+CellContext->Notebook,
+FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"68ca8ccf-8ceb-4f4a-8543-fab9318d86bc"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 90, 0, 70, "Title",ExpressionUUID->"c454f287-c5ff-4d1b-b4e5-57bc5911527e"],
+Cell[647, 22, 1845, 69, 70, "Text",ExpressionUUID->"65c85bda-a6ff-4225-8b0d-6796e7a4159d"],
+Cell[2495, 93, 767, 24, 70, "Text",ExpressionUUID->"1b0799a1-97dd-4605-890c-91417c439a92"],
+Cell[3265, 119, 232, 4, 70, "Input",ExpressionUUID->"af076f0c-984a-4f2d-81c0-9b3accf7fd3c"],
+Cell[3500, 125, 85, 0, 70, "Section",ExpressionUUID->"5c1b0b3f-5724-4264-afbb-c71e722ca12f"],
+Cell[3588, 127, 855, 41, 70, "Text",ExpressionUUID->"9c353a7b-fe55-4838-ad8b-fba9432642b4"],
+Cell[4446, 170, 225, 3, 70, "Input",ExpressionUUID->"2291ec46-d362-4daa-82bc-3322c303e34b"],
+Cell[4674, 175, 331, 8, 70, "Text",ExpressionUUID->"d502aab1-d50c-450d-863e-87c9bbd5ad4c"],
+Cell[5008, 185, 98, 0, 70, "Input",ExpressionUUID->"f7eef3df-822c-4b31-9dba-e956cdb727f4"],
+Cell[5109, 187, 1201, 43, 70, "Text",ExpressionUUID->"cd0e23ca-af4f-46ef-8e8a-0c1da96b7fda"],
+Cell[6313, 232, 112, 0, 70, "Section",ExpressionUUID->"fe03730d-a8be-4bb0-815e-7d28611bf40b"],
+Cell[6428, 234, 513, 9, 70, "Program",ExpressionUUID->"343605ec-e6c1-4d70-8801-d84e457fedc4"],
+Cell[6944, 245, 343, 8, 70, "Program",ExpressionUUID->"8af3d4a0-18c4-4182-94ef-a1bbf69bf2e4"],
+Cell[7290, 255, 1808, 60, 70, "Text",ExpressionUUID->"697b7724-eda3-4bde-ada0-316b8b99728d"],
+Cell[9101, 317, 1106, 28, 70, "Text",ExpressionUUID->"be4f80a4-7484-4f18-a325-a4b4fb5f913f"],
+Cell[10210, 347, 213, 4, 70, "Input",ExpressionUUID->"c7775501-fc4a-4f0d-aec0-056b8ca001f2"],
+Cell[10426, 353, 1440, 46, 70, "Text",ExpressionUUID->"dc0cd465-7fd0-4a36-92fe-77b9eb6421dc"],
+Cell[11869, 401, 259, 6, 70, "Input",ExpressionUUID->"29debae1-deed-44ce-b8ae-2036bfb63788"],
+Cell[12131, 409, 99, 0, 70, "Section",ExpressionUUID->"095ea37a-ecbf-4185-a4d0-7bc24e205ce9"],
+Cell[12233, 411, 1609, 29, 70, "Program",ExpressionUUID->"c784857b-a1c7-45f0-a26b-706c063ca860"],
+Cell[13845, 442, 929, 28, 70, "Text",ExpressionUUID->"0df7991c-50bd-4d2f-aba4-167cb630b0ba"],
+Cell[14777, 472, 2283, 39, 70, "Program",ExpressionUUID->"2bd7c62e-4ede-48a1-9aea-608f70793f62"],
+Cell[17063, 513, 1466, 42, 70, "Text",ExpressionUUID->"03ce2b6e-c362-4aba-996d-5c341ab1a9d9"],
+Cell[18532, 557, 145, 2, 70, "Text",ExpressionUUID->"d5ac8483-b7d3-4fd1-8c06-32620e81d89d"],
+Cell[18680, 561, 170, 3, 70, "Input",ExpressionUUID->"b0a23a83-b9e6-40d7-afdc-1ff73421d405"],
+Cell[18853, 566, 174, 3, 70, "Input",ExpressionUUID->"95e4ccef-b4e2-4d74-ab4a-5880c9cbe64c"],
+Cell[19030, 571, 809, 17, 70, "Text",ExpressionUUID->"f8ecae3b-8c8e-4ed4-a73b-b6c135c7701a"],
+Cell[19842, 590, 119, 0, 70, "Section",ExpressionUUID->"fb119c0f-517d-4406-9ebd-a5e4a2c9e76e"],
+Cell[19964, 592, 581, 17, 70, "Text",ExpressionUUID->"3179f880-e1f7-45a1-a5c9-c299a5180fbe"],
+Cell[20548, 611, 1748, 32, 70, "Program",ExpressionUUID->"eb158247-77cd-4397-877d-18fcdb7d5584"],
+Cell[22299, 645, 799, 25, 70, "Text",ExpressionUUID->"90d81cc5-49f6-452c-9f21-b0906fb72d00"],
+Cell[23101, 672, 2575, 74, 70, "Text",ExpressionUUID->"74a20d89-3143-4e60-8967-1c046add4e16"],
+Cell[25679, 748, 296, 7, 70, "Input",ExpressionUUID->"e7b778cd-031c-4045-ac08-721a3fa93928"],
+Cell[25978, 757, 917, 29, 70, "Text",ExpressionUUID->"e3adbff2-e106-4876-a960-28ebca923448"],
+Cell[26898, 788, 182, 3, 70, "Input",ExpressionUUID->"13ddda77-60d1-4c0d-9d8e-2b69cf789ca1"],
+Cell[27083, 793, 141, 2, 70, "Text",ExpressionUUID->"99c0472b-b7e6-41ae-b777-6715a9fb1eca"],
+Cell[27227, 797, 148, 2, 70, "Input",ExpressionUUID->"21840e7d-b153-4781-8b73-48ab4c781bba"],
+Cell[27378, 801, 117, 0, 70, "Text",ExpressionUUID->"ff605827-dc95-4b95-8248-6e0f5b516f09"],
+Cell[27498, 803, 145, 2, 70, "Input",ExpressionUUID->"a90da2d6-4ebf-4b24-ad80-6a01b9c77478"],
+Cell[27646, 807, 2527, 82, 70, "Text",ExpressionUUID->"a4cc048d-700c-42c4-86bf-a263780936aa"],
+Cell[30176, 891, 233, 4, 70, "Input",ExpressionUUID->"50a9f8e9-304b-4ff3-b861-40e96ebe8d82"],
+Cell[30412, 897, 118, 0, 70, "Section",ExpressionUUID->"04b79bab-bdec-4a44-9482-9d99be7330f9"],
+Cell[30533, 899, 318, 8, 70, "Text",ExpressionUUID->"e7e64cd2-1301-4641-b1a9-df23e28b01ab"],
+Cell[30854, 909, 530, 9, 70, "Program",ExpressionUUID->"6afca148-2289-4edf-882a-61d410b98051"],
+Cell[31387, 920, 1474, 29, 70, "Program",ExpressionUUID->"5dc505af-cd93-4616-94fc-f24610f18c1c"],
+Cell[32864, 951, 1961, 60, 70, "Text",ExpressionUUID->"dbbc3b9c-2757-4c74-b5de-3746265dd44b"],
+Cell[34828, 1013, 1669, 54, 70, "Text",ExpressionUUID->"8a8746c5-33ca-4e13-9462-1461868a0274"],
+Cell[36500, 1069, 279, 7, 70, "Input",ExpressionUUID->"ea4dfff2-738e-4010-b0a2-58e06a76c933"],
+Cell[36782, 1078, 1123, 32, 70, "Text",ExpressionUUID->"9c239bd4-75ae-4dfc-a9a5-4df847f9b8c0"],
+Cell[37908, 1112, 2183, 67, 70, "Text",ExpressionUUID->"9f206e66-8ce5-4d76-a892-4c5732cc23c3"],
+Cell[40094, 1181, 1512, 46, 70, "Text",ExpressionUUID->"1452ee4c-2a7f-4c7b-a053-4e5d86c8ede7"],
+Cell[41609, 1229, 922, 27, 70, "Text",ExpressionUUID->"2c03d5ff-95f1-4dc8-8243-8775d49ffcfb"],
+Cell[42534, 1258, 184, 3, 70, "Input",ExpressionUUID->"d42553d6-41bb-4ceb-8db1-5a6b19820f53"],
+Cell[42721, 1263, 1660, 62, 70, "Text",ExpressionUUID->"85acabe1-0c39-4946-80e4-87fc822542fc"],
+Cell[44384, 1327, 96, 0, 70, "Section",ExpressionUUID->"c3175b2c-98bf-442f-b67d-b5b09b8f1fd3"],
+Cell[44483, 1329, 439, 9, 70, "Text",ExpressionUUID->"34854250-5ce6-48d1-9e7e-7e89f92c99ea"],
+Cell[44925, 1340, 674, 12, 70, "Program",ExpressionUUID->"da68e3e9-7538-48ed-9b73-de8a3b080492"],
+Cell[45602, 1354, 1339, 23, 70, "Program",ExpressionUUID->"f75b6ec1-bcb6-4588-b369-54afa957fa78"],
+Cell[46944, 1379, 552, 9, 70, "Program",ExpressionUUID->"c2a4c0c7-65db-42cc-bdee-9a313c128455"],
+Cell[47499, 1390, 728, 21, 70, "Text",ExpressionUUID->"f464b894-aeee-45b6-9041-60d74dbc8bce"],
+Cell[48230, 1413, 1897, 54, 70, "Text",ExpressionUUID->"529710f4-5f97-4902-a0aa-10589db965d2"],
+Cell[50130, 1469, 302, 7, 70, "Input",ExpressionUUID->"e19d5c38-1fef-4f80-bb1c-544706f2efce"],
+Cell[50435, 1478, 703, 22, 70, "Text",ExpressionUUID->"e3d143b4-12f8-49eb-a742-61367ac5e29a"],
+Cell[51141, 1502, 1291, 34, 70, "Text",ExpressionUUID->"440b6ffe-0edc-43cc-940d-858e95303553"],
+Cell[52435, 1538, 480, 14, 70, "Text",ExpressionUUID->"9352d940-1514-45af-8ce7-78cde6a91088"],
+Cell[52918, 1554, 106, 0, 70, "Section",ExpressionUUID->"8e3c41cf-a3e6-4488-aeaa-e15ba2ebf774"],
+Cell[53027, 1556, 675, 14, 70, "Program",ExpressionUUID->"b5a6db56-8d1a-4353-bb17-6c64b4cf97a8"],
+Cell[53705, 1572, 1362, 36, 70, "Text",ExpressionUUID->"03f64f57-6d5f-48c9-b9d1-9c0a68055fc1"],
+Cell[55070, 1610, 235, 4, 70, "Input",ExpressionUUID->"eb483f0a-c036-4bdb-8fd5-2728409f95df"],
+Cell[55308, 1616, 1374, 36, 70, "Text",ExpressionUUID->"d3104c38-5e4a-4650-a789-2d234996a4b8"],
+Cell[56685, 1654, 272, 6, 70, "Text",ExpressionUUID->"d7165b69-00df-482d-9c86-ad606d058948"],
+Cell[56960, 1662, 726, 13, 70, "Program",ExpressionUUID->"12ae9496-4d8d-4430-b91c-4483e357a69a"],
+Cell[57689, 1677, 892, 19, 70, "Text",ExpressionUUID->"641ff0b3-ae1b-4f48-a31c-7a837dfdb21f"],
+Cell[58584, 1698, 115, 0, 70, "Section",ExpressionUUID->"d5c04ce3-cd1c-4420-80c3-2186f1b0ce2f"],
+Cell[58702, 1700, 2015, 35, 70, "Program",ExpressionUUID->"ea25b7be-e2a3-46a0-8942-ee831be066d8"],
+Cell[60720, 1737, 869, 23, 70, "Text",ExpressionUUID->"e556b938-c446-4d4e-907f-236c06f25483"],
+Cell[61592, 1762, 181, 3, 70, "Input",ExpressionUUID->"2c211a1b-c159-493f-afb4-f9d431eb3cda"],
+Cell[61776, 1767, 204, 4, 70, "Input",ExpressionUUID->"51e0564e-0e88-4bea-a6ab-f9821381f33d"],
+Cell[61983, 1773, 1562, 50, 70, "Text",ExpressionUUID->"07819d4f-4665-4b2c-8c24-a44af510a040"],
+Cell[63548, 1825, 511, 13, 70, "Text",ExpressionUUID->"454db484-1607-4538-9f43-8460c1f0d96c"],
+Cell[64062, 1840, 95, 0, 70, "Section",ExpressionUUID->"ddf23ce0-bd84-4276-9365-2f1f23b942b8"],
+Cell[64160, 1842, 462, 7, 70, "Program",ExpressionUUID->"908a93b5-589d-41f5-8406-5c66d28c095f"],
+Cell[64625, 1851, 677, 13, 70, "Program",ExpressionUUID->"4418c0c8-2ee6-4009-af99-e2131284a09f"],
+Cell[65305, 1866, 891, 15, 70, "Program",ExpressionUUID->"59c6262a-8444-44ec-9a6b-b9a091a8b713"],
+Cell[66199, 1883, 1841, 54, 70, "Text",ExpressionUUID->"de2115b7-170c-43e3-bc3a-890c1df6713f"],
+Cell[68043, 1939, 111, 0, 70, "Input",ExpressionUUID->"96c83a16-2e8a-4cf3-a057-1141e0d1a218"],
+Cell[68157, 1941, 91, 0, 70, "Section",ExpressionUUID->"530ce735-19a8-4a50-b3ed-060bbfdf0fcb"],
+Cell[68251, 1943, 972, 33, 70, "Text",ExpressionUUID->"0606e606-5d31-40c4-80d6-efe7f39bf452"],
+Cell[69226, 1978, 349, 6, 70, "Input",ExpressionUUID->"8454affc-f44b-440f-9393-2359e535532c"],
+Cell[69578, 1986, 723, 21, 70, "Text",ExpressionUUID->"42b5cb5d-b13a-4607-a86c-bc32efb73e7a"],
+Cell[70304, 2009, 187, 3, 70, "Input",ExpressionUUID->"94338b60-5a1e-48ec-8e65-d1c3da0a7aea"],
+Cell[70494, 2014, 453, 12, 70, "Text",ExpressionUUID->"bbb74710-0feb-4235-82a6-ccad0efaec5c"],
+Cell[70950, 2028, 83, 0, 70, "Section",ExpressionUUID->"b1e754dd-371b-4b77-9c69-27d3fadb598d"],
+Cell[71036, 2030, 104, 0, 70, "Subsection",ExpressionUUID->"ef541385-93c4-48d1-aeb9-7c6d027d502d"],
+Cell[71143, 2032, 446, 12, 70, "Text",ExpressionUUID->"494b83bc-cc0b-424e-a280-712a6725fd60"],
+Cell[CellGroupData[{
+Cell[71614, 2048, 88, 0, 70, "Subsubsection",ExpressionUUID->"670b5cb3-3190-4461-b55e-3690425aeb8f"],
+Cell[71705, 2050, 440, 16, 70, "Text",ExpressionUUID->"9ef02048-212d-4bd0-b2fb-0a8126c82cc4"],
+Cell[72148, 2068, 158, 2, 70, "Input",ExpressionUUID->"6f26e82c-711e-4651-aaae-3e7a7b8152a7"]
+}, Closed]],
+Cell[72321, 2073, 117, 0, 70, "Subsection",ExpressionUUID->"497506ad-14db-4bec-a883-974f3c99316c"],
+Cell[72441, 2075, 474, 13, 70, "Text",ExpressionUUID->"0acd16fa-8832-4fb8-8c82-0124181bc82c"],
+Cell[CellGroupData[{
+Cell[72940, 2092, 88, 0, 70, "Subsubsection",ExpressionUUID->"21e0676d-75b2-4333-9009-4c637f022d3f"],
+Cell[73031, 2094, 194, 3, 70, "Input",ExpressionUUID->"2ae8741d-0587-4042-9d6c-aa016a5a0392"],
+Cell[73228, 2099, 522, 15, 70, "Text",ExpressionUUID->"f50b8cb5-7d84-4e5e-bd06-e200257a77e9"]
+}, Closed]],
+Cell[73765, 2117, 104, 0, 70, "Subsection",ExpressionUUID->"5fa844e3-5583-421d-a580-6ec904fa066e"],
+Cell[73872, 2119, 326, 8, 70, "Text",ExpressionUUID->"8f842f30-56ad-4ca9-b00a-8bd716a33f97"],
+Cell[CellGroupData[{
+Cell[74223, 2131, 88, 0, 70, "Subsubsection",ExpressionUUID->"d82a7a4d-39d8-4e6b-897e-9fa6494eec10"],
+Cell[74314, 2133, 173, 3, 70, "Input",ExpressionUUID->"70cf2dae-8ddd-44b9-93fb-4d33d05b6ed6"],
+Cell[74490, 2138, 637, 19, 70, "Text",ExpressionUUID->"379de31a-f4fa-4c3c-b0e0-f00bb6a5c0dc"]
+}, Closed]]
+}
+]
+*)
+
+(* End of internal cache information *)

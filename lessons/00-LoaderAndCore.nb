@@ -1,0 +1,3245 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[    119865,       3236]
+NotebookOptionsPosition[    105719,       3073]
+NotebookOutlinePosition[    106056,       3088]
+CellTagsIndexPosition[    106013,       3085]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["Lesson 00 - The loader and Core", "Title",ExpressionUUID->"36a7f9e2-90e6-4f3a-860b-ed84eb36910e"],
+
+Cell["\<\
+This is the first of a series of lessons, one per module, in the order the \
+library loads them. Each lesson explains how its module works inside: which \
+Mathematica tools it uses, how, and why the code is organised that way.\
+\>", "Text",ExpressionUUID->"142e3878-877b-4f91-9ca7-427e3090dc68"],
+
+Cell[TextData[{
+ "Three kinds of boxes recur. A blue ",
+ StyleBox["Mathematica",
+  FontWeight->Bold],
+ " box explains a command or practice the first time it appears; later \
+lessons point back to it, and ",
+ StyleBox["Glossary.nb",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " lists them all. A grey ",
+ StyleBox["Why it's built this way",
+  FontWeight->Bold],
+ " box explains an architectural choice and names the alternative that was \
+rejected. ",
+ StyleBox["Exercises",
+  FontWeight->Bold],
+ " close each lesson; their solutions are folded (click the cell bracket of \
+\"Solution\" to open them)."
+}], "Text",ExpressionUUID->"f917f160-9326-4b6d-9a40-291dd5ffac21"],
+
+Cell[TextData[{
+ "Core does no physics. It is the machinery every stage relies on: failing \
+checks, stages and their fingerprints, exact zero tests, the user-symbol \
+checks, and the scalar product ",
+ StyleBox["scal",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Every later lesson uses it, which is why it comes first."
+}], "Text",ExpressionUUID->"850c79f9-d347-415e-b783-cd9f5a939c43"],
+
+Cell["1. Loading the library", "Section",ExpressionUUID->"a02747ec-274c-409c-9004-32651f7aba97"],
+
+Cell["Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"]", "Input",ExpressionUUID->"5220956b-0864-4109-a716-1fb9c78368c3"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Get",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Get[file]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (or ",
+ StyleBox["<< file",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ") reads a file and evaluates every expression in it, in order.",
+ "\n\n",
+ "A ",
+ StyleBox[".wl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " file is just a sequence of Mathematica expressions. ",
+ StyleBox["Get",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " parses them one by one and evaluates each, exactly as if you had typed \
+them into cells. Definitions made in the file stay defined afterwards. ",
+ StyleBox["Get",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " returns the value of the last expression (here ",
+ StyleBox["Null",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", because the last line is a ",
+ StyleBox["Print",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ")."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"88c61206-b7ff-4036-b8bb-70d6e201e122"],
+
+Cell[TextData[{
+ "The lessons also need two small helpers of their own, ",
+ StyleBox["lessonUpTo",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["showFailure",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". They live in ",
+ StyleBox["lessons/LessonSetup.wl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "; we will read them when we use them."
+}], "Text",ExpressionUUID->"156ae1d3-333d-4db8-a1e8-c233fccf159b"],
+
+Cell["Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]]", "Input",ExpressionUUID->"7441406c-08fc-4784-a408-616696b924a4"],
+
+Cell["Here is the loader in full:", "Text",ExpressionUUID->"b672eafa-8dd0-4bf2-977b-f27dbc6dddee"],
+
+Cell["\<\
+(* FRGscalarMSR.wl:1-22 *)
+(* ::Package:: *)
+
+(* FRGscalarMSR -- Wetterich flow equations for N MSR scalars, \
+derivative-expansion pipeline.
+   Load from a notebook or a script with
+       Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"]
+   Modules are documented in docs/MODULES.md, conventions in \
+docs/CONVENTIONS.md. *)
+
+(* reloading: drop the previous definitions (several symbols are Protected) \
+*)
+If[MemberQ[Contexts[], \"FRGscalarMSR`\"],
+  Unprotect[\"FRGscalarMSR`*\", \"FRGscalarMSR`Internal`*\"];
+  ClearAll[\"FRGscalarMSR`*\", \"FRGscalarMSR`Internal`*\"]];
+
+FRGscalarMSR`$FRGRoot = DirectoryName[$InputFileName];
+FRGscalarMSR`$FRGVersion = \"1.0.0\";
+
+(* load order matters: each module only uses the ones above it *)
+FRGscalarMSR`$FRGModules = {\"Core\", \"Theory\", \"Ansatz\", \"Vertices\", \
+\"Regulator\", \"Propagator\", \"Symmetries\", \"Loops\", \"Projection\", \
+\"FrequencyIntegration\", \"Closure\", \"Assemble\", \"Oracle\", \"Stages\", \
+\"Dimensions\", \"Adimensional\", \"JuliaExport\"};
+
+Scan[Get[FileNameJoin[{FRGscalarMSR`$FRGRoot, \"Kernel\", # <> \".wl\"}]] &, \
+FRGscalarMSR`$FRGModules];
+
+Print[\"FRGscalarMSR \", FRGscalarMSR`$FRGVersion, \" -- modules: \", \
+StringRiffle[FRGscalarMSR`$FRGModules, \", \"]];
+Print[\"WARNING: Ward identities are assumed (user-declared), not derived.\"];\
+\>", "Program",ExpressionUUID->"f7873884-0290-4827-84dc-94087ac2a65e"],
+
+Cell[TextData[{
+ "The first line, ",
+ StyleBox["(* ::Package:: *)",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", is a comment: the kernel ignores it, but the front end reads it and opens \
+the file in its package editor rather than as a notebook. Everything between ",
+ StyleBox["(*",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["*)",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is a comment."
+}], "Text",ExpressionUUID->"18be2722-989c-4550-8c90-ba291c168de5"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Symbols and contexts",
+  FontWeight->Bold],
+ "\n",
+ "Every symbol has a full name ",
+ StyleBox["context`name",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "; short names are looked up in ",
+ StyleBox["$Context",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", then in ",
+ StyleBox["$ContextPath",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ".",
+ "\n\n",
+ "Each name you type, like ",
+ StyleBox["DefineTheory",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " or ",
+ StyleBox["h",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", is a ",
+ StyleBox["symbol",
+  FontWeight->Bold],
+ ". Its full name has a context prefix ending in a backquote: ",
+ StyleBox["FRGscalarMSR`DefineTheory",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["Global`h",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". When you type a short name, Mathematica looks for it first in the current \
+context ",
+ StyleBox["$Context",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["Global`",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " in a notebook), then in each context of the list ",
+ StyleBox["$ContextPath",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". If it finds nothing, it creates a new symbol in ",
+ StyleBox["$Context",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Contexts are Mathematica's namespaces: two packages can both have a \
+symbol called ",
+ StyleBox["rank",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " without clashing, as long as they live in different contexts."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"76559283-601a-4462-80d0-05dee0f8af3f"],
+
+Cell["{$Context, $ContextPath, Context[DefineTheory]}", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"f1ccc88e-37c7-48a1-96b6-af8bc6c95b9f"],
+
+Cell[TextData[{
+ "In these lesson notebooks ",
+ StyleBox["$Context",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is not ",
+ StyleBox["Global`",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " but a context private to each notebook (the builder sets the notebook \
+option ",
+ StyleBox["CellContext -> Notebook",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "), so the variables of one lesson do not leak into another. Run headless, \
+as ",
+ StyleBox["examples/runNotebook.wl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " does, they live in ",
+ StyleBox["Global`",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",ExpressionUUID->"a05f321b-d36d-4cfd-bcb2-2ad3a7faf828"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Set and SetDelayed",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["x = rhs",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " evaluates rhs now and stores the result; ",
+ StyleBox["f[x_] := rhs",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stores rhs unevaluated and evaluates it at every use.",
+ "\n\n",
+ StyleBox["FRGscalarMSR`$FRGRoot = DirectoryName[$InputFileName]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is a ",
+ StyleBox["Set",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ": the folder of the file is computed once, at load time, and stored. A ",
+ StyleBox["SetDelayed",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox[":=",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ") stores the right-hand side as it is written; it is what you use to define \
+functions, whose body must be evaluated afresh for each argument. Note that \
+the loader writes the full name ",
+ StyleBox["FRGscalarMSR`$FRGRoot",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ": at that point no package context has been opened yet, so a short name \
+would create ",
+ StyleBox["Global`$FRGRoot",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"15934016-0024-42de-a024-025f8749af08"],
+
+Cell[TextData[{
+ StyleBox["$InputFileName",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the path of the file currently being read by ",
+ StyleBox["Get",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Using it, the library finds its own ",
+ StyleBox["Kernel/",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " folder wherever it is installed."
+}], "Text",ExpressionUUID->"d592f8dd-1db2-45dc-bc7b-d80fcd12c659"],
+
+Cell[TextData[{
+ "The reload guard at the top runs only if the library was loaded before. ",
+ StyleBox["Contexts[]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " lists every context that exists, and ",
+ StyleBox["MemberQ[list, x]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " tests whether ",
+ StyleBox["x",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is in the list."
+}], "Text",ExpressionUUID->"f629e083-e8eb-40ca-8268-924dfdf97906"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Attributes and Protected",
+  FontWeight->Bold],
+ "\n",
+ "Attributes are flags on a symbol that change how it evaluates; ",
+ StyleBox["Protected",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " forbids new definitions.",
+ "\n\n",
+ StyleBox["SetAttributes[f, attr]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " attaches a flag. ",
+ StyleBox["Protected",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " makes a symbol read-only: any ",
+ StyleBox["f[...] := ...",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " fails with a message. The library protects the symbols the user writes in \
+input (",
+ StyleBox["dt",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["grad",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["FixedDimension",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ...) so that nobody accidentally gives them a meaning. ",
+ StyleBox["Unprotect",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " removes the flag. ",
+ StyleBox["ClearAll[\"FRGscalarMSR`*\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " removes the values, definitions, attributes and options of every symbol \
+whose full name matches the string pattern."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"57162e5f-2729-4f1d-8aeb-8197a56f34a7"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Reloading starts from a clean slate",
+  FontWeight->Bold],
+ "\n\n",
+ "Definitions in Mathematica accumulate. If a function was defined as ",
+ StyleBox["f[x_Integer] := ...",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and the new version of the file says ",
+ StyleBox["f[x_] := ...",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", after a plain reload both rules exist, and the old one still wins for \
+integers. Clearing every library symbol before reading the files again \
+guarantees that what runs is exactly what is in the files. The ",
+ StyleBox["Unprotect",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is needed because ",
+ StyleBox["ClearAll",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " cannot touch protected symbols."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"c2cc85a9-e3d5-4a03-83e4-e352e7ee017a"],
+
+Cell[TextData[{
+ StyleBox["$FRGModules",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " lists the module files. ",
+ StyleBox["Scan",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " reads them in that order."
+}], "Text",ExpressionUUID->"57060f09-bcb1-49c2-a5d7-25404cccff83"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Pure functions",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["body &",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is an anonymous function; ",
+ StyleBox["#",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is its argument (",
+ StyleBox["#1",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["#2",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ... for several).",
+ "\n\n",
+ StyleBox["Get[FileNameJoin[{FRGscalarMSR`$FRGRoot, \"Kernel\", # <> \
+\".wl\"}]] &",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is a function of one argument ",
+ StyleBox["#",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ": given ",
+ StyleBox["\"Core\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", it reads ",
+ StyleBox[".../Kernel/Core.wl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". ",
+ StyleBox["<>",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " joins strings (",
+ StyleBox["StringJoin",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "). ",
+ StyleBox["Function[x, body]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the same thing with a named argument."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"ec3dbc6d-4174-4aab-be9e-b796ba5b781a"],
+
+Cell["(# <> \".wl\" &) /@ {\"Core\", \"Theory\"}", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"9bfffe40-324d-424d-82f6-f79bc1ed9a31"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Map and Scan",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Map[f, list]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["f /@ list",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ") returns the list of results; ",
+ StyleBox["Scan[f, list]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " applies f only for its side effects and returns nothing.",
+ "\n\n",
+ "The loader uses ",
+ StyleBox["Scan",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " because it wants the effect of each ",
+ StyleBox["Get",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (the definitions), not the return values. ",
+ StyleBox["/@",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the short form of ",
+ StyleBox["Map",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"ffb45bc8-5c96-4b75-84cf-7dd312c9a94d"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: One file per stage, loaded in a fixed \
+order",
+  FontWeight->Bold],
+ "\n\n",
+ "Each module may use only the modules listed above it in ",
+ StyleBox["$FRGModules",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". The dependencies therefore form a line, not a web: Core uses nothing, \
+Theory uses Core, Ansatz uses Theory and Core, and so on. This has three \
+consequences. There are no circular dependencies. You can understand the \
+modules one at a time in load order, which is the order of these lessons. And \
+a module can be tested on its own with the stages built by the modules before \
+it (",
+ StyleBox["tests/unit/",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "). The rejected alternative is a single large file, as in the older ",
+ StyleBox["DE4plus_fast.wl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", where any helper can depend on any other (",
+ StyleBox["design/FRGDESIGN.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", decision Q8)."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"20416ebb-2402-40c8-889e-a69a76bad42f"],
+
+Cell["2. Packages: public, internal and private names", "Section",ExpressionUUID->"a69f0476-bbd3-4e29-aa35-5a55698422b5"],
+
+Cell["\<\
+Every module starts and ends the same way. This is the top of Core:\
+\>", "Text",ExpressionUUID->"f5837c68-f35c-4274-aeaa-ea1a0aacccd4"],
+
+Cell["\<\
+(* Kernel/Core.wl:7-38 *)
+BeginPackage[\"FRGscalarMSR`Internal`\"];
+assertCheck::usage = \"assertCheck[name, cond, details, hint, summary] runs \
+FRGAssert and returns a check record for a stage card.\";
+infoCheck::usage = \"infoCheck[status, name, summary] is a non-failing card \
+line (\\\"WARN\\\", \\\"INFO\\\", \\\"ASSUMPTION\\\").\";
+stampStage::usage = \"stampStage[assoc] adds the \\\"Fingerprint\\\" key \
+(hash of the stage content).\";
+validateStage::usage = \"validateStage[stage, name] asserts the stage key and \
+fingerprint of an upstream stage.\";
+reservedNames::usage = \"reservedNames: symbol names the user may not use for \
+fields or couplings.\";
+assertFreshSymbols::usage = \"assertFreshSymbols[check, syms, what] asserts \
+that user symbols are usable as fields / couplings.\";
+inputForm::usage = \"inputForm[e, n] is a short one-line InputForm string of \
+e.\";
+displayString::usage = \"displayString[e] is a full one-line InputForm string \
+of e without package contexts; scal[a, a] -> a^2, scal[a, b] -> a.b, \\
+wedge[a, b] -> wedge(a,b).\";
+reduceWedge2D::usage = \"reduceWedge2D[e] rewrites every product of two \
+wedges by the d = 2 identity \\
+wedge[a,b] wedge[c,d] = scal[a,c] scal[b,d] - scal[a,d] scal[b,c] until each \
+term of the expanded e has at most one wedge.\";
+EndPackage[];
+
+BeginPackage[\"FRGscalarMSR`\", {\"FRGscalarMSR`Internal`\"}];
+
+FRGAssert::usage = \"FRGAssert[name, cond, details, hint] returns name if \
+cond is True; otherwise prints a red FAIL block \\
+(check, module, short offending expression, hint), sets $FRGLastFailure = \
+name and aborts (Exit[2] in a math -script run).\";
+$FRGLastFailure::usage = \"$FRGLastFailure is the name of the last check that \
+failed (diagnostic only).\";
+$FRGModule::usage = \"$FRGModule is the module name printed in FAIL blocks \
+(set with Block by each constructor).\";
+$FRGExitOnFail::usage = \"$FRGExitOnFail: if True a failed check calls \
+Exit[2] instead of Abort[] (default: True in math -script runs).\";
+ExactlyZeroQ::usage = \"ExactlyZeroQ[expr] is True iff expr vanishes exactly \
+at several random rational points: every non-System \\
+symbol (couplings, q, k, Dim, ...) gets an independent random rational, and \
+every remaining function atom r[y], r'[y], r''[y], \\
+f[...], f[a][y], Derivative[k][f[a]][y] (as a whole) gets its own independent \
+random rational (same atom, same value). Option \\\"Seeds\\\" -> {1, 2, \
+3}.\";
+RandomRationalPoint::usage = \"RandomRationalPoint[syms, seed] gives rules \
+sym -> random rational in (0, 1), reproducible from seed.\";
+PrintCard::usage = \"PrintCard[stage] prints the stage summary card: \
+PASS/WARN/INFO/ASSUMPTION lines, LeafCount, timing, fingerprint.\";
+scal::usage = \"scal[a, b] is the scalar product of the vectors a, b (bare \
+symbols). Orderless; linear over sums and over \\
+explicit numbers only (not over couplings).\";
+wedge::usage = \"wedge[a, b] = eps_ij a_i b_j (d = 2, eps_12 = +1) of the \
+vectors a, b (bare symbols). Antisymmetric (canonical \\
+order, not Orderless), wedge[a, a] = 0; linear over sums and over explicit \
+numbers only.\";
+
+Begin[\"`Private`\"];\
+\>", "Program",ExpressionUUID->"c22a0acd-16b6-43ee-8ed9-4a7ca5862ffc"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: BeginPackage, Begin, End, EndPackage",
+  FontWeight->Bold],
+ "\n",
+ "The four commands that give a package its public and private namespaces.",
+ "\n\n",
+ StyleBox["BeginPackage[\"FRGscalarMSR`\", {\"FRGscalarMSR`Internal`\"}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " makes ",
+ StyleBox["FRGscalarMSR`",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " the current context and sets ",
+ StyleBox["$ContextPath",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " to just that context, the listed ones, and ",
+ StyleBox["System`",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Every symbol ",
+ StyleBox["mentioned",
+  FontSlant->Italic],
+ " from now on is created in ",
+ StyleBox["FRGscalarMSR`",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ": these are the public names. ",
+ StyleBox["Begin[\"`Private`\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " switches to the sub-context ",
+ StyleBox["FRGscalarMSR`Private`",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (the leading backquote means \"relative to the current context\"); symbols \
+first mentioned after it, such as helper functions, are created there. ",
+ StyleBox["End[]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " goes back, and ",
+ StyleBox["EndPackage[]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " restores the previous ",
+ StyleBox["$Context",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and puts ",
+ StyleBox["FRGscalarMSR`",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " at the front of ",
+ StyleBox["$ContextPath",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", so its public symbols are visible to you by their short names."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"d5c24f07-91ef-4376-81ac-6d97ca0d0bbf"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Usage messages",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["f::usage = \"text\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " attaches help text to f; ",
+ StyleBox["?f",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " shows it.",
+ "\n\n",
+ "In a package, the usage line has a second job: it is the first mention of \
+the symbol, so it creates the symbol in the public context, before ",
+ StyleBox["Begin[\"`Private`\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". The list of usage messages at the top of each module ",
+ StyleBox["is",
+  FontSlant->Italic],
+ " its public interface."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"d0101569-5cc9-4229-b815-0de5d6f2df8a"],
+
+Cell["?FRGAssert", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"f5b0adaa-7019-478b-aabe-9e1ddf99b7c4"],
+
+Cell[TextData[{
+ "Core actually opens two packages. The first, ",
+ StyleBox["FRGscalarMSR`Internal`",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", holds helpers that the modules share with each other but that are not \
+meant for you (",
+ StyleBox["assertCheck",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["stampStage",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["validateStage",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ...). The second, ",
+ StyleBox["FRGscalarMSR`",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", holds the public names. Later modules list ",
+ StyleBox["FRGscalarMSR`Internal`",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " among the contexts they need, so they can use the internal helpers by \
+their short names."
+}], "Text",ExpressionUUID->"eb77b0e8-e5e7-4d45-b6ce-0f4717e76c45"],
+
+Cell["\<\
+{Context[FRGAssert], Context[assertCheck], MemberQ[$ContextPath, \
+\"FRGscalarMSR`Internal`\"]}\
+\>", "Input",ExpressionUUID->"5ee6779f-707a-44cb-b402-680efe5ae689"],
+
+Cell[TextData[{
+ "Note the last answer: ",
+ StyleBox["True",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". The comment in ",
+ StyleBox["Kernel/Core.wl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " says the internal helpers are \"not on the user's $ContextPath\", but they \
+are, because the first ",
+ StyleBox["EndPackage[]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " puts ",
+ StyleBox["FRGscalarMSR`Internal`",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " on ",
+ StyleBox["$ContextPath",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " like any package. In practice this means you can call ",
+ StyleBox["assertCheck",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " or ",
+ StyleBox["stampStage",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " from a notebook (we will, in section 4), and that a symbol of yours called \
+",
+ StyleBox["inputForm",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " would refer to the library's helper."
+}], "Text",ExpressionUUID->"940f100f-dff5-4f24-a391-86715b65ef61"],
+
+Cell[TextData[{
+ "The private parts of all modules share one context. Every module calls ",
+ StyleBox["Begin[\"`Private`\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " inside ",
+ StyleBox["BeginPackage[\"FRGscalarMSR`\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", so all helpers land in ",
+ StyleBox["FRGscalarMSR`Private`",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ":"
+}], "Text",ExpressionUUID->"9ba8c6b9-ee33-49ef-87a4-dbc180cc17b8"],
+
+Cell["Length[Names[\"FRGscalarMSR`Private`*\"]]", "Input",ExpressionUUID->"99e0e3ad-6b97-4874-8b91-a2e8175717c7"],
+
+Cell[TextData[{
+ StyleBox["Names[\"pattern\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " returns the names of all symbols matching a string pattern."
+}], "Text",ExpressionUUID->"34087827-b7ef-4ae3-b8c8-cc75a016f87e"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Three layers of names",
+  FontWeight->Bold],
+ "\n\n",
+ "The user's symbols (",
+ StyleBox["h",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["nuk",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["Dim",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ") live in ",
+ StyleBox["Global`",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", the API in ",
+ StyleBox["FRGscalarMSR`",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", the shared plumbing in ",
+ StyleBox["FRGscalarMSR`Internal`",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", and the implementation in ",
+ StyleBox["FRGscalarMSR`Private`",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". A helper called ",
+ StyleBox["rank",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " never clashes with a coupling you call ",
+ StyleBox["rank",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". The library made one compromise: a single private context for all modules \
+instead of one per module (",
+ StyleBox["FRGscalarMSR`Ansatz`Private`",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ...). It is simpler, but a helper defined in one module is visible to, \
+and can be overwritten by, every other. That is why CLAUDE.md asks for \
+distinctive helper names (the Regulator's ",
+ StyleBox["sq",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the example given there)."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"dd73cf4c-f113-4116-9ffc-f20b203bd198"],
+
+Cell["3. Failing loudly: FRGAssert", "Section",ExpressionUUID->"b0e523aa-07e0-4acd-ace0-8357f62e3f0e"],
+
+Cell["Every check in the library goes through one function:", "Text",ExpressionUUID->"c339a990-a8fa-4555-8fd5-15893bcad884"],
+
+Cell["\<\
+(* Kernel/Core.wl:53-59 *)
+failBlock[name_, details_, hint_] := Module[{lines},
+   lines = {\"FAIL  check: \" <> ToString[name] <> \"   module: \" <> \
+ToString[$FRGModule],
+     \"      offending: \" <> inputForm[details, 4],
+     \"      hint: \" <> ToString[hint]};
+   If[$FrontEnd === Null,
+    Scan[Print, lines],
+    Print[Framed[Column[Style[#, Red, If[# === First[lines], Bold, Plain]] & \
+/@ lines], FrameStyle -> Red]]]];\
+\>", "Program",ExpressionUUID->"a19bdef0-0a23-4b4b-a179-05087d75691f"],
+
+Cell["\<\
+(* Kernel/Core.wl:61-66 *)
+SetAttributes[FRGAssert, HoldRest];
+FRGAssert[name_, cond_, details_, hint_ : \"\"] :=
+  If[TrueQ[cond], name,
+   failBlock[name, details, hint];
+   $FRGLastFailure = name;
+   If[TrueQ[$FRGExitOnFail], Exit[2], Abort[]]];\
+\>", "Program",ExpressionUUID->"0a3c9868-60b9-4b97-ace9-a624ddb12d2b"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Patterns",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["x_",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " matches any expression and names it x; ",
+ StyleBox["x_h",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " only expressions with head h; ",
+ StyleBox["x_ : d",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is optional with default d; ",
+ StyleBox["patt /; cond",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " adds a condition.",
+ "\n\n",
+ "The left-hand side of a definition is a ",
+ StyleBox["pattern",
+  FontWeight->Bold],
+ ". ",
+ StyleBox["FRGAssert[name_, cond_, details_, hint_ : \"\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " matches a call with three or four arguments; inside the body, ",
+ StyleBox["name",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["cond",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ... stand for whatever was passed. ",
+ StyleBox["hint_ : \"\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " makes the fourth argument optional. The ",
+ StyleBox["head",
+  FontWeight->Bold],
+ " of an expression is what stands before the brackets: the head of ",
+ StyleBox["f[1, 2]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is ",
+ StyleBox["f",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", of ",
+ StyleBox["a + b",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is ",
+ StyleBox["Plus",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", of ",
+ StyleBox["{1, 2}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is ",
+ StyleBox["List",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". So ",
+ StyleBox["e_Plus",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " matches only sums. A definition is really a rule \"rewrite anything that \
+matches this pattern into this\", which Mathematica stores and applies \
+automatically."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"41898f67-a1ff-4a44-baa5-4b179904f978"],
+
+Cell["\<\
+f[x_Integer] := \"integer\"; f[x_] := \"something else\"; {f[3], f[3.5], f[a \
++ b]}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"145d2d90-638e-4f82-b718-cde4ba30ba08"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Hold attributes",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["HoldAll",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["HoldFirst",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["HoldRest",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stop Mathematica from evaluating some arguments before the function sees \
+them.",
+ "\n\n",
+ "Normally Mathematica evaluates every argument first, then calls the \
+function. ",
+ StyleBox["SetAttributes[FRGAssert, HoldRest]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " keeps all arguments but the first unevaluated. Inside the body, ",
+ StyleBox["cond",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is evaluated where it is used, inside ",
+ StyleBox["TrueQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". ",
+ StyleBox["details",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["hint",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " are evaluated only when ",
+ StyleBox["failBlock",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is called, that is, only when the check fails."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"d493a49a-e86c-4bb0-8b84-cc5c90d32ad4"],
+
+Cell["\<\
+g[x_] := \"done\"; SetAttributes[g2, HoldAll]; g2[x_] := \"done\";
+{g[Print[\"evaluated\"]], g2[Print[\"not evaluated\"]]}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"1201ef00-1d30-42b1-83fb-844153c8e074"],
+
+Cell[TextData[{
+ "The library uses ",
+ StyleBox["HoldRest",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " for speed: ",
+ StyleBox["details",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is often something like ",
+ StyleBox["Select[monomials, ...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " over a large list, and on success it should cost nothing."
+}], "Text",ExpressionUUID->"b45d99d4-7793-41b2-85b2-76d6fd9f9ddb"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: If and TrueQ",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["If[c, a, b]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " gives a if c is True, b if c is False, and stays unevaluated otherwise; ",
+ StyleBox["TrueQ[c]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is True only if c is literally True.",
+ "\n\n",
+ "In Mathematica a condition can be neither true nor false: ",
+ StyleBox["nuk > 0",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stays as it is when ",
+ StyleBox["nuk",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " has no value, and ",
+ StyleBox["If[nuk > 0, a, b]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " then returns itself unevaluated. ",
+ StyleBox["TrueQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " turns \"undecided\" into ",
+ StyleBox["False",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". For a check this is the safe choice: a condition the library cannot \
+decide is a failed check, not a passed one."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"a0018204-f2e7-4409-9939-add0ba981447"],
+
+Cell["{If[nuk > 0, \"yes\", \"no\"], TrueQ[nuk > 0]}", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"e4502a98-59bd-4cfc-82c6-4aae5b63bd7e"],
+
+Cell["A check that holds returns its name:", "Text",ExpressionUUID->"10c02166-b0d0-4b5b-8914-24f1112222f1"],
+
+Cell["FRGAssert[\"Demo.positive\", 3 > 0, \"never computed\"]", "Input",ExpressionUUID->"6d4843e3-ea41-4a61-a71c-fb72850e588a"],
+
+Cell[TextData[{
+ "A failing check prints its FAIL block and aborts. In this notebook we wrap \
+it in ",
+ StyleBox["showFailure",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", which shows the block and returns the name of the check instead of \
+stopping:"
+}], "Text",ExpressionUUID->"6ab92bd8-9df2-426f-b378-da645d6f80e1"],
+
+Cell["\<\
+showFailure[FRGAssert[\"Demo.positive\", -3 > 0, {-3}, \"the number must be \
+positive\"]]\
+\>", "Input",ExpressionUUID->"f5fc42a0-6cd6-4342-aea2-59173723fb89"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Abort, CheckAbort, Exit",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Abort[]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stops the whole evaluation; ",
+ StyleBox["CheckAbort[expr, alt]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " catches an abort inside expr and returns alt; ",
+ StyleBox["Exit[n]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " quits the kernel with exit code n.",
+ "\n\n",
+ StyleBox["Abort[]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " unwinds every function call back to the top level; the cell prints ",
+ StyleBox["$Aborted",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Nothing downstream runs. ",
+ StyleBox["CheckAbort",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the only way to catch it. ",
+ StyleBox["Exit[2]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " ends the kernel process itself; the library uses it when it runs as a \
+script (",
+ StyleBox["math -script",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "), so the shell sees a non-zero exit code. ",
+ StyleBox["$FRGExitOnFail",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " chooses between the two: ",
+ StyleBox["$FrontEnd === Null",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is True when no front end is attached, and ",
+ StyleBox["$CommandLine",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " holds the command-line arguments."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"261f0a9a-e82b-49b4-9f34-acda28bfa0ce"],
+
+Cell[TextData[{
+ "Here is ",
+ StyleBox["showFailure",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ":"
+}], "Text",ExpressionUUID->"e7bdc5e7-e8a4-4036-ae72-92f41f872582"],
+
+Cell["\<\
+(* lessons/LessonSetup.wl:46-50 *)
+(* A failed check calls Exit[2] in a math -script run ($FRGExitOnFail); Block \
+turns that into Abort[] for the duration of
+   expr, and CheckAbort catches the abort, so a lesson cell can show a FAIL \
+block without stopping the notebook. *)
+SetAttributes[showFailure, HoldAll];
+showFailure[expr_] := Block[{$FRGExitOnFail = False}, $FRGLastFailure = None;
+   CheckAbort[expr; Print[\"showFailure: no check failed\"]; None, \
+$FRGLastFailure]];\
+\>", "Program",ExpressionUUID->"05132dcf-f9c7-4b29-af51-28071eb3c031"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Block and Module",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Module[{x}, body]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " creates a fresh local x seen only by the code written inside; ",
+ StyleBox["Block[{x = v}, body]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " temporarily gives the existing x the value v, seen by every function \
+called from body.",
+ "\n\n",
+ StyleBox["Module",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is ",
+ StyleBox["lexical",
+  FontWeight->Bold],
+ " scoping: ",
+ StyleBox["Module[{x}, ...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " renames ",
+ StyleBox["x",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " to a unique ",
+ StyleBox["x$123",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", so only the text inside the ",
+ StyleBox["Module",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " can refer to it. ",
+ StyleBox["Block",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is ",
+ StyleBox["dynamic",
+  FontWeight->Bold],
+ " scoping: during the evaluation of the body, the global symbol itself has \
+the new value, for every function that runs, however deep, and the old value \
+comes back afterwards. ",
+ StyleBox["showFailure",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " uses ",
+ StyleBox["Block",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " on ",
+ StyleBox["$FRGExitOnFail",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " because ",
+ StyleBox["FRGAssert",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", called deep inside some constructor, must see the changed value. Every \
+constructor does the same with ",
+ StyleBox["Block[{$FRGModule = \"Theory\"}, ...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", which is how ",
+ StyleBox["failBlock",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " knows which module to print."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"fee4c019-f2fa-4f20-8d93-938e04bea6b0"],
+
+Cell["\<\
+yy = \"global\"; show[] := yy;
+{Module[{yy = \"module\"}, show[]], Block[{yy = \"block\"}, show[]], yy}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"4ddb8ac1-cf64-4c57-bed0-d071030c1d54"],
+
+Cell[TextData[{
+ StyleBox["failBlock",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " prints plain lines in a script and a red framed column in a notebook. \
+Constructors do not call ",
+ StyleBox["FRGAssert",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " directly for the checks they report; they call ",
+ StyleBox["assertCheck",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", which asserts and then returns a small record for the stage's card:"
+}], "Text",ExpressionUUID->"62f0bf2f-a8d1-42fb-a323-00a3e2f86120"],
+
+Cell["\<\
+(* Kernel/Core.wl:68-71 *)
+SetAttributes[assertCheck, HoldRest];
+assertCheck[name_, cond_, details_, hint_, summary_ : \"\"] := \
+(FRGAssert[name, cond, details, hint];
+   <|\"Status\" -> \"PASS\", \"Check\" -> name, \"Detail\" -> summary|>);
+infoCheck[status_String, name_, summary_ : \"\"] := <|\"Status\" -> status, \
+\"Check\" -> name, \"Detail\" -> summary|>;\
+\>", "Program",ExpressionUUID->"9d932aae-2dc8-4143-880b-5f0fca5adb46"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Named checks that abort",
+  FontWeight->Bold],
+ "\n\n",
+ "The library is meant to be read as a set of grey boxes: you read the cards \
+and the FAIL blocks, not the code. A failure therefore has a name (",
+ StyleBox["Ansatz.MSR",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["Stage.fingerprint",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ") that you can look up in ",
+ StyleBox["docs/MODULES.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", the offending part of the input, and a hint. It then aborts. \
+Mathematica's own convention is different: a function that fails prints a \
+message and returns unevaluated or ",
+ StyleBox["$Failed",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", and evaluation continues. In a pipeline whose expressions reach a million \
+leaves, that convention lets a wrong intermediate result travel silently into \
+the flow equations. Aborting stops at the first wrong step. ",
+ StyleBox["Exit[2]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " makes the same failure visible to shell scripts and to the test runner."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"80161a91-f2f6-451e-94cb-9541baac40f8"],
+
+Cell["4. Stages: immutable, fingerprinted Associations", "Section",ExpressionUUID->"499f540d-0774-4e59-9563-f28533c4a2f4"],
+
+Cell[TextData[{
+ "Every module returns a ",
+ StyleBox["stage",
+  FontWeight->Bold],
+ ": an ",
+ StyleBox["Association",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " holding everything it computed, plus bookkeeping."
+}], "Text",ExpressionUUID->"c8119867-fdce-4573-9d03-b1aaabd88f9f"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Association",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["<|key -> value, ...|>",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is a table of key-value pairs; read with ",
+ StyleBox["a[key]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " or ",
+ StyleBox["Lookup[a, key, default]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ".",
+ "\n\n",
+ "Keys are usually strings. ",
+ StyleBox["a[\"Stage\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " reads a key, ",
+ StyleBox["Lookup[a, \"Warnings\", {}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " reads it with a default when it is absent, ",
+ StyleBox["Keys[a]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " lists the keys. ",
+ StyleBox["Append[a, k -> v]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["KeyDrop[a, {k1, ...}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " return a ",
+ StyleBox["new",
+  FontWeight->Bold],
+ " association and leave ",
+ StyleBox["a",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " unchanged: an association is a value, not a reference. Inside a pure \
+function, ",
+ StyleBox["#Status",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is short for ",
+ StyleBox["#[\"Status\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". ",
+ StyleBox["AssociationThread[{k1, k2} -> {v1, v2}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " builds one from two lists."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"e6758705-ebf9-4745-8bdc-6c108a8fef38"],
+
+Cell["\<\
+toyA = <|\"Stage\" -> \"Toy\", \"Data\" -> {1, 2}|>;
+{toyA[\"Data\"], Lookup[toyA, \"Missing\", \"default\"], Keys[Append[toyA, \
+\"New\" -> 3]], Keys[toyA]}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"0f5d9c6e-1bb8-440c-a52e-8c5807b4bff1"],
+
+Cell["The bookkeeping code is short:", "Text",ExpressionUUID->"abdfe55b-6ede-447c-9f9f-5ec54a346770"],
+
+Cell["\<\
+(* Kernel/Core.wl:101-105 *)
+(* keys that do not define the content of a stage, hence are not hashed *)
+volatileKeys = {\"Fingerprint\", \"Checks\", \"Timing\", \"Warnings\", \
+\"Assumptions\"};
+(* Normal re-evaluates the content: a field or coupling that got a value \
+after the stage was built changes the hash *)
+contentHash[stage_Association] := Hash[Normal[KeyDrop[stage, volatileKeys], \
+Association], \"SHA256\", \"HexString\"];
+stampStage[stage_Association] := Append[stage, \"Fingerprint\" -> \
+contentHash[stage]];\
+\>", "Program",ExpressionUUID->"8ac9aef8-6215-4031-a38a-21e0bb9d9d17"],
+
+Cell["\<\
+(* Kernel/Core.wl:107-112 *)
+validateStage[stage_, name_String] := (
+   FRGAssert[\"Stage.input\", AssociationQ[stage] && Lookup[stage, \"Stage\", \
+None] === name, Lookup[If[AssociationQ[stage], stage, <||>], \"Stage\", stage],
+    \"expected the output of the \" <> name <> \" stage\"];
+   FRGAssert[\"Stage.fingerprint\", contentHash[stage] === \
+stage[\"Fingerprint\"], stage[\"Stage\"],
+    \"the stage was modified after it was built, or one of its symbols got a \
+value since: rebuild it\"];
+   stage);\
+\>", "Program",ExpressionUUID->"87cde05e-4799-4d50-bbd6-be2931fcc242"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Hash",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Hash[expr, \"SHA256\", \"HexString\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " gives a 64-character fingerprint of expr; any change to expr changes it.",
+ "\n\n",
+ "A hash is a short digest of an arbitrarily large expression. Two equal \
+expressions have the same hash, and in practice two different ones never do. \
+Comparing hashes is a cheap way to ask \"is this still exactly the expression \
+that was built?\"."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"58219b2b-a586-4287-898a-3d4dec0c5af8"],
+
+Cell[TextData[{
+ "Let us build a toy stage. ",
+ StyleBox["stampStage",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is an internal helper, but as we saw it is reachable from the notebook."
+}], "Text",ExpressionUUID->"da2bb4a7-1b96-446e-9d02-8532aed48a51"],
+
+Cell["\<\
+toy = stampStage[<|\"Stage\" -> \"Toy\", \"Data\" -> {a, b}, \"Checks\" -> \
+{}|>];
+validateStage[toy, \"Toy\"][\"Fingerprint\"]\
+\>", "Input",ExpressionUUID->"36aef856-8957-4cbf-8b7c-ab7f92e0b7a9"],
+
+Cell["\<\
+A stage passed to the wrong constructor, or modified by hand, is refused:\
+\>", "Text",ExpressionUUID->"5e9d3933-9518-4326-9898-640ad47cdb20"],
+
+Cell["showFailure[validateStage[toy, \"Theory\"]]", "Input",ExpressionUUID->"cb2c67b7-f51c-4bd2-a13d-99aa831eab3e"],
+
+Cell["\<\
+showFailure[validateStage[Append[toy, \"Data\" -> {a}], \"Toy\"]]\
+\>", "Input",ExpressionUUID->"b7bc4547-57f9-40c8-bbb7-7db61ed5731a"],
+
+Cell[TextData[{
+ "The subtle case is a symbol of the stage that gets a value after the stage \
+was built. ",
+ StyleBox["contentHash",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is private, so we call it by its full name:"
+}], "Text",ExpressionUUID->"39a40468-8135-4a78-bb0b-108ce4b8691e"],
+
+Cell["FRGscalarMSR`Private`contentHash[toy] === toy[\"Fingerprint\"]", "Input",ExpressionUUID->"fec84242-1fef-4d82-b0de-29702bcaa348"],
+
+Cell["\<\
+a = 5;
+{toy, toy[\"Data\"], FRGscalarMSR`Private`contentHash[toy] === \
+toy[\"Fingerprint\"]}\
+\>", "Input",ExpressionUUID->"6c96f90c-2129-4007-9df7-fbdcaa425717"],
+
+Cell[TextData[{
+ "The association still displays ",
+ StyleBox["{a, b}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ": it does not re-evaluate its contents when you use it. The part you \
+extract, ",
+ StyleBox["toy[\"Data\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", is evaluated and gives ",
+ StyleBox["{5, b}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". ",
+ StyleBox["Normal",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " turns the association back into a list of rules, which does get \
+re-evaluated; that is why ",
+ StyleBox["contentHash",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " hashes ",
+ StyleBox["Normal[...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", and why the fingerprint no longer matches:"
+}], "Text",ExpressionUUID->"e5a1d7e4-6236-4c1c-97b0-35c43cccc983"],
+
+Cell["showFailure[validateStage[toy, \"Toy\"]]", "Input",ExpressionUUID->"0da8a183-aa66-416d-9104-a86bf6830141"],
+
+Cell["Clear[a]", "Input",ExpressionUUID->"2815b314-2b5a-4aae-a071-7eb46ad48810"],
+
+Cell[TextData[{
+ StyleBox["PrintCard",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " prints the summary card that every constructor shows:"
+}], "Text",ExpressionUUID->"ec3289ce-d3fb-421e-82f9-af6fed4c9e61"],
+
+Cell["\<\
+(* Kernel/Core.wl:114-119 *)
+PrintCard[stage_Association] := Module[{chk = Lookup[stage, \"Checks\", {}], \
+extra},
+   extra = Join[Lookup[stage, \"Warnings\", {}], Lookup[stage, \
+\"Assumptions\", {}]];
+   Print[\"==== \", stage[\"Stage\"], \" card   fingerprint \", \
+StringTake[Lookup[stage, \"Fingerprint\", \"--------\"], UpTo[8]],
+    \"   LeafCount \", LeafCount[KeyDrop[stage, volatileKeys]], \"   \", \
+Round[1000 Lookup[stage, \"Timing\", 0]], \" ms ====\"];
+   Scan[Print[StringPadRight[#Status, 11], #Check, If[#Detail === \"\", \"\", \
+\"   \" <> ToString[#Detail]]] &, Join[chk, extra]];
+   Print[\"==== \", Count[chk, KeyValuePattern[\"Status\" -> \"PASS\"]], \" \
+PASS, \", Length[extra], \" warnings/assumptions ====\"];];\
+\>", "Program",ExpressionUUID->"b0292938-5bd5-4a6e-a8c6-b3bac9a52463"],
+
+Cell["\<\
+PrintCard[Append[toy, \"Checks\" -> {assertCheck[\"Demo.check\", True, Null, \
+\"\", \"a passing check\"]}]]\
+\>", "Input",ExpressionUUID->"fc1c4980-f390-4b91-90fe-eba033c59f4f"],
+
+Cell[TextData[{
+ StyleBox["Count[list, KeyValuePattern[\"Status\" -> \"PASS\"]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " counts the records whose ",
+ StyleBox["\"Status\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " key is ",
+ StyleBox["\"PASS\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "; ",
+ StyleBox["StringPadRight",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " pads a string to a fixed width."
+}], "Text",ExpressionUUID->"114cfe64-6696-4c33-90f1-380f747289fc"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Immutable stages instead of global state",
+  
+  FontWeight->Bold],
+ "\n\n",
+ "A classical Mathematica notebook keeps its state in global variables that \
+later cells read and overwrite. Re-evaluating cells out of order then gives \
+results that depend on history. Here each constructor takes stages as \
+arguments and returns a new one; nothing is stored anywhere else (",
+ StyleBox["design/FRGDESIGN.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", Q8: \"immutable stage Associations passed explicitly, no global state\"). \
+Re-running a cell is always safe, two models can live in one kernel, and any \
+stage can be saved to disk and loaded back (lesson 12). The fingerprint \
+closes the remaining hole: a stage that was edited, or whose couplings \
+acquired values, would silently give wrong results downstream, so every \
+constructor recomputes the hash of its inputs and aborts with ",
+ StyleBox["Stage.fingerprint",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". The keys in ",
+ StyleBox["volatileKeys",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " are excluded because they describe how the stage was built (timing, card \
+lines), not what it contains."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"224ce984-409b-4e35-b2c6-cb44e0751d3a"],
+
+Cell["5. Exact zero tests", "Section",ExpressionUUID->"9108923a-e118-4389-8720-4ca2fa65b522"],
+
+Cell[TextData[{
+ "The library constantly has to decide whether a large expression is exactly \
+zero: whether two forms of a vertex agree, whether a projection cancels. ",
+ StyleBox["ExactlyZeroQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " does it numerically, but exactly:"
+}], "Text",ExpressionUUID->"959daff4-6cfc-49cd-b7dd-d80e0091521b"],
+
+Cell["\<\
+(* Kernel/Core.wl:75-76 *)
+RandomRationalPoint[syms_List, seed_Integer] := (SeedRandom[seed];
+   Thread[syms -> RandomInteger[{2, 60}, Length[syms]]/RandomInteger[{61, \
+97}, Length[syms]]]);\
+\>", "Program",ExpressionUUID->"208cfd13-e127-452b-a2e0-2cca581180dc"],
+
+Cell["\<\
+(* Kernel/Core.wl:78-79 *)
+systemSymbolQ[s_Symbol] := Context[s] === \"System`\";
+userSymbols[e_] := Union[Cases[e, s_Symbol /; ! systemSymbolQ[s], {0, \
+Infinity}, Heads -> False]];\
+\>", "Program",ExpressionUUID->"f16ecca9-aaa8-4eb2-a529-e228be2b94c7"],
+
+Cell["\<\
+(* Kernel/Core.wl:81-88 *)
+valueAt[e_, seed_Integer] := Module[{pt, memo, atomRule},
+   pt = RandomRationalPoint[userSymbols[e], seed];
+   SeedRandom[seed + 7919];
+   memo[x_] := memo[x] = RandomInteger[{2, 60}]/RandomInteger[{61, 97}];
+   (* whole atoms first: f[y], f'[y], f[a, b][y], Derivative[k][f[a, b]][y] \
+each get their own value; matching inside
+      Derivative[k][f[a, b]] would turn it into Derivative[k][number] = 0 \
+(design/MOMENTUMPROJECTION.md step 0, E1) *)
+   atomRule = x : (Derivative[__][_][___] | (_[___])[___] | (h_Symbol /; ! \
+systemSymbolQ[h])[___]) :> memo[x];
+   Quiet[Check[Together[(e /. pt) /. atomRule], $Failed], {Power::infy, \
+Infinity::indet}]];\
+\>", "Program",ExpressionUUID->"b1672727-9abf-414c-88ed-e48a413c9b4a"],
+
+Cell["\<\
+(* Kernel/Core.wl:90-97 *)
+Options[ExactlyZeroQ] = {\"Seeds\" -> {1, 2, 3}};
+ExactlyZeroQ[l_List, opts : OptionsPattern[]] := AllTrue[Flatten[l], \
+ExactlyZeroQ[#, opts] &];
+ExactlyZeroQ[e_, OptionsPattern[]] := Module[{vals},
+   vals = Table[Module[{v = valueAt[e, sd]}, If[v === $Failed, valueAt[e, sd \
++ 1000], v]], {sd, OptionValue[\"Seeds\"]}];
+   Block[{$FRGModule = \"Core\"},
+    FRGAssert[\"ExactlyZeroQ.numeric\", AllTrue[vals, NumericQ[#] && \
+Precision[#] === Infinity &], Select[vals, ! NumericQ[#] &],
+     \"after substituting random rationals the expression is not an exact \
+number: an unknown head or a pattern is left\"]];
+   AllTrue[vals, PossibleZeroQ]];\
+\>", "Program",ExpressionUUID->"57be9cf6-1392-483e-8737-b7869bb59e69"],
+
+Cell["Several new tools appear in these few lines.", "Text",ExpressionUUID->"3023c33a-0564-4049-8934-09a6e22e4df9"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Options",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Options[f] = {\"Name\" -> default}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " declares named options; ",
+ StyleBox["f[x_, OptionsPattern[]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " accepts them; ",
+ StyleBox["OptionValue[\"Name\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " reads them.",
+ "\n\n",
+ "Options are optional arguments passed by name, ",
+ StyleBox["ExactlyZeroQ[e, \"Seeds\" -> {5, 6}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", with defaults stored in ",
+ StyleBox["Options[f]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". They keep a function's signature readable when it has many settings."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"9a3421dd-dc0d-42bc-a92d-753dcf97a73a"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Cases and level specifications",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Cases[e, patt, {0, Infinity}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " returns every subexpression of e, at any depth, that matches patt.",
+ "\n\n",
+ StyleBox["Cases",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " walks the expression tree. The level specification ",
+ StyleBox["{0, Infinity}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " means \"the whole expression and everything inside it\". ",
+ StyleBox["Heads -> False",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " skips heads, so in ",
+ StyleBox["r[y]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " it sees ",
+ StyleBox["y",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " but not ",
+ StyleBox["r",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". ",
+ StyleBox["userSymbols",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " thus collects the plain symbols (couplings, ",
+ StyleBox["q",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["k",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["Dim",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "), and ",
+ StyleBox["Union",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " sorts them and removes duplicates. ",
+ StyleBox["FreeQ[e, patt]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", used everywhere later, is the opposite question: True if nothing in e \
+matches."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"3cb421d5-c7ab-4c41-b54e-ab07fbc1caca"],
+
+Cell["\<\
+Cases[nuk q^2 r[q^2/k^2] + Dim, s_Symbol, {0, Infinity}, Heads -> False] // \
+Union\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"f4c8e18c-7aa5-43b6-a852-a99c73e6a6e6"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Rules and replacement",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["lhs -> rhs",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["lhs :> rhs",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " are rules; ",
+ StyleBox["e /. rules",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " applies them to every part of e.",
+ "\n\n",
+ StyleBox["e /. x -> 2",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " replaces ",
+ StyleBox["x",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " by 2 everywhere in ",
+ StyleBox["e",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". With ",
+ StyleBox["->",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " the right-hand side is evaluated once, when the rule is made; with ",
+ StyleBox[":>",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["RuleDelayed",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ") it is evaluated afresh at each match, using the matched parts. ",
+ StyleBox["Thread[{a, b} -> {1, 2}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " makes ",
+ StyleBox["{a -> 1, b -> 2}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". ",
+ StyleBox["/.",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " scans the expression from the outside in and does not look inside a part \
+it has just replaced."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"14b9a188-1a3f-4556-9aa6-211b8842717c"],
+
+Cell["\<\
+{(x + x^2) /. x -> 2, {r[1], r[2]} /. r[n_] :> n^2, Thread[{a, b} -> {1, 2}]}\
+\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"2cf225f3-866c-4c70-8230-529841cb9380"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Alternatives and named patterns",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["p1 | p2",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " matches either pattern; ",
+ StyleBox["x : p",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " matches p and names the whole match x.",
+ "\n\n",
+ StyleBox["atomRule = x : (Derivative[__][_][___] | (_[___])[___] | ...) :> \
+memo[x]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " matches any of three shapes of \"function atom\" (",
+ StyleBox["r'[y]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["f[a][y]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["r[y]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ") and calls the whole match ",
+ StyleBox["x",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". ",
+ StyleBox["__",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " matches one or more arguments, ",
+ StyleBox["___",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " zero or more."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"9a36ab92-03f3-45ae-b018-dacd4b1f34be"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Memoization",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["f[x_] := f[x] = value",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " computes value the first time and stores it as a specific definition for \
+that x.",
+ "\n\n",
+ "The first call ",
+ StyleBox["memo[r[y]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " evaluates the right-hand side, which is itself an assignment ",
+ StyleBox["memo[r[y]] = 37/61",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ": a new, specific definition. Every later ",
+ StyleBox["memo[r[y]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " uses it. Here it guarantees that the same atom gets the same random number \
+wherever it appears."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"12bb8bcb-6c85-40e6-ab49-a5a4b48cd6cb"],
+
+Cell[TextData[{
+ "Why the atoms are replaced ",
+ StyleBox["whole",
+  FontSlant->Italic],
+ " is the subtle point. ",
+ StyleBox["/.",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " goes from the outside in, so ",
+ StyleBox["r'[y]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (which is ",
+ StyleBox["Derivative[1][r][y]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ") is matched as one atom before ",
+ StyleBox["r",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " alone could be. Had the symbol ",
+ StyleBox["r",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " been replaced by a number first, ",
+ StyleBox["Derivative[1][37/61]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " would be zero, and every derivative term would vanish without notice (",
+ StyleBox["design/MOMENTUMPROJECTION.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", step 0)."
+}], "Text",ExpressionUUID->"9510fc57-d4f6-4435-8ca5-8bdacbb8e18d"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Check and Quiet",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Check[expr, alt]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " returns alt if evaluating expr produced a message; ",
+ StyleBox["Quiet[expr, {msgs}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " evaluates expr without printing those messages.",
+ "\n\n",
+ "A random point can hit a pole (",
+ StyleBox["1/0",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "). ",
+ StyleBox["valueAt",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " then returns ",
+ StyleBox["$Failed",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " without printing anything, and ",
+ StyleBox["ExactlyZeroQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " retries with another seed."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"b67fb8f7-154f-43d6-ac6f-c22638bd783b"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Exact numbers",
+  FontWeight->Bold],
+ "\n",
+ "Integers and rationals are exact (",
+ StyleBox["Precision",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is ",
+ StyleBox["Infinity",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "); ",
+ StyleBox["Together",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " puts a rational expression over a common denominator.",
+ "\n\n",
+ StyleBox["3/7",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stays a rational number forever; ",
+ StyleBox["0.4286",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is a machine number with rounding errors. After all symbols are replaced \
+by rationals, ",
+ StyleBox["Together",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " reduces the expression to a single exact rational, and ",
+ StyleBox["PossibleZeroQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " of an exact number is an exact test. ",
+ StyleBox["ExactlyZeroQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " asserts that what is left is an exact number: if a symbol or pattern \
+survived the substitution, the test would be meaningless."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"9948ee04-fab7-4adc-9905-dbf6410a19b2"],
+
+Cell["\<\
+{ExactlyZeroQ[(a + b)^2 - a^2 - 2 a b - b^2], ExactlyZeroQ[D[r[y]^2, y] - 2 \
+r[y] r'[y]], ExactlyZeroQ[r'[y] - r''[y]]}\
+\>", "Input",ExpressionUUID->"d9cf890e-c86e-4626-9d80-923fe879babf"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Random rationals instead of Simplify",
+  FontWeight->Bold],
+ "\n\n",
+ StyleBox["Simplify[expr] == 0",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the obvious test, and the library forbids it (CLAUDE.md, Conventions). \
+On expressions with 10^5 to 10^6 leaves, ",
+ StyleBox["Simplify",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " can run for hours, and when it returns something non-zero that proves \
+nothing: it may simply have failed to find the simplification. Evaluating at \
+random rational points is fast, has no rounding error, and is reliable: a \
+non-zero rational function of degree D vanishes at a random point drawn from \
+M values with probability at most D/M (the Schwartz-Zippel bound), so three \
+independent points make an accidental pass negligible. Giving each function \
+atom its own value tests the identity for arbitrary shape functions, not for \
+one particular regulator."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"588ba1e8-b1f4-4317-b3cf-4e908b6202b5"],
+
+Cell["6. User symbols", "Section",ExpressionUUID->"b2c8528d-f6c1-40e0-9f11-6764e63c4ce1"],
+
+Cell["\<\
+Fields and couplings are symbols that you choose. Before using them, the \
+library checks that they are usable:\
+\>", "Text",ExpressionUUID->"bc288190-f2c3-4985-ada5-e48140fd13ed"],
+
+Cell["\<\
+(* Kernel/Core.wl:123-126 *)
+(* names the user writes or reads in library input/output with a fixed \
+meaning: RG scale k, loop momentum q, external momentum p,
+   shape argument y = q^2/k^2, time t, position x, frequencies; internal \
+names (A, CC, X, ...) live in private contexts.
+   Dim is user-chosen and therefore not reserved. *)
+reservedNames = {\"k\", \"q\", \"p\", \"y\", \"t\", \"x\", \"\\[Omega]\", \
+\"\\[Nu]\"};\
+\>", "Program",ExpressionUUID->"7b5b34a3-eb02-4e3d-a7ac-f32fb19a0224"],
+
+Cell["\<\
+(* Kernel/Core.wl:128-139 *)
+assertFreshSymbols[check_String, syms_List, what_String] := Module[{lib = \
+Join[Names[\"FRGscalarMSR`*\"], Names[\"FRGscalarMSR`Internal`*\"]]},
+   FRGAssert[check <> \".symbols\", AllTrue[syms, Head[#] === Symbol &], \
+Select[syms, Head[#] =!= Symbol &],
+    what <> \" must be plain symbols without values (one of them evaluated to \
+something else)\"];
+   FRGAssert[check <> \".system\", NoneTrue[syms, systemSymbolQ], \
+Select[syms, systemSymbolQ], what <> \" must not be System symbols\"];
+   FRGAssert[check <> \".reserved\", NoneTrue[syms, MemberQ[reservedNames, \
+SymbolName[#]] &], Select[syms, MemberQ[reservedNames, SymbolName[#]] &],
+    \"these names are reserved (RG scale k, momenta, frequencies, Delta \
+coefficients): rename them\"];
+   FRGAssert[check <> \".library\", NoneTrue[syms, MemberQ[lib, \
+SymbolName[#]] &], Select[syms, MemberQ[lib, SymbolName[#]] &],
+    \"these names collide with FRGscalarMSR symbols: rename them\"];
+   FRGAssert[check <> \".values\", NoneTrue[syms, (OwnValues[#] =!= {} || \
+DownValues[#] =!= {} || UpValues[#] =!= {}) &],
+    Select[syms, (OwnValues[#] =!= {} || DownValues[#] =!= {} || UpValues[#] \
+=!= {}) &], what <> \" must have no definitions: ClearAll them\"];
+   FRGAssert[check <> \".duplicates\", DuplicateFreeQ[syms], syms, what <> \" \
+are listed twice\"];
+   syms];\
+\>", "Program",ExpressionUUID->"ad936d7b-7ed0-446f-a697-8bca2a8aae6a"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: OwnValues and DownValues",
+  FontWeight->Bold],
+ "\n",
+ "A symbol's definitions are stored as lists of rules: ",
+ StyleBox["OwnValues[x]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " for ",
+ StyleBox["x = ...",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["DownValues[f]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " for ",
+ StyleBox["f[...] := ...",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["UpValues[f]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " for definitions attached to f as an argument.",
+ "\n\n",
+ "A symbol with no definitions has all three empty. A field that has a value, \
+say ",
+ StyleBox["h = 3",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", would be replaced by 3 inside the library, so ",
+ StyleBox["assertFreshSymbols",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " requires them empty."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"b86e4d70-18a5-4666-87b4-48eec8542be7"],
+
+Cell["\<\
+v = 3; w[x_] := x^2; {OwnValues[v], DownValues[w], OwnValues[nuk]}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"37339a7c-6377-4c07-a029-a2e2131b98d3"],
+
+Cell[TextData[{
+ StyleBox["Select[list, test]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " keeps the elements that pass ",
+ StyleBox["test",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "; ",
+ StyleBox["AllTrue",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["NoneTrue",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["DuplicateFreeQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " test a whole list; ",
+ StyleBox["SymbolName[s]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the short name of a symbol, as a string."
+}], "Text",ExpressionUUID->"dad005e0-c553-4e81-ad16-eb031fa3d59b"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Reserved names",
+  FontWeight->Bold],
+ "\n\n",
+ "The library writes some symbols itself into its results: the RG scale ",
+ StyleBox["k",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", the loop momentum ",
+ StyleBox["q",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", the external momentum ",
+ StyleBox["p",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", the shape argument ",
+ StyleBox["y = q^2/k^2",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". If one of your couplings were called ",
+ StyleBox["k",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", it would become indistinguishable from the RG scale in the flow \
+equations. Checking the names once, at the entrance, is cheaper than \
+debugging the confusion at the exit."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"887faf34-65b2-4d8e-9fef-fe28eee39525"],
+
+Cell["7. scal and wedge: algebra by rewriting rules", "Section",ExpressionUUID->"1b44eec7-9648-4f27-8c81-07060f9a6756"],
+
+Cell[TextData[{
+ "Vectors (momenta) are bare symbols, and their scalar product is ",
+ StyleBox["scal[a, b]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Its algebra is entirely defined by rewriting rules:"
+}], "Text",ExpressionUUID->"64612e53-d681-4f9b-a966-e3b768748b37"],
+
+Cell["\<\
+(* Kernel/Core.wl:143-147 *)
+SetAttributes[scal, Orderless];
+scal[(a_) + (b_), c_] := scal[a, c] + scal[b, c];
+scal[(a_)*(b_), c_] /; NumberQ[a] := a*scal[b, c];
+scal[-(a_), b_] := -scal[a, b];
+scal[0, b_] := 0;\
+\>", "Program",ExpressionUUID->"9bfd2718-d031-4e63-b694-1b2b3c4a56c0"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Orderless",
+  FontWeight->Bold],
+ "\n",
+ "The attribute ",
+ StyleBox["Orderless",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " sorts a function's arguments into a canonical order before anything \
+else.",
+ "\n\n",
+ "With ",
+ StyleBox["Orderless",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["scal[b, a]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is turned into ",
+ StyleBox["scal[a, b]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ": the symmetry of the scalar product is built into how the expression is \
+stored. ",
+ StyleBox["Plus",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["Times",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " are Orderless too, which is why ",
+ StyleBox["b + a",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " prints as ",
+ StyleBox["a + b",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"3d97e10a-76bf-4b8d-9488-b7125ce1d99e"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Evaluation as rewriting",
+  FontWeight->Bold],
+ "\n",
+ "Mathematica applies matching definitions repeatedly until no rule matches \
+any more.",
+ "\n\n",
+ StyleBox["scal[a + 2 b, c]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " matches ",
+ StyleBox["scal[(a_) + (b_), c_]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and becomes ",
+ StyleBox["scal[a, c] + scal[2 b, c]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "; the second term matches the number rule and becomes ",
+ StyleBox["2 scal[b, c]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "; then nothing matches, and that is the result. You never call these rules: \
+writing the expression is enough."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"58768faa-a07a-4577-928f-2cc67a7b2afe"],
+
+Cell["{scal[a + 2 b, c], scal[b, a], scal[nuk a, b], scal[-a, b]}", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"2233e50b-7a9b-47e4-8ae5-43d8c0844cf5"],
+
+Cell[TextData[{
+ "The third result, ",
+ StyleBox["scal[a nuk, b]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", stays as it is. ",
+ StyleBox["scal",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is linear over explicit numbers only. Vectors and couplings are both bare \
+symbols, so ",
+ StyleBox["scal",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " cannot tell whether ",
+ StyleBox["nuk",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " in ",
+ StyleBox["scal[nuk a, b]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is a coupling or a vector; only numbers can be pulled out safely. The \
+modules that build ",
+ StyleBox["scal",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " terms keep couplings outside."
+}], "Text",ExpressionUUID->"e23d5477-b2aa-45d9-8021-bfa43d9bc222"],
+
+Cell[TextData[{
+ StyleBox["wedge[a, b]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the antisymmetric product of d = 2 (it appears with ",
+ StyleBox["jac",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", the Levi-Civita operator of ",
+ StyleBox["design/LEVICIVITA.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "). It cannot be ",
+ StyleBox["Orderless",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "; instead a conditional rule puts its arguments in canonical order and \
+flips the sign:"
+}], "Text",ExpressionUUID->"6661c6b2-4373-4d49-965f-8b3c73277390"],
+
+Cell["\<\
+(* Kernel/Core.wl:16 *)
+wedge[a, b] -> wedge(a,b).\";\
+\>", "Program",ExpressionUUID->"9e9c0bb9-0883-4cde-9158-52330a26e66a"],
+
+Cell["\<\
+(* Kernel/Core.wl:18 *)
+wedge[a,b] wedge[c,d] = scal[a,c] scal[b,d] - scal[a,d] scal[b,c] until each \
+term of the expanded e has at most one wedge.\";\
+\>", "Program",ExpressionUUID->"4e065dfb-f8bd-4003-9fed-b9c69d4839c8"],
+
+Cell["\<\
+(* Kernel/Core.wl:151-158 *)
+wedge[0, _] := 0;
+wedge[_, 0] := 0;
+wedge[a_, a_] := 0;
+wedge[(a_) + (b_), c_] := wedge[a, c] + wedge[b, c];
+wedge[a_, (b_) + (c_)] := wedge[a, b] + wedge[a, c];
+wedge[(a_)*(b_), c_] /; NumberQ[a] := a*wedge[b, c];
+wedge[a_, (b_)*(c_)] /; NumberQ[b] := b*wedge[a, c];
+wedge[b_, a_] /; ! OrderedQ[{b, a}] := -wedge[a, b];\
+\>", "Program",ExpressionUUID->"6aea84c6-ab56-4141-9d34-2d650b241d58"],
+
+Cell["\<\
+(* Kernel/Core.wl:160-164 *)
+(* F2, valid in d = 2 only *)
+wedgePairRules = {
+   wedge[a_, b_] wedge[c_, d_] :> scal[a, c] scal[b, d] - scal[a, d] scal[b, \
+c],
+   Power[wedge[a_, b_], n_Integer /; n >= 2] :> (scal[a, a] scal[b, b] - \
+scal[a, b]^2) wedge[a, b]^(n - 2)};
+reduceWedge2D[e_] := FixedPoint[Expand[# /. wedgePairRules] &, Expand[e]];\
+\>", "Program",ExpressionUUID->"ae08eb16-f9e8-4d12-976c-bcddd0903f47"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: FixedPoint",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["FixedPoint[f, x]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " applies f repeatedly, starting from x, until the result stops changing.",
+ "\n\n",
+ StyleBox["reduceWedge2D",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " replaces products of two wedges by scalar products, expands, and repeats \
+until no product of wedges is left."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"74edd36e-7af1-4733-9177-3ac29fef0cee"],
+
+Cell["{wedge[b, a], wedge[a, a], reduceWedge2D[wedge[a, b]^2]}", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"11aaac29-e806-4c7d-8aea-7ddb864d3f19"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Let the evaluator do the algebra",
+  FontWeight->Bold],
+ "\n\n",
+ "Because ",
+ StyleBox["scal",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["wedge",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " rewrite themselves into canonical forms, two equal expressions built along \
+different paths end up looking the same. Terms combine automatically, ",
+ StyleBox["Collect",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["Together",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " see common factors, and ",
+ StyleBox["ExactlyZeroQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " works on smaller expressions. The alternative, a vector package with \
+explicit components, would fix d and multiply the size of every expression by \
+the number of components; here d stays the symbol ",
+ StyleBox["Dim",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " to the end."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"502e3c78-99ce-48f3-8275-b99448ea00f5"],
+
+Cell["Exercises", "Section",ExpressionUUID->"795f2e6b-d50e-468c-b1c7-8121c0d86356"],
+
+Cell["Exercise: Read a FAIL block", "Subsection",ExpressionUUID->"74ebd065-1541-41e0-8df0-37400158d72b"],
+
+Cell[TextData[{
+ "Write a check named ",
+ StyleBox["\"Me.even\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " that ",
+ StyleBox["7",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is an even number (",
+ StyleBox["EvenQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "), with the offending value and a hint, and run it through ",
+ StyleBox["showFailure",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Then evaluate ",
+ StyleBox["$FRGLastFailure",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["$FRGModule",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Why does ",
+ StyleBox["$FRGModule",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " print ",
+ StyleBox["FRGscalarMSR",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " here, not a module name?"
+}], "Text",ExpressionUUID->"8fe5b0a4-183f-463a-a223-f461b1f4552c"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"5e2caab8-250e-40ed-a172-7744ac21a68b"],
+
+Cell["\<\
+showFailure[FRGAssert[\"Me.even\", EvenQ[7], 7, \"pass an even number\"]]\
+\>", "Input",ExpressionUUID->"4b517204-35e4-41c5-be8f-65242bdbb847"],
+
+Cell["{$FRGLastFailure, $FRGModule}", "Input",ExpressionUUID->"fcbc108e-c9d7-4967-808e-4e1d86120145"],
+
+Cell[TextData[{
+ "No constructor is running, so no ",
+ StyleBox["Block[{$FRGModule = ...}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is active and the global default set in ",
+ StyleBox["Kernel/Core.wl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is printed."
+}], "Text",ExpressionUUID->"6c61195d-f611-4f31-afa0-171224550f8b"]
+}, Closed]],
+
+Cell["Exercise: HoldRest at work", "Subsection",ExpressionUUID->"17a087ea-9506-448a-a0ad-2ae62314c424"],
+
+Cell[TextData[{
+ StyleBox["FRGAssert",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " holds its ",
+ StyleBox["details",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " argument. Verify it: call it once with a true condition and once with a \
+false one, passing ",
+ StyleBox["Print[\"details computed\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " as details. How many times is the message printed?"
+}], "Text",ExpressionUUID->"83d7a364-af31-453e-b2ca-eeacb38d8ea7"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"4b35f125-82c8-4d72-9709-15f7dc8c06da"],
+
+Cell["FRGAssert[\"Me.hold\", True, Print[\"details computed\"]]", "Input",ExpressionUUID->"8b6621db-3780-47ef-8b30-3e413da1cb8d"],
+
+Cell["\<\
+showFailure[FRGAssert[\"Me.hold\", False, Print[\"details computed\"]]]\
+\>", "Input",ExpressionUUID->"71464909-aa29-4c10-86e9-9c9bded0239f"],
+
+Cell[TextData[{
+ "Once: only the failing call evaluates ",
+ StyleBox["details",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", inside ",
+ StyleBox["failBlock",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (the printed \"offending\" is then ",
+ StyleBox["Null",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", the value of ",
+ StyleBox["Print",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ")."
+}], "Text",ExpressionUUID->"5df92743-dcec-4b5b-9791-a95a60aedb24"]
+}, Closed]],
+
+Cell["Exercise: An identity with a shape function", "Subsection",ExpressionUUID->"d9838e01-bda3-46c0-9805-557ed2f23bdd"],
+
+Cell[TextData[{
+ "Use ",
+ StyleBox["ExactlyZeroQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " to check that the derivative of ",
+ StyleBox["y r[y]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is ",
+ StyleBox["r[y] + y r'[y]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", and that it is not ",
+ StyleBox["r[y] + r'[y]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Then ask yourself what would go wrong if ",
+ StyleBox["valueAt",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " replaced the symbol ",
+ StyleBox["r",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " by a number before the atoms."
+}], "Text",ExpressionUUID->"ac198599-18e1-4cfe-89b9-605bd38120db"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"ce836009-ef4f-4412-abc8-283bd1fc0491"],
+
+Cell["\<\
+{ExactlyZeroQ[D[y r[y], y] - (r[y] + y r'[y])], ExactlyZeroQ[D[y r[y], y] - \
+(r[y] + r'[y])]}\
+\>", "Input",ExpressionUUID->"f1334c31-bbd0-4245-b5d0-6f6bc9f70f1e"],
+
+Cell[TextData[{
+ StyleBox["r'[y]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is ",
+ StyleBox["Derivative[1][r][y]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". With ",
+ StyleBox["r",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " replaced by 37/61 it would become ",
+ StyleBox["Derivative[1][37/61][y]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", the derivative of a constant, which is 0. The difference in the wrong \
+identity is ",
+ StyleBox["(y - 1) r'[y]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", so it would pass."
+}], "Text",ExpressionUUID->"0a3dfbc4-613c-4153-9e46-2f795694f981"]
+}, Closed]]
+},
+CellContext->Notebook,
+FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"68ca8ccf-8ceb-4f4a-8543-fab9318d86bc"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 103, 0, 70, "Title",ExpressionUUID->"36a7f9e2-90e6-4f3a-860b-ed84eb36910e"],
+Cell[660, 22, 305, 4, 70, "Text",ExpressionUUID->"142e3878-877b-4f91-9ca7-427e3090dc68"],
+Cell[968, 28, 731, 19, 70, "Text",ExpressionUUID->"f917f160-9326-4b6d-9a40-291dd5ffac21"],
+Cell[1702, 49, 452, 9, 70, "Text",ExpressionUUID->"850c79f9-d347-415e-b783-cd9f5a939c43"],
+Cell[2157, 60, 96, 0, 70, "Section",ExpressionUUID->"a02747ec-274c-409c-9004-32651f7aba97"],
+Cell[2256, 62, 127, 0, 70, "Input",ExpressionUUID->"5220956b-0864-4109-a716-1fb9c78368c3"],
+Cell[2386, 64, 1509, 46, 70, "Text",ExpressionUUID->"88c61206-b7ff-4036-b8bb-70d6e201e122"],
+Cell[3898, 112, 609, 17, 70, "Text",ExpressionUUID->"156ae1d3-333d-4db8-a1e8-c233fccf159b"],
+Cell[4510, 131, 134, 0, 70, "Input",ExpressionUUID->"7441406c-08fc-4784-a408-616696b924a4"],
+Cell[4647, 133, 98, 0, 70, "Text",ExpressionUUID->"b672eafa-8dd0-4bf2-977b-f27dbc6dddee"],
+Cell[4748, 135, 1417, 32, 70, "Program",ExpressionUUID->"f7873884-0290-4827-84dc-94087ac2a65e"],
+Cell[6168, 169, 666, 18, 70, "Text",ExpressionUUID->"18be2722-989c-4550-8c90-ba291c168de5"],
+Cell[6837, 189, 2434, 76, 70, "Text",ExpressionUUID->"76559283-601a-4462-80d0-05dee0f8af3f"],
+Cell[9274, 267, 234, 4, 70, "Input",ExpressionUUID->"f1ccc88e-37c7-48a1-96b6-af8bc6c95b9f"],
+Cell[9511, 273, 983, 29, 70, "Text",ExpressionUUID->"a05f321b-d36d-4cfd-bcb2-2ad3a7faf828"],
+Cell[10497, 304, 1836, 52, 70, "Text",ExpressionUUID->"15934016-0024-42de-a024-025f8749af08"],
+Cell[12336, 358, 594, 16, 70, "Text",ExpressionUUID->"d592f8dd-1db2-45dc-bc7b-d80fcd12c659"],
+Cell[12933, 376, 623, 17, 70, "Text",ExpressionUUID->"f629e083-e8eb-40ca-8268-924dfdf97906"],
+Cell[13559, 395, 1925, 57, 70, "Text",ExpressionUUID->"57162e5f-2729-4f1d-8aeb-8197a56f34a7"],
+Cell[15487, 454, 1205, 31, 70, "Text",ExpressionUUID->"c2cc85a9-e3d5-4a03-83e4-e352e7ee017a"],
+Cell[16695, 487, 393, 11, 70, "Text",ExpressionUUID->"57060f09-bcb1-49c2-a5d7-25404cccff83"],
+Cell[17091, 500, 1944, 65, 70, "Text",ExpressionUUID->"ec3dbc6d-4174-4aab-be9e-b796ba5b781a"],
+Cell[19038, 567, 229, 4, 70, "Input",ExpressionUUID->"9bfffe40-324d-424d-82f6-f79bc1ed9a31"],
+Cell[19270, 573, 1393, 45, 70, "Text",ExpressionUUID->"ffb45bc8-5c96-4b75-84cf-7dd312c9a94d"],
+Cell[20666, 620, 1427, 35, 70, "Text",ExpressionUUID->"20416ebb-2402-40c8-889e-a69a76bad42f"],
+Cell[22096, 657, 121, 0, 70, "Section",ExpressionUUID->"a69f0476-bbd3-4e29-aa35-5a55698422b5"],
+Cell[22220, 659, 146, 2, 70, "Text",ExpressionUUID->"f5837c68-f35c-4274-aeaa-ea1a0aacccd4"],
+Cell[22369, 663, 3213, 58, 70, "Program",ExpressionUUID->"c22a0acd-16b6-43ee-8ed9-4a7ca5862ffc"],
+Cell[25585, 723, 2557, 74, 70, "Text",ExpressionUUID->"d5c24f07-91ef-4376-81ac-6d97ca0d0bbf"],
+Cell[28145, 799, 988, 29, 70, "Text",ExpressionUUID->"d0101569-5cc9-4229-b815-0de5d6f2df8a"],
+Cell[29136, 830, 197, 4, 70, "Input",ExpressionUUID->"f5b0adaa-7019-478b-aabe-9e1ddf99b7c4"],
+Cell[29336, 836, 1209, 34, 70, "Text",ExpressionUUID->"eb77b0e8-e5e7-4d45-b6ce-0f4717e76c45"],
+Cell[30548, 872, 175, 3, 70, "Input",ExpressionUUID->"5ee6779f-707a-44cb-b402-680efe5ae689"],
+Cell[30726, 877, 1488, 44, 70, "Text",ExpressionUUID->"940f100f-dff5-4f24-a391-86715b65ef61"],
+Cell[32217, 923, 632, 17, 70, "Text",ExpressionUUID->"9ba8c6b9-ee33-49ef-87a4-dbc180cc17b8"],
+Cell[32852, 942, 113, 0, 70, "Input",ExpressionUUID->"99e0e3ad-6b97-4874-8b91-a2e8175717c7"],
+Cell[32968, 944, 282, 6, 70, "Text",ExpressionUUID->"34087827-b7ef-4ae3-b8c8-cc75a016f87e"],
+Cell[33253, 952, 2227, 67, 70, "Text",ExpressionUUID->"dd73cf4c-f113-4116-9ffc-f20b203bd198"],
+Cell[35483, 1021, 102, 0, 70, "Section",ExpressionUUID->"b0e523aa-07e0-4acd-ace0-8357f62e3f0e"],
+Cell[35588, 1023, 124, 0, 70, "Text",ExpressionUUID->"c339a990-a8fa-4555-8fd5-15893bcad884"],
+Cell[35715, 1025, 513, 11, 70, "Program",ExpressionUUID->"a19bdef0-0a23-4b4b-a179-05087d75691f"],
+Cell[36231, 1038, 330, 8, 70, "Program",ExpressionUUID->"0a3c9868-60b9-4b97-ace9-a624ddb12d2b"],
+Cell[36564, 1048, 2891, 93, 70, "Text",ExpressionUUID->"41898f67-a1ff-4a44-baa5-4b179904f978"],
+Cell[39458, 1143, 279, 7, 70, "Input",ExpressionUUID->"145d2d90-638e-4f82-b718-cde4ba30ba08"],
+Cell[39740, 1152, 1822, 57, 70, "Text",ExpressionUUID->"d493a49a-e86c-4bb0-8b84-cc5c90d32ad4"],
+Cell[41565, 1211, 317, 7, 70, "Input",ExpressionUUID->"1201ef00-1d30-42b1-83fb-844153c8e074"],
+Cell[41885, 1220, 604, 17, 70, "Text",ExpressionUUID->"b45d99d4-7793-41b2-85b2-76d6fd9f9ddb"],
+Cell[42492, 1239, 1577, 46, 70, "Text",ExpressionUUID->"a0018204-f2e7-4409-9939-add0ba981447"],
+Cell[44072, 1287, 233, 4, 70, "Input",ExpressionUUID->"e4502a98-59bd-4cfc-82c6-4aae5b63bd7e"],
+Cell[44308, 1293, 107, 0, 70, "Text",ExpressionUUID->"10c02166-b0d0-4b5b-8914-24f1112222f1"],
+Cell[44418, 1295, 127, 0, 70, "Input",ExpressionUUID->"6d4843e3-ea41-4a61-a71c-fb72850e588a"],
+Cell[44548, 1297, 383, 9, 70, "Text",ExpressionUUID->"6ab92bd8-9df2-426f-b378-da645d6f80e1"],
+Cell[44934, 1308, 170, 3, 70, "Input",ExpressionUUID->"f5fc42a0-6cd6-4342-aea2-59173723fb89"],
+Cell[45107, 1313, 2223, 65, 70, "Text",ExpressionUUID->"261f0a9a-e82b-49b4-9f34-acda28bfa0ce"],
+Cell[47333, 1380, 229, 7, 70, "Text",ExpressionUUID->"e7bdc5e7-e8a4-4036-ae72-92f41f872582"],
+Cell[47565, 1389, 561, 10, 70, "Program",ExpressionUUID->"05132dcf-f9c7-4b29-af51-28071eb3c031"],
+Cell[48129, 1401, 2840, 89, 70, "Text",ExpressionUUID->"fee4c019-f2fa-4f20-8d93-938e04bea6b0"],
+Cell[50972, 1492, 298, 7, 70, "Input",ExpressionUUID->"4ddb8ac1-cf64-4c57-bed0-d071030c1d54"],
+Cell[51273, 1501, 694, 17, 70, "Text",ExpressionUUID->"62f0bf2f-a8d1-42fb-a323-00a3e2f86120"],
+Cell[51970, 1520, 446, 8, 70, "Program",ExpressionUUID->"9d932aae-2dc8-4143-880b-5f0fca5adb46"],
+Cell[52419, 1530, 1595, 39, 70, "Text",ExpressionUUID->"80161a91-f2f6-451e-94cb-9541baac40f8"],
+Cell[54017, 1571, 122, 0, 70, "Section",ExpressionUUID->"499f540d-0774-4e59-9563-f28533c4a2f4"],
+Cell[54142, 1573, 343, 10, 70, "Text",ExpressionUUID->"c8119867-fdce-4573-9d03-b1aaabd88f9f"],
+Cell[54488, 1585, 2300, 74, 70, "Text",ExpressionUUID->"e6758705-ebf9-4745-8bdc-6c108a8fef38"],
+Cell[56791, 1661, 352, 8, 70, "Input",ExpressionUUID->"0f5d9c6e-1bb8-440c-a52e-8c5807b4bff1"],
+Cell[57146, 1671, 101, 0, 70, "Text",ExpressionUUID->"abdfe55b-6ede-447c-9f9f-5ec54a346770"],
+Cell[57250, 1673, 606, 11, 70, "Program",ExpressionUUID->"8ac9aef8-6215-4031-a38a-21e0bb9d9d17"],
+Cell[57859, 1686, 591, 11, 70, "Program",ExpressionUUID->"87cde05e-4799-4d50-bbd6-be2931fcc242"],
+Cell[58453, 1699, 752, 18, 70, "Text",ExpressionUUID->"58219b2b-a586-4287-898a-3d4dec0c5af8"],
+Cell[59208, 1719, 317, 7, 70, "Text",ExpressionUUID->"da2bb4a7-1b96-446e-9d02-8532aed48a51"],
+Cell[59528, 1728, 208, 4, 70, "Input",ExpressionUUID->"36aef856-8957-4cbf-8b7c-ab7f92e0b7a9"],
+Cell[59739, 1734, 152, 2, 70, "Text",ExpressionUUID->"5e9d3933-9518-4326-9898-640ad47cdb20"],
+Cell[59894, 1738, 115, 0, 70, "Input",ExpressionUUID->"cb2c67b7-f51c-4bd2-a13d-99aa831eab3e"],
+Cell[60012, 1740, 145, 2, 70, "Input",ExpressionUUID->"b7bc4547-57f9-40c8-bbb7-7db61ed5731a"],
+Cell[60160, 1744, 352, 8, 70, "Text",ExpressionUUID->"39a40468-8135-4a78-bb0b-108ce4b8691e"],
+Cell[60515, 1754, 134, 0, 70, "Input",ExpressionUUID->"fec84242-1fef-4d82-b0de-29702bcaa348"],
+Cell[60652, 1756, 173, 4, 70, "Input",ExpressionUUID->"6c96f90c-2129-4007-9df7-fbdcaa425717"],
+Cell[60828, 1762, 1160, 34, 70, "Text",ExpressionUUID->"e5a1d7e4-6236-4c1c-97b0-35c43cccc983"],
+Cell[61991, 1798, 112, 0, 70, "Input",ExpressionUUID->"0da8a183-aa66-416d-9104-a86bf6830141"],
+Cell[62106, 1800, 80, 0, 70, "Input",ExpressionUUID->"2815b314-2b5a-4aae-a071-7eb46ad48810"],
+Cell[62189, 1802, 267, 6, 70, "Text",ExpressionUUID->"ec3289ce-d3fb-421e-82f9-af6fed4c9e61"],
+Cell[62459, 1810, 821, 14, 70, "Program",ExpressionUUID->"b0292938-5bd5-4a6e-a8c6-b3bac9a52463"],
+Cell[63283, 1826, 188, 3, 70, "Input",ExpressionUUID->"fc1c4980-f390-4b91-90fe-eba033c59f4f"],
+Cell[63474, 1831, 725, 21, 70, "Text",ExpressionUUID->"114cfe64-6696-4c33-90f1-380f747289fc"],
+Cell[64202, 1854, 1574, 34, 70, "Text",ExpressionUUID->"224ce984-409b-4e35-b2c6-cb44e0751d3a"],
+Cell[65779, 1890, 93, 0, 70, "Section",ExpressionUUID->"9108923a-e118-4389-8720-4ca2fa65b522"],
+Cell[65875, 1892, 405, 8, 70, "Text",ExpressionUUID->"959daff4-6cfc-49cd-b7dd-d80e0091521b"],
+Cell[66283, 1902, 273, 5, 70, "Program",ExpressionUUID->"208cfd13-e127-452b-a2e0-2cca581180dc"],
+Cell[66559, 1909, 264, 5, 70, "Program",ExpressionUUID->"f16ecca9-aaa8-4eb2-a529-e228be2b94c7"],
+Cell[66826, 1916, 766, 14, 70, "Program",ExpressionUUID->"b1672727-9abf-414c-88ed-e48a413c9b4a"],
+Cell[67595, 1932, 758, 14, 70, "Program",ExpressionUUID->"57be9cf6-1392-483e-8737-b7869bb59e69"],
+Cell[68356, 1948, 115, 0, 70, "Text",ExpressionUUID->"3023c33a-0564-4049-8934-09a6e22e4df9"],
+Cell[68474, 1950, 1206, 35, 70, "Text",ExpressionUUID->"9a3421dd-dc0d-42bc-a92d-753dcf97a73a"],
+Cell[69683, 1987, 2382, 75, 70, "Text",ExpressionUUID->"3cb421d5-c7ab-4c41-b54e-ab07fbc1caca"],
+Cell[72068, 2064, 278, 7, 70, "Input",ExpressionUUID->"f4c8e18c-7aa5-43b6-a852-a99c73e6a6e6"],
+Cell[72349, 2073, 2185, 70, 70, "Text",ExpressionUUID->"14b9a188-1a3f-4556-9aa6-211b8842717c"],
+Cell[74537, 2145, 274, 7, 70, "Input",ExpressionUUID->"2cf225f3-866c-4c70-8230-529841cb9380"],
+Cell[74814, 2154, 1701, 55, 70, "Text",ExpressionUUID->"9a36ab92-03f3-45ae-b018-dacd4b1f34be"],
+Cell[76518, 2211, 1127, 32, 70, "Text",ExpressionUUID->"12bb8bcb-6c85-40e6-ab49-a5a4b48cd6cb"],
+Cell[77648, 2245, 1338, 40, 70, "Text",ExpressionUUID->"9510fc57-d4f6-4435-8ca5-8bdacbb8e18d"],
+Cell[78989, 2287, 1289, 40, 70, "Text",ExpressionUUID->"b67fb8f7-154f-43d6-ac6f-c22638bd783b"],
+Cell[80281, 2329, 1771, 52, 70, "Text",ExpressionUUID->"9948ee04-fab7-4adc-9905-dbf6410a19b2"],
+Cell[82055, 2383, 200, 3, 70, "Input",ExpressionUUID->"d9cf890e-c86e-4626-9d80-923fe879babf"],
+Cell[82258, 2388, 1252, 26, 70, "Text",ExpressionUUID->"588ba1e8-b1f4-4317-b3cf-4e908b6202b5"],
+Cell[83513, 2416, 89, 0, 70, "Section",ExpressionUUID->"b2c8528d-f6c1-40e0-9f11-6764e63c4ce1"],
+Cell[83605, 2418, 190, 3, 70, "Text",ExpressionUUID->"bc288190-f2c3-4985-ada5-e48140fd13ed"],
+Cell[83798, 2423, 507, 9, 70, "Program",ExpressionUUID->"7b5b34a3-eb02-4e3d-a7ac-f32fb19a0224"],
+Cell[84308, 2434, 1442, 24, 70, "Program",ExpressionUUID->"ad936d7b-7ed0-446f-a697-8bca2a8aae6a"],
+Cell[85753, 2460, 1498, 47, 70, "Text",ExpressionUUID->"b86e4d70-18a5-4666-87b4-48eec8542be7"],
+Cell[87254, 2509, 261, 6, 70, "Input",ExpressionUUID->"37339a7c-6377-4c07-a029-a2e2131b98d3"],
+Cell[87518, 2517, 986, 31, 70, "Text",ExpressionUUID->"dad005e0-c553-4e81-ad16-eb031fa3d59b"],
+Cell[88507, 2550, 1256, 36, 70, "Text",ExpressionUUID->"887faf34-65b2-4d8e-9fef-fe28eee39525"],
+Cell[89766, 2588, 119, 0, 70, "Section",ExpressionUUID->"1b44eec7-9648-4f27-8c81-07060f9a6756"],
+Cell[89888, 2590, 336, 7, 70, "Text",ExpressionUUID->"64612e53-d681-4f9b-a966-e3b768748b37"],
+Cell[90227, 2599, 293, 7, 70, "Program",ExpressionUUID->"9bfd2718-d031-4e63-b694-1b2b3c4a56c0"],
+Cell[90523, 2608, 1566, 53, 70, "Text",ExpressionUUID->"3d97e10a-76bf-4b8d-9488-b7125ce1d99e"],
+Cell[92092, 2663, 1126, 32, 70, "Text",ExpressionUUID->"58768faa-a07a-4577-928f-2cc67a7b2afe"],
+Cell[93221, 2697, 246, 4, 70, "Input",ExpressionUUID->"2233e50b-7a9b-47e4-8ae5-43d8c0844cf5"],
+Cell[93470, 2703, 1139, 34, 70, "Text",ExpressionUUID->"e23d5477-b2aa-45d9-8021-bfa43d9bc222"],
+Cell[94612, 2739, 806, 22, 70, "Text",ExpressionUUID->"6661c6b2-4373-4d49-965f-8b3c73277390"],
+Cell[95421, 2763, 135, 3, 70, "Program",ExpressionUUID->"9e9c0bb9-0883-4cde-9158-52330a26e66a"],
+Cell[95559, 2768, 233, 4, 70, "Program",ExpressionUUID->"4e065dfb-f8bd-4003-9fed-b9c69d4839c8"],
+Cell[95795, 2774, 431, 10, 70, "Program",ExpressionUUID->"6aea84c6-ab56-4141-9d34-2d650b241d58"],
+Cell[96229, 2786, 428, 9, 70, "Program",ExpressionUUID->"ae08eb16-f9e8-4d12-976c-bcddd0903f47"],
+Cell[96660, 2797, 728, 20, 70, "Text",ExpressionUUID->"74edd36e-7af1-4733-9177-3ac29fef0cee"],
+Cell[97391, 2819, 243, 4, 70, "Input",ExpressionUUID->"11aaac29-e806-4c7d-8aea-7ddb864d3f19"],
+Cell[97637, 2825, 1477, 42, 70, "Text",ExpressionUUID->"502e3c78-99ce-48f3-8275-b99448ea00f5"],
+Cell[99117, 2869, 83, 0, 70, "Section",ExpressionUUID->"795f2e6b-d50e-468c-b1c7-8121c0d86356"],
+Cell[99203, 2871, 104, 0, 70, "Subsection",ExpressionUUID->"74ebd065-1541-41e0-8df0-37400158d72b"],
+Cell[99310, 2873, 1314, 42, 70, "Text",ExpressionUUID->"8fe5b0a4-183f-463a-a223-f461b1f4552c"],
+Cell[CellGroupData[{
+Cell[100649, 2919, 88, 0, 70, "Subsubsection",ExpressionUUID->"5e2caab8-250e-40ed-a172-7744ac21a68b"],
+Cell[100740, 2921, 153, 2, 70, "Input",ExpressionUUID->"4b517204-35e4-41c5-be8f-65242bdbb847"],
+Cell[100896, 2925, 101, 0, 70, "Input",ExpressionUUID->"fcbc108e-c9d7-4967-808e-4e1d86120145"],
+Cell[101000, 2927, 457, 12, 70, "Text",ExpressionUUID->"6c61195d-f611-4f31-afa0-171224550f8b"]
+}, Closed]],
+Cell[101472, 2942, 103, 0, 70, "Subsection",ExpressionUUID->"17a087ea-9506-448a-a0ad-2ae62314c424"],
+Cell[101578, 2944, 649, 17, 70, "Text",ExpressionUUID->"83d7a364-af31-453e-b2ca-eeacb38d8ea7"],
+Cell[CellGroupData[{
+Cell[102252, 2965, 88, 0, 70, "Subsubsection",ExpressionUUID->"4b35f125-82c8-4d72-9709-15f7dc8c06da"],
+Cell[102343, 2967, 129, 0, 70, "Input",ExpressionUUID->"8b6621db-3780-47ef-8b30-3e413da1cb8d"],
+Cell[102475, 2969, 151, 2, 70, "Input",ExpressionUUID->"71464909-aa29-4c10-86e9-9c9bded0239f"],
+Cell[102629, 2973, 703, 22, 70, "Text",ExpressionUUID->"5df92743-dcec-4b5b-9791-a95a60aedb24"]
+}, Closed]],
+Cell[103347, 2998, 120, 0, 70, "Subsection",ExpressionUUID->"d9838e01-bda3-46c0-9805-557ed2f23bdd"],
+Cell[103470, 3000, 1032, 32, 70, "Text",ExpressionUUID->"ac198599-18e1-4cfe-89b9-605bd38120db"],
+Cell[CellGroupData[{
+Cell[104527, 3036, 88, 0, 70, "Subsubsection",ExpressionUUID->"ce836009-ef4f-4412-abc8-283bd1fc0491"],
+Cell[104618, 3038, 174, 3, 70, "Input",ExpressionUUID->"f1334c31-bbd0-4245-b5d0-6f6bc9f70f1e"],
+Cell[104795, 3043, 908, 27, 70, "Text",ExpressionUUID->"0a3dfbc4-613c-4153-9e46-2f795694f981"]
+}, Closed]]
+}
+]
+*)
+
+(* End of internal cache information *)

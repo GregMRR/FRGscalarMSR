@@ -1,0 +1,898 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[     35685,        889]
+NotebookOptionsPosition[     30737,        822]
+NotebookOutlinePosition[     31074,        837]
+CellTagsIndexPosition[     31031,        834]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["Lesson 15 - JuliaExport", "Title",ExpressionUUID->"326c93e4-2e23-4ec5-8260-30af5172b8fb"],
+
+Cell[TextData[{
+ StyleBox["Physics step.",
+  FontWeight->Bold],
+ " None: the dimensionless flow is written, at one integer space dimension d, \
+as a Julia file that FlowRG loads and integrates. The file format is a \
+contract owned by the other repository, ",
+ StyleBox["~/Physics/Sources/FlowRG.jl/docs/equations-interface.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ": ",
+ StyleBox["COUPLINGS",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["ETAS",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["SHAPES",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["MUST_FIX",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", and the functions ",
+ StyleBox["betal",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["betanl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["etaMl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["etaMnl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["etabl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["etabnl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " with positional arguments, plus ",
+ StyleBox["causal_poles",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",ExpressionUUID->"2156836c-c7c2-48c5-ba9e-946d9a244a60"],
+
+Cell[TextData[{
+ StyleBox["Stage.",
+  FontWeight->Bold],
+ " Input: the Adimensional stage. Output: a file (no new stage)."
+}], "Text",ExpressionUUID->"87b87b8b-8190-4580-a79e-5ce1e0fb2a2b"],
+
+Cell["\<\
+Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
+equations = lessonUpTo[\"Equations\"];
+dims = Block[{Print}, DeriveDimensions[kpzAnsatz, \"References\" -> {nuk -> \
+\"nu\", Dk -> \"D\"}, \"Scale\" -> k]];
+adim = Block[{Print}, AdimensionalEquations[equations, dims]];\
+\>", "Input",ExpressionUUID->"e8c8930a-7e28-42d2-8b43-407f39657efc"],
+
+Cell["1. Using it", "Section",ExpressionUUID->"63998f8c-5419-4a94-99b1-1ea0fb78cfa5"],
+
+Cell["\<\
+file = ExportJulia[adim, \"Dimension\" -> 2, \"File\" -> \
+FileNameJoin[{$TemporaryDirectory, \"lessonKPZ\", \"Equations2D.jl\"}]];\
+\>", "Input",ExpressionUUID->"3024d3c7-27b4-4338-9023-b1a74ddac3e1"],
+
+Cell["ReadString[file]", "Input",ExpressionUUID->"72a68bf9-59ce-4fa1-a764-c6dd700ea98d"],
+
+Cell[TextData[{
+ "A header that says where the file comes from and how to regenerate it; \
+three constants; one Julia function per non-zero part. In the loop functions \
+the dimensionless atoms are computed first, as local variables (",
+ StyleBox["atom_h_hbar_0_0 = 1 + rn(aq^2)",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "), so the long expressions stay readable. ",
+ StyleBox["Drn(aq^2)",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is r_n",
+ StyleBox["\[Prime]",
+  FontFamily->"Noto Sans"],
+ "(aq",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ")."
+}], "Text",ExpressionUUID->"03e9b9ae-1881-4e42-96cb-ddad3c7dc87a"],
+
+Cell[TextData[{
+ StyleBox["JuliaParts",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " gives the same content as Mathematica expressions, before the translation \
+to text:"
+}], "Text",ExpressionUUID->"ac53b15b-0364-409f-a9f2-83d1bc448d4a"],
+
+Cell["\<\
+parts = JuliaParts[adim, 2];
+{Keys[parts], parts[\"betal\"], parts[\"causalPoles\"]}\
+\>", "Input",ExpressionUUID->"a87f3423-61d5-4b64-80c2-1c39ac31cce6"],
+
+Cell["2. The parts at one dimension", "Section",ExpressionUUID->"9c1019f0-5fcd-4f97-8262-7cc9c78894df"],
+
+Cell["\<\
+(* Kernel/JuliaExport.wl:21-25 *)
+(* shape derivatives as applied functions: arnh'[y] -> Darnh[y], arnh''[y] -> \
+D2arnh[y] *)
+derivativeRule[shapes_] := Derivative[n_Integer][f : Alternatives @@ \
+shapes][y_] :>
+   (FRGAssert[\"JuliaExport.shapeDerivative\", n <= 2, Derivative[n][f],
+     \"only r, r' and r'' are exported: p^4 (and higher) flows need r''' / \
+r'''' and a FlowRG interface extension (docs/FUTURE.md)\"];
+    Symbol[Context[f] <> If[n == 1, \"D\", \"D2\"] <> SymbolName[f]][y]);\
+\>", "Program",ExpressionUUID->"90e14eea-b161-4fa9-8ea7-84688ad3c65a"],
+
+Cell["\<\
+(* Kernel/JuliaExport.wl:36-45 *)
+(* the parts at dimension d: Dim -> d, shape derivatives renamed; loop parts \
+include the loop measure *)
+JuliaParts[adim_Association, d_Integer, form_String : \"Compact\"] := \
+Block[{$FRGModule = \"JuliaExport\"},
+  Module[{dimSym = adim[\"Dimension\"], aq = adim[\"LoopMomentum\"], w, sub, \
+nl, mnl, bnl},
+   sub[e_] := (e /. If[dimSym === 2, {}, {dimSym -> d}]) /. \
+derivativeRule[adim[\"Shapes\"]];
+   w = adim[\"Measure\"] /. If[dimSym === 2, {}, {dimSym -> d}];
+   {nl, mnl, bnl} = If[form === \"Compact\", adim /@ {\"BetaNL\", \"EtaMNL\", \
+\"EtaBNL\"}, adim /@ {\"BetaNLExplicit\", \"EtaMNLExplicit\", \
+\"EtaBNLExplicit\"}];
+   <|\"betal\" -> sub[adim[\"BetaL\"]], \"betanl\" -> sub[w nl], \"etaMl\" -> \
+Flatten[adim[\"EtaML\"]], \"etaMnl\" -> sub[w Flatten[mnl]],
+    \"etabl\" -> adim[\"EtaBL\"], \"etabnl\" -> sub[w bnl],
+    \"causalPoles\" -> sub[adim[\"CausalPoles\"][If[form === \"Compact\", \
+\"Compact\", \"Explicit\"]]],
+    \"atoms\" -> If[form === \"Compact\", sub[Normal[adim[\"Atoms\"]]], {}], \
+\"measure\" -> w|>]];\
+\>", "Program",ExpressionUUID->"f41bc213-8e6c-476f-a5c3-2f0a1f8e7f87"],
+
+Cell[TextData[{
+ StyleBox["Dim",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is replaced by the requested d, the loop measure is multiplied into every \
+loop part, and each shape derivative ",
+ StyleBox["Derivative[1][rn][y]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " becomes an applied function ",
+ StyleBox["Drn[y]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["D and unknown functions",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 04)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "). Only r, r",
+ StyleBox["\[Prime]",
+  FontFamily->"Noto Sans"],
+ " and r",
+ StyleBox["\[DoublePrime]",
+  FontFamily->"Noto Sans"],
+ " have names in the FlowRG interface; a p",
+ StyleBox["\:2074",
+  FontFamily->"Noto Sans"],
+ " flow, which needs r",
+ StyleBox["\:2034",
+  FontFamily->"Noto Sans"],
+ " and r",
+ StyleBox["\:2057",
+  FontFamily->"Noto Sans"],
+ " (lesson 08), aborts here with ",
+ StyleBox["JuliaExport.shapeDerivative",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",ExpressionUUID->"ce4c1144-cf45-4742-9ead-e794f1570042"],
+
+Cell["3. From expressions to Julia text", "Section",ExpressionUUID->"ca09bcde-5863-4421-bf8d-a8bb90c9f877"],
+
+Cell["\<\
+(* Kernel/JuliaExport.wl:18-19 *)
+(* Julia name of a dimensionless atom: AdimAtom[H, Hbar, 0, 1] -> \
+atom_H_Hbar_0_1 *)
+atomName[AdimAtom[a__]] := \"atom_\" <> StringRiffle[ToString /@ {a}, \"_\"];\
+\
+\>", "Program",ExpressionUUID->"c3778594-1212-47bf-9889-627c3d5bc1c0"],
+
+Cell["\<\
+(* Kernel/JuliaExport.wl:27-31 *)
+toJulia[e_] := Module[{s},
+   s = ToString[e /. {Pi -> juliaPi, E -> juliaE}, InputForm, PageWidth -> \
+Infinity];
+   s = StringReplace[s, {\"[\" -> \"(\", \"]\" -> \")\", \"juliaPi\" -> \
+\"pi\", \"juliaE\" -> \"MathConstants.e\",
+      \"Sqrt(\" -> \"sqrt(\", \"Exp(\" -> \"exp(\", \"Log(\" -> \"log(\", \
+\"Abs(\" -> \"abs(\"}];
+   StringReplace[s, RegularExpression[\"FRGscalarMSR`([A-Za-z]+`)*\"] -> \
+\"\"]];\
+\>", "Program",ExpressionUUID->"aff9ea6a-9ae6-4477-88ff-61042ba81af1"],
+
+Cell["\<\
+(* Kernel/JuliaExport.wl:33-34 *)
+symTuple[l_List] := \"(\" <> StringRiffle[\":\" <> # & /@ l, \", \"] <> \
+If[Length[l] == 1, \",\", \"\"] <> \")\";
+tupleString[exprs_List] := \"(\" <> StringRiffle[exprs, \",\\n     \"] <> \
+If[Length[exprs] == 1, \",\", \"\"] <> \")\";\
+\>", "Program",ExpressionUUID->"413447d3-1c04-4b95-ad75-48a5a627a8ed"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Expressions as text",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["ToString[e, InputForm, PageWidth -> Infinity]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " prints e on one line in input syntax; ",
+ StyleBox["StringReplace[s, {\"a\" -> \"b\", ...}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " rewrites the text; ",
+ StyleBox["RegularExpression[\"...\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " matches by a regex.",
+ "\n\n",
+ "Mathematica's input syntax is close to Julia's: ",
+ StyleBox["+ - * / ^",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and parentheses are the same. The translation turns brackets into \
+parentheses, renames constants (",
+ StyleBox["Pi",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " ",
+ StyleBox["\[RightArrow]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["pi",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", through a placeholder symbol ",
+ StyleBox["juliaPi",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", so that no other ",
+ StyleBox["Pi",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " in a name is touched), and removes every `",
+ StyleBox["FRGscalarMSR",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "...`",
+ StyleBox[" context prefix with a regular expression, as ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "displayString` does (lesson 00)."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"a7cd7aa5-8ede-42da-8157-5dfaf54d59aa"],
+
+Cell["\<\
+{ToString[x^2 + Sin[y], InputForm], FRGscalarMSR`Private`toJulia[aq^2 \
+rn[aq^2] + Pi]}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"b0c18624-c559-46a6-aed3-586117c81b5c"],
+
+Cell[TextData[{
+ StyleBox["StringReplace",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " with a list of rules makes ",
+ StyleBox["one pass",
+  FontWeight->Bold],
+ " over the string: at each position it tries the rules in order, replaces, \
+and moves on; the result of one rule is never seen by another. That explains \
+a latent problem in ",
+ StyleBox["toJulia",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ": the rule ",
+ StyleBox["\"Sqrt(\" -> \"sqrt(\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " can never match, because at that point the text still reads ",
+ StyleBox["Sqrt[",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", and the ",
+ StyleBox["\"[\" -> \"(\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " rule only produces the parenthesis in the output."
+}], "Text",ExpressionUUID->"c97bf412-1632-4842-8e41-534517281e64"],
+
+Cell["\<\
+{StringReplace[\"Sqrt[x]\", {\"[\" -> \"(\", \"]\" -> \")\", \"Sqrt(\" -> \
+\"sqrt(\"}], FRGscalarMSR`Private`toJulia[Sqrt[aq]]}\
+\>", "Input",ExpressionUUID->"f4c33e3d-86a3-4259-930b-7db9630c822d"],
+
+Cell[TextData[{
+ "A ",
+ StyleBox["Sqrt",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " in an exported expression would therefore be written ",
+ StyleBox["Sqrt(aq)",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", which Julia does not know. It does not happen in the current models, \
+whose exported expressions are rational in aq, but ",
+ StyleBox["JuliaExport.systemHeads",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " allows ",
+ StyleBox["Sqrt",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["Exp",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["Log",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["Abs",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", so the check would not catch it. Two passes (brackets first, then names) \
+would fix it."
+}], "Text",ExpressionUUID->"9f5360f0-0d74-45ea-93a8-146cc467035d"],
+
+Cell["4. Writing the file", "Section",ExpressionUUID->"2aa9d9dd-dfb3-42bb-b71b-12d623c156fb"],
+
+Cell["\<\
+(* Kernel/JuliaExport.wl:85-123 *)
+   (* one Julia definition; compact loop parts compute the atoms they use \
+first *)
+   (* atoms are written through placeholder symbols atomJ<i>Z, renamed to \
+atom_a_b_m_j in the final string *)
+   atomKeys = parts[\"atoms\"][[All, 1]];
+   placeholder = AssociationThread[atomKeys -> \
+(Symbol[\"FRGscalarMSR`Private`atomJ\" <> ToString[#] <> \"Z\"] & /@ \
+Range[Length[atomKeys]])];
+   rename = Thread[(SymbolName /@ Values[placeholder]) -> (atomName /@ \
+atomKeys)];
+   jl[e_] := StringReplace[toJulia[e /. a_AdimAtom :> placeholder[a]], rename];
+   def[name_, argSyms_, exprs_, atomsQ_] := Module[{as = If[atomsQ, \
+Select[parts[\"atoms\"], ! FreeQ[exprs, #[[1]]] &], {}], body},
+     body = tupleString[If[# === 0, \"0.0\", jl[#]] & /@ exprs];
+     If[as === {},
+      name <> \"(\" <> StringRiffle[ToString /@ argSyms, \", \"] <> \") =\\n  \
+  \" <> body,
+      \"function \" <> name <> \"(\" <> StringRiffle[ToString /@ argSyms, \", \
+\"] <> \")\\n\" <>
+       StringJoin[(\"    \" <> atomName[#[[1]]] <> \" = \" <> jl[#[[2]]] <> \
+\"\\n\") & /@ as] <> \"    return \" <> body <> \"\\nend\"]];
+   defs = {
+     def[\"betal\", Join[cps, etaSyms], parts[\"betal\"], False],
+     If[AllTrue[parts[\"betanl\"], # === 0 &], Nothing, def[\"betanl\", \
+Join[cps, etaSyms, {aq}], parts[\"betanl\"], True]],
+     def[\"etaMl\", cps, parts[\"etaMl\"], False],
+     If[AllTrue[parts[\"etaMnl\"], # === 0 &], Nothing, def[\"etaMnl\", \
+Append[cps, aq], parts[\"etaMnl\"], True]],
+     If[AllTrue[parts[\"etabl\"], # === 0 &], Nothing, def[\"etabl\", cps, \
+parts[\"etabl\"], False]],
+     If[AllTrue[parts[\"etabnl\"], # === 0 &], Nothing, def[\"etabnl\", \
+Append[cps, aq], parts[\"etabnl\"], True]],
+     If[parts[\"causalPoles\"] === {}, Nothing, def[\"causal_poles\", \
+Append[cps, aq], parts[\"causalPoles\"], True]]};
+   If[parts[\"causalPoles\"] === {}, AppendTo[warns, infoCheck[\"INFO\", \
+\"JuliaExport.causalPoles\", \"causal poles trivially satisfied: no \
+causal_poles written\"]]];
+
+   header = StringRiffle[{
+      \"# Generated by FRGscalarMSR ExportJulia on \" <> \
+DateString[{\"Year\", \"-\", \"Month\", \"-\", \"Day\", \" \", \"Time\"}] <> \
+\". Do not hand-edit: regenerate.\",
+      \"# Source: Adimensional stage \" <> StringTake[adim[\"Fingerprint\"], \
+8] <> \", space dimension d = \" <> ToString[d] <> \", form \" <> form <> \".\
+\",
+      \"# FlowRG equations-file interface \
+(FlowRG.jl/docs/equations-interface.md).\",
+      \"# References: \" <> StringRiffle[(ToString[#] <> \" (eta\" <> \
+dims[\"EtaNames\"][#] <> \", \" <> adim[\"ReferenceKinds\"][#] <> \")\") & /@ \
+adim[\"References\"], \", \"] <>
+       \";  d_s ref = -eta ref.\",
+      \"# Loop parts (betanl, etaMnl, etabnl) include the measure \" <> \
+toJulia[parts[\"measure\"]] <> \" = S_d aq^(d-1)/(2 pi)^d.\",
+      If[parts[\"causalPoles\"] === {}, Nothing, \"# \
+causal_poles(couplings..., aq): each entry must be > 0 at every aq (causal \
+poles of the propagator; \" <>
+        \"references > 0 assumed). Not called by FlowRG.\"],
+      If[adim[\"MustFix\"] === {}, Nothing, \"# MUST_FIX: these etas have a \
+placeholder row eta = 0; give their value with load_model(...; fixed_etas = \
+(name = value,)).\"],
+      If[d2Q, \"# Uses second shape derivatives D2<shape>(y) = r''(y): needs \
+a FlowRG version that binds them.\", Nothing]}, \"\\n\"];
+   Quiet[CreateDirectory[DirectoryName[file]], CreateDirectory::eexist];
+   Export[file, StringRiffle[Join[{header, \"\",
+       \"const COUPLINGS = \" <> symTuple[ToString /@ cps],
+       \"const ETAS = \" <> symTuple[etaNames],
+       \"const SHAPES = \" <> symTuple[ToString /@ usedShapes]},
+      If[adim[\"MustFix\"] === {}, {}, {\"const MUST_FIX = \" <> \
+symTuple[adim[\"MustFix\"]]}], {\"\"}, Riffle[defs, \"\"]], \"\\n\"] <> \"\\n\
+\", \"Text\"];\
+\>", "Program",ExpressionUUID->"0308432f-ce50-4326-acf1-596b80581dae"],
+
+Cell[TextData[{
+ "The atoms are written through placeholder symbols ",
+ StyleBox["atomJ1Z",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["atomJ2Z",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ..., which ",
+ StyleBox["toJulia",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " prints like any symbol, and the placeholders are renamed to ",
+ StyleBox["atom_h_hbar_0_0",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " in the final string: a symbol name cannot contain the characters the Julia \
+name needs, but a string can."
+}], "Text",ExpressionUUID->"e2a292e5-0d13-4403-bd4c-c4d0d45ca451"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Building text",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Riffle[list, x]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " inserts x between the elements; ",
+ StyleBox["StringRiffle[list, sep]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " joins strings; ",
+ StyleBox["DateString[...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " formats the date; ",
+ StyleBox["Export[file, string, \"Text\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " writes text; ",
+ StyleBox["CreateDirectory",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " makes a folder.",
+ "\n\n",
+ StyleBox["Riffle[defs, \"\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " puts an empty line between the function definitions. ",
+ StyleBox["Quiet[CreateDirectory[dir], CreateDirectory::eexist]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["Check and Quiet",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ") creates the folder and silences only the \"already exists\" message."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"ddd9b216-96c4-424a-9678-c3563fcb222d"],
+
+Cell["\<\
+{Riffle[{a, b, c}, x], StringRiffle[{\"a\", \"b\"}, \", \"], \
+DateString[{\"Year\", \"-\", \"Month\", \"-\", \"Day\"}]}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"5e40ea08-2b86-4509-bd7e-643cee6b4432"],
+
+Cell["5. The checks", "Section",ExpressionUUID->"fa93b63a-993f-406a-9155-67dc0bb23f75"],
+
+Cell["\<\
+(* Kernel/JuliaExport.wl:65-83 *)
+   (* check 7: no unit, no dimensionful loop momentum, no symbolic dimension; \
+only declared symbols *)
+   units = Join[dims[\"Basis\"], {adim[\"Equations\"][\"LoopMomentum\"]}, \
+If[dimSym === 2, {}, {dimSym}]];
+   all = Values[KeyDrop[parts, \"measure\"]];
+   AppendTo[checks, assertCheck[\"JuliaExport.noUnits\", FreeQ[all, \
+Alternatives @@ units], Select[units, ! FreeQ[all, #] &],
+     \"internal: a unit, q or the symbolic dimension is left\", \"free of k, \
+references, q\" <> If[dimSym === 2, \"\", \" and \" <> ToString[dimSym]]]];
+   usedShapes = Select[shapes, ! FreeQ[all, #] || ! FreeQ[all, \
+Symbol[Context[#] <> \"D\" <> SymbolName[#]]] || ! FreeQ[all, \
+Symbol[Context[#] <> \"D2\" <> SymbolName[#]]] &];
+   bad = Complement[Union[Cases[all /. _AdimAtom -> 1, s_Symbol /; Context[s] \
+=!= \"System`\", {0, Infinity}, Heads -> True]],
+     cps, etaSyms, {aq}, shapes, Symbol[Context[#] <> \"D\" <> SymbolName[#]] \
+& /@ shapes, Symbol[Context[#] <> \"D2\" <> SymbolName[#]] & /@ shapes];
+   AppendTo[checks, assertCheck[\"JuliaExport.knownSymbols\", bad === {}, \
+bad, \"internal: undeclared symbols in the exported expressions\",
+     \"only couplings, etas, aq, shapes and atoms\"]];
+   bad = Complement[Union[Cases[all /. _AdimAtom -> 1, h_Symbol[___] /; \
+Context[h] === \"System`\" :> h, {0, Infinity}, Heads -> True]],
+     {Plus, Times, Power, Rational, Complex, List, Rule, Sqrt, Exp, Log, Abs}];
+   AppendTo[checks, assertCheck[\"JuliaExport.systemHeads\", bad === {}, bad, \
+\"a System function without a Julia translation is left\", \"only + * ^ and \
+sqrt/exp/log/abs\"]];
+   AppendTo[checks, assertCheck[\"JuliaExport.linearNoMomentum\", FreeQ[parts \
+/@ {\"betal\", \"etaMl\", \"etabl\"}, aq], parts[\"betal\"],
+     \"internal: an l part depends on aq\", \"l parts free of aq\"]];
+   d2Q = ! FreeQ[all, s_Symbol /; StringStartsQ[SymbolName[s], \"D2\"] && \
+MemberQ[SymbolName /@ shapes, StringDrop[SymbolName[s], 2]]];
+   If[d2Q, AppendTo[warns, infoCheck[\"WARN\", \
+\"JuliaExport.secondDerivatives\", \"the file uses D2<shape> (r''): FlowRG \
+must bind second derivatives (docs/handoff/FlowRG-MUST_FIX.md, task 2)\"]]];
+   If[adim[\"MustFix\"] =!= {}, AppendTo[warns, infoCheck[\"INFO\", \
+\"JuliaExport.mustFix\", \"MUST_FIX = \" <> symTuple[adim[\"MustFix\"]] <>
+       \": load with fixed_etas = (\" <> StringRiffle[# <> \" = <value>\" & \
+/@ adim[\"MustFix\"], \", \"] <> \",)\"]]];\
+\>", "Program",ExpressionUUID->"cfa3bc31-8092-4e2c-b857-f68fdb9b44d1"],
+
+Cell[TextData[{
+ "Before writing, the module checks that nothing dimensionful is left (no k, \
+reference, q, symbolic ",
+ StyleBox["Dim",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "), that every symbol is a coupling, an ",
+ StyleBox["\[Eta]",
+  FontFamily->"Noto Sans"],
+ ", ",
+ StyleBox["aq",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", a shape or an atom, and that the only System functions are those with a \
+Julia translation. A file that uses r",
+ StyleBox["\[DoublePrime]",
+  FontFamily->"Noto Sans"],
+ " gets a WARN, because FlowRG must bind ",
+ StyleBox["D2<shape>",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["docs/handoff/FlowRG-MUST_FIX.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ")."
+}], "Text",ExpressionUUID->"91272745-4866-474b-9aec-8356b17f5a27"],
+
+Cell["\<\
+showFailure[ExportJulia[adim, \"Dimension\" -> d, \"File\" -> \
+FileNameJoin[{$TemporaryDirectory, \"x.jl\"}]]]\
+\>", "Input",ExpressionUUID->"d704f2eb-6bdf-4be2-b97f-79e103dbfde4"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: A file format owned by someone else",
+  FontWeight->Bold],
+ "\n\n",
+ "The library generates code for a program it does not control. The contract \
+is written down in the FlowRG repository, and any change to it goes through a \
+hand-off spec in ",
+ StyleBox["docs/handoff/",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (CLAUDE.md, Where to change X), so the two sides cannot drift silently. On \
+this side, ",
+ StyleBox["tests/reference/JuliaRoundTrip.wl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " evaluates each exported file in plain Julia with smooth test shapes and \
+compares it with Mathematica at a random point (relative 10",
+ StyleBox["\:207b\.b9\.b9",
+  FontFamily->"Noto Sans"],
+ "), then loads it with FlowRG's ",
+ StyleBox["load_model",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "; without Julia those tests print SKIP, and ",
+ StyleBox["runTests.wl --require-julia",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " turns a SKIP into a failure (lesson 16). One file per dimension, because \
+FlowRG takes d as fixed."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"a026498a-9fb2-4a29-9ddd-dd63e42b8b62"],
+
+Cell["Exercises", "Section",ExpressionUUID->"e29ae870-1dde-4ec3-b585-4683703f5db1"],
+
+Cell["Exercise: Explicit form", "Subsection",ExpressionUUID->"b97a561b-4c09-4904-b545-d94d19e959a6"],
+
+Cell[TextData[{
+ "Export the same flow with ",
+ StyleBox["\"Form\" -> \"Explicit\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " to another file and compare the two ",
+ StyleBox["etaMnl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " definitions."
+}], "Text",ExpressionUUID->"3bd2ad92-789c-4df4-ab4a-c4bbafe3f6b5"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"fd8803d9-d810-4e5c-8b8a-fc53243177d0"],
+
+Cell["\<\
+file2 = ExportJulia[adim, \"Dimension\" -> 2, \"Form\" -> \"Explicit\", \
+\"File\" -> FileNameJoin[{$TemporaryDirectory, \"lessonKPZ\", \
+\"Equations2DExplicit.jl\"}]];
+StringCases[ReadString[file2], StartOfLine ~~ \"etaMnl(\" ~~ Shortest[___] ~~ \
+\"\\n\\n\"]\
+\>", "Input",ExpressionUUID->"46095c3e-3113-44d2-a4c2-383b9ff7ee2d"],
+
+Cell[TextData[{
+ "No atoms: the shapes appear directly, and the expressions are longer. ",
+ StyleBox["StringCases",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " with ",
+ StyleBox["StartOfLine",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["Shortest",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " extracts the text from the line that starts the definition to the next \
+blank line."
+}], "Text",ExpressionUUID->"caba293b-4179-4337-b2cf-f133be922810"]
+}, Closed]],
+
+Cell["Exercise: Another dimension", "Subsection",ExpressionUUID->"7031a7c7-0f3e-4e51-aa9b-182f20544624"],
+
+Cell["\<\
+Export for d = 3 and compare the measure in the header of the two files.\
+\>", "Text",ExpressionUUID->"c1551f51-445a-4fb0-be90-e94899552896"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"05db6534-4ab9-4464-9f82-52f1b0c760d1"],
+
+Cell["\<\
+file3 = ExportJulia[adim, \"Dimension\" -> 3, \"File\" -> \
+FileNameJoin[{$TemporaryDirectory, \"lessonKPZ\", \"Equations3D.jl\"}]];
+{JuliaParts[adim, 2][\"measure\"], JuliaParts[adim, 3][\"measure\"]}\
+\>", "Input",ExpressionUUID->"b3f0d461-746a-4abd-92a4-4385478ca688"],
+
+Cell[TextData[{
+ "aq/(2",
+ StyleBox["\[Pi]",
+  FontFamily->"Noto Sans"],
+ ") in d = 2 and aq",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "/(2",
+ StyleBox["\[Pi]\.b2",
+  FontFamily->"Noto Sans"],
+ ") in d = 3: ",
+ StyleBox["LoopMeasure",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " at the given d (lesson 14)."
+}], "Text",ExpressionUUID->"74aa7468-a6a7-42b7-a152-ff4ea08fd047"]
+}, Closed]],
+
+Cell["Exercise: The loop part of \[Lambda]", "Subsection",ExpressionUUID->"e2673a13-2b8a-46e7-ad43-c26f98d503c0"],
+
+Cell[TextData[{
+ "Why is there no ",
+ StyleBox["betanl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " function in the KPZ file?"
+}], "Text",ExpressionUUID->"663cda2c-d87b-48c8-af12-97f92a4ad3b3"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"1b37c72b-2d05-4336-8e58-6fc25ad8925d"],
+
+Cell["\<\
+{parts[\"betanl\"], StringContainsQ[ReadString[file], \"betanl(\"]}\
+\>", "Input",ExpressionUUID->"71948a8c-820f-40ec-b189-08f419652636"],
+
+Cell[TextData[{
+ StyleBox["\[Lambda]",
+  FontFamily->"Noto Sans"],
+ " is NonRenormalised (lesson 06): its ",
+ StyleBox["\[Beta]",
+  FontFamily->"Noto Sans"],
+ " has no loop part, and an all-zero part is left out of the file (only ",
+ StyleBox["betal",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is always written)."
+}], "Text",ExpressionUUID->"2a6c1c18-0ab4-4773-9249-2e387e40e1c0"]
+}, Closed]]
+},
+CellContext->Notebook,
+FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"68ca8ccf-8ceb-4f4a-8543-fab9318d86bc"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 95, 0, 70, "Title",ExpressionUUID->"326c93e4-2e23-4ec5-8260-30af5172b8fb"],
+Cell[652, 22, 2000, 66, 70, "Text",ExpressionUUID->"2156836c-c7c2-48c5-ba9e-946d9a244a60"],
+Cell[2655, 90, 189, 4, 70, "Text",ExpressionUUID->"87b87b8b-8190-4580-a79e-5ce1e0fb2a2b"],
+Cell[2847, 96, 420, 7, 70, "Input",ExpressionUUID->"e8c8930a-7e28-42d2-8b43-407f39657efc"],
+Cell[3270, 105, 85, 0, 70, "Section",ExpressionUUID->"63998f8c-5419-4a94-99b1-1ea0fb78cfa5"],
+Cell[3358, 107, 211, 3, 70, "Input",ExpressionUUID->"3024d3c7-27b4-4338-9023-b1a74ddac3e1"],
+Cell[3572, 112, 88, 0, 70, "Input",ExpressionUUID->"72a68bf9-59ce-4fa1-a764-c6dd700ea98d"],
+Cell[3663, 114, 747, 20, 70, "Text",ExpressionUUID->"03e9b9ae-1881-4e42-96cb-ddad3c7dc87a"],
+Cell[4413, 136, 299, 7, 70, "Text",ExpressionUUID->"ac53b15b-0364-409f-a9f2-83d1bc448d4a"],
+Cell[4715, 145, 164, 3, 70, "Input",ExpressionUUID->"a87f3423-61d5-4b64-80c2-1c39ac31cce6"],
+Cell[4882, 150, 103, 0, 70, "Section",ExpressionUUID->"9c1019f0-5fcd-4f97-8262-7cc9c78894df"],
+Cell[4988, 152, 578, 10, 70, "Program",ExpressionUUID->"90e14eea-b161-4fa9-8ea7-84688ad3c65a"],
+Cell[5569, 164, 1161, 21, 70, "Program",ExpressionUUID->"f41bc213-8e6c-476f-a5c3-2f0a1f8e7f87"],
+Cell[6733, 187, 1398, 45, 70, "Text",ExpressionUUID->"ce4c1144-cf45-4742-9ead-e794f1570042"],
+Cell[8134, 234, 107, 0, 70, "Section",ExpressionUUID->"ca09bcde-5863-4421-bf8d-a8bb90c9f877"],
+Cell[8244, 236, 282, 6, 70, "Program",ExpressionUUID->"c3778594-1212-47bf-9889-627c3d5bc1c0"],
+Cell[8529, 244, 530, 11, 70, "Program",ExpressionUUID->"aff9ea6a-9ae6-4477-88ff-61042ba81af1"],
+Cell[9062, 257, 353, 6, 70, "Program",ExpressionUUID->"413447d3-1c04-4b95-ad75-48a5a627a8ed"],
+Cell[9418, 265, 2123, 64, 70, "Text",ExpressionUUID->"a7cd7aa5-8ede-42da-8157-5dfaf54d59aa"],
+Cell[11544, 331, 282, 7, 70, "Input",ExpressionUUID->"b0c18624-c559-46a6-aed3-586117c81b5c"],
+Cell[11829, 340, 1140, 31, 70, "Text",ExpressionUUID->"c97bf412-1632-4842-8e41-534517281e64"],
+Cell[12972, 373, 208, 3, 70, "Input",ExpressionUUID->"f4c33e3d-86a3-4259-930b-7db9630c822d"],
+Cell[13183, 378, 1279, 39, 70, "Text",ExpressionUUID->"9f5360f0-0d74-45ea-93a8-146cc467035d"],
+Cell[14465, 419, 93, 0, 70, "Section",ExpressionUUID->"2aa9d9dd-dfb3-42bb-b71b-12d623c156fb"],
+Cell[14561, 421, 3912, 72, 70, "Program",ExpressionUUID->"0308432f-ce50-4326-acf1-596b80581dae"],
+Cell[18476, 495, 847, 23, 70, "Text",ExpressionUUID->"e2a292e5-0d13-4403-bd4c-c4d0d45ca451"],
+Cell[19326, 520, 1751, 52, 70, "Text",ExpressionUUID->"ddd9b216-96c4-424a-9678-c3563fcb222d"],
+Cell[21080, 574, 315, 7, 70, "Input",ExpressionUUID->"5e40ea08-2b86-4509-bd7e-643cee6b4432"],
+Cell[21398, 583, 87, 0, 70, "Section",ExpressionUUID->"fa93b63a-993f-406a-9155-67dc0bb23f75"],
+Cell[21488, 585, 2536, 39, 70, "Program",ExpressionUUID->"cfa3bc31-8092-4e2c-b857-f68fdb9b44d1"],
+Cell[24027, 626, 1034, 30, 70, "Text",ExpressionUUID->"91272745-4866-474b-9aec-8356b17f5a27"],
+Cell[25064, 658, 191, 3, 70, "Input",ExpressionUUID->"d704f2eb-6bdf-4be2-b97f-79e103dbfde4"],
+Cell[25258, 663, 1506, 37, 70, "Text",ExpressionUUID->"a026498a-9fb2-4a29-9ddd-dd63e42b8b62"],
+Cell[26767, 702, 83, 0, 70, "Section",ExpressionUUID->"e29ae870-1dde-4ec3-b585-4683703f5db1"],
+Cell[26853, 704, 100, 0, 70, "Subsection",ExpressionUUID->"b97a561b-4c09-4904-b545-d94d19e959a6"],
+Cell[26956, 706, 438, 12, 70, "Text",ExpressionUUID->"3bd2ad92-789c-4df4-ab4a-c4bbafe3f6b5"],
+Cell[CellGroupData[{
+Cell[27419, 722, 88, 0, 70, "Subsubsection",ExpressionUUID->"fd8803d9-d810-4e5c-8b8a-fc53243177d0"],
+Cell[27510, 724, 340, 6, 70, "Input",ExpressionUUID->"46095c3e-3113-44d2-a4c2-383b9ff7ee2d"],
+Cell[27853, 732, 651, 18, 70, "Text",ExpressionUUID->"caba293b-4179-4337-b2cf-f133be922810"]
+}, Closed]],
+Cell[28519, 753, 104, 0, 70, "Subsection",ExpressionUUID->"7031a7c7-0f3e-4e51-aa9b-182f20544624"],
+Cell[28626, 755, 151, 2, 70, "Text",ExpressionUUID->"c1551f51-445a-4fb0-be90-e94899552896"],
+Cell[CellGroupData[{
+Cell[28802, 761, 88, 0, 70, "Subsubsection",ExpressionUUID->"05db6534-4ab9-4464-9f82-52f1b0c760d1"],
+Cell[28893, 763, 281, 4, 70, "Input",ExpressionUUID->"b3f0d461-746a-4abd-92a4-4385478ca688"],
+Cell[29177, 769, 444, 16, 70, "Text",ExpressionUUID->"74aa7468-a6a7-42b7-a152-ff4ea08fd047"]
+}, Closed]],
+Cell[29636, 788, 113, 0, 70, "Subsection",ExpressionUUID->"e2673a13-2b8a-46e7-ad43-c26f98d503c0"],
+Cell[29752, 790, 257, 7, 70, "Text",ExpressionUUID->"663cda2c-d87b-48c8-af12-97f92a4ad3b3"],
+Cell[CellGroupData[{
+Cell[30034, 801, 88, 0, 70, "Subsubsection",ExpressionUUID->"1b37c72b-2d05-4336-8e58-6fc25ad8925d"],
+Cell[30125, 803, 147, 2, 70, "Input",ExpressionUUID->"71948a8c-820f-40ec-b189-08f419652636"],
+Cell[30275, 807, 446, 12, 70, "Text",ExpressionUUID->"2a6c1c18-0ab4-4773-9249-2e387e40e1c0"]
+}, Closed]]
+}
+]
+*)
+
+(* End of internal cache information *)

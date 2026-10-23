@@ -11,6 +11,8 @@ dimensionless β functions → FlowRG (Julia) equations file.
   `math -script examples/runNotebook.wl examples/KPZ.nb`.
 - Benchmarks: `math -script benchmarks/<Name>/run.wl` (exit 0 = all pass); notebook: edit `benchmarks/<Name>/makeNotebook.wl`,
   run it, check with `examples/runNotebook.wl benchmarks/<Name>/<Name>.nb`.
+- Lessons: edit `lessons/src/NN-Name.md`, then `math -script lessons/makeLessons.wl`; check one headless with
+  `math -script examples/runNotebook.wl lessons/NN-Name.nb`.
 
 ## Layout
 - `FRGscalarMSR.wl` - loader; `$FRGModules` lists `Kernel/*.wl` in load order (each module uses only those above it).
@@ -28,6 +30,8 @@ dimensionless β functions → FlowRG (Julia) equations file.
   notebooks' results used as references (`legacy/README.md` maps the old notation).
 - `benchmarks/` - literature benchmarks, one folder each (`README.md` is the index): `README.md`, `Reference.wl` (the paper's
   equations), `Pipeline.wl`, `Checks.wl` (`ksChecks[]`-style records, no harness dependency), `run.wl`, `makeNotebook.wl` → `.nb`.
+- `lessons/` - one teaching notebook per module (`README.md`: index, source format): sources `src/NN-Name.md` → `makeLessons.wl`
+  → `NN-Name.nb` + `Glossary.nb`; `LessonSetup.wl` (`lessonUpTo[stage]` rebuilds KPZ, `showFailure[expr]`).
 
 ## Where to change X
 - New module: `Kernel/X.wl` + its name in `$FRGModules` + a section in `docs/MODULES.md` + `tests/unit/XTest.wl`.
@@ -37,6 +41,8 @@ dimensionless β functions → FlowRG (Julia) equations file.
 - FlowRG file format: `Kernel/JuliaExport.wl`; the contract is `~/Physics/Sources/FlowRG.jl/docs/equations-interface.md`
   (other repo: changes there go through a `docs/handoff/` spec).
 - A design change: record it in `design/` (decision + reason) and update `docs/MODULES.md` in the same change.
+- A module's behaviour or a quoted symbol: update its lesson `lessons/src/NN-Name.md` and rebuild (the build fails on a missing
+  quoted symbol).
 
 ## Conventions
 - Every check is a named assertion that aborts with a red FAIL block - the user reads cards, not code (grey-box modules).

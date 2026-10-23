@@ -1,0 +1,824 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[     31841,        815]
+NotebookOptionsPosition[     27088,        750]
+NotebookOutlinePosition[     27425,        765]
+CellTagsIndexPosition[     27382,        762]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["Lesson 16 - Tests", "Title",ExpressionUUID->"8ca57b2f-30b8-43d0-b5ef-d8bf3f1c3805"],
+
+Cell[TextData[{
+ "The library's checks run inside the pipeline, on your model, every time. \
+The test suite checks the library itself: that each module gives known \
+results on known models, and that each check fires when it should. This \
+lesson reads the harness ",
+ StyleBox["tests/runTests.wl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and the way tests are written, and points to the benchmarks."
+}], "Text",ExpressionUUID->"1815e5f0-6bf9-4a17-a485-fbd40387509b"],
+
+Cell["\<\
+Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]]\
+\>", "Input",ExpressionUUID->"8ea274bf-72bc-4232-a4fd-93c57c768ede"],
+
+Cell["1. Running the suite", "Section",ExpressionUUID->"b7ba684a-230b-44c5-9899-f6c4873b9293"],
+
+Cell[TextData[{
+ "From a shell: ",
+ StyleBox["math -script tests/runTests.wl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " runs every file (exit code 0 means all pass); ",
+ StyleBox["--only TheoryTest",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " runs the files whose name contains the string; ",
+ StyleBox["--verbose",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " shows the cards and FAIL blocks; ",
+ StyleBox["--require-julia",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " turns the SKIPs of the Julia tests into failures. From a notebook, a \
+separate kernel can run it:"
+}], "Text",ExpressionUUID->"e7f0e147-3a14-43e4-84c8-67ecb6bcfc29"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: RunProcess",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["RunProcess[{\"cmd\", \"arg\", ...}, \"StandardOutput\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " runs an external program and returns what it printed.",
+ "\n\n",
+ "The tests run in a fresh kernel, as a script, so they cannot disturb this \
+notebook's kernel, and the ",
+ StyleBox["Exit[...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " at the end of the harness ends that process only."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"72688871-b1b0-4fa1-8643-45f15905daa6"],
+
+Cell["\<\
+RunProcess[{\"math\", \"-script\", FileNameJoin[{$FRGRoot, \"tests\", \
+\"runTests.wl\"}], \"--only\", \"TheoryTest\"}, \"StandardOutput\"]\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"9b3ee2b5-886d-426b-a59f-928689bfe4e6"],
+
+Cell["2. The harness", "Section",ExpressionUUID->"1161d35d-6fe2-42de-8725-9576e4869915"],
+
+Cell["\<\
+(* tests/runTests.wl:8-13 *)
+$HistoryLength = 0;
+testRoot = DirectoryName[$InputFileName];
+Get[FileNameJoin[{ParentDirectory[testRoot], \"FRGscalarMSR.wl\"}]];
+verboseQ = MemberQ[$CommandLine, \"--verbose\"];
+requireJuliaQ = MemberQ[$CommandLine, \"--require-julia\"];
+$FRGExitOnFail = False;   (* failed checks abort (caught below) instead of \
+exiting the kernel *)\
+\>", "Program",ExpressionUUID->"ff7ede07-479a-4aa8-a44a-d289a69f2231"],
+
+Cell[TextData[{
+ StyleBox["$FRGExitOnFail = False",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " turns every failed check into an ",
+ StyleBox["Abort[]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " instead of ",
+ StyleBox["Exit[2]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["Abort, CheckAbort, Exit",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "), so the harness can catch failures and go on. ",
+ StyleBox["$HistoryLength = 0",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stops the kernel from remembering every output (",
+ StyleBox["Out[n]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "), which matters with million-leaf expressions."
+}], "Text",ExpressionUUID->"8f24a540-d7b3-4858-a574-502efd5418a9"],
+
+Cell["\<\
+(* tests/runTests.wl:16-19 *)
+SetAttributes[quiet, HoldAll];
+quiet[e_] := If[verboseQ, e, Block[{Print}, e]];
+record[name_, ok_, msg_] := (AppendTo[results, {name, TrueQ[ok]}];
+   If[! TrueQ[ok] || verboseQ, Print[If[TrueQ[ok], \"  ok    \", \"  FAIL  \
+\"], name, If[TrueQ[ok], \"\", \"   \" <> msg]]]);\
+\>", "Program",ExpressionUUID->"9bfc8fb4-945d-4d85-ad10-21666cf1eff1"],
+
+Cell["\<\
+(* tests/runTests.wl:21-23 *)
+(* skip[name, why]: a test that cannot run here (julia, FlowRG missing); a \
+failure with --require-julia *)
+skip[name_String, why_String] := (AppendTo[skipped, name]; Print[\"  SKIP  \
+\", name, \"   \", why];
+   If[requireJuliaQ, record[name, False, \"skipped with --require-julia: \" \
+<> why]]);\
+\>", "Program",ExpressionUUID->"83fda6a9-c115-4c25-9f72-6b86e090e314"],
+
+Cell["\<\
+(* tests/runTests.wl:25-28 *)
+(* test[name, actual, expected]: actual must evaluate (without aborting) to \
+expected *)
+SetAttributes[test, HoldRest];
+test[name_String, actual_, expected_] := Module[{a = \
+CheckAbort[quiet[actual], $Aborted], e = expected},
+   record[name, a === e, \"got \" <> ToString[Short[InputForm[a], 3]] <> \", \
+expected \" <> ToString[Short[InputForm[e], 3]]]];\
+\>", "Program",ExpressionUUID->"6efa1be8-39e7-4228-9b42-84dfb537e56d"],
+
+Cell["\<\
+(* tests/runTests.wl:30-36 *)
+(* expectFail[name, expr, check]: expr must abort through the library check \
+named check *)
+SetAttributes[expectFail, HoldRest];
+expectFail[name_String, expr_, check_String] := Module[{r},
+   $FRGLastFailure = None;
+   r = CheckAbort[quiet[expr]; \"returned\", \"aborted\"];
+   record[name, r === \"aborted\" && $FRGLastFailure === check,
+    \"outcome \" <> r <> \", failed check \" <> ToString[$FRGLastFailure] <> \
+\" (expected \" <> check <> \")\"]];\
+\>", "Program",ExpressionUUID->"c8d9d8d1-0dc9-4614-ad76-31f3f20be08d"],
+
+Cell[TextData[{
+ StyleBox["quiet[e]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " hides the cards while e runs, unless ",
+ StyleBox["--verbose",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["Block[{Print}, e]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", as ",
+ StyleBox["lessonUpTo",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " does)."
+}], "Item",ExpressionUUID->"f5c6ca98-757d-4672-89c4-623fca003b1e"],
+
+Cell[TextData[{
+ StyleBox["test[name, actual, expected]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " evaluates ",
+ StyleBox["actual",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " under ",
+ StyleBox["CheckAbort",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and compares it with ",
+ StyleBox["expected",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " by ",
+ StyleBox["===",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["SameQ and Equal",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 01)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "): exact structural identity, no tolerance."
+}], "Item",ExpressionUUID->"7004f60a-f7a7-407b-b890-2fb9a3767130"],
+
+Cell[TextData[{
+ StyleBox["expectFail[name, expr, check]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " passes only if ",
+ StyleBox["expr",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " aborts, ",
+ StyleBox["and",
+  FontSlant->Italic],
+ " the check that stopped it is the named one (",
+ StyleBox["$FRGLastFailure",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "). An abort from another check is a failure: a test of ",
+ StyleBox["Theory.N",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " that fails on ",
+ StyleBox["Theory.scalars.reserved",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is not testing what it says."
+}], "Item",ExpressionUUID->"d0cae907-757b-4759-b8e7-f1ce0a1780a6"],
+
+Cell[TextData[{
+ StyleBox["skip[name, why]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " records a test that cannot run here (no Julia, no FlowRG)."
+}], "Item",ExpressionUUID->"e34e66a4-b450-435f-9bde-7d6db5d9046d"],
+
+Cell[TextData[{
+ "Both take their arguments held (",
+ StyleBox["HoldRest",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "), so the expression is evaluated inside ",
+ StyleBox["CheckAbort",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", not before the call (",
+ StyleBox["Hold attributes",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ")."
+}], "Text",ExpressionUUID->"8532ba69-688a-40ec-8dc0-06c1478657aa"],
+
+Cell["\<\
+(* tests/runTests.wl:38-51 *)
+testFiles = Join[FileNames[\"*Test.wl\", FileNameJoin[{testRoot, \"unit\"}]], \
+FileNames[\"*.wl\", FileNameJoin[{testRoot, \"acceptance\"}]]];
+(* --only Name: run only the test files whose base name contains Name (e.g. \
+--only Dimensions, --only KPZ) *)
+With[{i = FirstPosition[$CommandLine, \"--only\"]}, If[! MissingQ[i] && \
+Length[$CommandLine] > First[i],
+   testFiles = Select[testFiles, StringContainsQ[FileBaseName[#], \
+$CommandLine[[First[i] + 1]]] &]]];
+Do[Module[{n0 = Length[results]},
+   Print[\"--- \", FileBaseName[f]];
+   CheckAbort[Get[f], record[FileBaseName[f] <> \" (file aborted)\", False, \
+\"uncaught abort\"]];
+   Print[\"    \", Count[Drop[results, n0], {_, True}], \"/\", \
+Length[results] - n0, \" passed\"]], {f, testFiles}];
+
+nFail = Count[results, {_, False}];
+Print[\"=== \", Length[results] - nFail, \"/\", Length[results], \" tests \
+passed\",
+  If[nFail == 0, \"\", \"; FAILED: \" <> StringRiffle[Cases[results, {n_, \
+False} :> n], \", \"]],
+  If[skipped === {}, \"\", \"; \" <> ToString[Length[skipped]] <> \" \
+SKIPPED\"], \" ===\"];
+Exit[If[nFail == 0 && results =!= {}, 0, 1]];\
+\>", "Program",ExpressionUUID->"92e315f8-b90d-4798-a7eb-19bb0e023e9f"],
+
+Cell[TextData[{
+ "The test files are plain ",
+ StyleBox[".wl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " files read with ",
+ StyleBox["Get",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["Get",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ") one after the other, in alphabetical order, in one kernel: they share \
+global variables. Heavy setups (",
+ StyleBox["tests/reference/ShallowWaterSetup.wl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", about 85 s) are therefore built once, behind ",
+ StyleBox["If[! ValueQ[...]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", and reused by every file that needs them (CLAUDE.md, Gotchas)."
+}], "Text",ExpressionUUID->"305f8054-21ea-480f-b380-da565f31efee"],
+
+Cell["3. A unit test file", "Section",ExpressionUUID->"8411d2ec-d1a4-4d85-9474-0ea647232c2f"],
+
+Cell["\<\
+(* tests/unit/TheoryTest.wl:1-34 *)
+(* ::Package:: *)
+
+(* Theory: response fields, field order, collisions *)
+
+Module[{th = quiet[DefineTheory[\"Scalars\" -> {H, Psi}, \"Dimension\" -> \
+Dim]]},
+  test[\"two scalars: field order\", th[\"Fields\"], {H, Hbar, Psi, Psibar}];
+  test[\"two scalars: response fields\", th[\"ResponseFields\"], {Hbar, \
+Psibar}];
+  test[\"response field of Psi\", ResponseField[th, Psi], Psibar];
+  test[\"stage key\", th[\"Stage\"], \"Theory\"]];
+
+test[\"one scalar (KPZ)\", quiet[DefineTheory[\"Scalars\" -> {h}, \"Dimension\
+\" -> Dim]][\"Fields\"], {h, hbar}];
+
+expectFail[\"N = 3 aborts (deg Delta <= 2)\", DefineTheory[\"Scalars\" -> \
+{f1, f2, f3}, \"Dimension\" -> Dim], \"Theory.N\"];
+expectFail[\"reserved name k\", DefineTheory[\"Scalars\" -> {k}, \
+\"Dimension\" -> Dim], \"Theory.scalars.reserved\"];
+expectFail[\"library name collision\", DefineTheory[\"Scalars\" -> {scal}, \
+\"Dimension\" -> Dim], \"Theory.scalars.library\"];
+expectFail[\"System symbol\", DefineTheory[\"Scalars\" -> {Pi}, \"Dimension\" \
+-> Dim], \"Theory.scalars.system\"];
+hh = 3;
+expectFail[\"scalar with a value\", DefineTheory[\"Scalars\" -> {hh}, \
+\"Dimension\" -> Dim], \"Theory.scalars.symbols\"];
+ClearAll[hh];
+hf[x_] := x;
+expectFail[\"scalar with a definition\", DefineTheory[\"Scalars\" -> {hf}, \
+\"Dimension\" -> Dim], \"Theory.scalars.values\"];
+ClearAll[hf];
+expectFail[\"missing dimension\", DefineTheory[\"Scalars\" -> {H}], \
+\"Theory.dimension\"];
+expectFail[\"dimension equal to a field\", DefineTheory[\"Scalars\" -> {H}, \
+\"Dimension\" -> Hbar], \"Theory.dimensionDistinct\"];
+expectFail[\"duplicate scalars\", DefineTheory[\"Scalars\" -> {H, H}, \
+\"Dimension\" -> Dim], \"Theory.scalars.duplicates\"];
+expectFail[\"unknown option\", DefineTheory[\"Scalars\" -> {H}, \"Dimension\" \
+-> Dim, \"Foo\" -> 1], \"Theory.options\"];
+
+(* declared dimension (jac, design/LEVICIVITA.md) *)
+test[\"FixedDimension[2] accepted: the stage stores 2\", \
+quiet[DefineTheory[\"Scalars\" -> {H}, \"Dimension\" -> \
+FixedDimension[2]]][\"Dimension\"], 2];
+expectFail[\"FixedDimension[3] aborts\", DefineTheory[\"Scalars\" -> {H}, \
+\"Dimension\" -> FixedDimension[3]], \"Theory.dimension\"];
+expectFail[\"a literal 2 aborts\", DefineTheory[\"Scalars\" -> {H}, \
+\"Dimension\" -> 2], \"Theory.dimension\"];
+Dim = 2;
+expectFail[\"a leftover Dim = 2 still aborts\", DefineTheory[\"Scalars\" -> \
+{H}, \"Dimension\" -> Dim], \"Theory.dimension\"];
+ClearAll[Dim];\
+\>", "Program",ExpressionUUID->"1689fb03-851a-46f3-8e80-a22e2829708a"],
+
+Cell[TextData[{
+ "Each check of lesson 01 has an ",
+ StyleBox["expectFail",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". That is the rule of the library (CLAUDE.md, Where to change X): a new \
+check is a named ",
+ StyleBox["FRGAssert",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "/",
+ StyleBox["assertCheck",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", and it comes with an ",
+ StyleBox["expectFail[..., \"Module.check\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " test. A check that is never seen failing might never fail."
+}], "Text",ExpressionUUID->"2ae798a2-2c78-4f5d-9999-d7c5b8f524e4"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Tests that name the failure",
+  FontWeight->Bold],
+ "\n\n",
+ StyleBox["expectFail",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " compares the ",
+ StyleBox["name",
+  FontSlant->Italic],
+ " of the check that aborted, which is possible only because every check has \
+a unique name and records it in ",
+ StyleBox["$FRGLastFailure",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (lesson 00, section 3). The same names appear on the cards, in the FAIL \
+blocks, in ",
+ StyleBox["docs/MODULES.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and in the tests: one vocabulary for the user, the documentation and the \
+test suite. In the notebooks of these lessons, ",
+ StyleBox["showFailure",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " plays the same role as ",
+ StyleBox["expectFail",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ": it returns the name, so a cell can be checked by eye."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"6c09d4dd-38d1-4c56-8602-efae7bf76b2e"],
+
+Cell["4. Kinds of tests", "Section",ExpressionUUID->"39714bc8-d4c0-47f9-a86b-26156b2dfb63"],
+
+Cell[TextData[{
+ StyleBox["Unit tests",
+  FontWeight->Bold],
+ " (",
+ StyleBox["tests/unit/<Module>Test.wl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "): one file per module, small inputs, every check made to fail at least \
+once."
+}], "Item",ExpressionUUID->"5360c83e-5cee-4a1c-89e0-e078c5b91207"],
+
+Cell[TextData[{
+ StyleBox["Acceptance tests",
+  FontWeight->Bold],
+ " (",
+ StyleBox["tests/acceptance/",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "): whole models against independent results. Shallow water against the \
+original hand-derived script and the old notebooks (",
+ StyleBox["tests/reference/legacy/",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "); KPZ against Canet's flow (",
+ StyleBox["KPZ.wl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", the computation of lesson 11's last exercise); the Julia round trip (",
+ StyleBox["tests/reference/JuliaRoundTrip.wl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", lesson 15)."
+}], "Item",ExpressionUUID->"d5697d00-9157-4f77-a858-8c56d75f96ee"],
+
+Cell[TextData[{
+ StyleBox["Regression tests",
+  FontWeight->Bold],
+ ": ",
+ StyleBox["ProjectionRegression.wl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " keeps the old projection operator (",
+ StyleBox["tests/reference/OldProjection.wl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ") only to require that the new one agrees with it (lesson 08)."
+}], "Item",ExpressionUUID->"581d34e6-9258-479b-9af0-4253f575ecab"],
+
+Cell[TextData[{
+ StyleBox["Benchmarks",
+  FontWeight->Bold],
+ " (",
+ StyleBox["benchmarks/",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "): published results reproduced with the library, one folder each, with the \
+paper's equations (",
+ StyleBox["Reference.wl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "), the pipeline (",
+ StyleBox["Pipeline.wl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "), the comparisons (",
+ StyleBox["Checks.wl",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "), a headless driver and a notebook. Each has a suite hook in ",
+ StyleBox["tests/acceptance/",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " that only wraps its checks in ",
+ StyleBox["test[...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ":"
+}], "Item",ExpressionUUID->"84a5fc19-fa97-4cbe-8909-013650a3431e"],
+
+Cell["\<\
+(* tests/acceptance/KuramotoSivashinsky.wl:1-15 *)
+(* ::Package:: *)
+
+(* Suite hook of benchmarks/KuramotoSivashinsky (Gosteva, Wschebor, Canet, \
+arXiv:2607.15784): the library's KS flows equal the
+   paper's Eqs. (34)-(37) exactly, including the p^4 projection (d_s tau), \
+plus the time-reversal identities at d = 1. The benchmark's
+   logic lives in benchmarks/KuramotoSivashinsky; this file only wraps its \
+checks in test[...]. *)
+
+ksBenchDir = FileNameJoin[{ParentDirectory[testRoot], \"benchmarks\", \
+\"KuramotoSivashinsky\"}];
+quiet[Get[FileNameJoin[{ksBenchDir, \"Pipeline.wl\"}]]];
+Get[FileNameJoin[{ksBenchDir, #}]] & /@ {\"Reference.wl\", \"Checks.wl\"};
+
+Scan[test[\"KS benchmark: \" <> #Name <> \" [\" <> #Paper <> \"]\", #Pass, \
+True] &, ksChecks[]];
+
+(* the comparison discriminates: a 1/100 change of one coefficient of Eq. \
+(37) (3 hn^4 sd -> 303/100 hn^4 sd) is detected *)
+test[\"KS benchmark: a perturbed Eq. (37) is rejected\",
+  ExactlyZeroQ[ksLibrary[\"tau\"] - ((ksRef[\"tau\"] + Gh/(12 (Fh + Th qh^2 + \
+rnu[qh^2])^2 qh^4) (3/100) sD[qh^2]) /. ksSRules)], False];\
+\>", "Program",ExpressionUUID->"56267276-aa57-4d25-9f92-5c1d26f2e07f"],
+
+Cell[TextData[{
+ "The last test is worth copying in any comparison: it perturbs the reference \
+by 1% and requires the comparison to ",
+ StyleBox["fail",
+  FontSlant->Italic],
+ ". A comparison that cannot fail tests nothing."
+}], "Text",ExpressionUUID->"1b2e2fe7-6c45-4267-b72d-3b57705249f1"],
+
+Cell["Exercises", "Section",ExpressionUUID->"f19eca0c-0acb-436e-b20b-41be81ad529e"],
+
+Cell["Exercise: Your own expectFail", "Subsection",ExpressionUUID->"71fd5e35-0c5f-467f-b0a9-aced85fd510a"],
+
+Cell[TextData[{
+ "Without the harness, write the equivalent of ",
+ StyleBox["expectFail[\"N = 3 aborts\", DefineTheory[\"Scalars\" -> {f1, f2, \
+f3}, \"Dimension\" -> Dim], \"Theory.N\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " with ",
+ StyleBox["showFailure",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", returning ",
+ StyleBox["True",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " or ",
+ StyleBox["False",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",ExpressionUUID->"6bd0a173-03cc-4adb-a60d-dab1788e07c8"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"699a17df-3d6d-46d7-bd90-e66d46546ce4"],
+
+Cell["\<\
+showFailure[DefineTheory[\"Scalars\" -> {f1, f2, f3}, \"Dimension\" -> Dim]] \
+=== \"Theory.N\"\
+\>", "Input",ExpressionUUID->"84de1b4f-85fc-4b40-8faa-b8132dcd569e"]
+}, Closed]],
+
+Cell["Exercise: A test that tests the wrong thing", "Subsection",ExpressionUUID->"77a4e303-0df2-498b-a61e-2e39318e0d5d"],
+
+Cell[TextData[{
+ "You want to test the reserved-name check, and write the scalars as ",
+ StyleBox["{k, f2, f3}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Compare the result of ",
+ StyleBox["showFailure",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " with ",
+ StyleBox["\"Theory.scalars.reserved\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Why is it ",
+ StyleBox["False",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", and why is that the right answer?"
+}], "Text",ExpressionUUID->"e8e1249b-1e37-49f6-9a9b-cf34d2588853"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"0fbe50e8-ac0c-420f-85e6-90d622f908be"],
+
+Cell["\<\
+showFailure[DefineTheory[\"Scalars\" -> {k, f2, f3}, \"Dimension\" -> Dim]] \
+=== \"Theory.scalars.reserved\"\
+\>", "Input",ExpressionUUID->"ec128e59-cf6e-4cc2-958c-0bf61fbaa743"],
+
+Cell[TextData[{
+ StyleBox["False",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ": ",
+ StyleBox["DefineTheory",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " checks the number of scalars before their names, so ",
+ StyleBox["Theory.N",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " fires first. An ",
+ StyleBox["expectFail",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " written this way would fail and reveal that the test does not exercise the \
+check it is named after; a test that only asked \"did it abort?\" would pass \
+and test nothing about reserved names."
+}], "Text",ExpressionUUID->"7ae5a6ff-ff0e-477f-80b9-525f37a49cf3"]
+}, Closed]],
+
+Cell["Exercise: The Julia round trip", "Subsection",ExpressionUUID->"ed9bf43a-5848-475e-82e1-de6ed8978604"],
+
+Cell[TextData[{
+ "Run the KPZ acceptance files with ",
+ StyleBox["--only KPZ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " in a separate kernel. Which tests are about Julia, and do they run or SKIP \
+on this machine?"
+}], "Text",ExpressionUUID->"39bc5c30-1255-4cb7-a331-538f04fc1077"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"73a6ce44-7acf-4e0b-bbfa-9ebd735722c0"],
+
+Cell["\<\
+StringCases[RunProcess[{\"math\", \"-script\", FileNameJoin[{$FRGRoot, \
+\"tests\", \"runTests.wl\"}], \"--only\", \"KPZ\"}, \"StandardOutput\"], \
+(\"SKIP\" | \"===\") ~~ Except[\"\\n\"] ..]\
+\>", "Input",ExpressionUUID->"e7521dd2-7c1a-40c5-bab6-2a20d7dd90c7"],
+
+Cell["\<\
+With Julia and FlowRG installed, the round-trip tests run and count among the \
+passed ones; otherwise they print SKIP with the reason.\
+\>", "Text",ExpressionUUID->"318ccbd7-e8d6-42a8-be5d-a119873ce4e2"]
+}, Closed]]
+},
+CellContext->Notebook,
+FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"68ca8ccf-8ceb-4f4a-8543-fab9318d86bc"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 89, 0, 70, "Title",ExpressionUUID->"8ca57b2f-30b8-43d0-b5ef-d8bf3f1c3805"],
+Cell[646, 22, 534, 10, 70, "Text",ExpressionUUID->"1815e5f0-6bf9-4a17-a485-fbd40387509b"],
+Cell[1183, 34, 199, 3, 70, "Input",ExpressionUUID->"8ea274bf-72bc-4232-a4fd-93c57c768ede"],
+Cell[1385, 39, 94, 0, 70, "Section",ExpressionUUID->"b7ba684a-230b-44c5-9899-f6c4873b9293"],
+Cell[1482, 41, 891, 23, 70, "Text",ExpressionUUID->"e7f0e147-3a14-43e4-84c8-67ecb6bcfc29"],
+Cell[2376, 66, 792, 21, 70, "Text",ExpressionUUID->"72688871-b1b0-4fa1-8643-45f15905daa6"],
+Cell[3171, 89, 334, 7, 70, "Input",ExpressionUUID->"9b3ee2b5-886d-426b-a59f-928689bfe4e6"],
+Cell[3508, 98, 88, 0, 70, "Section",ExpressionUUID->"1161d35d-6fe2-42de-8725-9576e4869915"],
+Cell[3599, 100, 449, 9, 70, "Program",ExpressionUUID->"ff7ede07-479a-4aa8-a44a-d289a69f2231"],
+Cell[4051, 111, 1181, 34, 70, "Text",ExpressionUUID->"8f24a540-d7b3-4858-a574-502efd5418a9"],
+Cell[5235, 147, 386, 7, 70, "Program",ExpressionUUID->"9bfc8fb4-945d-4d85-ad10-21666cf1eff1"],
+Cell[5624, 156, 411, 8, 70, "Program",ExpressionUUID->"83fda6a9-c115-4c25-9f72-6b86e090e314"],
+Cell[6038, 166, 469, 9, 70, "Program",ExpressionUUID->"6efa1be8-39e7-4228-9b42-84dfb537e56d"],
+Cell[6510, 177, 567, 11, 70, "Program",ExpressionUUID->"c8d9d8d1-0dc9-4614-ad76-31f3f20be08d"],
+Cell[7080, 190, 669, 21, 70, "Item",ExpressionUUID->"f5c6ca98-757d-4672-89c4-623fca003b1e"],
+Cell[7752, 213, 1065, 34, 70, "Item",ExpressionUUID->"7004f60a-f7a7-407b-b890-2fb9a3767130"],
+Cell[8820, 249, 988, 29, 70, "Item",ExpressionUUID->"d0cae907-757b-4759-b8e7-f1ce0a1780a6"],
+Cell[9811, 280, 278, 6, 70, "Item",ExpressionUUID->"e34e66a4-b450-435f-9bde-7d6db5d9046d"],
+Cell[10092, 288, 673, 20, 70, "Text",ExpressionUUID->"8532ba69-688a-40ec-8dc0-06c1478657aa"],
+Cell[10768, 310, 1231, 25, 70, "Program",ExpressionUUID->"92e315f8-b90d-4798-a7eb-19bb0e023e9f"],
+Cell[12002, 337, 1111, 31, 70, "Text",ExpressionUUID->"305f8054-21ea-480f-b380-da565f31efee"],
+Cell[13116, 370, 93, 0, 70, "Section",ExpressionUUID->"8411d2ec-d1a4-4d85-9474-0ea647232c2f"],
+Cell[13212, 372, 2560, 54, 70, "Program",ExpressionUUID->"1689fb03-851a-46f3-8e80-a22e2829708a"],
+Cell[15775, 428, 846, 23, 70, "Text",ExpressionUUID->"2ae798a2-2c78-4f5d-9999-d7c5b8f524e4"],
+Cell[16624, 453, 1417, 39, 70, "Text",ExpressionUUID->"6c09d4dd-38d1-4c56-8602-efae7bf76b2e"],
+Cell[18044, 494, 91, 0, 70, "Section",ExpressionUUID->"39714bc8-d4c0-47f9-a86b-26156b2dfb63"],
+Cell[18138, 496, 361, 10, 70, "Item",ExpressionUUID->"5360c83e-5cee-4a1c-89e0-e078c5b91207"],
+Cell[18502, 508, 948, 25, 70, "Item",ExpressionUUID->"d5697d00-9157-4f77-a858-8c56d75f96ee"],
+Cell[19453, 535, 538, 14, 70, "Item",ExpressionUUID->"581d34e6-9258-479b-9af0-4253f575ecab"],
+Cell[19994, 551, 1168, 35, 70, "Item",ExpressionUUID->"84a5fc19-fa97-4cbe-8909-013650a3431e"],
+Cell[21165, 588, 1175, 24, 70, "Program",ExpressionUUID->"56267276-aa57-4d25-9f92-5c1d26f2e07f"],
+Cell[22343, 614, 292, 6, 70, "Text",ExpressionUUID->"1b2e2fe7-6c45-4267-b72d-3b57705249f1"],
+Cell[22638, 622, 83, 0, 70, "Section",ExpressionUUID->"f19eca0c-0acb-436e-b20b-41be81ad529e"],
+Cell[22724, 624, 106, 0, 70, "Subsection",ExpressionUUID->"71fd5e35-0c5f-467f-b0a9-aced85fd510a"],
+Cell[22833, 626, 775, 23, 70, "Text",ExpressionUUID->"6bd0a173-03cc-4adb-a60d-dab1788e07c8"],
+Cell[CellGroupData[{
+Cell[23633, 653, 88, 0, 70, "Subsubsection",ExpressionUUID->"699a17df-3d6d-46d7-bd90-e66d46546ce4"],
+Cell[23724, 655, 175, 3, 70, "Input",ExpressionUUID->"84de1b4f-85fc-4b40-8faa-b8132dcd569e"]
+}, Closed]],
+Cell[23914, 661, 120, 0, 70, "Subsection",ExpressionUUID->"77a4e303-0df2-498b-a61e-2e39318e0d5d"],
+Cell[24037, 663, 776, 22, 70, "Text",ExpressionUUID->"e8e1249b-1e37-49f6-9a9b-cf34d2588853"],
+Cell[CellGroupData[{
+Cell[24838, 689, 88, 0, 70, "Subsubsection",ExpressionUUID->"0fbe50e8-ac0c-420f-85e6-90d622f908be"],
+Cell[24929, 691, 189, 3, 70, "Input",ExpressionUUID->"ec128e59-cf6e-4cc2-958c-0bf61fbaa743"],
+Cell[25121, 696, 875, 23, 70, "Text",ExpressionUUID->"7ae5a6ff-ff0e-477f-80b9-525f37a49cf3"]
+}, Closed]],
+Cell[26011, 722, 107, 0, 70, "Subsection",ExpressionUUID->"ed9bf43a-5848-475e-82e1-de6ed8978604"],
+Cell[26121, 724, 347, 8, 70, "Text",ExpressionUUID->"39bc5c30-1255-4cb7-a331-538f04fc1077"],
+Cell[CellGroupData[{
+Cell[26493, 736, 88, 0, 70, "Subsubsection",ExpressionUUID->"73a6ce44-7acf-4e0b-bbfa-9ebd735722c0"],
+Cell[26584, 738, 271, 4, 70, "Input",ExpressionUUID->"e7521dd2-7c1a-40c5-bab6-2a20d7dd90c7"],
+Cell[26858, 744, 214, 3, 70, "Text",ExpressionUUID->"318ccbd7-e8d6-42a8-be5d-a119873ce4e2"]
+}, Closed]]
+}
+]
+*)
+
+(* End of internal cache information *)

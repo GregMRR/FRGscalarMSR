@@ -1,0 +1,800 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[     32410,        791]
+NotebookOptionsPosition[     27274,        722]
+NotebookOutlinePosition[     27611,        737]
+CellTagsIndexPosition[     27568,        734]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["Lesson 12 - Oracle and Stages", "Title",ExpressionUUID->"4ab53248-3ffd-4625-ba7a-5fa0e0786a39"],
+
+Cell[TextData[{
+ "Two tools that sit beside the pipeline rather than in it. ",
+ StyleBox["Oracle",
+  FontWeight->Bold],
+ " checks the assembled equations numerically, by a route that shares nothing \
+with Propagator, Projection, FrequencyIntegration and Assemble. ",
+ StyleBox["Stages",
+  FontWeight->Bold],
+ " saves any stage to disk and loads it back, refusing a file that is stale."
+}], "Text",ExpressionUUID->"04e5ece1-a8f3-4e83-bdaf-62175c95fb6a"],
+
+Cell["\<\
+Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
+equations = lessonUpTo[\"Equations\"];\
+\>", "Input",ExpressionUUID->"73b6604f-4fac-4823-b487-f89535ec74d0"],
+
+Cell["1. The oracle", "Section",ExpressionUUID->"b18cd628-ad1d-428e-987e-2332605e597e"],
+
+Cell[TextData[{
+ StyleBox["What it does.",
+  FontWeight->Bold],
+ " At one random point (couplings, ",
+ StyleBox["dsCoupling[c]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", k random; each shape a concrete function such as 1/(1 + y",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ") or e^{",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "y}; d = 2 and 3; an explicit loop momentum vector), it builds ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2 + R as a numerical matrix, inverts it, evaluates the loop trace of lesson \
+07, integrates it over ",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ " with ",
+ StyleBox["NIntegrate",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", and takes the frequency and momentum projections by finite differences. \
+The result must agree with the symbolic integrand at the same point."
+}], "Text",ExpressionUUID->"8b7451a3-e6ea-42cd-9563-6df3df3e2f5b"],
+
+Cell["oracle = RunOracle[equations, \"ZeroFlows\" -> True];", "Input",ExpressionUUID->"74347033-f2b0-4e8e-87f0-63da5ff53f4e"],
+
+Cell["\<\
+20 comparisons: 2 equations and 8 flows that must vanish, in d = 2 and d = 3. \
+One of them in detail:\
+\>", "Text",ExpressionUUID->"a77c3dbd-6c49-4b85-8e60-e543b629b850"],
+
+Cell["oracle[\"Results\"][[1]]", "Input",ExpressionUUID->"a4953069-2af2-48e2-9109-e91dc4ede525"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: A numerical oracle beside an exact \
+pipeline",
+  FontWeight->Bold],
+ "\n\n",
+ "Every symbolic module checks itself, but a check written by the same hand \
+as the code can share its blind spots. The oracle answers the question \"are \
+these equations right?\" by brute force: no atoms, no residues, no direction \
+averages, no compact forms, just numbers. Agreement to 10",
+ StyleBox["\:207b\.b2\:2070",
+  FontFamily->"Noto Sans"],
+ " at a random point of a rational function is as strong as evidence gets. \
+Its blind spot is stated on the card (ASSUMPTION ",
+ StyleBox["Oracle.scope",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "): it uses the same vertices and the same loop formula, so it cannot test \
+the normalisation of lesson 07. That is what the Canet comparison (lesson 11, \
+last exercise) is for."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"15ed6336-e6ed-4a0d-9b12-22a0193f8942"],
+
+Cell["2. How the oracle computes", "Section",ExpressionUUID->"1f7052b3-ee09-4bcd-ab38-b91d57c6672f"],
+
+Cell["\<\
+(* Kernel/Oracle.wl:19-20 *)
+(* concrete shapes for the numerical point, as in the script's randomPoint *)
+oracleShapes = {Function[y, 1/(1 + y^2)], Function[y, Exp[-y]], Function[y, \
+2/(2 + y)], Function[y, 1/(1 + y)], Function[y, 3/(3 + y^2)]};\
+\>", "Program",ExpressionUUID->"92a0f32d-fadd-45a1-95d1-496b6bb5b1c2"],
+
+Cell["\<\
+(* Kernel/Oracle.wl:22-28 *)
+oraclePoint[eqs_, seed_, d_] := Module[{cps = eqs[\"Couplings\"], dsc, pt},
+   dsc = dsCoupling /@ cps;
+   SeedRandom[seed];
+   pt = Join[Thread[cps -> RandomInteger[{1, 30}, Length[cps]]/17], \
+Thread[dsc -> RandomInteger[{-30, 30}, Length[dsc]]/17],
+     {eqs[\"Scale\"] -> RandomInteger[{10, 30}]/17, eqs[\"Dimension\"] -> d},
+     MapIndexed[#1 -> oracleShapes[[Mod[#2[[1]] - 1, Length[oracleShapes]] + \
+1]] &, eqs[\"Shapes\"]]];
+   pt];\
+\>", "Program",ExpressionUUID->"7fa25999-18b4-498a-a574-136115ea1497"],
+
+Cell[TextData[{
+ StyleBox["MapIndexed[f, list]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " calls ",
+ StyleBox["f[element, {position}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", so the i-th shape of your regulator gets the i-th concrete function (",
+ StyleBox["Mod",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " wraps around if there are more shapes than functions)."
+}], "Text",ExpressionUUID->"56a675c0-9990-4f7e-bf0e-94e6bb9df072"],
+
+Cell["\<\
+(* Kernel/Oracle.wl:75-95 *)
+      (* numeric Gamma2 + R as a polynomial in w, at momentum squared x2 *)
+      (* numerics per working precision wp: 40 digits (PrecisionGoal 22) for \
+n = 0 as before; more for n >= 1, where 2n-th
+         differences at h = 10^-5 eat 10 n digits (reviews E3, E15: the \
+precision is part of every memo key) *)
+      mat[wp_] := mat[wp] = N[(Gamma2Matrix[v, wO, xO] /. scal[xO, xO] -> \
+x2O) + RegulatorMatrix[reg, x2O] /. pt, wp + 10];
+      gNum[w_, x2_, wp_] := Inverse[mat[wp] /. {wO -> w, x2O -> x2}];
+      vecs = {qO -> qVec, pO -> pVecO};
+      dot[e_] := e /. {scal[a_, b_] :> ((a /. vecs) . (b /. vecs)), wedge[a_, \
+b_] :> wedgeN[a /. vecs, b /. vecs]};
+      g3[i_, {nu_, p_}, {w_, q_}, wp_] := g3[i, {nu, p}, {w, q}, wp] = \
+N[dot[Gamma3Matrix[v, i, {nu, p}, {w, q}]] /. pt, wp + 10];
+      g4[a_, b_, wp_] := g4[a, b, wp] = N[dot[Table[VertexValue[v, {a, b, c, \
+e}, {{nuO, pO}, {-nuO, -pO}, {wO, qO}}], {c, fields}, {e, fields}]] /. pt, wp \
++ 10];
+      dsr[wp_] := dsr[wp] = N[DsRegulatorMatrix[reg, q2] /. pt, wp + 10];
+      (* the loop at external (nu, pVec), integrated over w: the same trace \
+formula as Loops *)
+      fLoop[{a_, b_}, nu_, pVec_, {wp_, pg_}] := memo[{a, b}, nu, pVec, {wp, \
+pg}] = Module[{g0, gm, tr},
+         g0 = gNum[wO, q2, wp]; gm = gNum[wO + nu, (pVec + qVec) . (pVec + \
+qVec), wp];
+         tr = Tr[dsr[wp] . g0 . (g3[a, {nuO, pO}, {wO, qO}, wp] /. {nuO -> \
+nu, pVecO -> pVec}) . gm .
+             (g3[b, {-nuO, -pO}, {wO + nuO, pO + qO}, wp] /. {nuO -> nu, \
+pVecO -> pVec}) . g0];
+         If[hasG4, tr = tr - Tr[dsr[wp] . g0 . (g4[a, b, wp] /. {nuO -> nu, \
+pVecO -> pVec}) . g0]/2];
+         (* a rational function of w with numeric coefficients; AccuracyGoal \
+stops the search on integrands that vanish *)
+         tr = Together[tr/(2 Pi)];
+         If[Chop[tr, 10^-(wp - 5)] === 0, 0,
+         Quiet[NIntegrate[tr, {wO, -Infinity, -10, 0, 10, Infinity}, \
+WorkingPrecision -> wp, PrecisionGoal -> pg, AccuracyGoal -> wp - 8, \
+MaxRecursion -> 30],
+          {NIntegrate::izero, NIntegrate::precw}]]];\
+\>", "Program",ExpressionUUID->"b72f857e-eb1c-4176-9137-46415a30b0ab"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Arbitrary precision",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["N[x, n]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " gives n digits, in software arithmetic that tracks its own precision; ",
+ StyleBox["Chop[x, eps]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " replaces numbers smaller than eps by 0.",
+ "\n\n",
+ "Machine numbers have about 16 digits. The finite differences of the oracle, \
+with h = 10",
+ StyleBox["\:207b\:2075",
+  FontFamily->"Noto Sans"],
+ ", lose about 10 digits per second derivative, so every number is computed \
+with 40 or more digits: ",
+ StyleBox["N[..., wp + 10]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " for the matrices, ",
+ StyleBox["WorkingPrecision -> wp",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " for the integral. ",
+ StyleBox["Inverse[m]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " inverts a numerical (or symbolic) matrix."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"a6544fd8-6991-4a3c-acbf-a42339e22fdb"],
+
+Cell["\<\
+{N[Pi, 30], Chop[10.^-20 + 1. - 1.], Inverse[{{1, 2}, {3, 4}}]}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"4d73049d-117d-49e1-9385-492003ad98f0"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: NIntegrate",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["NIntegrate[f, {x, a, b}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " integrates numerically; ",
+ StyleBox["PrecisionGoal",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["AccuracyGoal",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " set the relative and absolute target, ",
+ StyleBox["WorkingPrecision",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " the digits used.",
+ "\n\n",
+ StyleBox["{wO, -Infinity, -10, 0, 10, Infinity}",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " splits the real axis at the given points, which helps the integrator. ",
+ StyleBox["AccuracyGoal -> wp - 8",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " lets it stop on integrands that vanish, where a relative goal could never \
+be met. ",
+ StyleBox["Quiet[..., {NIntegrate::izero, NIntegrate::precw}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["Check and Quiet",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ") silences two expected messages and no others."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"6465dcc1-17ac-4b56-9270-b29a6c5720fb"],
+
+Cell[TextData[{
+ "The memo keys of ",
+ StyleBox["mat",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["g3",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", ",
+ StyleBox["dsr",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["fLoop",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " include the working precision (",
+ StyleBox["Memoization",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "): a value computed with 40 digits is never reused where 60 are needed \
+(review E15)."
+}], "Text",ExpressionUUID->"ab7c1df6-54fd-4ba3-9701-d893ac295f2f"],
+
+Cell["\<\
+(* Kernel/Oracle.wl:32-35 *)
+(* finite-difference stencils {shift, weight} of d^m/dx^m at 0 *)
+stencil[0, h_] := {{0, 1}};
+stencil[1, h_] := {{h, 1/(2 h)}, {-h, -1/(2 h)}};
+stencil[2, h_] := {{h, 1/h^2}, {0, -2/h^2}, {-h, 1/h^2}};\
+\>", "Program",ExpressionUUID->"f3862559-6b61-4f99-bce3-5b77937cd97b"],
+
+Cell["\<\
+(* Kernel/Oracle.wl:37-43 *)
+(* (Laplacian_p)^n at p = 0 by nested central second differences over \
+direction tuples (c1, ..., cn), and its normalisation
+   N_n = (Laplacian)^n (p^2)^n = 4^n n! (d/2)_n (written here independently \
+of Projection). For n >= 1, Richardson extrapolation
+   (h, h/2) removes the O(h^2) error (review E19; at n = 1 it keeps the \
+relative error below the tolerance when the coefficient is small). f is a \
+function of the explicit d-vector p. *)
+oracleLapNorm[n_, d_] := 4^n n! Pochhammer[d/2, n];
+oracleLapStencil[f_, d_, n_, h_] := With[{units = IdentityMatrix[d], st = \
+stencil[2, h]},
+   Total[Flatten[Table[Times @@ sh[[All, 2]] f[ConstantArray[0, d] + \
+Sum[sh[[i, 1]] units[[cs[[i]]]], {i, n}]], {cs, Tuples[Range[d], n]}, {sh, \
+Tuples[st, n]}]]]];
+oracleLaplacianN[f_, d_, n_, h_] := If[n == 0, oracleLapStencil[f, d, n, h], \
+(4 oracleLapStencil[f, d, n, h/2] - oracleLapStencil[f, d, n, h])/3];\
+\>", "Program",ExpressionUUID->"d010a141-ea72-43fa-9d9a-14c10bed7ee0"],
+
+Cell[TextData[{
+ "The derivatives are central finite differences: ",
+ StyleBox["stencil[m, h]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " lists the shifts and weights of d^m/dx^m at 0. For the momentum, (",
+ StyleBox["\[Del]\.b2",
+  FontFamily->"Noto Sans"],
+ "_p)",
+ StyleBox["\:207f",
+  FontFamily->"Noto Sans"],
+ " is applied by nested second differences along every tuple of unit vectors \
+(",
+ StyleBox["Tuples",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", lesson 03), and the O(h",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ") error is removed by Richardson extrapolation: (4 f(h/2) ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ " f(h))/3. ",
+ StyleBox["oracleLapNorm",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is N_n written again, independently of ",
+ StyleBox["lapNorm",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " in Projection."
+}], "Text",ExpressionUUID->"4333f784-e671-4396-91b4-f0499d73fbf3"],
+
+Cell[TextData[{
+ StyleBox["wedgeN[a_?VectorQ, b_?VectorQ] /; Length[a] == Length[b] == 2",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " evaluates ",
+ StyleBox["\[CurlyEpsilon]",
+  FontFamily->"Noto Sans"],
+ " only once both vectors are explicit lists (",
+ StyleBox["PatternTest",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 04)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "): before that, ",
+ StyleBox["wedge[...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stays symbolic."
+}], "Text",ExpressionUUID->"9cb40147-db37-441c-96ed-04856fbef072"],
+
+Cell["3. Options and checks of the oracle", "Section",ExpressionUUID->"1b26a633-3127-4bb3-8056-a194f9938f4f"],
+
+Cell["\<\
+(* Kernel/Oracle.wl:48-57 *)
+Options[RunOracle] = {\"Dimensions\" -> Automatic, \"Tolerance\" -> 10^-8, \
+\"Seed\" -> 1, \"ZeroFlows\" -> False};
+
+RunOracle[eqs_, OptionsPattern[]] := Block[{$FRGModule = \"Oracle\"},
+  Module[{t0 = AbsoluteTime[], closure, loops, v, reg, fields, hasG4, recs, \
+checks = {}, warns = {}, results = {}, stage, tol = OptionValue[\"Tolerance\"],
+    h = 10^-5, prec = 40, dims},
+   validateStage[eqs, \"Equations\"];
+   dims = Replace[OptionValue[\"Dimensions\"], Automatic -> \
+If[eqs[\"Dimension\"] === 2, {2}, {2, 3}]];
+   FRGAssert[\"Oracle.declaredDimension\", If[eqs[\"Dimension\"] === 2, dims \
+=== {2}, ListQ[dims] && dims =!= {} && SubsetQ[{2, 3}, dims]], dims,
+    If[eqs[\"Dimension\"] === 2, \"the dimension is declared: d = 2 only \
+(\\\"Dimensions\\\" -> {2} or Automatic)\",
+     \"\\\"Dimensions\\\" must be a non-empty subset of {2, 3}\"]];\
+\>", "Program",ExpressionUUID->"fed3c9bc-e6d3-4743-b65b-888a3909b59b"],
+
+Cell["showFailure[RunOracle[equations, \"Dimensions\" -> {4}]]", "Input",ExpressionUUID->"2f34154e-6658-4ee4-9b3e-5cb6575d7b44"],
+
+Cell[TextData[{
+ "The validity conditions are also respected: the point is redrawn (up to 100 \
+times, ",
+ StyleBox["Break[]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " leaves the ",
+ StyleBox["Do",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " loop) until the poles are causal, because the symbolic residues assume \
+they are."
+}], "Text",ExpressionUUID->"cceb0d8a-6bab-4863-adba-31c3272dc843"],
+
+Cell["4. Saving and loading stages", "Section",ExpressionUUID->"692686ba-fb1c-4d32-a4eb-8a25ecceee99"],
+
+Cell["\<\
+(* Kernel/Stages.wl:16-17 *)
+StageFingerprints[s_Association] := Union[Flatten[{Lookup[s, \"Fingerprint\", \
+{}], Lookup[s, \"Upstream\", {}],
+     StageFingerprints /@ Select[Values[s], AssociationQ[#] && KeyExistsQ[#, \
+\"Stage\"] &]}]];\
+\>", "Program",ExpressionUUID->"d3835df9-eff7-4c82-99c2-e2da78b4ff0a"],
+
+Cell["\<\
+(* Kernel/Stages.wl:19-22 *)
+SaveStage[stage_, file_String] := Block[{$FRGModule = \"Stages\"},
+   FRGAssert[\"Stages.input\", AssociationQ[stage] && KeyExistsQ[stage, \
+\"Stage\"] && KeyExistsQ[stage, \"Fingerprint\"], Head[stage], \"SaveStage \
+takes a stage\"];
+   validateStage[stage, stage[\"Stage\"]];
+   Export[file, stage, \"WDX\"]];\
+\>", "Program",ExpressionUUID->"8347aaa7-6be3-4255-bcb7-45cabf8b906d"],
+
+Cell["\<\
+(* Kernel/Stages.wl:24-38 *)
+Options[LoadStage] = {\"Expect\" -> {}};
+LoadStage[file_String, OptionsPattern[]] := Block[{$FRGModule = \"Stages\"},
+  Module[{s, fps, exp = OptionValue[\"Expect\"], stale},
+   FRGAssert[\"Stages.file\", FileExistsQ[file], file, \"no such file\"];
+   s = Import[file, \"WDX\"];
+   FRGAssert[\"Stages.input\", AssociationQ[s] && KeyExistsQ[s, \"Stage\"], \
+Head[s], \"the file does not contain a stage\"];
+   validateStage[s, s[\"Stage\"]];
+   FRGAssert[\"Stages.expect\", AllTrue[exp, AssociationQ[#] && KeyExistsQ[#, \
+\"Fingerprint\"] &], exp, \"\\\"Expect\\\" -> {stage, ...}\"];
+   fps = StageFingerprints[s];
+   stale = Select[exp, ! MemberQ[fps, #Fingerprint] &];
+   FRGAssert[\"Stages.stale\", stale === {}, #Stage & /@ stale,
+    \"the saved stage was not built from the current \" <> \
+StringRiffle[#Stage & /@ stale, \", \"] <> \" stage(s): rebuild it\"];
+   Print[\"LoadStage: \", s[\"Stage\"], \" stage, fingerprint \", \
+StringTake[s[\"Fingerprint\"], 8], If[exp === {}, \"\",
+     \", built from the current \" <> StringRiffle[#Stage & /@ exp, \", \
+\"]]];
+   s]];\
+\>", "Program",ExpressionUUID->"bb8a07f1-b56a-4082-b917-196f86a58277"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Export and Import",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Export[file, expr, \"WDX\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " writes any expression in Mathematica's binary format; ",
+ StyleBox["Import[file, \"WDX\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " reads it back identically.",
+ "\n\n",
+ "WDX stores the expression exactly, with symbols and their contexts, so a \
+stage comes back as the same association. ",
+ StyleBox["FileExistsQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " tests for a file; ",
+ StyleBox["$TemporaryDirectory",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is the system's temporary folder."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"fd06bda8-a251-4000-850e-a47b4fd926a6"],
+
+Cell["\<\
+file = FileNameJoin[{$TemporaryDirectory, \"lessonKPZEquations.wdx\"}];
+SaveStage[equations, file];
+reloaded = LoadStage[file, \"Expect\" -> {kpzAnsatz, kpzRegulator, \
+kpzSymmetries}];
+reloaded === equations\
+\>", "Input",ExpressionUUID->"1e8f4894-e297-427e-9f9d-c038dfa4bb98"],
+
+Cell[TextData[{
+ StyleBox["StageFingerprints",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " walks through every stage embedded in the saved one (recursively: a \
+stage's values that are themselves stages) and collects their fingerprints \
+and upstream lists. ",
+ StyleBox["\"Expect\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " lists the stages you are working with now; each must be among them."
+}], "Text",ExpressionUUID->"a76fb143-227e-4206-887f-96c92eb28934"],
+
+Cell["\<\
+ansatzWithoutLambda = Block[{Print}, DefineAnsatz[kpzTheory, \"Density\" -> \
+hbar (dt[h] - nuk lap[h]) - Dk hbar^2, \"Couplings\" -> {nuk, Dk}]];
+showFailure[LoadStage[file, \"Expect\" -> {ansatzWithoutLambda}]]\
+\>", "Input",ExpressionUUID->"96b81d8d-173a-4785-a840-ebcb4c972908"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Persistence with a guard",
+  FontWeight->Bold],
+ "\n\n",
+ "Heavy models take minutes (shallow water) to hours (large p",
+ StyleBox["\:2074",
+  FontFamily->"Noto Sans"],
+ " truncations), so saving intermediate stages matters. A saved file is also \
+the classic source of silent errors: equations derived from last week's \
+ansatz, loaded into today's notebook. ",
+ StyleBox["LoadStage",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " checks two things: the file was not modified (its own fingerprint), and it \
+was built from the stages you are using now (",
+ StyleBox["\"Expect\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "). Because every stage embeds its ancestors, the whole history is in the \
+file and can be checked (",
+ StyleBox["design/FRGDESIGN.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", Q13)."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"c67fe7ff-8610-42d9-925c-6578c32cf977"],
+
+Cell["Exercises", "Section",ExpressionUUID->"7021c597-42b6-4f98-95a3-8f0a5a700e21"],
+
+Cell["Exercise: A tighter tolerance", "Subsection",ExpressionUUID->"bee0bc09-0eab-4a0a-a6ab-f9c42f74555f"],
+
+Cell[TextData[{
+ "Run the oracle with ",
+ StyleBox["\"Tolerance\" -> 10^-15",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and only d = 2. Does it pass? What sets the size of the error?"
+}], "Text",ExpressionUUID->"5646bc20-f9a1-4834-9e2a-7331541ebcc6"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"f6917961-ae1f-402c-94cc-f0cd2ec9a6d2"],
+
+Cell["\<\
+Block[{Print}, RunOracle[equations, \"Tolerance\" -> 10^-15, \"Dimensions\" \
+-> {2}]][\"Results\"][[All, {\"Label\", \"Error\"}]]\
+\>", "Input",ExpressionUUID->"7665b125-05dd-4772-81c4-9a09a604cde6"],
+
+Cell[TextData[{
+ "It passes: the errors are of order 10",
+ StyleBox["\:207b\.b2\:2070",
+  FontFamily->"Noto Sans"],
+ ", the size of the finite-difference error after Richardson extrapolation at \
+the precision used."
+}], "Text",ExpressionUUID->"85606cf7-c272-4d93-87bf-113f87f9ace0"]
+}, Closed]],
+
+Cell["Exercise: A modified file", "Subsection",ExpressionUUID->"78999e4d-5cf7-4f5e-9908-3639c67522c1"],
+
+Cell[TextData[{
+ "Load the saved stage, change one key, save it under a new name with ",
+ StyleBox["Export",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (not ",
+ StyleBox["SaveStage",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "), and load it with ",
+ StyleBox["LoadStage",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". Which check fails?"
+}], "Text",ExpressionUUID->"2255e608-7c0d-4082-a3b2-4879f6cdcc38"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"4b7d4d9e-71b6-4aac-9582-9d736fb7e546"],
+
+Cell["\<\
+file2 = FileNameJoin[{$TemporaryDirectory, \
+\"lessonKPZEquationsEdited.wdx\"}];
+Export[file2, Append[reloaded, \"Couplings\" -> {nuk}], \"WDX\"];
+showFailure[LoadStage[file2]]\
+\>", "Input",ExpressionUUID->"948c7a73-0dff-4cf9-9993-ce3f2aa865b9"],
+
+Cell[TextData[{
+ StyleBox["Stage.fingerprint",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", from ",
+ StyleBox["validateStage",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (lesson 00): the content no longer matches the fingerprint stored with it. \
+",
+ StyleBox["SaveStage",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " would have refused to write it in the first place."
+}], "Text",ExpressionUUID->"30fb1167-9e88-4862-9df2-520515bd2fa6"]
+}, Closed]],
+
+Cell["Exercise: How much history is in a file", "Subsection",ExpressionUUID->"07ce2d39-34f9-4bb0-9fd9-6531efd37fbe"],
+
+Cell[TextData[{
+ "How many fingerprints does ",
+ StyleBox["StageFingerprints[equations]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " find? Which stages do they belong to?"
+}], "Text",ExpressionUUID->"43f8fe67-1e6b-4acc-92a9-4c8bb18a26f0"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"f5dd5698-95e5-4148-b083-4fef00c7242c"],
+
+Cell["\<\
+{Length[StageFingerprints[equations]], Union[Cases[equations, \
+KeyValuePattern[\"Stage\" -> s_String] :> s, {0, Infinity}]]}\
+\>", "Input",ExpressionUUID->"664c4a2c-7e44-4504-92c3-9c880f4ae356"],
+
+Cell[TextData[{
+ "Every stage of the chain, from Theory to Equations. ",
+ StyleBox["Cases",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " with ",
+ StyleBox["KeyValuePattern",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["Cases and level specifications",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ") finds every embedded association with a ",
+ StyleBox["\"Stage\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " key."
+}], "Text",ExpressionUUID->"7b243510-51dd-425b-9cd1-c1f9e1228cd6"]
+}, Closed]]
+},
+CellContext->Notebook,
+FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"68ca8ccf-8ceb-4f4a-8543-fab9318d86bc"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 101, 0, 70, "Title",ExpressionUUID->"4ab53248-3ffd-4625-ba7a-5fa0e0786a39"],
+Cell[658, 22, 452, 9, 70, "Text",ExpressionUUID->"04e5ece1-a8f3-4e83-bdaf-62175c95fb6a"],
+Cell[1113, 33, 239, 4, 70, "Input",ExpressionUUID->"73b6604f-4fac-4823-b487-f89535ec74d0"],
+Cell[1355, 39, 87, 0, 70, "Section",ExpressionUUID->"b18cd628-ad1d-428e-987e-2332605e597e"],
+Cell[1445, 41, 1039, 28, 70, "Text",ExpressionUUID->"8b7451a3-e6ea-42cd-9563-6df3df3e2f5b"],
+Cell[2487, 71, 125, 0, 70, "Input",ExpressionUUID->"74347033-f2b0-4e8e-87f0-63da5ff53f4e"],
+Cell[2615, 73, 181, 3, 70, "Text",ExpressionUUID->"a77c3dbd-6c49-4b85-8e60-e543b629b850"],
+Cell[2799, 78, 96, 0, 70, "Input",ExpressionUUID->"a4953069-2af2-48e2-9109-e91dc4ede525"],
+Cell[2898, 80, 1099, 24, 70, "Text",ExpressionUUID->"15ed6336-e6ed-4a0d-9b12-22a0193f8942"],
+Cell[4000, 106, 100, 0, 70, "Section",ExpressionUUID->"1f7052b3-ee09-4bcd-ab38-b91d57c6672f"],
+Cell[4103, 108, 329, 5, 70, "Program",ExpressionUUID->"92a0f32d-fadd-45a1-95d1-496b6bb5b1c2"],
+Cell[4435, 115, 553, 11, 70, "Program",ExpressionUUID->"7fa25999-18b4-498a-a574-136115ea1497"],
+Cell[4991, 128, 627, 16, 70, "Text",ExpressionUUID->"56a675c0-9990-4f7e-bf0e-94e6bb9df072"],
+Cell[5621, 146, 2173, 39, 70, "Program",ExpressionUUID->"b72f857e-eb1c-4176-9137-46415a30b0ab"],
+Cell[7797, 187, 1404, 40, 70, "Text",ExpressionUUID->"a6544fd8-6991-4a3c-acbf-a42339e22fdb"],
+Cell[9204, 229, 258, 6, 70, "Input",ExpressionUUID->"4d73049d-117d-49e1-9385-492003ad98f0"],
+Cell[9465, 237, 1818, 53, 70, "Text",ExpressionUUID->"6465dcc1-17ac-4b56-9270-b29a6c5720fb"],
+Cell[11286, 292, 956, 31, 70, "Text",ExpressionUUID->"ab7c1df6-54fd-4ba3-9701-d893ac295f2f"],
+Cell[12245, 325, 312, 6, 70, "Program",ExpressionUUID->"f3862559-6b61-4f99-bce3-5b77937cd97b"],
+Cell[12560, 333, 1018, 17, 70, "Program",ExpressionUUID->"d010a141-ea72-43fa-9d9a-14c10bed7ee0"],
+Cell[13581, 352, 1177, 35, 70, "Text",ExpressionUUID->"4333f784-e671-4396-91b4-f0499d73fbf3"],
+Cell[14761, 389, 768, 22, 70, "Text",ExpressionUUID->"9cb40147-db37-441c-96ed-04856fbef072"],
+Cell[15532, 413, 109, 0, 70, "Section",ExpressionUUID->"1b26a633-3127-4bb3-8056-a194f9938f4f"],
+Cell[15644, 415, 968, 17, 70, "Program",ExpressionUUID->"fed3c9bc-e6d3-4743-b65b-888a3909b59b"],
+Cell[16615, 434, 128, 0, 70, "Input",ExpressionUUID->"2f34154e-6658-4ee4-9b3e-5cb6575d7b44"],
+Cell[16746, 436, 521, 14, 70, "Text",ExpressionUUID->"cceb0d8a-6bab-4863-adba-31c3272dc843"],
+Cell[17270, 452, 102, 0, 70, "Section",ExpressionUUID->"692686ba-fb1c-4d32-a4eb-8a25ecceee99"],
+Cell[17375, 454, 321, 6, 70, "Program",ExpressionUUID->"d3835df9-eff7-4c82-99c2-e2da78b4ff0a"],
+Cell[17699, 462, 423, 8, 70, "Program",ExpressionUUID->"8347aaa7-6be3-4255-bcb7-45cabf8b906d"],
+Cell[18125, 472, 1190, 22, 70, "Program",ExpressionUUID->"bb8a07f1-b56a-4082-b917-196f86a58277"],
+Cell[19318, 496, 1104, 31, 70, "Text",ExpressionUUID->"fd06bda8-a251-4000-850e-a47b4fd926a6"],
+Cell[20425, 529, 288, 6, 70, "Input",ExpressionUUID->"1e8f4894-e297-427e-9f9d-c038dfa4bb98"],
+Cell[20716, 537, 590, 13, 70, "Text",ExpressionUUID->"a76fb143-227e-4206-887f-96c92eb28934"],
+Cell[21309, 552, 292, 4, 70, "Input",ExpressionUUID->"96b81d8d-173a-4785-a840-ebcb4c972908"],
+Cell[21604, 558, 1225, 31, 70, "Text",ExpressionUUID->"c67fe7ff-8610-42d9-925c-6578c32cf977"],
+Cell[22832, 591, 83, 0, 70, "Section",ExpressionUUID->"7021c597-42b6-4f98-95a3-8f0a5a700e21"],
+Cell[22918, 593, 106, 0, 70, "Subsection",ExpressionUUID->"bee0bc09-0eab-4a0a-a6ab-f9c42f74555f"],
+Cell[23027, 595, 315, 7, 70, "Text",ExpressionUUID->"5646bc20-f9a1-4834-9e2a-7331541ebcc6"],
+Cell[CellGroupData[{
+Cell[23367, 606, 88, 0, 70, "Subsubsection",ExpressionUUID->"f6917961-ae1f-402c-94cc-f0cd2ec9a6d2"],
+Cell[23458, 608, 210, 3, 70, "Input",ExpressionUUID->"7665b125-05dd-4772-81c4-9a09a604cde6"],
+Cell[23671, 613, 283, 6, 70, "Text",ExpressionUUID->"85606cf7-c272-4d93-87bf-113f87f9ace0"]
+}, Closed]],
+Cell[23969, 622, 102, 0, 70, "Subsection",ExpressionUUID->"78999e4d-5cf7-4f5e-9908-3639c67522c1"],
+Cell[24074, 624, 593, 17, 70, "Text",ExpressionUUID->"2255e608-7c0d-4082-a3b2-4879f6cdcc38"],
+Cell[CellGroupData[{
+Cell[24692, 645, 88, 0, 70, "Subsubsection",ExpressionUUID->"4b7d4d9e-71b6-4aac-9582-9d736fb7e546"],
+Cell[24783, 647, 256, 5, 70, "Input",ExpressionUUID->"948c7a73-0dff-4cf9-9993-ce3f2aa865b9"],
+Cell[25042, 654, 625, 17, 70, "Text",ExpressionUUID->"30fb1167-9e88-4862-9df2-520515bd2fa6"]
+}, Closed]],
+Cell[25682, 674, 116, 0, 70, "Subsection",ExpressionUUID->"07ce2d39-34f9-4bb0-9fd9-6531efd37fbe"],
+Cell[25801, 676, 302, 7, 70, "Text",ExpressionUUID->"43f8fe67-1e6b-4acc-92a9-4c8bb18a26f0"],
+Cell[CellGroupData[{
+Cell[26128, 687, 88, 0, 70, "Subsubsection",ExpressionUUID->"f5dd5698-95e5-4148-b083-4fef00c7242c"],
+Cell[26219, 689, 205, 3, 70, "Input",ExpressionUUID->"664c4a2c-7e44-4504-92c3-9c880f4ae356"],
+Cell[26427, 694, 831, 25, 70, "Text",ExpressionUUID->"7b243510-51dd-425b-9cd1-c1f9e1228cd6"]
+}, Closed]]
+}
+]
+*)
+
+(* End of internal cache information *)

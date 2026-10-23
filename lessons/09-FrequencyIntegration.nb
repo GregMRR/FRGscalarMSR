@@ -1,0 +1,1029 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[     37373,       1020]
+NotebookOptionsPosition[     31949,        948]
+NotebookOutlinePosition[     32286,        963]
+CellTagsIndexPosition[     32243,        960]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["Lesson 09 - FrequencyIntegration", "Title",ExpressionUUID->"3c16b6c9-d0a7-4fb9-8818-fb8aa3af5b78"],
+
+Cell[TextData[{
+ StyleBox["Physics step.",
+  FontWeight->Bold],
+ " Integrate every projected integrand over the real ",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ " axis, exactly, by residues. Each integrand is a sum of terms ",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ "^n ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ "(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ")^{",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "a} ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ "(",
+ StyleBox["\[Minus]\[Omega]",
+  FontFamily->"Noto Sans"],
+ ")^{",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "b}; the roots of ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ "(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ") lie in the upper half plane (the propagator's validity conditions), those \
+of ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ "(",
+ StyleBox["\[Minus]\[Omega]",
+  FontFamily->"Noto Sans"],
+ ") in the lower one, so closing the contour upwards picks the residues of ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ "(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ") only. The result is a rational function of the coefficients c0, c1, c2 of \
+",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ ": no ",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ", no ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ ", no square roots."
+}], "Text",ExpressionUUID->"759ff403-1c1a-4992-83be-6596ea5d4f4a"],
+
+Cell[TextData[{
+ StyleBox["Stage.",
+  FontWeight->Bold],
+ " Input: the Projection stage. Output: the ",
+ StyleBox["\"Integrated\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stage, whose ",
+ StyleBox["\"Flows\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " hold, for each monomial, either the symbolic flow (",
+ StyleBox["\"Value\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", class Declared) or exact values at random points (",
+ StyleBox["\"Samples\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", the other classes)."
+}], "Text",ExpressionUUID->"f699b4ee-8c48-4097-a188-69af3db7d3cb"],
+
+Cell["\<\
+Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
+projected = lessonUpTo[\"Projection\"];\
+\>", "Input",ExpressionUUID->"29fdb704-cc26-4e9b-a73b-3909a5f9af13"],
+
+Cell["1. Using it", "Section",ExpressionUUID->"97c82366-006e-492c-b482-f221754683e9"],
+
+Cell["integrated = IntegrateFrequencies[projected];", "Input",ExpressionUUID->"057b868b-6836-4b01-9f1d-5315991a170b"],
+
+Cell["ShowFlow[integrated, {h, hbar}, {0, 1}]", "Input",ExpressionUUID->"4dcc4413-3c47-4ffb-880a-510b0bddf003"],
+
+Cell["ShowFlow[integrated, {h, hbar}, {1, 0}]", "Input",ExpressionUUID->"8df8d96e-e332-410c-be01-63ffec17c882"],
+
+Cell[TextData[{
+ "The first is the flow of ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " (class Declared): symbolic, in atoms. The second is protected by the \
+Galilean Ward identity: it is not integrated symbolically, only evaluated \
+exactly at three random points, and all three values are 0 (the closure check \
+of lesson 10 will assert it)."
+}], "Text",ExpressionUUID->"51dc9a81-e24c-4b8d-840e-bcddc19c860d"],
+
+Cell["2. One integral, by residues", "Section",ExpressionUUID->"8d945f21-8362-4ba8-aabb-bf44057a64b1"],
+
+Cell["\<\
+(* Kernel/FrequencyIntegration.wl:23-46 *)
+(* residues at the roots z1, z2 of Delta(w) (upper half plane); z1,2 = I \
+alpha +- beta, the result is even in beta *)
+FrequencyIntegral[n_Integer, a_Integer, b_Integer, deg_Integer] := \
+FrequencyIntegral[n, a, b, deg] = Block[{$FRGModule = \
+\"FrequencyIntegration\"},
+   Module[{w, z1, z2, z, f1, f2, r, al, be, x, num, den},
+    FRGAssert[\"FrequencyIntegration.convergence\", n - deg (a + b) <= -2, \
+{n, a, b, deg},
+     \"divergent frequency integral: the integrand does not decay faster than \
+1/w^2\"];
+    Which[
+     a == 0, 0,   (* no pole in the upper half plane *)
+     deg == 1,
+      z = I cc[0]/cc[1];
+      f1 = w^n/((I cc[1])^a (-I cc[1])^b (w + z)^b);
+      Together[2 Pi I (D[f1, {w, a - 1}] /. w -> z)/(a - 1)!],
+     deg == 2,
+      z1 = I al + be; z2 = I al - be;
+      f1 = w^n/((-cc[2])^(a + b) (w - z2)^a ((w + z1) (w + z2))^b);
+      f2 = w^n/((-cc[2])^(a + b) (w - z1)^a ((w + z1) (w + z2))^b);
+      r = Together[2 Pi I ((D[f1, {w, a - 1}] /. w -> z1) + (D[f2, {w, a - \
+1}] /. w -> z2))/(a - 1)!];
+      (* make the denominator even in beta, then beta^2 -> x *)
+      num = Expand[Numerator[r] (Denominator[r] /. be -> -be)]; den = \
+Expand[Denominator[r] (Denominator[r] /. be -> -be)];
+      FRGAssert[\"FrequencyIntegration.evenInBeta\", Expand[(num /. be -> \
+-be) - num] === 0 && Expand[(den /. be -> -be) - den] === 0, {n, a, b},
+       \"internal: the residue sum is not symmetric in the two roots\"];
+      r = Together[((num /. be -> Sqrt[x]) /(den /. be -> Sqrt[x])) /. {x -> \
+(4 cc[0] cc[2] - cc[1]^2)/(4 cc[2]^2), al -> cc[1]/(2 cc[2])}];
+      FRGAssert[\"FrequencyIntegration.rational\", FreeQ[r, be | x | al | \
+Power[_, _Rational]], r, \"internal: square roots survived\"];
+      r,
+     True, FRGAssert[\"FrequencyIntegration.degree\", False, deg, \"deg Delta \
+must be 1 or 2\"]]]];\
+\>", "Program",ExpressionUUID->"ffc1a077-81f7-4ca2-8465-490a71832914"],
+
+Cell[TextData[{
+ "The residue of a pole of order a at z is the (a",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "1)-th derivative of (",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ " z)^a f(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ "), at z, divided by (a",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "1)! (",
+ StyleBox["Repeated derivatives",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 08)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ "). With degree 2, the roots are z1,2 = i",
+ StyleBox["\[Alpha]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[PlusMinus]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[Beta]",
+  FontFamily->"Noto Sans"],
+ "; the sum of the two residues is symmetric under z1 ",
+ StyleBox["\[LeftRightArrow]",
+  FontFamily->"Noto Sans"],
+ " z2, hence even in ",
+ StyleBox["\[Beta]",
+  FontFamily->"Noto Sans"],
+ ", and replacing ",
+ StyleBox["\[Beta]\.b2",
+  FontFamily->"Noto Sans"],
+ " by (4c0c2 ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ " c1",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ")/(4c2",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ") makes the result rational. The same formula covers the overdamped (",
+ StyleBox["\[Beta]\.b2",
+  FontFamily->"Noto Sans"],
+ " < 0) and the underdamped (",
+ StyleBox["\[Beta]\.b2",
+  FontFamily->"Noto Sans"],
+ " > 0) cases."
+}], "Text",ExpressionUUID->"b52fb836-02c7-432f-8abd-60a0d756bb7c"],
+
+Cell["\<\
+{FrequencyIntegral[0, 1, 1, 1], FrequencyIntegral[0, 1, 1, 2]}\
+\>", "Input",ExpressionUUID->"a5b7abfc-5afc-46d5-b268-fc7e5d8e0c46"],
+
+Cell[TextData[{
+ StyleBox["FrequencyIntegralC[m]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stands for c_m. A numerical check against Mathematica's own integrator, \
+with ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ "(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ") = 2 + 3i",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ":"
+}], "Text",ExpressionUUID->"ddd242ce-dd06-4eb7-bc14-574691e27da6"],
+
+Cell["\<\
+{N[FrequencyIntegral[0, 1, 1, 1] /. {FrequencyIntegralC[0] -> 2, \
+FrequencyIntegralC[1] -> 3}], NIntegrate[1/((2 + 3 I w) (2 - 3 I w)), {w, \
+-Infinity, Infinity}]}\
+\>", "Input",ExpressionUUID->"81c51816-4741-419a-a8cc-4182bfb3e9bb"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Numerator, Denominator and radicals",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Numerator[r]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["Denominator[r]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " split a rational expression; a square root is ",
+ StyleBox["Power[x, 1/2]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", so ",
+ StyleBox["FreeQ[r, Power[_, _Rational]]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " tests for radicals.",
+ "\n\n",
+ StyleBox["r",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is made even in ",
+ StyleBox["\[Beta]",
+  FontFamily->"Noto Sans"],
+ " by multiplying numerator and denominator by the denominator with ",
+ StyleBox["\[Beta]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[RightArrow]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[Minus]\[Beta]",
+  FontFamily->"Noto Sans"],
+ "; then both contain only even powers of ",
+ StyleBox["\[Beta]",
+  FontFamily->"Noto Sans"],
+ ", and ",
+ StyleBox["\[Beta]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[RightArrow]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[Sqrt]",
+  FontFamily->"Noto Sans"],
+ "x followed by x ",
+ StyleBox["\[RightArrow]",
+  FontFamily->"Noto Sans"],
+ " its value leaves no root. ",
+ StyleBox["FrequencyIntegration.rational",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " asserts that no ",
+ StyleBox["Power[_, _Rational]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is left (CLAUDE.md, Conventions: no radicals)."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"c91e231e-0f36-4c9f-b4c5-7f5fa82e4995"],
+
+Cell["\<\
+{Numerator[(a + b)/c2], Denominator[(a + b)/c2], FullForm[Sqrt[x]], \
+FreeQ[Sqrt[x], Power[_, _Rational]]}\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"e2b83418-8bbe-4c6e-bfcb-c837b01d781d"],
+
+Cell["A divergent integral aborts:", "Text",ExpressionUUID->"f15482c8-c14a-413f-a44b-1c194117087b"],
+
+Cell["showFailure[FrequencyIntegral[2, 1, 1, 1]]", "Input",ExpressionUUID->"850ea0fd-47bc-45d9-b98e-4962bb845f8c"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Memoization of a function",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["f[n_, a_] := f[n, a] = ...",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " stores each computed value as a new definition of f, so the next call with \
+the same arguments returns it at once.",
+ "\n\n",
+ "This is ",
+ StyleBox["Memoization",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ " applied to a top-level function: ",
+ StyleBox["FrequencyIntegral[0, 1, 1, 1]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is computed once per session, and every integrand that needs it afterwards \
+reuses the stored rule. The stored values are visible in ",
+ StyleBox["DownValues[FrequencyIntegral]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["OwnValues and DownValues",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ") as the rules without patterns; the card counts them."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"7a87ce8d-8f42-465a-ba7f-281c1f950e2d"],
+
+Cell["\<\
+Length[Select[DownValues[FrequencyIntegral], FreeQ[#, Pattern] &]]\
+\>", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"99af916d-28f2-43b0-815b-49a9ff24336f"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: A memoised formula instead of a lookup \
+table",
+  FontWeight->Bold],
+ "\n\n",
+ "The original notebook used a hand-made table of integrals, which had to be \
+extended whenever a new combination (n, a, b) appeared, and silently missed \
+any combination that was not in it. Here each integral is computed from one \
+residue formula the first time it is needed and remembered: nothing is \
+skipped, and nothing depends on the order of rules. The memo is a cache of a \
+pure function of (n, a, b, deg), so it is the one kind of global state that \
+cannot make results depend on history."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"4cb31bb8-9cc2-445d-a36c-f4f9473fe513"],
+
+Cell["3. Integrating an integrand", "Section",ExpressionUUID->"011c8cdd-9b95-43f9-879f-57e3a4526ac8"],
+
+Cell["\<\
+(* Kernel/FrequencyIntegration.wl:48-55 *)
+(* dispatch on monomials w^n X^a Y^b, X = 1/Delta(w), Y = 1/Delta(-w): no \
+table, nothing skipped *)
+integrate[e_, w_, deg_, cvals_] := Module[{exy, res},
+   exy = e /. {\\[CapitalDelta][w, _] -> 1/xX, \\[CapitalDelta][-w, _] -> \
+1/yY};
+   FRGAssert[\"FrequencyIntegration.ready\", FreeQ[exy, \\[CapitalDelta] | \
+Derivative[__][\\[CapitalDelta]]], Cases[exy, _\\[CapitalDelta], Infinity],
+    \"integrand not ready: Delta with another argument\"];
+   res = Total[#[[2]] (FrequencyIntegral[#[[1, 1]], #[[1, 2]], #[[1, 3]], \
+deg] /. cvals) & /@ CoefficientRules[exy, {w, xX, yY}]];
+   FRGAssert[\"FrequencyIntegration.complete\", FreeQ[res, w | xX | yY | \
+\\[CapitalDelta] | Power[_, _Rational]], res, \"leftover w, Delta or radicals\
+\"];
+   res];\
+\>", "Program",ExpressionUUID->"8e85b89d-d311-4b66-ae8e-098eb652d375"],
+
+Cell[TextData[{
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ "(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ") ",
+ StyleBox["\[RightArrow]",
+  FontFamily->"Noto Sans"],
+ " 1/X and ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ "(",
+ StyleBox["\[Minus]\[Omega]",
+  FontFamily->"Noto Sans"],
+ ") ",
+ StyleBox["\[RightArrow]",
+  FontFamily->"Noto Sans"],
+ " 1/Y turn the integrand into a polynomial in ",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ", X, Y with coefficients free of ",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ "."
+}], "Text",ExpressionUUID->"3ef8ca3f-105b-4148-8011-e5237fe96f6c"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: CoefficientRules",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["CoefficientRules[poly, {x, y, ...}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " lists the monomials of a polynomial as ",
+ StyleBox["{exponents} -> coefficient",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ".",
+ "\n\n",
+ "Each rule ",
+ StyleBox["{n, a, b} -> coefficient",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is one term ",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ "^n X^a Y^b, so the integral is ",
+ StyleBox["Total",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " of coefficient ",
+ StyleBox["\[Times]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["FrequencyIntegral[n, a, b, deg]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". This dispatches on the structure of the integrand, term by term, without \
+pattern rules that could miss a term."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"ea974436-3435-428b-87d5-78f95e86f6cc"],
+
+Cell["CoefficientRules[3 w^2 x + 5 y, {w, x, y}]", "Input",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"52b7d0c2-ec00-44f1-a02d-9749331f61d4"],
+
+Cell["4. Sampled flows", "Section",ExpressionUUID->"7cf206df-2153-4992-9fe1-378199f1f157"],
+
+Cell["\<\
+(* Kernel/FrequencyIntegration.wl:57-66 *)
+(* random rational point of every atom, Delta coefficients consistent with \
+the atoms, w and Delta kept *)
+samplePoint[e_, prop_, w_, seed_] := Module[{e1, syms, atoms, pt, memo},
+   e1 = e /. Join[{}, {DeltaCoefficient[m_][s_] :> \
+prop[\"DeltaCoefficients\"][s][[m + 1]],
+       Derivative[k_][DeltaCoefficient[m_]][s_] :> \
+(D[prop[\"DeltaCoefficients\"][xs][[m + 1]], {xs, k}] /. xs -> s)}] /. \
+\\[CapitalDelta] -> dd;
+   syms = DeleteCases[Union[Cases[e1, x_Symbol /; Context[x] =!= \"System`\", \
+{0, Infinity}, Heads -> False], {LoopMomentumSquared}], w];
+   pt = RandomRationalPoint[syms, seed];
+   SeedRandom[seed + 104729];
+   memo[x_] := memo[x] = RandomInteger[{2, 60}]/RandomInteger[{61, 97}];
+   e1 = e1 /. pt /. x : (Derivative[__][GammaAtom[__]][_] | GammaAtom[__][_] \
+| dsR[__] | dsCoupling[_]) :> memo[x];
+   {e1 /. dd -> \\[CapitalDelta], pt, memo}];\
+\>", "Program",ExpressionUUID->"6d96a4f0-c82d-4b43-b0c3-99f6415e63b1"],
+
+Cell["\<\
+(* Kernel/FrequencyIntegration.wl:68-72 *)
+sampleValue[e_, prop_, w_, deg_, seed_] := Module[{e1, pt, memo, s, cv},
+   {e1, pt, memo} = samplePoint[e, prop, w, seed];
+   s = LoopMomentumSquared /. pt;
+   cv = Thread[cc /@ Range[0, 2] -> (prop[\"DeltaCoefficients\"][s] /. x : \
+(GammaAtom[__][_]) :> memo[x])];
+   {integrate[e1, w, deg, cv], validPointQ[prop, s, cv]}];\
+\>", "Program",ExpressionUUID->"4035bd7c-b13a-48aa-b8f9-42a2e8f7eee2"],
+
+Cell["\<\
+(* Kernel/FrequencyIntegration.wl:74-75 *)
+(* the point is physical: q^2 > 0 and every root of Delta(w) in the upper \
+half plane (Propagator validity conditions) *)
+validPointQ[prop_, s_, cv_] := TrueQ[s > 0] && TrueQ[And @@ \
+(prop[\"ValidityConditions\"][s] /. DeltaCoefficient[m_][_] :> (cc[m] /. \
+cv))];\
+\>", "Program",ExpressionUUID->"26a6d6b5-313d-40d3-87f2-5d5098dfa470"],
+
+Cell["\<\
+(* Kernel/FrequencyIntegration.wl:77-80 *)
+(* a sample at a valid point, for values that are reported as sizes \
+(Neglected); zero tests do not need valid points *)
+validSample[e_, prop_, w_, deg_, seed_] := Module[{r},
+   Do[r = sampleValue[e, prop, w, deg, seed + 1009 j]; If[r[[2]], \
+Return[r[[1]], Module]], {j, 0, 199}];
+   FRGAssert[\"FrequencyIntegration.validPoint\", False, e, \"no random point \
+satisfies the validity conditions in 200 tries: check the signs of the ansatz\
+\"]];\
+\>", "Program",ExpressionUUID->"f67489df-5ef6-4215-8d4e-c9ebf890d328"],
+
+Cell[TextData[{
+ "A flow that must vanish (Protected, DeclaredNumeric, Causality) is not \
+integrated symbolically: an exact zero is zero at every point, so three \
+random rational points prove it with the reliability of ",
+ StyleBox["ExactlyZeroQ",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (lesson 00, section 5). Every atom, ",
+ StyleBox["dsR",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and ",
+ StyleBox["dsCoupling",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " gets a random value, and the coefficients of ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ " are computed ",
+ StyleBox["from",
+  FontSlant->Italic],
+ " these atoms, so that ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ " = det B still holds at the point."
+}], "Text",ExpressionUUID->"90dc4fac-95e0-402c-8af8-8963336644a0"],
+
+Cell[TextData[{
+ "A Neglected flow is reported as a size, so its point must be physical: q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " > 0 and the validity conditions of the propagator satisfied. ",
+ StyleBox["validSample",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " redraws points until one is valid."
+}], "Text",ExpressionUUID->"701a2321-4e80-40c8-9f32-c60e76f7ca85"],
+
+Cell[TextData[{
+ StyleBox["Mathematica: Return from a loop",
+  FontWeight->Bold],
+ "\n",
+ StyleBox["Do[..., {j, 0, 199}]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " is a loop; ",
+ StyleBox["Return[value, Module]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " leaves the enclosing ",
+ StyleBox["Module",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " at once with that value.",
+ "\n\n",
+ StyleBox["validSample",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " tries up to 200 seeds and returns the first valid sample; if the loop \
+ends, the next line, a failing ",
+ StyleBox["FRGAssert",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", runs. ",
+ StyleBox["And @@ list",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (",
+ StyleBox["Apply",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 01)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ") combines a list of conditions into one."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->RGBColor[0.3, 0.5, 0.85],
+ Background->RGBColor[
+  0.91, 0.95, 1.],ExpressionUUID->"864fa15c-368d-43d5-8f84-28ca02f447ca"],
+
+Cell["5. The constructor", "Section",ExpressionUUID->"dc26c8a2-d04f-4518-baf2-87ac4e7ca895"],
+
+Cell["\<\
+(* Kernel/FrequencyIntegration.wl:82-102 *)
+IntegrateFrequencies[projected_] := Block[{$FRGModule = \
+\"FrequencyIntegration\"},
+  Module[{t0 = AbsoluteTime[], prop, w, deg, res, checks = {}, warns = {}, \
+stage, symbolicC, nI},
+   validateStage[projected, \"Projection\"];
+   prop = projected[\"Loops\"][\"Propagator\"]; w = projected[\"LoopFrequency\
+\"]; deg = prop[\"DeltaDegree\"];
+   symbolicC = Thread[cc /@ Range[0, 2] -> \
+(DeltaCoefficient[#][LoopMomentumSquared] & /@ Range[0, 2])];
+   res = Function[r, Module[{t1 = AbsoluteTime[], out},
+        out = If[r[\"Class\"] === \"Declared\",
+          <|\"Value\" -> integrate[r[\"Integrand\"], w, deg, symbolicC]|>,
+          If[r[\"Class\"] === \"Neglected\",
+           <|\"Samples\" -> {validSample[r[\"Integrand\"], prop, w, deg, 1]}, \
+\"SampleValid\" -> True|>,
+           <|\"Samples\" -> Table[First[sampleValue[r[\"Integrand\"], prop, \
+w, deg, sd]], {sd, {1, 2, 3}}]|>]];
+        Join[KeyDrop[r, \"Integrand\"], out, <|\"Seconds\" -> AbsoluteTime[] \
+- t1|>]]] /@ projected[\"Integrands\"];
+   nI = Length[Select[DownValues[FrequencyIntegral], FreeQ[#, Pattern] &]];
+   AppendTo[checks, assertCheck[\"FrequencyIntegration.allIntegrated\", True, \
+Null, \"\",
+     ToString[Count[res, KeyValuePattern[\"Class\" -> \"Declared\"]]] <> \" \
+symbolic, \" <> ToString[Count[res, _?(KeyExistsQ[#, \"Samples\"] &)]] <>
+      \" sampled; no leftover w, Delta or radicals; \" <> ToString[nI] <> \" \
+distinct residue integrals\"]];
+   AppendTo[warns, infoCheck[\"INFO\", \"FrequencyIntegration.samples\", \
+\"zero tests use 3 arbitrary random points; Neglected values use one point \
+where q^2 > 0 and the validity conditions hold\"]];
+   AppendTo[warns, infoCheck[\"ASSUMPTION\", \"FrequencyIntegration.poles\", \
+\"all roots of Delta(w) in the upper half plane (Propagator validity \
+conditions)\"]];
+   stage = stampStage[<|\"Stage\" -> \"Integrated\", \"Pipeline\" -> \
+\"DerivativeExpansion\", \"Upstream\" -> {projected[\"Fingerprint\"]},
+      \"Projection\" -> projected, \"Flows\" -> res, \"Checks\" -> checks, \
+\"Warnings\" -> warns, \"Timing\" -> AbsoluteTime[] - t0|>];
+   PrintCard[stage];\
+\>", "Program",ExpressionUUID->"bee0a93a-835d-496c-bb8e-2f0c6180cacc"],
+
+Cell[TextData[{
+ StyleBox["Join[KeyDrop[r, \"Integrand\"], out, <|\"Seconds\" -> ...|>]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " replaces the integrand of each record by its result and adds the time it \
+took; ",
+ StyleBox["Join",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " merges associations (",
+ StyleBox["Association",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ StyleBox[" (Glossary, lesson 00)",
+  FontSlant->Italic,
+  FontColor->GrayLevel[0.4]],
+ ")."
+}], "Text",ExpressionUUID->"2e92ea27-2662-4493-bd42-515e52bc1c38"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Symbolic where needed, sampled where \
+enough",
+  FontWeight->Bold],
+ "\n\n",
+ "Only the Declared flows become equations, so only they are integrated \
+symbolically. The others only have to be shown zero, or measured; doing that \
+at exact random points is faster by orders of magnitude and loses nothing: a \
+zero test at random rationals is as reliable as a symbolic simplification, \
+and much more so than ",
+ StyleBox["Simplify",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " on large expressions. The card says how it was done (the INFO line), so \
+that a reader knows what \"0\" means."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"b15f5187-54c1-4a41-9696-9d2a59e55179"],
+
+Cell["Exercises", "Section",ExpressionUUID->"5322ebff-c5df-4539-9d3b-fa1c74ecf106"],
+
+Cell["Exercise: A residue by hand", "Subsection",ExpressionUUID->"28b0c42c-65c7-41b3-9d5b-81fb4c44d31e"],
+
+Cell[TextData[{
+ "For degree 1, ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ "(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ") = c0 + i c1 ",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ " has its root at ",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ " = i c0/c1. Compute ",
+ StyleBox["\[Integral]",
+  FontFamily->"Noto Sans"],
+ " d",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ " / (",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ "(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ") ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ "(",
+ StyleBox["\[Minus]\[Omega]",
+  FontFamily->"Noto Sans"],
+ ")) by residues and compare with ",
+ StyleBox["FrequencyIntegral[0, 1, 1, 1]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",ExpressionUUID->"364194f0-2e00-4b5a-be9c-ce8493a5a905"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"7b55b660-c5c2-49ec-a946-cc92e1e2e3cb"],
+
+Cell[TextData[{
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ "(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ "(",
+ StyleBox["\[Minus]\[Omega]",
+  FontFamily->"Noto Sans"],
+ ") = c0",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " + c1",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[Omega]\.b2",
+  FontFamily->"Noto Sans"],
+ ": the residue at ",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ " = i c0/c1 of 1/(c1",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ " i c0/c1)(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ " + i c0/c1)) is 1/(c1",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[CenterDot]",
+  FontFamily->"Noto Sans"],
+ " 2i c0/c1) = 1/(2i c0 c1); times 2",
+ StyleBox["\[Pi]",
+  FontFamily->"Noto Sans"],
+ "i gives ",
+ StyleBox["\[Pi]",
+  FontFamily->"Noto Sans"],
+ "/(c0 c1)."
+}], "Text",ExpressionUUID->"269fbb8d-3a42-44a9-8ef8-31744e943a86"],
+
+Cell["FrequencyIntegral[0, 1, 1, 1]", "Input",ExpressionUUID->"c935d094-49eb-4168-9c4d-177c71cade7f"]
+}, Closed]],
+
+Cell["Exercise: Degree 2 against NIntegrate", "Subsection",ExpressionUUID->"be635eab-ee12-48b5-9452-954c29aed629"],
+
+Cell[TextData[{
+ "Take ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ "(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ") = 2 + 3(i",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ") + (i",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " (roots in the upper half plane). Compare ",
+ StyleBox["FrequencyIntegral[2, 2, 2, 2]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " with a numerical integral of ",
+ StyleBox["\[Omega]\.b2",
+  FontFamily->"Noto Sans"],
+ "/(",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ "(",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ "(",
+ StyleBox["\[Minus]\[Omega]",
+  FontFamily->"Noto Sans"],
+ ")",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ")."
+}], "Text",ExpressionUUID->"f5aac6f9-e521-4784-9245-b3cc2b6c47e9"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"466c9514-4803-4ce3-8ee9-01d7397e7b6f"],
+
+Cell["\<\
+dd[x_] := 2 + 3 I x - x^2;
+{N[FrequencyIntegral[2, 2, 2, 2] /. {FrequencyIntegralC[0] -> 2, \
+FrequencyIntegralC[1] -> 3, FrequencyIntegralC[2] -> 1}],
+ NIntegrate[w^2/(dd[w]^2 dd[-w]^2), {w, -Infinity, Infinity}]}\
+\>", "Input",ExpressionUUID->"e76a5306-6777-4e1d-90af-ecb94498f583"]
+}, Closed]],
+
+Cell["Exercise: Which flows are sampled", "Subsection",ExpressionUUID->"c87b2075-7d44-4a88-b8ff-fbe41f59bc8c"],
+
+Cell[TextData[{
+ "List the classes of the records of ",
+ StyleBox["integrated[\"Flows\"]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " and how many have a ",
+ StyleBox["\"Value\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " or ",
+ StyleBox["\"Samples\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",ExpressionUUID->"91e0866b-3c62-4a2d-90bd-20d4f0f02913"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"6ab07b96-b3c2-4ebb-a957-95743671a943"],
+
+Cell["\<\
+Tally[{#Class, If[KeyExistsQ[#, \"Value\"], \"Value\", \"Samples\"]} & /@ \
+integrated[\"Flows\"]]\
+\>", "Input",ExpressionUUID->"dbcc171c-7a88-46b5-9e10-18c8c4277386"],
+
+Cell[TextData[{
+ StyleBox["Tally",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " counts the distinct pairs: only the two Declared monomials (",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " and D) are symbolic."
+}], "Text",ExpressionUUID->"d1b59b7a-5133-487c-a025-bc98495faf7b"]
+}, Closed]]
+},
+CellContext->Notebook,
+FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"68ca8ccf-8ceb-4f4a-8543-fab9318d86bc"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 104, 0, 70, "Title",ExpressionUUID->"3c16b6c9-d0a7-4fb9-8818-fb8aa3af5b78"],
+Cell[661, 22, 1541, 57, 70, "Text",ExpressionUUID->"759ff403-1c1a-4992-83be-6596ea5d4f4a"],
+Cell[2205, 81, 843, 24, 70, "Text",ExpressionUUID->"f699b4ee-8c48-4097-a188-69af3db7d3cb"],
+Cell[3051, 107, 240, 4, 70, "Input",ExpressionUUID->"29fdb704-cc26-4e9b-a73b-3909a5f9af13"],
+Cell[3294, 113, 85, 0, 70, "Section",ExpressionUUID->"97c82366-006e-492c-b482-f221754683e9"],
+Cell[3382, 115, 117, 0, 70, "Input",ExpressionUUID->"057b868b-6836-4b01-9f1d-5315991a170b"],
+Cell[3502, 117, 111, 0, 70, "Input",ExpressionUUID->"4dcc4413-3c47-4ffb-880a-510b0bddf003"],
+Cell[3616, 119, 111, 0, 70, "Input",ExpressionUUID->"8df8d96e-e332-410c-be01-63ffec17c882"],
+Cell[3730, 121, 420, 8, 70, "Text",ExpressionUUID->"51dc9a81-e24c-4b8d-840e-bcddc19c860d"],
+Cell[4153, 131, 102, 0, 70, "Section",ExpressionUUID->"8d945f21-8362-4ba8-aabb-bf44057a64b1"],
+Cell[4258, 133, 1958, 37, 70, "Program",ExpressionUUID->"ffc1a077-81f7-4ca2-8465-490a71832914"],
+Cell[6219, 172, 1569, 58, 70, "Text",ExpressionUUID->"b52fb836-02c7-432f-8abd-60a0d756bb7c"],
+Cell[7791, 232, 142, 2, 70, "Input",ExpressionUUID->"a5b7abfc-5afc-46d5-b268-fc7e5d8e0c46"],
+Cell[7936, 236, 489, 16, 70, "Text",ExpressionUUID->"ddd242ce-dd06-4eb7-bc14-574691e27da6"],
+Cell[8428, 254, 245, 4, 70, "Input",ExpressionUUID->"81c51816-4741-419a-a8cc-4182bfb3e9bb"],
+Cell[8676, 260, 2102, 71, 70, "Text",ExpressionUUID->"c91e231e-0f36-4c9f-b4c5-7f5fa82e4995"],
+Cell[10781, 333, 301, 7, 70, "Input",ExpressionUUID->"e2b83418-8bbe-4c6e-bfcb-c837b01d781d"],
+Cell[11085, 342, 99, 0, 70, "Text",ExpressionUUID->"f15482c8-c14a-413f-a44b-1c194117087b"],
+Cell[11187, 344, 114, 0, 70, "Input",ExpressionUUID->"850ea0fd-47bc-45d9-b98e-4962bb845f8c"],
+Cell[11304, 346, 1547, 43, 70, "Text",ExpressionUUID->"7a87ce8d-8f42-465a-ba7f-281c1f950e2d"],
+Cell[12854, 391, 261, 6, 70, "Input",ExpressionUUID->"99af916d-28f2-43b0-815b-49a9ff24336f"],
+Cell[13118, 399, 810, 16, 70, "Text",ExpressionUUID->"4cb31bb8-9cc2-445d-a36c-f4f9473fe513"],
+Cell[13931, 417, 101, 0, 70, "Section",ExpressionUUID->"011c8cdd-9b95-43f9-879f-57e3a4526ac8"],
+Cell[14035, 419, 876, 16, 70, "Program",ExpressionUUID->"8e85b89d-d311-4b66-ae8e-098eb652d375"],
+Cell[14914, 437, 647, 25, 70, "Text",ExpressionUUID->"3ef8ca3f-105b-4148-8011-e5237fe96f6c"],
+Cell[15564, 464, 1353, 42, 70, "Text",ExpressionUUID->"ea974436-3435-428b-87d5-78f95e86f6cc"],
+Cell[16920, 508, 229, 4, 70, "Input",ExpressionUUID->"52b7d0c2-ec00-44f1-a02d-9749331f61d4"],
+Cell[17152, 514, 90, 0, 70, "Section",ExpressionUUID->"7cf206df-2153-4992-9fe1-378199f1f157"],
+Cell[17245, 516, 997, 18, 70, "Program",ExpressionUUID->"6d96a4f0-c82d-4b43-b0c3-99f6415e63b1"],
+Cell[18245, 536, 451, 8, 70, "Program",ExpressionUUID->"4035bd7c-b13a-48aa-b8f9-42a2e8f7eee2"],
+Cell[18699, 546, 391, 7, 70, "Program",ExpressionUUID->"26a6d6b5-313d-40d3-87f2-5d5098dfa470"],
+Cell[19093, 555, 573, 10, 70, "Program",ExpressionUUID->"f67489df-5ef6-4215-8d4e-c9ebf890d328"],
+Cell[19669, 567, 1010, 28, 70, "Text",ExpressionUUID->"90dc4fac-95e0-402c-8af8-8963336644a0"],
+Cell[20682, 597, 440, 10, 70, "Text",ExpressionUUID->"701a2321-4e80-40c8-9f32-c60e76f7ca85"],
+Cell[21125, 609, 1523, 48, 70, "Text",ExpressionUUID->"864fa15c-368d-43d5-8f84-28ca02f447ca"],
+Cell[22651, 659, 92, 0, 70, "Section",ExpressionUUID->"dc26c8a2-d04f-4518-baf2-87ac4e7ca895"],
+Cell[22746, 661, 2242, 39, 70, "Program",ExpressionUUID->"bee0a93a-835d-496c-bb8e-2f0c6180cacc"],
+Cell[24991, 702, 718, 20, 70, "Text",ExpressionUUID->"2e92ea27-2662-4493-bd42-515e52bc1c38"],
+Cell[25712, 724, 880, 20, 70, "Text",ExpressionUUID->"b15f5187-54c1-4a41-9696-9d2a59e55179"],
+Cell[26595, 746, 83, 0, 70, "Section",ExpressionUUID->"5322ebff-c5df-4539-9d3b-fa1c74ecf106"],
+Cell[26681, 748, 104, 0, 70, "Subsection",ExpressionUUID->"28b0c42c-65c7-41b3-9d5b-81fb4c44d31e"],
+Cell[26788, 750, 929, 37, 70, "Text",ExpressionUUID->"364194f0-2e00-4b5a-be9c-ce8493a5a905"],
+Cell[CellGroupData[{
+Cell[27742, 791, 88, 0, 70, "Subsubsection",ExpressionUUID->"7b55b660-c5c2-49ec-a946-cc92e1e2e3cb"],
+Cell[27833, 793, 1105, 49, 70, "Text",ExpressionUUID->"269fbb8d-3a42-44a9-8ef8-31744e943a86"],
+Cell[28941, 844, 101, 0, 70, "Input",ExpressionUUID->"c935d094-49eb-4168-9c4d-177c71cade7f"]
+}, Closed]],
+Cell[29057, 847, 114, 0, 70, "Subsection",ExpressionUUID->"be635eab-ee12-48b5-9452-954c29aed629"],
+Cell[29174, 849, 1024, 43, 70, "Text",ExpressionUUID->"f5aac6f9-e521-4784-9245-b3cc2b6c47e9"],
+Cell[CellGroupData[{
+Cell[30223, 896, 88, 0, 70, "Subsubsection",ExpressionUUID->"466c9514-4803-4ce3-8ee9-01d7397e7b6f"],
+Cell[30314, 898, 294, 5, 70, "Input",ExpressionUUID->"e76a5306-6777-4e1d-90af-ecb94498f583"]
+}, Closed]],
+Cell[30623, 906, 110, 0, 70, "Subsection",ExpressionUUID->"c87b2075-7d44-4a88-b8ff-fbe41f59bc8c"],
+Cell[30736, 908, 557, 17, 70, "Text",ExpressionUUID->"91e0866b-3c62-4a2d-90bd-20d4f0f02913"],
+Cell[CellGroupData[{
+Cell[31318, 929, 88, 0, 70, "Subsubsection",ExpressionUUID->"6ab07b96-b3c2-4ebb-a957-95743671a943"],
+Cell[31409, 931, 178, 3, 70, "Input",ExpressionUUID->"dbcc171c-7a88-46b5-9e10-18c8c4277386"],
+Cell[31590, 936, 343, 9, 70, "Text",ExpressionUUID->"d1b59b7a-5133-487c-a025-bc98495faf7b"]
+}, Closed]]
+}
+]
+*)
+
+(* End of internal cache information *)
