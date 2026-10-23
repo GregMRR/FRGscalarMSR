@@ -18,7 +18,7 @@ WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
-Cell["Lesson 15 - JuliaExport", "Title",ExpressionUUID->"326c93e4-2e23-4ec5-8260-30af5172b8fb"],
+Cell["Lesson 15 - JuliaExport", "Title",ExpressionUUID->"3ca43167-03e9-46c0-b10e-1abda6234418"],
 
 Cell[TextData[{
  StyleBox["Physics step.",
@@ -86,13 +86,13 @@ contract owned by the other repository, ",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  "."
-}], "Text",ExpressionUUID->"2156836c-c7c2-48c5-ba9e-946d9a244a60"],
+}], "Text",ExpressionUUID->"99fde053-c693-45e5-b7a3-876ce0dd4fbc"],
 
 Cell[TextData[{
  StyleBox["Stage.",
   FontWeight->Bold],
  " Input: the Adimensional stage. Output: a file (no new stage)."
-}], "Text",ExpressionUUID->"87b87b8b-8190-4580-a79e-5ce1e0fb2a2b"],
+}], "Text",ExpressionUUID->"72587166-1b02-4c82-b3bf-fa01a98bded1"],
 
 Cell["\<\
 Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
@@ -101,16 +101,16 @@ equations = lessonUpTo[\"Equations\"];
 dims = Block[{Print}, DeriveDimensions[kpzAnsatz, \"References\" -> {nuk -> \
 \"nu\", Dk -> \"D\"}, \"Scale\" -> k]];
 adim = Block[{Print}, AdimensionalEquations[equations, dims]];\
-\>", "Input",ExpressionUUID->"e8c8930a-7e28-42d2-8b43-407f39657efc"],
+\>", "Input",ExpressionUUID->"e454c550-844f-43c2-a221-bc63bb2422bb"],
 
-Cell["1. Using it", "Section",ExpressionUUID->"63998f8c-5419-4a94-99b1-1ea0fb78cfa5"],
+Cell["1. Using it", "Section",ExpressionUUID->"e65d8f1c-fd7b-42af-a695-510d68b1e488"],
 
 Cell["\<\
 file = ExportJulia[adim, \"Dimension\" -> 2, \"File\" -> \
 FileNameJoin[{$TemporaryDirectory, \"lessonKPZ\", \"Equations2D.jl\"}]];\
-\>", "Input",ExpressionUUID->"3024d3c7-27b4-4338-9023-b1a74ddac3e1"],
+\>", "Input",ExpressionUUID->"dadaed1b-11eb-41f3-b474-34f48da34a57"],
 
-Cell["ReadString[file]", "Input",ExpressionUUID->"72a68bf9-59ce-4fa1-a764-c6dd700ea98d"],
+Cell["ReadString[file]", "Input",ExpressionUUID->"a084e2ff-0284-403a-a806-197b6f10f2fc"],
 
 Cell[TextData[{
  "A header that says where the file comes from and how to regenerate it; \
@@ -132,7 +132,7 @@ the dimensionless atoms are computed first, as local variables (",
  StyleBox["\.b2",
   FontFamily->"Noto Sans"],
  ")."
-}], "Text",ExpressionUUID->"03e9b9ae-1881-4e42-96cb-ddad3c7dc87a"],
+}], "Text",ExpressionUUID->"f3683a59-24ea-4eb6-89b9-939b281bc6df"],
 
 Cell[TextData[{
  StyleBox["JuliaParts",
@@ -141,14 +141,14 @@ Cell[TextData[{
   Background->GrayLevel[0.92]],
  " gives the same content as Mathematica expressions, before the translation \
 to text:"
-}], "Text",ExpressionUUID->"ac53b15b-0364-409f-a9f2-83d1bc448d4a"],
+}], "Text",ExpressionUUID->"d34f8bdd-ff29-495a-8a22-bf188fdb4589"],
 
 Cell["\<\
 parts = JuliaParts[adim, 2];
 {Keys[parts], parts[\"betal\"], parts[\"causalPoles\"]}\
-\>", "Input",ExpressionUUID->"a87f3423-61d5-4b64-80c2-1c39ac31cce6"],
+\>", "Input",ExpressionUUID->"d225b207-af02-4397-b839-f00a13d7542f"],
 
-Cell["2. The parts at one dimension", "Section",ExpressionUUID->"9c1019f0-5fcd-4f97-8262-7cc9c78894df"],
+Cell["2. The parts at one dimension", "Section",ExpressionUUID->"e821bef2-d8d8-482d-ac2d-1c062d6d7af2"],
 
 Cell["\<\
 (* Kernel/JuliaExport.wl:21-25 *)
@@ -160,7 +160,7 @@ shapes][y_] :>
      \"only r, r' and r'' are exported: p^4 (and higher) flows need r''' / \
 r'''' and a FlowRG interface extension (docs/FUTURE.md)\"];
     Symbol[Context[f] <> If[n == 1, \"D\", \"D2\"] <> SymbolName[f]][y]);\
-\>", "Program",ExpressionUUID->"90e14eea-b161-4fa9-8ea7-84688ad3c65a"],
+\>", "Program",ExpressionUUID->"03302ea0-0a0a-4094-af9e-b5cae15fbc81"],
 
 Cell["\<\
 (* Kernel/JuliaExport.wl:36-45 *)
@@ -183,7 +183,7 @@ Flatten[adim[\"EtaML\"]], \"etaMnl\" -> sub[w Flatten[mnl]],
 \"Compact\", \"Explicit\"]]],
     \"atoms\" -> If[form === \"Compact\", sub[Normal[adim[\"Atoms\"]]], {}], \
 \"measure\" -> w|>]];\
-\>", "Program",ExpressionUUID->"f41bc213-8e6c-476f-a5c3-2f0a1f8e7f87"],
+\>", "Program",ExpressionUUID->"17a78888-6bcc-4a8e-aff9-a4257d03437c"],
 
 Cell[TextData[{
  StyleBox["Dim",
@@ -230,9 +230,9 @@ loop part, and each shape derivative ",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  "."
-}], "Text",ExpressionUUID->"ce4c1144-cf45-4742-9ead-e794f1570042"],
+}], "Text",ExpressionUUID->"e1b93a5e-58fa-4811-b215-635f72db5a24"],
 
-Cell["3. From expressions to Julia text", "Section",ExpressionUUID->"ca09bcde-5863-4421-bf8d-a8bb90c9f877"],
+Cell["3. From expressions to Julia text", "Section",ExpressionUUID->"923596c3-fd49-4b11-87e5-e1aa24f1e426"],
 
 Cell["\<\
 (* Kernel/JuliaExport.wl:18-19 *)
@@ -240,7 +240,7 @@ Cell["\<\
 atom_H_Hbar_0_1 *)
 atomName[AdimAtom[a__]] := \"atom_\" <> StringRiffle[ToString /@ {a}, \"_\"];\
 \
-\>", "Program",ExpressionUUID->"c3778594-1212-47bf-9889-627c3d5bc1c0"],
+\>", "Program",ExpressionUUID->"de0e30d0-4c76-4cc3-9395-f3539787dce3"],
 
 Cell["\<\
 (* Kernel/JuliaExport.wl:27-31 *)
@@ -253,7 +253,7 @@ Infinity];
 \"Abs(\" -> \"abs(\"}];
    StringReplace[s, RegularExpression[\"FRGscalarMSR`([A-Za-z]+`)*\"] -> \
 \"\"]];\
-\>", "Program",ExpressionUUID->"aff9ea6a-9ae6-4477-88ff-61042ba81af1"],
+\>", "Program",ExpressionUUID->"aeeb71e1-5dd2-4142-8fdd-52cd9dd791b3"],
 
 Cell["\<\
 (* Kernel/JuliaExport.wl:33-34 *)
@@ -261,7 +261,7 @@ symTuple[l_List] := \"(\" <> StringRiffle[\":\" <> # & /@ l, \", \"] <> \
 If[Length[l] == 1, \",\", \"\"] <> \")\";
 tupleString[exprs_List] := \"(\" <> StringRiffle[exprs, \",\\n     \"] <> \
 If[Length[exprs] == 1, \",\", \"\"] <> \")\";\
-\>", "Program",ExpressionUUID->"413447d3-1c04-4b95-ad75-48a5a627a8ed"],
+\>", "Program",ExpressionUUID->"bd7dd6db-3a6b-4fd8-8e61-48ea1e5592bc"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Expressions as text",
@@ -327,7 +327,7 @@ parentheses, renames constants (",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"a7cd7aa5-8ede-42da-8157-5dfaf54d59aa"],
+  0.91, 0.95, 1.],ExpressionUUID->"22a39c07-3c0c-4804-a201-b70d1dabf876"],
 
 Cell["\<\
 {ToString[x^2 + Sin[y], InputForm], FRGscalarMSR`Private`toJulia[aq^2 \
@@ -336,7 +336,7 @@ rn[aq^2] + Pi]}\
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"b0c18624-c559-46a6-aed3-586117c81b5c"],
+  0.91, 0.95, 1.],ExpressionUUID->"97713f6b-c075-4232-9dbb-55927d77867b"],
 
 Cell[TextData[{
  StyleBox["StringReplace",
@@ -369,12 +369,12 @@ a latent problem in ",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " rule only produces the parenthesis in the output."
-}], "Text",ExpressionUUID->"c97bf412-1632-4842-8e41-534517281e64"],
+}], "Text",ExpressionUUID->"c19dc092-4634-4e1b-b4b8-f8ee8df9c980"],
 
 Cell["\<\
 {StringReplace[\"Sqrt[x]\", {\"[\" -> \"(\", \"]\" -> \")\", \"Sqrt(\" -> \
 \"sqrt(\"}], FRGscalarMSR`Private`toJulia[Sqrt[aq]]}\
-\>", "Input",ExpressionUUID->"f4c33e3d-86a3-4259-930b-7db9630c822d"],
+\>", "Input",ExpressionUUID->"0eee2b30-a141-4bac-aee4-d239c694c16e"],
 
 Cell[TextData[{
  "A ",
@@ -415,12 +415,12 @@ whose exported expressions are rational in aq, but ",
   Background->GrayLevel[0.92]],
  ", so the check would not catch it. Two passes (brackets first, then names) \
 would fix it."
-}], "Text",ExpressionUUID->"9f5360f0-0d74-45ea-93a8-146cc467035d"],
+}], "Text",ExpressionUUID->"1db54e50-5c24-48f5-a742-f64800353b07"],
 
-Cell["4. Writing the file", "Section",ExpressionUUID->"2aa9d9dd-dfb3-42bb-b71b-12d623c156fb"],
+Cell["4. Writing the file", "Section",ExpressionUUID->"8e831b5f-15c3-420c-85d6-e7d1c6790fa7"],
 
 Cell["\<\
-(* Kernel/JuliaExport.wl:85-123 *)
+(* Kernel/JuliaExport.wl:88-126 *)
    (* one Julia definition; compact loop parts compute the atoms they use \
 first *)
    (* atoms are written through placeholder symbols atomJ<i>Z, renamed to \
@@ -491,7 +491,7 @@ a FlowRG version that binds them.\", Nothing]}, \"\\n\"];
       If[adim[\"MustFix\"] === {}, {}, {\"const MUST_FIX = \" <> \
 symTuple[adim[\"MustFix\"]]}], {\"\"}, Riffle[defs, \"\"]], \"\\n\"] <> \"\\n\
 \", \"Text\"];\
-\>", "Program",ExpressionUUID->"0308432f-ce50-4326-acf1-596b80581dae"],
+\>", "Program",ExpressionUUID->"821cf635-a64e-430e-b420-2ee6bd49ce9c"],
 
 Cell[TextData[{
  "The atoms are written through placeholder symbols ",
@@ -516,7 +516,7 @@ Cell[TextData[{
   Background->GrayLevel[0.92]],
  " in the final string: a symbol name cannot contain the characters the Julia \
 name needs, but a string can."
-}], "Text",ExpressionUUID->"e2a292e5-0d13-4403-bd4c-c4d0d45ca451"],
+}], "Text",ExpressionUUID->"b24a64e7-326f-4b00-af3e-3ed5078ebba4"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Building text",
@@ -570,7 +570,7 @@ Cell[TextData[{
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"ddd9b216-96c4-424a-9678-c3563fcb222d"],
+  0.91, 0.95, 1.],ExpressionUUID->"feefa6b9-d949-4295-8eff-526f605772a2"],
 
 Cell["\<\
 {Riffle[{a, b, c}, x], StringRiffle[{\"a\", \"b\"}, \", \"], \
@@ -579,12 +579,12 @@ DateString[{\"Year\", \"-\", \"Month\", \"-\", \"Day\"}]}\
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"5e40ea08-2b86-4509-bd7e-643cee6b4432"],
+  0.91, 0.95, 1.],ExpressionUUID->"7f331c1b-e98a-473b-a8d3-f66dbfa7bc1d"],
 
-Cell["5. The checks", "Section",ExpressionUUID->"fa93b63a-993f-406a-9155-67dc0bb23f75"],
+Cell["5. The checks", "Section",ExpressionUUID->"3ccdbbcb-e088-4ddb-8263-faee0225294a"],
 
 Cell["\<\
-(* Kernel/JuliaExport.wl:65-83 *)
+(* Kernel/JuliaExport.wl:68-86 *)
    (* check 7: no unit, no dimensionful loop momentum, no symbolic dimension; \
 only declared symbols *)
    units = Join[dims[\"Basis\"], {adim[\"Equations\"][\"LoopMomentum\"]}, \
@@ -622,7 +622,7 @@ must bind second derivatives (docs/handoff/FlowRG-MUST_FIX.md, task 2)\"]]];
 \"JuliaExport.mustFix\", \"MUST_FIX = \" <> symTuple[adim[\"MustFix\"]] <>
        \": load with fixed_etas = (\" <> StringRiffle[# <> \" = <value>\" & \
 /@ adim[\"MustFix\"], \", \"] <> \",)\"]]];\
-\>", "Program",ExpressionUUID->"cfa3bc31-8092-4e2c-b857-f68fdb9b44d1"],
+\>", "Program",ExpressionUUID->"cda07f6b-a3bd-4ff6-bc8b-88334771b695"],
 
 Cell[TextData[{
  "Before writing, the module checks that nothing dimensionful is left (no k, \
@@ -654,12 +654,12 @@ Julia translation. A file that uses r",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ")."
-}], "Text",ExpressionUUID->"91272745-4866-474b-9aec-8356b17f5a27"],
+}], "Text",ExpressionUUID->"d58554b4-f632-494c-9fa1-a391510ad7db"],
 
 Cell["\<\
 showFailure[ExportJulia[adim, \"Dimension\" -> d, \"File\" -> \
 FileNameJoin[{$TemporaryDirectory, \"x.jl\"}]]]\
-\>", "Input",ExpressionUUID->"d704f2eb-6bdf-4be2-b97f-79e103dbfde4"],
+\>", "Input",ExpressionUUID->"1bd8735c-d740-491b-a69b-1371a362a738"],
 
 Cell[TextData[{
  StyleBox["Why it's built this way: A file format owned by someone else",
@@ -698,11 +698,11 @@ FlowRG takes d as fixed."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->GrayLevel[0.55],
  Background->RGBColor[
-  0.93, 0.93, 0.93],ExpressionUUID->"a026498a-9fb2-4a29-9ddd-dd63e42b8b62"],
+  0.93, 0.93, 0.93],ExpressionUUID->"ccde5b48-7db3-4407-a080-4040dc812bf2"],
 
-Cell["Exercises", "Section",ExpressionUUID->"e29ae870-1dde-4ec3-b585-4683703f5db1"],
+Cell["Exercises", "Section",ExpressionUUID->"12fd1d17-8799-4e35-98e4-bd20a2b489ed"],
 
-Cell["Exercise: Explicit form", "Subsection",ExpressionUUID->"b97a561b-4c09-4904-b545-d94d19e959a6"],
+Cell["Exercise: Explicit form", "Subsection",ExpressionUUID->"20fdce1a-e8df-4d79-aaee-4115afb84746"],
 
 Cell[TextData[{
  "Export the same flow with ",
@@ -716,11 +716,11 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " definitions."
-}], "Text",ExpressionUUID->"3bd2ad92-789c-4df4-ab4a-c4bbafe3f6b5"],
+}], "Text",ExpressionUUID->"f6edf63a-cff8-48d9-be31-b9e82d548d46"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"fd8803d9-d810-4e5c-8b8a-fc53243177d0"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"991d6b0f-0f52-4727-abf2-f661e56ed391"],
 
 Cell["\<\
 file2 = ExportJulia[adim, \"Dimension\" -> 2, \"Form\" -> \"Explicit\", \
@@ -728,7 +728,7 @@ file2 = ExportJulia[adim, \"Dimension\" -> 2, \"Form\" -> \"Explicit\", \
 \"Equations2DExplicit.jl\"}]];
 StringCases[ReadString[file2], StartOfLine ~~ \"etaMnl(\" ~~ Shortest[___] ~~ \
 \"\\n\\n\"]\
-\>", "Input",ExpressionUUID->"46095c3e-3113-44d2-a4c2-383b9ff7ee2d"],
+\>", "Input",ExpressionUUID->"65874a6d-d454-46c5-b0d9-9a00f7baf81d"],
 
 Cell[TextData[{
  "No atoms: the shapes appear directly, and the expressions are longer. ",
@@ -748,24 +748,24 @@ Cell[TextData[{
   Background->GrayLevel[0.92]],
  " extracts the text from the line that starts the definition to the next \
 blank line."
-}], "Text",ExpressionUUID->"caba293b-4179-4337-b2cf-f133be922810"]
+}], "Text",ExpressionUUID->"b534b3c5-4a4a-4c01-8bb1-4ba002f8fc97"]
 }, Closed]],
 
-Cell["Exercise: Another dimension", "Subsection",ExpressionUUID->"7031a7c7-0f3e-4e51-aa9b-182f20544624"],
+Cell["Exercise: Another dimension", "Subsection",ExpressionUUID->"c5d772ae-5a1c-4761-b846-8e347c4dda89"],
 
 Cell["\<\
 Export for d = 3 and compare the measure in the header of the two files.\
-\>", "Text",ExpressionUUID->"c1551f51-445a-4fb0-be90-e94899552896"],
+\>", "Text",ExpressionUUID->"21ff2e4b-3918-4cf5-a21c-b6b3ac0d38c3"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"05db6534-4ab9-4464-9f82-52f1b0c760d1"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"093b2d91-b2b8-48d1-b8be-76c75484e6e6"],
 
 Cell["\<\
 file3 = ExportJulia[adim, \"Dimension\" -> 3, \"File\" -> \
 FileNameJoin[{$TemporaryDirectory, \"lessonKPZ\", \"Equations3D.jl\"}]];
 {JuliaParts[adim, 2][\"measure\"], JuliaParts[adim, 3][\"measure\"]}\
-\>", "Input",ExpressionUUID->"b3f0d461-746a-4abd-92a4-4385478ca688"],
+\>", "Input",ExpressionUUID->"06a948f9-ef5d-4c62-a576-f2531dff3cb5"],
 
 Cell[TextData[{
  "aq/(2",
@@ -783,10 +783,10 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " at the given d (lesson 14)."
-}], "Text",ExpressionUUID->"74aa7468-a6a7-42b7-a152-ff4ea08fd047"]
+}], "Text",ExpressionUUID->"43783afc-e9fb-4e77-ae6a-71d8098ed966"]
 }, Closed]],
 
-Cell["Exercise: The loop part of \[Lambda]", "Subsection",ExpressionUUID->"e2673a13-2b8a-46e7-ad43-c26f98d503c0"],
+Cell["Exercise: The loop part of \[Lambda]", "Subsection",ExpressionUUID->"a1c3cc48-6bd2-4443-aebe-512ce21ea480"],
 
 Cell[TextData[{
  "Why is there no ",
@@ -795,15 +795,15 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " function in the KPZ file?"
-}], "Text",ExpressionUUID->"663cda2c-d87b-48c8-af12-97f92a4ad3b3"],
+}], "Text",ExpressionUUID->"88fc21a8-facf-45a2-b210-2c2095b16ef8"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"1b37c72b-2d05-4336-8e58-6fc25ad8925d"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"e6362179-854d-493c-8110-0f8c793143bd"],
 
 Cell["\<\
 {parts[\"betanl\"], StringContainsQ[ReadString[file], \"betanl(\"]}\
-\>", "Input",ExpressionUUID->"71948a8c-820f-40ec-b189-08f419652636"],
+\>", "Input",ExpressionUUID->"62e30138-63f2-4879-bf77-baa84c3e42b7"],
 
 Cell[TextData[{
  StyleBox["\[Lambda]",
@@ -817,13 +817,13 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " is always written)."
-}], "Text",ExpressionUUID->"2a6c1c18-0ab4-4773-9249-2e387e40e1c0"]
+}], "Text",ExpressionUUID->"84cf24cd-0cc4-4608-8476-3ac9e7bd7560"]
 }, Closed]]
 },
 CellContext->Notebook,
 FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
 StyleDefinitions->"Default.nb",
-ExpressionUUID->"68ca8ccf-8ceb-4f4a-8543-fab9318d86bc"
+ExpressionUUID->"3cc61674-820d-4389-b436-542045a0c982"
 ]
 (* End of Notebook Content *)
 
@@ -836,60 +836,60 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[554, 20, 95, 0, 70, "Title",ExpressionUUID->"326c93e4-2e23-4ec5-8260-30af5172b8fb"],
-Cell[652, 22, 2000, 66, 70, "Text",ExpressionUUID->"2156836c-c7c2-48c5-ba9e-946d9a244a60"],
-Cell[2655, 90, 189, 4, 70, "Text",ExpressionUUID->"87b87b8b-8190-4580-a79e-5ce1e0fb2a2b"],
-Cell[2847, 96, 420, 7, 70, "Input",ExpressionUUID->"e8c8930a-7e28-42d2-8b43-407f39657efc"],
-Cell[3270, 105, 85, 0, 70, "Section",ExpressionUUID->"63998f8c-5419-4a94-99b1-1ea0fb78cfa5"],
-Cell[3358, 107, 211, 3, 70, "Input",ExpressionUUID->"3024d3c7-27b4-4338-9023-b1a74ddac3e1"],
-Cell[3572, 112, 88, 0, 70, "Input",ExpressionUUID->"72a68bf9-59ce-4fa1-a764-c6dd700ea98d"],
-Cell[3663, 114, 747, 20, 70, "Text",ExpressionUUID->"03e9b9ae-1881-4e42-96cb-ddad3c7dc87a"],
-Cell[4413, 136, 299, 7, 70, "Text",ExpressionUUID->"ac53b15b-0364-409f-a9f2-83d1bc448d4a"],
-Cell[4715, 145, 164, 3, 70, "Input",ExpressionUUID->"a87f3423-61d5-4b64-80c2-1c39ac31cce6"],
-Cell[4882, 150, 103, 0, 70, "Section",ExpressionUUID->"9c1019f0-5fcd-4f97-8262-7cc9c78894df"],
-Cell[4988, 152, 578, 10, 70, "Program",ExpressionUUID->"90e14eea-b161-4fa9-8ea7-84688ad3c65a"],
-Cell[5569, 164, 1161, 21, 70, "Program",ExpressionUUID->"f41bc213-8e6c-476f-a5c3-2f0a1f8e7f87"],
-Cell[6733, 187, 1398, 45, 70, "Text",ExpressionUUID->"ce4c1144-cf45-4742-9ead-e794f1570042"],
-Cell[8134, 234, 107, 0, 70, "Section",ExpressionUUID->"ca09bcde-5863-4421-bf8d-a8bb90c9f877"],
-Cell[8244, 236, 282, 6, 70, "Program",ExpressionUUID->"c3778594-1212-47bf-9889-627c3d5bc1c0"],
-Cell[8529, 244, 530, 11, 70, "Program",ExpressionUUID->"aff9ea6a-9ae6-4477-88ff-61042ba81af1"],
-Cell[9062, 257, 353, 6, 70, "Program",ExpressionUUID->"413447d3-1c04-4b95-ad75-48a5a627a8ed"],
-Cell[9418, 265, 2123, 64, 70, "Text",ExpressionUUID->"a7cd7aa5-8ede-42da-8157-5dfaf54d59aa"],
-Cell[11544, 331, 282, 7, 70, "Input",ExpressionUUID->"b0c18624-c559-46a6-aed3-586117c81b5c"],
-Cell[11829, 340, 1140, 31, 70, "Text",ExpressionUUID->"c97bf412-1632-4842-8e41-534517281e64"],
-Cell[12972, 373, 208, 3, 70, "Input",ExpressionUUID->"f4c33e3d-86a3-4259-930b-7db9630c822d"],
-Cell[13183, 378, 1279, 39, 70, "Text",ExpressionUUID->"9f5360f0-0d74-45ea-93a8-146cc467035d"],
-Cell[14465, 419, 93, 0, 70, "Section",ExpressionUUID->"2aa9d9dd-dfb3-42bb-b71b-12d623c156fb"],
-Cell[14561, 421, 3912, 72, 70, "Program",ExpressionUUID->"0308432f-ce50-4326-acf1-596b80581dae"],
-Cell[18476, 495, 847, 23, 70, "Text",ExpressionUUID->"e2a292e5-0d13-4403-bd4c-c4d0d45ca451"],
-Cell[19326, 520, 1751, 52, 70, "Text",ExpressionUUID->"ddd9b216-96c4-424a-9678-c3563fcb222d"],
-Cell[21080, 574, 315, 7, 70, "Input",ExpressionUUID->"5e40ea08-2b86-4509-bd7e-643cee6b4432"],
-Cell[21398, 583, 87, 0, 70, "Section",ExpressionUUID->"fa93b63a-993f-406a-9155-67dc0bb23f75"],
-Cell[21488, 585, 2536, 39, 70, "Program",ExpressionUUID->"cfa3bc31-8092-4e2c-b857-f68fdb9b44d1"],
-Cell[24027, 626, 1034, 30, 70, "Text",ExpressionUUID->"91272745-4866-474b-9aec-8356b17f5a27"],
-Cell[25064, 658, 191, 3, 70, "Input",ExpressionUUID->"d704f2eb-6bdf-4be2-b97f-79e103dbfde4"],
-Cell[25258, 663, 1506, 37, 70, "Text",ExpressionUUID->"a026498a-9fb2-4a29-9ddd-dd63e42b8b62"],
-Cell[26767, 702, 83, 0, 70, "Section",ExpressionUUID->"e29ae870-1dde-4ec3-b585-4683703f5db1"],
-Cell[26853, 704, 100, 0, 70, "Subsection",ExpressionUUID->"b97a561b-4c09-4904-b545-d94d19e959a6"],
-Cell[26956, 706, 438, 12, 70, "Text",ExpressionUUID->"3bd2ad92-789c-4df4-ab4a-c4bbafe3f6b5"],
+Cell[554, 20, 95, 0, 70, "Title",ExpressionUUID->"3ca43167-03e9-46c0-b10e-1abda6234418"],
+Cell[652, 22, 2000, 66, 70, "Text",ExpressionUUID->"99fde053-c693-45e5-b7a3-876ce0dd4fbc"],
+Cell[2655, 90, 189, 4, 70, "Text",ExpressionUUID->"72587166-1b02-4c82-b3bf-fa01a98bded1"],
+Cell[2847, 96, 420, 7, 70, "Input",ExpressionUUID->"e454c550-844f-43c2-a221-bc63bb2422bb"],
+Cell[3270, 105, 85, 0, 70, "Section",ExpressionUUID->"e65d8f1c-fd7b-42af-a695-510d68b1e488"],
+Cell[3358, 107, 211, 3, 70, "Input",ExpressionUUID->"dadaed1b-11eb-41f3-b474-34f48da34a57"],
+Cell[3572, 112, 88, 0, 70, "Input",ExpressionUUID->"a084e2ff-0284-403a-a806-197b6f10f2fc"],
+Cell[3663, 114, 747, 20, 70, "Text",ExpressionUUID->"f3683a59-24ea-4eb6-89b9-939b281bc6df"],
+Cell[4413, 136, 299, 7, 70, "Text",ExpressionUUID->"d34f8bdd-ff29-495a-8a22-bf188fdb4589"],
+Cell[4715, 145, 164, 3, 70, "Input",ExpressionUUID->"d225b207-af02-4397-b839-f00a13d7542f"],
+Cell[4882, 150, 103, 0, 70, "Section",ExpressionUUID->"e821bef2-d8d8-482d-ac2d-1c062d6d7af2"],
+Cell[4988, 152, 578, 10, 70, "Program",ExpressionUUID->"03302ea0-0a0a-4094-af9e-b5cae15fbc81"],
+Cell[5569, 164, 1161, 21, 70, "Program",ExpressionUUID->"17a78888-6bcc-4a8e-aff9-a4257d03437c"],
+Cell[6733, 187, 1398, 45, 70, "Text",ExpressionUUID->"e1b93a5e-58fa-4811-b215-635f72db5a24"],
+Cell[8134, 234, 107, 0, 70, "Section",ExpressionUUID->"923596c3-fd49-4b11-87e5-e1aa24f1e426"],
+Cell[8244, 236, 282, 6, 70, "Program",ExpressionUUID->"de0e30d0-4c76-4cc3-9395-f3539787dce3"],
+Cell[8529, 244, 530, 11, 70, "Program",ExpressionUUID->"aeeb71e1-5dd2-4142-8fdd-52cd9dd791b3"],
+Cell[9062, 257, 353, 6, 70, "Program",ExpressionUUID->"bd7dd6db-3a6b-4fd8-8e61-48ea1e5592bc"],
+Cell[9418, 265, 2123, 64, 70, "Text",ExpressionUUID->"22a39c07-3c0c-4804-a201-b70d1dabf876"],
+Cell[11544, 331, 282, 7, 70, "Input",ExpressionUUID->"97713f6b-c075-4232-9dbb-55927d77867b"],
+Cell[11829, 340, 1140, 31, 70, "Text",ExpressionUUID->"c19dc092-4634-4e1b-b4b8-f8ee8df9c980"],
+Cell[12972, 373, 208, 3, 70, "Input",ExpressionUUID->"0eee2b30-a141-4bac-aee4-d239c694c16e"],
+Cell[13183, 378, 1279, 39, 70, "Text",ExpressionUUID->"1db54e50-5c24-48f5-a742-f64800353b07"],
+Cell[14465, 419, 93, 0, 70, "Section",ExpressionUUID->"8e831b5f-15c3-420c-85d6-e7d1c6790fa7"],
+Cell[14561, 421, 3912, 72, 70, "Program",ExpressionUUID->"821cf635-a64e-430e-b420-2ee6bd49ce9c"],
+Cell[18476, 495, 847, 23, 70, "Text",ExpressionUUID->"b24a64e7-326f-4b00-af3e-3ed5078ebba4"],
+Cell[19326, 520, 1751, 52, 70, "Text",ExpressionUUID->"feefa6b9-d949-4295-8eff-526f605772a2"],
+Cell[21080, 574, 315, 7, 70, "Input",ExpressionUUID->"7f331c1b-e98a-473b-a8d3-f66dbfa7bc1d"],
+Cell[21398, 583, 87, 0, 70, "Section",ExpressionUUID->"3ccdbbcb-e088-4ddb-8263-faee0225294a"],
+Cell[21488, 585, 2536, 39, 70, "Program",ExpressionUUID->"cda07f6b-a3bd-4ff6-bc8b-88334771b695"],
+Cell[24027, 626, 1034, 30, 70, "Text",ExpressionUUID->"d58554b4-f632-494c-9fa1-a391510ad7db"],
+Cell[25064, 658, 191, 3, 70, "Input",ExpressionUUID->"1bd8735c-d740-491b-a69b-1371a362a738"],
+Cell[25258, 663, 1506, 37, 70, "Text",ExpressionUUID->"ccde5b48-7db3-4407-a080-4040dc812bf2"],
+Cell[26767, 702, 83, 0, 70, "Section",ExpressionUUID->"12fd1d17-8799-4e35-98e4-bd20a2b489ed"],
+Cell[26853, 704, 100, 0, 70, "Subsection",ExpressionUUID->"20fdce1a-e8df-4d79-aaee-4115afb84746"],
+Cell[26956, 706, 438, 12, 70, "Text",ExpressionUUID->"f6edf63a-cff8-48d9-be31-b9e82d548d46"],
 Cell[CellGroupData[{
-Cell[27419, 722, 88, 0, 70, "Subsubsection",ExpressionUUID->"fd8803d9-d810-4e5c-8b8a-fc53243177d0"],
-Cell[27510, 724, 340, 6, 70, "Input",ExpressionUUID->"46095c3e-3113-44d2-a4c2-383b9ff7ee2d"],
-Cell[27853, 732, 651, 18, 70, "Text",ExpressionUUID->"caba293b-4179-4337-b2cf-f133be922810"]
+Cell[27419, 722, 88, 0, 70, "Subsubsection",ExpressionUUID->"991d6b0f-0f52-4727-abf2-f661e56ed391"],
+Cell[27510, 724, 340, 6, 70, "Input",ExpressionUUID->"65874a6d-d454-46c5-b0d9-9a00f7baf81d"],
+Cell[27853, 732, 651, 18, 70, "Text",ExpressionUUID->"b534b3c5-4a4a-4c01-8bb1-4ba002f8fc97"]
 }, Closed]],
-Cell[28519, 753, 104, 0, 70, "Subsection",ExpressionUUID->"7031a7c7-0f3e-4e51-aa9b-182f20544624"],
-Cell[28626, 755, 151, 2, 70, "Text",ExpressionUUID->"c1551f51-445a-4fb0-be90-e94899552896"],
+Cell[28519, 753, 104, 0, 70, "Subsection",ExpressionUUID->"c5d772ae-5a1c-4761-b846-8e347c4dda89"],
+Cell[28626, 755, 151, 2, 70, "Text",ExpressionUUID->"21ff2e4b-3918-4cf5-a21c-b6b3ac0d38c3"],
 Cell[CellGroupData[{
-Cell[28802, 761, 88, 0, 70, "Subsubsection",ExpressionUUID->"05db6534-4ab9-4464-9f82-52f1b0c760d1"],
-Cell[28893, 763, 281, 4, 70, "Input",ExpressionUUID->"b3f0d461-746a-4abd-92a4-4385478ca688"],
-Cell[29177, 769, 444, 16, 70, "Text",ExpressionUUID->"74aa7468-a6a7-42b7-a152-ff4ea08fd047"]
+Cell[28802, 761, 88, 0, 70, "Subsubsection",ExpressionUUID->"093b2d91-b2b8-48d1-b8be-76c75484e6e6"],
+Cell[28893, 763, 281, 4, 70, "Input",ExpressionUUID->"06a948f9-ef5d-4c62-a576-f2531dff3cb5"],
+Cell[29177, 769, 444, 16, 70, "Text",ExpressionUUID->"43783afc-e9fb-4e77-ae6a-71d8098ed966"]
 }, Closed]],
-Cell[29636, 788, 113, 0, 70, "Subsection",ExpressionUUID->"e2673a13-2b8a-46e7-ad43-c26f98d503c0"],
-Cell[29752, 790, 257, 7, 70, "Text",ExpressionUUID->"663cda2c-d87b-48c8-af12-97f92a4ad3b3"],
+Cell[29636, 788, 113, 0, 70, "Subsection",ExpressionUUID->"a1c3cc48-6bd2-4443-aebe-512ce21ea480"],
+Cell[29752, 790, 257, 7, 70, "Text",ExpressionUUID->"88fc21a8-facf-45a2-b210-2c2095b16ef8"],
 Cell[CellGroupData[{
-Cell[30034, 801, 88, 0, 70, "Subsubsection",ExpressionUUID->"1b37c72b-2d05-4336-8e58-6fc25ad8925d"],
-Cell[30125, 803, 147, 2, 70, "Input",ExpressionUUID->"71948a8c-820f-40ec-b189-08f419652636"],
-Cell[30275, 807, 446, 12, 70, "Text",ExpressionUUID->"2a6c1c18-0ab4-4773-9249-2e387e40e1c0"]
+Cell[30034, 801, 88, 0, 70, "Subsubsection",ExpressionUUID->"e6362179-854d-493c-8110-0f8c793143bd"],
+Cell[30125, 803, 147, 2, 70, "Input",ExpressionUUID->"62e30138-63f2-4879-bf77-baa84c3e42b7"],
+Cell[30275, 807, 446, 12, 70, "Text",ExpressionUUID->"84cf24cd-0cc4-4608-8476-3ac9e7bd7560"]
 }, Closed]]
 }
 ]

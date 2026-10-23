@@ -121,9 +121,10 @@ PrintCard[stage_Association] := Module[{chk = Lookup[stage, "Checks", {}], extra
 (* ---------------- user symbols ---------------- *)
 
 (* names the user writes or reads in library input/output with a fixed meaning: RG scale k, loop momentum q, external momentum p,
-   shape argument y = q^2/k^2, time t, position x, frequencies; internal names (A, CC, X, ...) live in private contexts.
+   shape argument y = q^2/k^2, time t, position x, frequencies, and the cosine c and dimensionless external momentum ap of the
+   functional equations (design/MOMENTUMFUNCTIONS.md); internal names (A, CC, X, ...) live in private contexts.
    Dim is user-chosen and therefore not reserved. *)
-reservedNames = {"k", "q", "p", "y", "t", "x", "\[Omega]", "\[Nu]"};
+reservedNames = {"k", "q", "p", "y", "t", "x", "c", "ap", "\[Omega]", "\[Nu]"};
 
 assertFreshSymbols[check_String, syms_List, what_String] := Module[{lib = Join[Names["FRGscalarMSR`*"], Names["FRGscalarMSR`Internal`*"]]},
    FRGAssert[check <> ".symbols", AllTrue[syms, Head[#] === Symbol &], Select[syms, Head[#] =!= Symbol &],

@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-(* makeNotebooks.wl -- writes examples/ShallowWaterDE4plus.nb and examples/KPZ.nb from the cell lists below.
+(* makeNotebooks.wl -- writes examples/ShallowWaterDE4plus.nb, examples/KPZ.nb and examples/KPZ_LO.nb from the cell lists below.
    Run:  math -script ~/Physics/Sources/FRGscalarMSR/examples/makeNotebooks.wl
    Check that they run headless:  math -script ~/Physics/Sources/FRGscalarMSR/examples/runNotebook.wl <notebook.nb>
    Edit the cells here, not in the .nb files, then regenerate. *)
@@ -108,6 +108,43 @@ output gives Canet's Eq. (20) exactly."],
    input["adim = AdimensionalEquations[equations, dims];\nShowBeta[adim, lamk]\nShowEtaSystem[adim]"],
    input["ExportJulia[adim, \"Dimension\" -> 2, \"File\" -> FileNameJoin[{$TemporaryDirectory, \"KPZ\", \"Equations2D.jl\"}]]"]};
 
+kpzLO = {
+   title["KPZ, LO: momentum-dependent nu(p) and D(p)"],
+   text["The LO scheme of the KPZ literature: Gamma_{hbar h} = I w + nu_k Fnu(p^2) p^2 and Gamma_{hbar hbar} = -2 D_k FD(p^2), with \
+lambda and the coefficient 1 of dt h not renormalised (Galilean invariance; f^lambda = 1). The flows of Fnu and FD are computed at generic \
+external momentum p. Design: design/MOMENTUMFUNCTIONS.md; lesson: lessons/17-MomentumFunctions.nb. As in Canet, Chate, Delamotte, Wschebor, \
+PRL 104, 150601 (2010), one shape r for both sectors."],
+   load,
+   section["1. Ansatz and symmetries"],
+   input["theory = DefineTheory[\"Scalars\" -> {h}, \"Dimension\" -> Dim];\nansatz = DefineAnsatz[theory, \"Density\" -> hbar (dt[h] - nuk Fnu lap[h] - lamk/2 grad[h].grad[h]) - Dk FD hbar^2,\n  \"Couplings\" -> {nuk, lamk, Dk}, \"MomentumFunctions\" -> {Fnu, FD}];"],
+   input["symmetries = DeclareSymmetries[ansatz,\n  Protected[{hbar, h}, \"Frequency\" -> 1, \"Momentum\" -> 0, \"Reason\" -> \"Galilean Ward identity\"],\n  Protected[{h, hbar}, \"Frequency\" -> 0, \"Momentum\" -> 0, \"Reason\" -> \"h -> h + c (shift symmetry)\"],\n  Neglected[_, \"Reason\" -> \"beyond the LO ansatz\"], NonRenormalised[lamk, \"Reason\" -> \"Galilean invariance\"],\n  \"TruncationOrders\" -> <|\"Frequency\" -> 2, \"Momentum\" -> 1|>];"],
+   section["2. Flows at generic p"],
+   text["The loop is routed at the midpoint (lines q - p/2, q + p/2) and symmetrised under q -> -q; Fnu's equation is the loop minus its \
+p^0 order, divided by p^2. Variables of the integrand: q (midpoint loop momentum), p = |p|, c = cos(p, q); Int d^dq/(2 Pi)^d."],
+   input["vertices = BuildVertices[ansatz];\nregulator = DefineRegulator[ansatz, {hbar, h} -> nuk q^2 r[q^2/k^2], {hbar, hbar} -> -2 Dk r[q^2/k^2], \"Shapes\" -> {r}];\nprop = BuildPropagator[vertices, regulator];"],
+   input["flows = CheckClosure[IntegrateFrequencies[ProjectOnMonomials[BuildLoopIntegrands[vertices, prop, regulator], symmetries]], symmetries];\nequations = AssembleEquations[flows];"],
+   input["ShowEquation[equations, Fnu]\nShowEquation[equations, FD]"],
+   input["(* the exact p -> 0 rows (used for the etas) *)\nEquationOf[equations, Fnu][\"AtZero\"][\"Integrand\"] // Short\nEquationOf[equations, FD][\"AtZero\"][\"Integrand\"] // Short"],
+   input["oracle = RunOracle[equations];"],
+   section["3. Dimensionless form"],
+   text["Fnu, FD multiply the references nuk, Dk, so they are dimensionless; their dimensionless versions are aFnu, aFD of ap^2. \
+\"Equation\" -> nuk Fnu makes nuk Running with aFnu(0) = 1 (its eta from the p -> 0 row); without it the reference is Fixed (eta at run time)."],
+   input["dims = DeriveDimensions[ansatz, \"References\" -> {nuk -> {\"nu\", \"Equation\" -> nuk Fnu}, Dk -> {\"D\", \"Equation\" -> Dk FD}}, \"Scale\" -> k];\nadim = AdimensionalEquations[equations, dims];"],
+   input["ShowBeta[adim, Fnu]\nShowBeta[adim, FD]\nShowEtaSystem[adim]"],
+   input["(* loop integrands of d^d aq/(2 Pi)^d, in (aq, ap, c) *)\nbetaNL = AssociationThread[adim[\"State\"] -> adim[\"BetaNLExplicit\"]];"],
+   section["4. d = 1: time reversal"],
+   input["adim1 = AdimensionalEquations[equations, dims, \"Related\" -> {Related[FD -> Fnu, \"AtDimension\" -> 1, \"Reason\" -> \"time reversal (d = 1)\"]}];\nShowBeta[adim1, Fnu]"],
+   section["5. Comparison with Canet et al. PRL 104, 150601 (2010), Eqs. (14)-(17)"],
+   text["The reference as transcribed from arXiv:0905.1025 (q-routing, u = p + q, P = -p^2 + q^2 + u^2, Q = p^2 - q^2 + u^2, U = p^2 + q^2 - u^2; \
+g11 = q^2 (gamma11 + r), g02 = gamma02 + r, r_nu = eta_nu r + q r'(q) = eta_nu r + 2 y r'(y)). This reading does NOT agree with the library, \
+not even at p = 0 where it must reduce to the derivative expansion: check the conventions (g02, r', the measure Int_q) here."],
+   input["g11[x_] := x (aFnu[x] + r[x]); g02[x_] := aFD[x] + r[x];\nrnu[x_] := etanu r[x] + 2 x r'[x]; rD[x_] := etaD r[x] + 2 x r'[x];\nH[x_, y_] := g11[x] ((g11[x] + g11[y]) rD[x] - g02[x] (2 g11[x] + g11[y]) rnu[x]);\nL[x_, y_] := g11[x]^2 g11[y] (g11[x] + g11[y])^2;\nP[p2_, x_, y_] := -p2 + x + y; Q[p2_, x_, y_] := p2 - x + y; U[p2_, x_, y_] := p2 + x - y;\n(* x = q^2, y = u^2, p2 = p^2; loop part of d_s gamma02, d_s gamma11 with g = alamk^2 *)\nref02[p2_, x_, y_] := -alamk^2 P[p2, x, y]^4 g02[y] H[x, y]/(y L[x, y]);\nref11[p2_, x_, y_] := alamk^2 P[p2, x, y]^2/L[x, y] (U[p2, x, y]^2/x g11[y] H[x, y] - Q[p2, x, y]^2/y g11[x]^2 g02[y] rnu[x]);"],
+   input["(* pointwise: the reference shifted to the midpoint (q -> q - p/2) and symmetrised under c -> -c, vs the library *)\nmid[f_] := With[{xm = aq^2 - ap aq c + ap^2/4, xp = aq^2 + ap aq c + ap^2/4}, (f[ap^2, xm, xp] + (f[ap^2, xm, xp] /. c -> -c))/2];\n{ExactlyZeroQ[betaNL[FD] - mid[ref02]], ExactlyZeroQ[betaNL[Fnu] - mid[ref11]]}"],
+   input["(* p = 0: the eta_D integrand of the library (F = 1) vs the reference, eta_D = -Int ref02(0) *)\netaRows = adim[\"EtaBNLExplicit\"] - adim[\"EtaMNLExplicit\"] . {etanu, etaD};\nSimplify[{etaRows[[2]], -ref02[0, aq^2, aq^2]} /. {aFnu -> (1 &), aFD -> (1 &)}]"],
+   input["(* integrated, d = 3, test functions: routing-independent *)\npar = {alamk -> 1, etanu -> 1/5, etaD -> 1/7, Dim -> 3, aFnu -> (1 + #/(2 + #) &), aFD -> (3/(3 + #) &), r -> (1/(1 + #^2) &)};\nint3[e_] := NIntegrate[aq^2/(4 Pi^2) e, {aq, 0, 12}, {c, -1, 1}, PrecisionGoal -> 8, MaxRecursion -> 20];\nTable[{a, int3[betaNL[FD] /. par /. ap -> a], int3[ref02[a^2, aq^2, aq^2 + 2 a aq c + a^2] /. par]}, {a, {3/5, 3/10}}]"]};
+
 Export[FileNameJoin[{dir, "ShallowWaterDE4plus.nb"}], nb[shallowWater]];
 Export[FileNameJoin[{dir, "KPZ.nb"}], nb[kpz]];
-Print["wrote ShallowWaterDE4plus.nb (", Count[shallowWater, Cell[_, "Input"]], " inputs) and KPZ.nb (", Count[kpz, Cell[_, "Input"]], " inputs)"];
+Export[FileNameJoin[{dir, "KPZ_LO.nb"}], nb[kpzLO]];
+Print["wrote ShallowWaterDE4plus.nb (", Count[shallowWater, Cell[_, "Input"]], " inputs), KPZ.nb (", Count[kpz, Cell[_, "Input"]],
+  " inputs) and KPZ_LO.nb (", Count[kpzLO, Cell[_, "Input"]], " inputs)"];

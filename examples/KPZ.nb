@@ -18,7 +18,7 @@ WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
-Cell["KPZ, one loop, dimensionful", "Title",ExpressionUUID->"768da233-9bda-4b0e-85b8-8e22d72b8d12"],
+Cell["KPZ, one loop, dimensionful", "Title",ExpressionUUID->"fca1520e-45cb-4aeb-bc7b-dabf31aad64d"],
 
 Cell["\<\
 The KPZ equation dt h = nu lap h + lambda/2 (grad h)^2 + noise, with noise \
@@ -26,16 +26,16 @@ variance 2 D, written as an MSR action. The ansatz has the form of the bare \
 action. The Galilean symmetry protects the coefficient 1 of dt h (Ward \
 identity) and the non-linearity lambda (not checkable in v1: that needs d_s \
 Gamma3, so it is declared NonRenormalised).\
-\>", "Text",ExpressionUUID->"69929feb-c3f7-4382-bbe4-b8909c6fd74c"],
+\>", "Text",ExpressionUUID->"345e87a3-3bb4-4309-ab46-cf3dfb413a43"],
 
-Cell["Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"]", "Input",ExpressionUUID->"e2a573df-3491-4f39-9b38-c7892a58a907"],
+Cell["Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"]", "Input",ExpressionUUID->"ddc3ba75-24b5-4c74-84e6-34242174b744"],
 
 Cell["\<\
 theory = DefineTheory[\"Scalars\" -> {h}, \"Dimension\" -> Dim];
 ansatz = DefineAnsatz[theory, \"Density\" -> hbar (dt[h] - nuk lap[h] - \
 lamk/2 grad[h].grad[h]) - Dk hbar^2,
   \"Couplings\" -> {nuk, lamk, Dk}];\
-\>", "Input",ExpressionUUID->"93b0786a-160a-4711-9fb1-dae891b0b0db"],
+\>", "Input",ExpressionUUID->"a9edb08c-7fe1-487d-8e74-ed895a39f966"],
 
 Cell["\<\
 symmetries = DeclareSymmetries[ansatz,
@@ -46,29 +46,29 @@ symmetries = DeclareSymmetries[ansatz,
   Neglected[_, \"Reason\" -> \"beyond the ansatz\"], NonRenormalised[lamk, \
 \"Reason\" -> \"Galilean invariance\"],
   \"TruncationOrders\" -> <|\"Frequency\" -> 2, \"Momentum\" -> 1|>];\
-\>", "Input",ExpressionUUID->"fbba357a-b902-404c-99ca-4bc8a87ffd23"],
+\>", "Input",ExpressionUUID->"56522c1e-0732-4340-8c17-f75699ed826c"],
 
 Cell["\<\
 vertices = BuildVertices[ansatz];
 regulator = DefineRegulator[ansatz, {hbar, h} -> nuk q^2 rn[q^2/k^2], {hbar, \
 hbar} -> -2 Dk rd[q^2/k^2], \"Shapes\" -> {rn, rd}];
 prop = BuildPropagator[vertices, regulator];\
-\>", "Input",ExpressionUUID->"c36b940e-ef14-4fa5-85af-ee3efb889c74"],
+\>", "Input",ExpressionUUID->"b2549fac-0733-4da7-92d7-10687a8430a3"],
 
 Cell["\<\
 flows = CheckClosure[IntegrateFrequencies[ProjectOnMonomials[\
 BuildLoopIntegrands[vertices, prop, regulator], symmetries]], symmetries];\
-\>", "Input",ExpressionUUID->"441abab1-6b0a-4342-98a5-0dc896b11e2b"],
+\>", "Input",ExpressionUUID->"3301ca87-056c-4acc-a9d7-71c0ea1dd2e9"],
 
 Cell["\<\
 equations = AssembleEquations[flows];
 ShowEquation[equations, nuk]
 ShowEquation[equations, Dk]\
-\>", "Input",ExpressionUUID->"a6f96d33-1a4f-4cb4-bb69-078851903ea9"],
+\>", "Input",ExpressionUUID->"74973deb-bf88-44ca-b9e7-8bdf93c9a058"],
 
-Cell["oracle = RunOracle[equations, \"ZeroFlows\" -> True];", "Input",ExpressionUUID->"d408ba1f-fcda-4ab7-956e-983e390657df"],
+Cell["oracle = RunOracle[equations, \"ZeroFlows\" -> True];", "Input",ExpressionUUID->"0609eba9-46ae-46cb-a27c-4f8baa5a7809"],
 
-Cell["Check of the loop normalisation against Canet's flow", "Section",ExpressionUUID->"a5a59f86-3f70-4862-8fbc-223ad2641f33"],
+Cell["Check of the loop normalisation against Canet's flow", "Section",ExpressionUUID->"0bd82371-867c-4d67-bb37-a0f1e9ea66d6"],
 
 Cell["\<\
 L. Canet, arXiv:2509.01472, Eq. (20): with the Litim cutoff r(y) = (1/y - 1) \
@@ -79,7 +79,7 @@ Litim shape (Int d^dq/(2 Pi)^d f = v_d k^d/2 Int_0^1 y^(d/2-1) f dy), solve \
 the linear system for eta_nu and eta_D, and compare. The difference is \
 exactly 0 for every d: this checks the prefactor, sign and 2 Pi of the loop \
 formula (not the Gamma4 tadpole, absent here).\
-\>", "Text",ExpressionUUID->"35ddd4f0-74f5-4f4b-9157-e5655ba2d7df"],
+\>", "Text",ExpressionUUID->"8b91d09b-8ef9-43e9-b62d-126cb622596a"],
 
 Cell["\<\
 litim = {rn -> Function[y, 1/y - 1], rd -> Function[y, 1/y - 1]};
@@ -89,7 +89,7 @@ litim] y^(d/2 - 1)], terms},
   vd k^d/2 Total[(# /. y -> 1)/(Exponent[#, y] + 1) & /@ terms]];
 flowOf[c_] := litimIntegral[EquationOf[equations, c][\"Integrand\"] /. Dim -> \
 d];\
-\>", "Input",ExpressionUUID->"23be36c8-b47a-4f73-9b32-795c566e172b"],
+\>", "Input",ExpressionUUID->"be23ee13-604c-44de-b7a5-a428f917f8d2"],
 
 Cell["\<\
 etas = First[Solve[{-etanu nuk == (flowOf[nuk] /. {dsCoupling[nuk] -> -etanu \
@@ -98,16 +98,16 @@ nuk, dsCoupling[Dk] -> -etaD Dk}),
 dsCoupling[Dk] -> -etaD Dk})}, {etanu, etaD}]];
 bracket = Together[(d - 2 - etaD + 3 etanu) /. etas /. lamk -> Sqrt[g \
 nuk^3/(vd k^(d - 2) Dk)]]\
-\>", "Input",ExpressionUUID->"a9eee056-1f8d-4c07-b78b-d92c4475aaaa"],
+\>", "Input",ExpressionUUID->"37ef2180-d7b8-4ea6-9a69-b40d1980a397"],
 
 Cell["\<\
 canet = (2 d^6 + 4 d^5 - d^4 (7 g + 8) - 2 d^3 (3 g + 8) + d^2 g (3 g + 20) - \
 d (g - 8) g - 2 g^2)/
    (2 d^5 + 8 d^4 + d^3 (8 - 3 g) - 2 d^2 g + d g (g + 8) - g^2);
 Together[bracket - canet]\
-\>", "Input",ExpressionUUID->"b3de8901-bc6a-4479-9f3f-98183d971fd1"],
+\>", "Input",ExpressionUUID->"c6271740-0e38-4bf7-abe1-1d140f33c58f"],
 
-Cell["Dimensionless flow and the FlowRG file", "Section",ExpressionUUID->"88055464-39d1-48fb-ba72-456f0b58dac5"],
+Cell["Dimensionless flow and the FlowRG file", "Section",ExpressionUUID->"0fdb26e1-e684-48e7-b319-70062603e27f"],
 
 Cell["\<\
 The same, done by the library: dimensions from the ansatz in the basis (k, \
@@ -115,27 +115,27 @@ nuk, Dk), the dimensionless flow of lamk (linear part only: lambda is \
 NonRenormalised) and the eta system, then the FlowRG file for d = 2. \
 tests/acceptance/KPZAdimensional.wl checks that this output gives Canet's Eq. \
 (20) exactly.\
-\>", "Text",ExpressionUUID->"de7d2b0f-d6b5-4c5e-8afa-e182890d4e2e"],
+\>", "Text",ExpressionUUID->"2accff8b-e3f9-4902-b991-9ab25b9f2562"],
 
 Cell["\<\
 dims = DeriveDimensions[ansatz, \"References\" -> {nuk -> \"nu\", Dk -> \
 \"D\"}];\
-\>", "Input",ExpressionUUID->"d0ebb5a8-265a-4230-9cea-87dd59e0f303"],
+\>", "Input",ExpressionUUID->"c591e684-c494-425e-86a9-0f6cf6fdbec0"],
 
 Cell["\<\
 adim = AdimensionalEquations[equations, dims];
 ShowBeta[adim, lamk]
 ShowEtaSystem[adim]\
-\>", "Input",ExpressionUUID->"90fc62ba-0d4f-4e53-ab97-e2ebaf17c67f"],
+\>", "Input",ExpressionUUID->"03289397-b6c6-486c-8f8c-088933a2bf37"],
 
 Cell["\<\
 ExportJulia[adim, \"Dimension\" -> 2, \"File\" -> \
 FileNameJoin[{$TemporaryDirectory, \"KPZ\", \"Equations2D.jl\"}]]\
-\>", "Input",ExpressionUUID->"9f3a53b2-7a90-416a-b1cc-62641fba4d69"]
+\>", "Input",ExpressionUUID->"0e73ffc6-44a8-4799-bbb0-14781c45439e"]
 },
 FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
 StyleDefinitions->"Default.nb",
-ExpressionUUID->"bac4b446-e164-413d-b92c-2fae239d37fa"
+ExpressionUUID->"9183c8b4-822c-43b7-bc9c-2384501bdac9"
 ]
 (* End of Notebook Content *)
 
@@ -148,25 +148,25 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[554, 20, 99, 0, 70, "Title",ExpressionUUID->"768da233-9bda-4b0e-85b8-8e22d72b8d12"],
-Cell[656, 22, 428, 6, 70, "Text",ExpressionUUID->"69929feb-c3f7-4382-bbe4-b8909c6fd74c"],
-Cell[1087, 30, 127, 0, 70, "Input",ExpressionUUID->"e2a573df-3491-4f39-9b38-c7892a58a907"],
-Cell[1217, 32, 292, 5, 70, "Input",ExpressionUUID->"93b0786a-160a-4711-9fb1-dae891b0b0db"],
-Cell[1512, 39, 524, 9, 70, "Input",ExpressionUUID->"fbba357a-b902-404c-99ca-4bc8a87ffd23"],
-Cell[2039, 50, 290, 5, 70, "Input",ExpressionUUID->"c36b940e-ef14-4fa5-85af-ee3efb889c74"],
-Cell[2332, 57, 217, 3, 70, "Input",ExpressionUUID->"441abab1-6b0a-4342-98a5-0dc896b11e2b"],
-Cell[2552, 62, 174, 4, 70, "Input",ExpressionUUID->"a6f96d33-1a4f-4cb4-bb69-078851903ea9"],
-Cell[2729, 68, 125, 0, 70, "Input",ExpressionUUID->"d408ba1f-fcda-4ab7-956e-983e390657df"],
-Cell[2857, 70, 126, 0, 70, "Section",ExpressionUUID->"a5a59f86-3f70-4862-8fbc-223ad2641f33"],
-Cell[2986, 72, 666, 9, 70, "Text",ExpressionUUID->"35ddd4f0-74f5-4f4b-9157-e5655ba2d7df"],
-Cell[3655, 83, 446, 8, 70, "Input",ExpressionUUID->"23be36c8-b47a-4f73-9b32-795c566e172b"],
-Cell[4104, 93, 405, 7, 70, "Input",ExpressionUUID->"a9eee056-1f8d-4c07-b78b-d92c4475aaaa"],
-Cell[4512, 102, 273, 5, 70, "Input",ExpressionUUID->"b3de8901-bc6a-4479-9f3f-98183d971fd1"],
-Cell[4788, 109, 112, 0, 70, "Section",ExpressionUUID->"88055464-39d1-48fb-ba72-456f0b58dac5"],
-Cell[4903, 111, 392, 6, 70, "Text",ExpressionUUID->"de7d2b0f-d6b5-4c5e-8afa-e182890d4e2e"],
-Cell[5298, 119, 162, 3, 70, "Input",ExpressionUUID->"d0ebb5a8-265a-4230-9cea-87dd59e0f303"],
-Cell[5463, 124, 167, 4, 70, "Input",ExpressionUUID->"90fc62ba-0d4f-4e53-ab97-e2ebaf17c67f"],
-Cell[5633, 130, 197, 3, 70, "Input",ExpressionUUID->"9f3a53b2-7a90-416a-b1cc-62641fba4d69"]
+Cell[554, 20, 99, 0, 70, "Title",ExpressionUUID->"fca1520e-45cb-4aeb-bc7b-dabf31aad64d"],
+Cell[656, 22, 428, 6, 70, "Text",ExpressionUUID->"345e87a3-3bb4-4309-ab46-cf3dfb413a43"],
+Cell[1087, 30, 127, 0, 70, "Input",ExpressionUUID->"ddc3ba75-24b5-4c74-84e6-34242174b744"],
+Cell[1217, 32, 292, 5, 70, "Input",ExpressionUUID->"a9edb08c-7fe1-487d-8e74-ed895a39f966"],
+Cell[1512, 39, 524, 9, 70, "Input",ExpressionUUID->"56522c1e-0732-4340-8c17-f75699ed826c"],
+Cell[2039, 50, 290, 5, 70, "Input",ExpressionUUID->"b2549fac-0733-4da7-92d7-10687a8430a3"],
+Cell[2332, 57, 217, 3, 70, "Input",ExpressionUUID->"3301ca87-056c-4acc-a9d7-71c0ea1dd2e9"],
+Cell[2552, 62, 174, 4, 70, "Input",ExpressionUUID->"74973deb-bf88-44ca-b9e7-8bdf93c9a058"],
+Cell[2729, 68, 125, 0, 70, "Input",ExpressionUUID->"0609eba9-46ae-46cb-a27c-4f8baa5a7809"],
+Cell[2857, 70, 126, 0, 70, "Section",ExpressionUUID->"0bd82371-867c-4d67-bb37-a0f1e9ea66d6"],
+Cell[2986, 72, 666, 9, 70, "Text",ExpressionUUID->"8b91d09b-8ef9-43e9-b62d-126cb622596a"],
+Cell[3655, 83, 446, 8, 70, "Input",ExpressionUUID->"be23ee13-604c-44de-b7a5-a428f917f8d2"],
+Cell[4104, 93, 405, 7, 70, "Input",ExpressionUUID->"37ef2180-d7b8-4ea6-9a69-b40d1980a397"],
+Cell[4512, 102, 273, 5, 70, "Input",ExpressionUUID->"c6271740-0e38-4bf7-abe1-1d140f33c58f"],
+Cell[4788, 109, 112, 0, 70, "Section",ExpressionUUID->"0fdb26e1-e684-48e7-b319-70062603e27f"],
+Cell[4903, 111, 392, 6, 70, "Text",ExpressionUUID->"2accff8b-e3f9-4902-b991-9ab25b9f2562"],
+Cell[5298, 119, 162, 3, 70, "Input",ExpressionUUID->"c591e684-c494-425e-86a9-0f6cf6fdbec0"],
+Cell[5463, 124, 167, 4, 70, "Input",ExpressionUUID->"03289397-b6c6-486c-8f8c-088933a2bf37"],
+Cell[5633, 130, 197, 3, 70, "Input",ExpressionUUID->"0e73ffc6-44a8-4799-bbb0-14781c45439e"]
 }
 ]
 *)

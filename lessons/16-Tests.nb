@@ -18,7 +18,7 @@ WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
-Cell["Lesson 16 - Tests", "Title",ExpressionUUID->"8ca57b2f-30b8-43d0-b5ef-d8bf3f1c3805"],
+Cell["Lesson 16 - Tests", "Title",ExpressionUUID->"94560651-6b59-4306-b583-9e097e0e5e37"],
 
 Cell[TextData[{
  "The library's checks run inside the pipeline, on your model, every time. \
@@ -30,14 +30,14 @@ lesson reads the harness ",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " and the way tests are written, and points to the benchmarks."
-}], "Text",ExpressionUUID->"1815e5f0-6bf9-4a17-a485-fbd40387509b"],
+}], "Text",ExpressionUUID->"c7863986-1605-44d6-a275-e526fb3c404d"],
 
 Cell["\<\
 Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
 Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]]\
-\>", "Input",ExpressionUUID->"8ea274bf-72bc-4232-a4fd-93c57c768ede"],
+\>", "Input",ExpressionUUID->"f768a898-dd43-46e9-9427-5f60b725dc7e"],
 
-Cell["1. Running the suite", "Section",ExpressionUUID->"b7ba684a-230b-44c5-9899-f6c4873b9293"],
+Cell["1. Running the suite", "Section",ExpressionUUID->"4127b66b-075a-413f-85c9-664fc9eb5aa6"],
 
 Cell[TextData[{
  "From a shell: ",
@@ -62,7 +62,7 @@ Cell[TextData[{
   Background->GrayLevel[0.92]],
  " turns the SKIPs of the Julia tests into failures. From a notebook, a \
 separate kernel can run it:"
-}], "Text",ExpressionUUID->"e7f0e147-3a14-43e4-84c8-67ecb6bcfc29"],
+}], "Text",ExpressionUUID->"cf4f79ad-b462-4ee1-a7c8-8f77b912e020"],
 
 Cell[TextData[{
  StyleBox["Mathematica: RunProcess",
@@ -85,7 +85,7 @@ notebook's kernel, and the ",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"72688871-b1b0-4fa1-8643-45f15905daa6"],
+  0.91, 0.95, 1.],ExpressionUUID->"7f863c4d-20c8-4ace-bbe3-ec5300a2a230"],
 
 Cell["\<\
 RunProcess[{\"math\", \"-script\", FileNameJoin[{$FRGRoot, \"tests\", \
@@ -94,9 +94,9 @@ RunProcess[{\"math\", \"-script\", FileNameJoin[{$FRGRoot, \"tests\", \
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"9b3ee2b5-886d-426b-a59f-928689bfe4e6"],
+  0.91, 0.95, 1.],ExpressionUUID->"9429e328-f5b1-4a9d-a3eb-53c894ffaaa6"],
 
-Cell["2. The harness", "Section",ExpressionUUID->"1161d35d-6fe2-42de-8725-9576e4869915"],
+Cell["2. The harness", "Section",ExpressionUUID->"14b8657e-7160-4260-9f34-f16ac80493af"],
 
 Cell["\<\
 (* tests/runTests.wl:8-13 *)
@@ -107,7 +107,7 @@ verboseQ = MemberQ[$CommandLine, \"--verbose\"];
 requireJuliaQ = MemberQ[$CommandLine, \"--require-julia\"];
 $FRGExitOnFail = False;   (* failed checks abort (caught below) instead of \
 exiting the kernel *)\
-\>", "Program",ExpressionUUID->"ff7ede07-479a-4aa8-a44a-d289a69f2231"],
+\>", "Program",ExpressionUUID->"d9f43610-34df-4a73-9809-ea60ca2c26aa"],
 
 Cell[TextData[{
  StyleBox["$FRGExitOnFail = False",
@@ -143,7 +143,7 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  "), which matters with million-leaf expressions."
-}], "Text",ExpressionUUID->"8f24a540-d7b3-4858-a574-502efd5418a9"],
+}], "Text",ExpressionUUID->"7f2ebc2f-6836-457c-a219-5553df078d2c"],
 
 Cell["\<\
 (* tests/runTests.wl:16-19 *)
@@ -152,7 +152,7 @@ quiet[e_] := If[verboseQ, e, Block[{Print}, e]];
 record[name_, ok_, msg_] := (AppendTo[results, {name, TrueQ[ok]}];
    If[! TrueQ[ok] || verboseQ, Print[If[TrueQ[ok], \"  ok    \", \"  FAIL  \
 \"], name, If[TrueQ[ok], \"\", \"   \" <> msg]]]);\
-\>", "Program",ExpressionUUID->"9bfc8fb4-945d-4d85-ad10-21666cf1eff1"],
+\>", "Program",ExpressionUUID->"1a117a7e-579d-4568-be24-bd64f8ce4595"],
 
 Cell["\<\
 (* tests/runTests.wl:21-23 *)
@@ -162,7 +162,7 @@ skip[name_String, why_String] := (AppendTo[skipped, name]; Print[\"  SKIP  \
 \", name, \"   \", why];
    If[requireJuliaQ, record[name, False, \"skipped with --require-julia: \" \
 <> why]]);\
-\>", "Program",ExpressionUUID->"83fda6a9-c115-4c25-9f72-6b86e090e314"],
+\>", "Program",ExpressionUUID->"8fd36d5c-547e-449d-8091-2f2b59cdf16e"],
 
 Cell["\<\
 (* tests/runTests.wl:25-28 *)
@@ -173,7 +173,7 @@ test[name_String, actual_, expected_] := Module[{a = \
 CheckAbort[quiet[actual], $Aborted], e = expected},
    record[name, a === e, \"got \" <> ToString[Short[InputForm[a], 3]] <> \", \
 expected \" <> ToString[Short[InputForm[e], 3]]]];\
-\>", "Program",ExpressionUUID->"6efa1be8-39e7-4228-9b42-84dfb537e56d"],
+\>", "Program",ExpressionUUID->"d1ea31cd-ff51-4b63-82d1-b52ef16beb91"],
 
 Cell["\<\
 (* tests/runTests.wl:30-36 *)
@@ -186,7 +186,7 @@ expectFail[name_String, expr_, check_String] := Module[{r},
    record[name, r === \"aborted\" && $FRGLastFailure === check,
     \"outcome \" <> r <> \", failed check \" <> ToString[$FRGLastFailure] <> \
 \" (expected \" <> check <> \")\"]];\
-\>", "Program",ExpressionUUID->"c8d9d8d1-0dc9-4614-ad76-31f3f20be08d"],
+\>", "Program",ExpressionUUID->"0d53aba2-015f-4ad9-b413-0842b1e28fda"],
 
 Cell[TextData[{
  StyleBox["quiet[e]",
@@ -209,7 +209,7 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " does)."
-}], "Item",ExpressionUUID->"f5c6ca98-757d-4672-89c4-623fca003b1e"],
+}], "Item",ExpressionUUID->"f35d890a-f410-4bc8-b34b-2a3cded7b2d5"],
 
 Cell[TextData[{
  StyleBox["test[name, actual, expected]",
@@ -245,7 +245,7 @@ Cell[TextData[{
   FontSlant->Italic,
   FontColor->GrayLevel[0.4]],
  "): exact structural identity, no tolerance."
-}], "Item",ExpressionUUID->"7004f60a-f7a7-407b-b890-2fb9a3767130"],
+}], "Item",ExpressionUUID->"06ba4f80-9cfd-43dc-87ca-8fad6635bae8"],
 
 Cell[TextData[{
  StyleBox["expectFail[name, expr, check]",
@@ -276,7 +276,7 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " is not testing what it says."
-}], "Item",ExpressionUUID->"d0cae907-757b-4759-b8e7-f1ce0a1780a6"],
+}], "Item",ExpressionUUID->"16ba321a-cb4e-414e-a87e-85f29189d087"],
 
 Cell[TextData[{
  StyleBox["skip[name, why]",
@@ -284,7 +284,7 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " records a test that cannot run here (no Julia, no FlowRG)."
-}], "Item",ExpressionUUID->"e34e66a4-b450-435f-9bde-7d6db5d9046d"],
+}], "Item",ExpressionUUID->"1163be28-267f-46d9-b881-5fa2eed98701"],
 
 Cell[TextData[{
  "Both take their arguments held (",
@@ -306,7 +306,7 @@ Cell[TextData[{
   FontSlant->Italic,
   FontColor->GrayLevel[0.4]],
  ")."
-}], "Text",ExpressionUUID->"8532ba69-688a-40ec-8dc0-06c1478657aa"],
+}], "Text",ExpressionUUID->"041aeaaf-0fc8-4147-a933-627fdb2afb72"],
 
 Cell["\<\
 (* tests/runTests.wl:38-51 *)
@@ -333,7 +333,7 @@ False} :> n], \", \"]],
   If[skipped === {}, \"\", \"; \" <> ToString[Length[skipped]] <> \" \
 SKIPPED\"], \" ===\"];
 Exit[If[nFail == 0 && results =!= {}, 0, 1]];\
-\>", "Program",ExpressionUUID->"92e315f8-b90d-4798-a7eb-19bb0e023e9f"],
+\>", "Program",ExpressionUUID->"8fa93306-c737-4ce1-b94d-bf8f956df044"],
 
 Cell[TextData[{
  "The test files are plain ",
@@ -366,9 +366,9 @@ global variables. Heavy setups (",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ", and reused by every file that needs them (CLAUDE.md, Gotchas)."
-}], "Text",ExpressionUUID->"305f8054-21ea-480f-b380-da565f31efee"],
+}], "Text",ExpressionUUID->"a4af6acb-0a26-4aa6-a846-b2b91e52b7f4"],
 
-Cell["3. A unit test file", "Section",ExpressionUUID->"8411d2ec-d1a4-4d85-9474-0ea647232c2f"],
+Cell["3. A unit test file", "Section",ExpressionUUID->"776ec7db-972c-47a4-bd29-690fb7e43d9e"],
 
 Cell["\<\
 (* tests/unit/TheoryTest.wl:1-34 *)
@@ -424,7 +424,7 @@ Dim = 2;
 expectFail[\"a leftover Dim = 2 still aborts\", DefineTheory[\"Scalars\" -> \
 {H}, \"Dimension\" -> Dim], \"Theory.dimension\"];
 ClearAll[Dim];\
-\>", "Program",ExpressionUUID->"1689fb03-851a-46f3-8e80-a22e2829708a"],
+\>", "Program",ExpressionUUID->"dec91f79-81ed-4664-8e9b-d76ccba5e724"],
 
 Cell[TextData[{
  "Each check of lesson 01 has an ",
@@ -449,7 +449,7 @@ check is a named ",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " test. A check that is never seen failing might never fail."
-}], "Text",ExpressionUUID->"2ae798a2-2c78-4f5d-9999-d7c5b8f524e4"],
+}], "Text",ExpressionUUID->"898b800c-44dd-4aed-bdb9-ccb15b168e12"],
 
 Cell[TextData[{
  StyleBox["Why it's built this way: Tests that name the failure",
@@ -490,9 +490,9 @@ test suite. In the notebooks of these lessons, ",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->GrayLevel[0.55],
  Background->RGBColor[
-  0.93, 0.93, 0.93],ExpressionUUID->"6c09d4dd-38d1-4c56-8602-efae7bf76b2e"],
+  0.93, 0.93, 0.93],ExpressionUUID->"be977b8a-e549-41be-bbbe-a825f136693f"],
 
-Cell["4. Kinds of tests", "Section",ExpressionUUID->"39714bc8-d4c0-47f9-a86b-26156b2dfb63"],
+Cell["4. Kinds of tests", "Section",ExpressionUUID->"64a4c905-6a99-4551-9881-b367cecec532"],
 
 Cell[TextData[{
  StyleBox["Unit tests",
@@ -504,7 +504,7 @@ Cell[TextData[{
   Background->GrayLevel[0.92]],
  "): one file per module, small inputs, every check made to fail at least \
 once."
-}], "Item",ExpressionUUID->"5360c83e-5cee-4a1c-89e0-e078c5b91207"],
+}], "Item",ExpressionUUID->"1c7b52ff-97ba-4aa7-bb6b-b0a9cd9e7778"],
 
 Cell[TextData[{
  StyleBox["Acceptance tests",
@@ -531,7 +531,7 @@ original hand-derived script and the old notebooks (",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ", lesson 15)."
-}], "Item",ExpressionUUID->"d5697d00-9157-4f77-a858-8c56d75f96ee"],
+}], "Item",ExpressionUUID->"501293a9-a27b-4259-992a-c5009e139961"],
 
 Cell[TextData[{
  StyleBox["Regression tests",
@@ -547,7 +547,7 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ") only to require that the new one agrees with it (lesson 08)."
-}], "Item",ExpressionUUID->"581d34e6-9258-479b-9af0-4253f575ecab"],
+}], "Item",ExpressionUUID->"8baf0a25-affd-4fb7-b3a3-ba29eb2a626f"],
 
 Cell[TextData[{
  StyleBox["Benchmarks",
@@ -584,7 +584,7 @@ paper's equations (",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ":"
-}], "Item",ExpressionUUID->"84a5fc19-fa97-4cbe-8909-013650a3431e"],
+}], "Item",ExpressionUUID->"1a35bd4c-a93b-4a53-befb-098dff936ad1"],
 
 Cell["\<\
 (* tests/acceptance/KuramotoSivashinsky.wl:1-15 *)
@@ -610,7 +610,7 @@ True] &, ksChecks[]];
 test[\"KS benchmark: a perturbed Eq. (37) is rejected\",
   ExactlyZeroQ[ksLibrary[\"tau\"] - ((ksRef[\"tau\"] + Gh/(12 (Fh + Th qh^2 + \
 rnu[qh^2])^2 qh^4) (3/100) sD[qh^2]) /. ksSRules)], False];\
-\>", "Program",ExpressionUUID->"56267276-aa57-4d25-9f92-5c1d26f2e07f"],
+\>", "Program",ExpressionUUID->"ab560fd3-38ed-4cfa-b1da-ef66cd00658b"],
 
 Cell[TextData[{
  "The last test is worth copying in any comparison: it perturbs the reference \
@@ -618,11 +618,11 @@ by 1% and requires the comparison to ",
  StyleBox["fail",
   FontSlant->Italic],
  ". A comparison that cannot fail tests nothing."
-}], "Text",ExpressionUUID->"1b2e2fe7-6c45-4267-b72d-3b57705249f1"],
+}], "Text",ExpressionUUID->"5ad8627c-df25-4b7c-852c-95a916de140c"],
 
-Cell["Exercises", "Section",ExpressionUUID->"f19eca0c-0acb-436e-b20b-41be81ad529e"],
+Cell["Exercises", "Section",ExpressionUUID->"3a4cbbf8-fbb6-4ede-a4e6-00dd78a6d775"],
 
-Cell["Exercise: Your own expectFail", "Subsection",ExpressionUUID->"71fd5e35-0c5f-467f-b0a9-aced85fd510a"],
+Cell["Exercise: Your own expectFail", "Subsection",ExpressionUUID->"86e7d1c6-d51d-4d80-9341-6cc94492ee97"],
 
 Cell[TextData[{
  "Without the harness, write the equivalent of ",
@@ -647,19 +647,19 @@ f3}, \"Dimension\" -> Dim], \"Theory.N\"]",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  "."
-}], "Text",ExpressionUUID->"6bd0a173-03cc-4adb-a60d-dab1788e07c8"],
+}], "Text",ExpressionUUID->"3873e4b4-27b8-43c2-9bdc-4c996f7fd77d"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"699a17df-3d6d-46d7-bd90-e66d46546ce4"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"2330b2ff-777a-4fdc-a09e-4ae94b619966"],
 
 Cell["\<\
 showFailure[DefineTheory[\"Scalars\" -> {f1, f2, f3}, \"Dimension\" -> Dim]] \
 === \"Theory.N\"\
-\>", "Input",ExpressionUUID->"84de1b4f-85fc-4b40-8faa-b8132dcd569e"]
+\>", "Input",ExpressionUUID->"db9f554a-cfbb-4e8f-b0f2-940f13703f52"]
 }, Closed]],
 
-Cell["Exercise: A test that tests the wrong thing", "Subsection",ExpressionUUID->"77a4e303-0df2-498b-a61e-2e39318e0d5d"],
+Cell["Exercise: A test that tests the wrong thing", "Subsection",ExpressionUUID->"2849fb2a-cec1-411d-8026-c0cce5f8b032"],
 
 Cell[TextData[{
  "You want to test the reserved-name check, and write the scalars as ",
@@ -683,16 +683,16 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ", and why is that the right answer?"
-}], "Text",ExpressionUUID->"e8e1249b-1e37-49f6-9a9b-cf34d2588853"],
+}], "Text",ExpressionUUID->"23b52424-cd92-425a-8500-347b866a1f25"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"0fbe50e8-ac0c-420f-85e6-90d622f908be"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"804b4fa6-75a4-424f-88c3-9ffa56942c3c"],
 
 Cell["\<\
 showFailure[DefineTheory[\"Scalars\" -> {k, f2, f3}, \"Dimension\" -> Dim]] \
 === \"Theory.scalars.reserved\"\
-\>", "Input",ExpressionUUID->"ec128e59-cf6e-4cc2-958c-0bf61fbaa743"],
+\>", "Input",ExpressionUUID->"baba9881-ee41-4e7b-a846-3591058124df"],
 
 Cell[TextData[{
  StyleBox["False",
@@ -717,10 +717,10 @@ Cell[TextData[{
  " written this way would fail and reveal that the test does not exercise the \
 check it is named after; a test that only asked \"did it abort?\" would pass \
 and test nothing about reserved names."
-}], "Text",ExpressionUUID->"7ae5a6ff-ff0e-477f-80b9-525f37a49cf3"]
+}], "Text",ExpressionUUID->"ad69daef-697f-4ebd-90b2-070507e9c57d"]
 }, Closed]],
 
-Cell["Exercise: The Julia round trip", "Subsection",ExpressionUUID->"ed9bf43a-5848-475e-82e1-de6ed8978604"],
+Cell["Exercise: The Julia round trip", "Subsection",ExpressionUUID->"b2fead3a-e2ce-4be8-b510-910ed701efe2"],
 
 Cell[TextData[{
  "Run the KPZ acceptance files with ",
@@ -730,28 +730,28 @@ Cell[TextData[{
   Background->GrayLevel[0.92]],
  " in a separate kernel. Which tests are about Julia, and do they run or SKIP \
 on this machine?"
-}], "Text",ExpressionUUID->"39bc5c30-1255-4cb7-a331-538f04fc1077"],
+}], "Text",ExpressionUUID->"fb76cea3-fe25-412d-b107-8244d021c70c"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"73a6ce44-7acf-4e0b-bbfa-9ebd735722c0"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"377b924b-dfa9-41c5-8dc6-cab7750eae22"],
 
 Cell["\<\
 StringCases[RunProcess[{\"math\", \"-script\", FileNameJoin[{$FRGRoot, \
 \"tests\", \"runTests.wl\"}], \"--only\", \"KPZ\"}, \"StandardOutput\"], \
 (\"SKIP\" | \"===\") ~~ Except[\"\\n\"] ..]\
-\>", "Input",ExpressionUUID->"e7521dd2-7c1a-40c5-bab6-2a20d7dd90c7"],
+\>", "Input",ExpressionUUID->"c1f605f2-dc76-4f2c-83f8-589110d32b19"],
 
 Cell["\<\
 With Julia and FlowRG installed, the round-trip tests run and count among the \
 passed ones; otherwise they print SKIP with the reason.\
-\>", "Text",ExpressionUUID->"318ccbd7-e8d6-42a8-be5d-a119873ce4e2"]
+\>", "Text",ExpressionUUID->"ce21a28e-6446-455e-b78d-82aa6bae267b"]
 }, Closed]]
 },
 CellContext->Notebook,
 FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
 StyleDefinitions->"Default.nb",
-ExpressionUUID->"68ca8ccf-8ceb-4f4a-8543-fab9318d86bc"
+ExpressionUUID->"3cc61674-820d-4389-b436-542045a0c982"
 ]
 (* End of Notebook Content *)
 
@@ -764,58 +764,58 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[554, 20, 89, 0, 70, "Title",ExpressionUUID->"8ca57b2f-30b8-43d0-b5ef-d8bf3f1c3805"],
-Cell[646, 22, 534, 10, 70, "Text",ExpressionUUID->"1815e5f0-6bf9-4a17-a485-fbd40387509b"],
-Cell[1183, 34, 199, 3, 70, "Input",ExpressionUUID->"8ea274bf-72bc-4232-a4fd-93c57c768ede"],
-Cell[1385, 39, 94, 0, 70, "Section",ExpressionUUID->"b7ba684a-230b-44c5-9899-f6c4873b9293"],
-Cell[1482, 41, 891, 23, 70, "Text",ExpressionUUID->"e7f0e147-3a14-43e4-84c8-67ecb6bcfc29"],
-Cell[2376, 66, 792, 21, 70, "Text",ExpressionUUID->"72688871-b1b0-4fa1-8643-45f15905daa6"],
-Cell[3171, 89, 334, 7, 70, "Input",ExpressionUUID->"9b3ee2b5-886d-426b-a59f-928689bfe4e6"],
-Cell[3508, 98, 88, 0, 70, "Section",ExpressionUUID->"1161d35d-6fe2-42de-8725-9576e4869915"],
-Cell[3599, 100, 449, 9, 70, "Program",ExpressionUUID->"ff7ede07-479a-4aa8-a44a-d289a69f2231"],
-Cell[4051, 111, 1181, 34, 70, "Text",ExpressionUUID->"8f24a540-d7b3-4858-a574-502efd5418a9"],
-Cell[5235, 147, 386, 7, 70, "Program",ExpressionUUID->"9bfc8fb4-945d-4d85-ad10-21666cf1eff1"],
-Cell[5624, 156, 411, 8, 70, "Program",ExpressionUUID->"83fda6a9-c115-4c25-9f72-6b86e090e314"],
-Cell[6038, 166, 469, 9, 70, "Program",ExpressionUUID->"6efa1be8-39e7-4228-9b42-84dfb537e56d"],
-Cell[6510, 177, 567, 11, 70, "Program",ExpressionUUID->"c8d9d8d1-0dc9-4614-ad76-31f3f20be08d"],
-Cell[7080, 190, 669, 21, 70, "Item",ExpressionUUID->"f5c6ca98-757d-4672-89c4-623fca003b1e"],
-Cell[7752, 213, 1065, 34, 70, "Item",ExpressionUUID->"7004f60a-f7a7-407b-b890-2fb9a3767130"],
-Cell[8820, 249, 988, 29, 70, "Item",ExpressionUUID->"d0cae907-757b-4759-b8e7-f1ce0a1780a6"],
-Cell[9811, 280, 278, 6, 70, "Item",ExpressionUUID->"e34e66a4-b450-435f-9bde-7d6db5d9046d"],
-Cell[10092, 288, 673, 20, 70, "Text",ExpressionUUID->"8532ba69-688a-40ec-8dc0-06c1478657aa"],
-Cell[10768, 310, 1231, 25, 70, "Program",ExpressionUUID->"92e315f8-b90d-4798-a7eb-19bb0e023e9f"],
-Cell[12002, 337, 1111, 31, 70, "Text",ExpressionUUID->"305f8054-21ea-480f-b380-da565f31efee"],
-Cell[13116, 370, 93, 0, 70, "Section",ExpressionUUID->"8411d2ec-d1a4-4d85-9474-0ea647232c2f"],
-Cell[13212, 372, 2560, 54, 70, "Program",ExpressionUUID->"1689fb03-851a-46f3-8e80-a22e2829708a"],
-Cell[15775, 428, 846, 23, 70, "Text",ExpressionUUID->"2ae798a2-2c78-4f5d-9999-d7c5b8f524e4"],
-Cell[16624, 453, 1417, 39, 70, "Text",ExpressionUUID->"6c09d4dd-38d1-4c56-8602-efae7bf76b2e"],
-Cell[18044, 494, 91, 0, 70, "Section",ExpressionUUID->"39714bc8-d4c0-47f9-a86b-26156b2dfb63"],
-Cell[18138, 496, 361, 10, 70, "Item",ExpressionUUID->"5360c83e-5cee-4a1c-89e0-e078c5b91207"],
-Cell[18502, 508, 948, 25, 70, "Item",ExpressionUUID->"d5697d00-9157-4f77-a858-8c56d75f96ee"],
-Cell[19453, 535, 538, 14, 70, "Item",ExpressionUUID->"581d34e6-9258-479b-9af0-4253f575ecab"],
-Cell[19994, 551, 1168, 35, 70, "Item",ExpressionUUID->"84a5fc19-fa97-4cbe-8909-013650a3431e"],
-Cell[21165, 588, 1175, 24, 70, "Program",ExpressionUUID->"56267276-aa57-4d25-9f92-5c1d26f2e07f"],
-Cell[22343, 614, 292, 6, 70, "Text",ExpressionUUID->"1b2e2fe7-6c45-4267-b72d-3b57705249f1"],
-Cell[22638, 622, 83, 0, 70, "Section",ExpressionUUID->"f19eca0c-0acb-436e-b20b-41be81ad529e"],
-Cell[22724, 624, 106, 0, 70, "Subsection",ExpressionUUID->"71fd5e35-0c5f-467f-b0a9-aced85fd510a"],
-Cell[22833, 626, 775, 23, 70, "Text",ExpressionUUID->"6bd0a173-03cc-4adb-a60d-dab1788e07c8"],
+Cell[554, 20, 89, 0, 70, "Title",ExpressionUUID->"94560651-6b59-4306-b583-9e097e0e5e37"],
+Cell[646, 22, 534, 10, 70, "Text",ExpressionUUID->"c7863986-1605-44d6-a275-e526fb3c404d"],
+Cell[1183, 34, 199, 3, 70, "Input",ExpressionUUID->"f768a898-dd43-46e9-9427-5f60b725dc7e"],
+Cell[1385, 39, 94, 0, 70, "Section",ExpressionUUID->"4127b66b-075a-413f-85c9-664fc9eb5aa6"],
+Cell[1482, 41, 891, 23, 70, "Text",ExpressionUUID->"cf4f79ad-b462-4ee1-a7c8-8f77b912e020"],
+Cell[2376, 66, 792, 21, 70, "Text",ExpressionUUID->"7f863c4d-20c8-4ace-bbe3-ec5300a2a230"],
+Cell[3171, 89, 334, 7, 70, "Input",ExpressionUUID->"9429e328-f5b1-4a9d-a3eb-53c894ffaaa6"],
+Cell[3508, 98, 88, 0, 70, "Section",ExpressionUUID->"14b8657e-7160-4260-9f34-f16ac80493af"],
+Cell[3599, 100, 449, 9, 70, "Program",ExpressionUUID->"d9f43610-34df-4a73-9809-ea60ca2c26aa"],
+Cell[4051, 111, 1181, 34, 70, "Text",ExpressionUUID->"7f2ebc2f-6836-457c-a219-5553df078d2c"],
+Cell[5235, 147, 386, 7, 70, "Program",ExpressionUUID->"1a117a7e-579d-4568-be24-bd64f8ce4595"],
+Cell[5624, 156, 411, 8, 70, "Program",ExpressionUUID->"8fd36d5c-547e-449d-8091-2f2b59cdf16e"],
+Cell[6038, 166, 469, 9, 70, "Program",ExpressionUUID->"d1ea31cd-ff51-4b63-82d1-b52ef16beb91"],
+Cell[6510, 177, 567, 11, 70, "Program",ExpressionUUID->"0d53aba2-015f-4ad9-b413-0842b1e28fda"],
+Cell[7080, 190, 669, 21, 70, "Item",ExpressionUUID->"f35d890a-f410-4bc8-b34b-2a3cded7b2d5"],
+Cell[7752, 213, 1065, 34, 70, "Item",ExpressionUUID->"06ba4f80-9cfd-43dc-87ca-8fad6635bae8"],
+Cell[8820, 249, 988, 29, 70, "Item",ExpressionUUID->"16ba321a-cb4e-414e-a87e-85f29189d087"],
+Cell[9811, 280, 278, 6, 70, "Item",ExpressionUUID->"1163be28-267f-46d9-b881-5fa2eed98701"],
+Cell[10092, 288, 673, 20, 70, "Text",ExpressionUUID->"041aeaaf-0fc8-4147-a933-627fdb2afb72"],
+Cell[10768, 310, 1231, 25, 70, "Program",ExpressionUUID->"8fa93306-c737-4ce1-b94d-bf8f956df044"],
+Cell[12002, 337, 1111, 31, 70, "Text",ExpressionUUID->"a4af6acb-0a26-4aa6-a846-b2b91e52b7f4"],
+Cell[13116, 370, 93, 0, 70, "Section",ExpressionUUID->"776ec7db-972c-47a4-bd29-690fb7e43d9e"],
+Cell[13212, 372, 2560, 54, 70, "Program",ExpressionUUID->"dec91f79-81ed-4664-8e9b-d76ccba5e724"],
+Cell[15775, 428, 846, 23, 70, "Text",ExpressionUUID->"898b800c-44dd-4aed-bdb9-ccb15b168e12"],
+Cell[16624, 453, 1417, 39, 70, "Text",ExpressionUUID->"be977b8a-e549-41be-bbbe-a825f136693f"],
+Cell[18044, 494, 91, 0, 70, "Section",ExpressionUUID->"64a4c905-6a99-4551-9881-b367cecec532"],
+Cell[18138, 496, 361, 10, 70, "Item",ExpressionUUID->"1c7b52ff-97ba-4aa7-bb6b-b0a9cd9e7778"],
+Cell[18502, 508, 948, 25, 70, "Item",ExpressionUUID->"501293a9-a27b-4259-992a-c5009e139961"],
+Cell[19453, 535, 538, 14, 70, "Item",ExpressionUUID->"8baf0a25-affd-4fb7-b3a3-ba29eb2a626f"],
+Cell[19994, 551, 1168, 35, 70, "Item",ExpressionUUID->"1a35bd4c-a93b-4a53-befb-098dff936ad1"],
+Cell[21165, 588, 1175, 24, 70, "Program",ExpressionUUID->"ab560fd3-38ed-4cfa-b1da-ef66cd00658b"],
+Cell[22343, 614, 292, 6, 70, "Text",ExpressionUUID->"5ad8627c-df25-4b7c-852c-95a916de140c"],
+Cell[22638, 622, 83, 0, 70, "Section",ExpressionUUID->"3a4cbbf8-fbb6-4ede-a4e6-00dd78a6d775"],
+Cell[22724, 624, 106, 0, 70, "Subsection",ExpressionUUID->"86e7d1c6-d51d-4d80-9341-6cc94492ee97"],
+Cell[22833, 626, 775, 23, 70, "Text",ExpressionUUID->"3873e4b4-27b8-43c2-9bdc-4c996f7fd77d"],
 Cell[CellGroupData[{
-Cell[23633, 653, 88, 0, 70, "Subsubsection",ExpressionUUID->"699a17df-3d6d-46d7-bd90-e66d46546ce4"],
-Cell[23724, 655, 175, 3, 70, "Input",ExpressionUUID->"84de1b4f-85fc-4b40-8faa-b8132dcd569e"]
+Cell[23633, 653, 88, 0, 70, "Subsubsection",ExpressionUUID->"2330b2ff-777a-4fdc-a09e-4ae94b619966"],
+Cell[23724, 655, 175, 3, 70, "Input",ExpressionUUID->"db9f554a-cfbb-4e8f-b0f2-940f13703f52"]
 }, Closed]],
-Cell[23914, 661, 120, 0, 70, "Subsection",ExpressionUUID->"77a4e303-0df2-498b-a61e-2e39318e0d5d"],
-Cell[24037, 663, 776, 22, 70, "Text",ExpressionUUID->"e8e1249b-1e37-49f6-9a9b-cf34d2588853"],
+Cell[23914, 661, 120, 0, 70, "Subsection",ExpressionUUID->"2849fb2a-cec1-411d-8026-c0cce5f8b032"],
+Cell[24037, 663, 776, 22, 70, "Text",ExpressionUUID->"23b52424-cd92-425a-8500-347b866a1f25"],
 Cell[CellGroupData[{
-Cell[24838, 689, 88, 0, 70, "Subsubsection",ExpressionUUID->"0fbe50e8-ac0c-420f-85e6-90d622f908be"],
-Cell[24929, 691, 189, 3, 70, "Input",ExpressionUUID->"ec128e59-cf6e-4cc2-958c-0bf61fbaa743"],
-Cell[25121, 696, 875, 23, 70, "Text",ExpressionUUID->"7ae5a6ff-ff0e-477f-80b9-525f37a49cf3"]
+Cell[24838, 689, 88, 0, 70, "Subsubsection",ExpressionUUID->"804b4fa6-75a4-424f-88c3-9ffa56942c3c"],
+Cell[24929, 691, 189, 3, 70, "Input",ExpressionUUID->"baba9881-ee41-4e7b-a846-3591058124df"],
+Cell[25121, 696, 875, 23, 70, "Text",ExpressionUUID->"ad69daef-697f-4ebd-90b2-070507e9c57d"]
 }, Closed]],
-Cell[26011, 722, 107, 0, 70, "Subsection",ExpressionUUID->"ed9bf43a-5848-475e-82e1-de6ed8978604"],
-Cell[26121, 724, 347, 8, 70, "Text",ExpressionUUID->"39bc5c30-1255-4cb7-a331-538f04fc1077"],
+Cell[26011, 722, 107, 0, 70, "Subsection",ExpressionUUID->"b2fead3a-e2ce-4be8-b510-910ed701efe2"],
+Cell[26121, 724, 347, 8, 70, "Text",ExpressionUUID->"fb76cea3-fe25-412d-b107-8244d021c70c"],
 Cell[CellGroupData[{
-Cell[26493, 736, 88, 0, 70, "Subsubsection",ExpressionUUID->"73a6ce44-7acf-4e0b-bbfa-9ebd735722c0"],
-Cell[26584, 738, 271, 4, 70, "Input",ExpressionUUID->"e7521dd2-7c1a-40c5-bab6-2a20d7dd90c7"],
-Cell[26858, 744, 214, 3, 70, "Text",ExpressionUUID->"318ccbd7-e8d6-42a8-be5d-a119873ce4e2"]
+Cell[26493, 736, 88, 0, 70, "Subsubsection",ExpressionUUID->"377b924b-dfa9-41c5-8dc6-cab7750eae22"],
+Cell[26584, 738, 271, 4, 70, "Input",ExpressionUUID->"c1f605f2-dc76-4f2c-83f8-589110d32b19"],
+Cell[26858, 744, 214, 3, 70, "Text",ExpressionUUID->"ce21a28e-6446-455e-b78d-82aa6bae267b"]
 }, Closed]]
 }
 ]

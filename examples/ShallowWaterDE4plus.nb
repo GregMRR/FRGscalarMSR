@@ -18,7 +18,7 @@ WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
-Cell["Shallow water, DE4plus ansatz", "Title",ExpressionUUID->"2f0af63b-361d-4b96-9c15-17c349dd722e"],
+Cell["Shallow water, DE4plus ansatz", "Title",ExpressionUUID->"aeedb676-8a0a-477a-9bb0-eb03f1f4395b"],
 
 Cell["\<\
 This notebook derives the 9 flow equations of the shallow-water DE4plus \
@@ -29,22 +29,22 @@ assumptions. A failed check prints a red FAIL block and stops the evaluation. \
 Full expressions are shown only on request, with the Show... commands. The \
 modules are described in docs/MODULES.md, the conventions in \
 docs/CONVENTIONS.md.\
-\>", "Text",ExpressionUUID->"53ce1d5e-d09c-4281-959d-0589dec790a4"],
+\>", "Text",ExpressionUUID->"5f410ac8-8062-4d64-a729-59a369400c55"],
 
-Cell["Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"]", "Input",ExpressionUUID->"185e31c4-ba6c-4914-af31-5e4949158bff"],
+Cell["Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"]", "Input",ExpressionUUID->"3fa76023-8b92-4840-94b0-8af44d023b77"],
 
-Cell["1. Fields and ansatz", "Section",ExpressionUUID->"9fbf5ea7-2891-4213-9012-807bfef7b734"],
+Cell["1. Fields and ansatz", "Section",ExpressionUUID->"7e2e1cb4-94d3-4d5a-935a-a33a775f4e0f"],
 
 Cell["\<\
 DefineTheory creates a response field <name>bar for each scalar. The ansatz \
 is the action density, written with the package's own derivatives dt, grad, \
 div, lap (not the System Dt, Grad: Dt[nk H] would add Dt[nk] terms). The \
 parser prints the table of parsed monomials so that you can check it.\
-\>", "Text",ExpressionUUID->"9ca7255c-140f-4dd9-9718-c6f50ed63f98"],
+\>", "Text",ExpressionUUID->"b4dbfea0-bde8-4331-9d57-117904f0c84f"],
 
 Cell["\<\
 theory = DefineTheory[\"Scalars\" -> {H, Psi}, \"Dimension\" -> Dim]\
-\>", "Input",ExpressionUUID->"a9e7ef23-6ae6-4574-bdc6-b5518032c3b1"],
+\>", "Input",ExpressionUUID->"0cc8582f-b617-4b68-808d-ce61afb27ce2"],
 
 Cell["\<\
 ansatz = DefineAnsatz[theory, \"Density\" ->
@@ -55,9 +55,9 @@ grad[Psi].grad[Psi])
 grad[Psibar].grad[Psibar] + Kk grad[Hbar].grad[Psibar],
   \"Couplings\" -> {nk, Ak, Hk, lk, ank, gk, g2k, Dhk, aDhk, Dphik, aDphik, \
 D2phik, Kk}]\
-\>", "Input",ExpressionUUID->"5c8fbd2b-092d-4daa-a25b-153f7ea95c7e"],
+\>", "Input",ExpressionUUID->"b560181f-9df6-4a7b-8675-b37e3f6b2cbc"],
 
-Cell["2. Vertices, regulator, propagator", "Section",ExpressionUUID->"bd0b3e0d-2ff6-4599-a432-d04c0f778301"],
+Cell["2. Vertices, regulator, propagator", "Section",ExpressionUUID->"d6938f5f-d193-45b0-87b8-47cbbd4b110a"],
 
 Cell["\<\
 BuildVertices prints every Fourier vertex under the convention header (dt -> \
@@ -67,9 +67,9 @@ the 2 of a diagonal pair; the shapes stay abstract functions of y = q^2/k^2. \
 The propagator is inverted in abstract atoms; Delta is the determinant whose \
 roots are the poles, and its validity conditions say when they are causal \
 (upper half w-plane).\
-\>", "Text",ExpressionUUID->"f4598d3b-21f5-4219-be3b-989339b4b7db"],
+\>", "Text",ExpressionUUID->"ff59f6ff-0eed-4a65-b15e-33ce947762e2"],
 
-Cell["vertices = BuildVertices[ansatz];", "Input",ExpressionUUID->"3590978f-1173-4d90-ae91-af1941d3c6e7"],
+Cell["vertices = BuildVertices[ansatz];", "Input",ExpressionUUID->"10b093ea-18a9-43d8-83dd-e230c8e40477"],
 
 Cell["\<\
 regulator = DefineRegulator[ansatz,
@@ -77,11 +77,11 @@ regulator = DefineRegulator[ansatz,
   {Hbar, Hbar} -> -2 Dhk q^2 armh[q^2/k^2], {Psibar, Psibar} -> -2 Dphik \
 armphi[q^2/k^2],
   \"Shapes\" -> {arnh, arnphi, armh, armphi}];\
-\>", "Input",ExpressionUUID->"42f4f717-7f99-4325-8e7d-4e152946f589"],
+\>", "Input",ExpressionUUID->"62840225-f4f1-42ed-af79-01de04d77489"],
 
-Cell["prop = BuildPropagator[vertices, regulator];", "Input",ExpressionUUID->"63c7547d-7928-42da-9161-08beb3a0f086"],
+Cell["prop = BuildPropagator[vertices, regulator];", "Input",ExpressionUUID->"3a7e9081-2a59-46df-9876-7de50e0c2162"],
 
-Cell["3. Symmetries: what flows, what must not, what is dropped", "Section",ExpressionUUID->"a0c30a06-cf9e-44a6-89d8-b77ae200a16f"],
+Cell["3. Symmetries: what flows, what must not, what is dropped", "Section",ExpressionUUID->"c45b9846-5d76-4a45-8595-4ae793e11d1f"],
 
 Cell["\<\
 Every monomial (I w)^m (q^2)^n of every Gamma2 entry up to the truncation \
@@ -90,7 +90,7 @@ orders gets a class: declared in the ansatz (it gets an equation), Protected \
 (computed, reported, dropped), or zero by structure. An untagged monomial \
 stops the evaluation. Ward identities are assumed through the Protected tags, \
 not derived.\
-\>", "Text",ExpressionUUID->"158ab0f0-62a4-4367-9ab6-e438e752371a"],
+\>", "Text",ExpressionUUID->"d3b2365e-e09b-4f17-a68d-9691aef8766a"],
 
 Cell["\<\
 symmetries = DeclareSymmetries[ansatz,
@@ -106,9 +106,9 @@ c(t)\"],
 \"mixed i w q^2 / w^2 q^2 terms, dropped\"],
   NonRenormalised[lk, \"Reason\" -> \"Galilean invariance\"],
   \"TruncationOrders\" -> <|\"Frequency\" -> 2, \"Momentum\" -> 1|>];\
-\>", "Input",ExpressionUUID->"6c27974e-db25-4015-9a6d-64d16346b046"],
+\>", "Input",ExpressionUUID->"fc1548e2-a411-45d1-a15b-7f386f3624d1"],
 
-Cell["4. Loops, projection, frequency integrals, closure", "Section",ExpressionUUID->"e4a60ea0-7cb7-47a0-8186-a8c923c20c51"],
+Cell["4. Loops, projection, frequency integrals, closure", "Section",ExpressionUUID->"bb0f95a6-941b-4052-bc71-f5d7e0272f4d"],
 
 Cell["\<\
 The one-loop integrand of d_s Gamma2 is projected on each monomial at zero \
@@ -117,34 +117,34 @@ exactly by residues (no square roots: the result is rational in the \
 coefficients of Delta). CheckClosure asserts the vanishing flows and turns \
 each declared monomial into d_s(combination) = RHS, the number in front of \
 the coefficient (e.g. the -2 of -2 Dhk aDhk) being divided out.\
-\>", "Text",ExpressionUUID->"33fec1c6-9c6e-4182-b847-7d359ad66157"],
+\>", "Text",ExpressionUUID->"40776454-96cb-49ef-a801-09bf56ac0720"],
 
-Cell["loops = BuildLoopIntegrands[vertices, prop, regulator];", "Input",ExpressionUUID->"d83f595f-e699-4d49-b4f9-aaf70e820b8e"],
+Cell["loops = BuildLoopIntegrands[vertices, prop, regulator];", "Input",ExpressionUUID->"fa0cc732-3682-4bdd-896c-ad007e71a3f9"],
 
-Cell["projected = ProjectOnMonomials[loops, symmetries];", "Input",ExpressionUUID->"029bcdbc-e545-4928-bd2f-550947bf25ae"],
+Cell["projected = ProjectOnMonomials[loops, symmetries];", "Input",ExpressionUUID->"4d5be2e0-8a74-4f3e-803e-7d57f19e9cb7"],
 
-Cell["integrated = IntegrateFrequencies[projected];", "Input",ExpressionUUID->"0d94c10a-43fc-407f-883f-75f52532a61e"],
+Cell["integrated = IntegrateFrequencies[projected];", "Input",ExpressionUUID->"9091e77a-7c51-470c-8cc7-9b912c8dbff5"],
 
-Cell["flows = CheckClosure[integrated, symmetries];", "Input",ExpressionUUID->"8d578910-14d4-47db-a749-5d5ff4bce72e"],
+Cell["flows = CheckClosure[integrated, symmetries];", "Input",ExpressionUUID->"a3fd6665-9cd5-40d7-ba78-915e1e9623e8"],
 
-Cell["ShowClosureReport[flows]", "Input",ExpressionUUID->"f9c243aa-0833-4058-b592-c406f0203ace"],
+Cell["ShowClosureReport[flows]", "Input",ExpressionUUID->"bce8540e-0271-455b-8990-d6134e9b13fc"],
 
-Cell["5. Equations", "Section",ExpressionUUID->"e5ef54d9-7c40-4e6b-b01e-d937f6f4ad16"],
+Cell["5. Equations", "Section",ExpressionUUID->"fba84ed4-defc-4bb5-9ed7-253f6692d6b0"],
 
 Cell["\<\
 AssembleEquations writes each equation compactly in scale-stripped atoms \
 (e.g. ScaleAtom[H, Hbar, 0, 0] = Ak + arnh[q^2/k^2]) and explicitly: the \
 integrand of Int d^dq/(2 Pi)^d, with dsCoupling[c] = k dc/dk entering \
 linearly and the shapes and their derivatives abstract. It takes about 35 s.\
-\>", "Text",ExpressionUUID->"ec4576cb-ed77-44d0-a22a-1f3cf3c1e13c"],
+\>", "Text",ExpressionUUID->"79c0a608-e72b-45cf-9eac-86f1367a7d44"],
 
-Cell["equations = AssembleEquations[flows];", "Input",ExpressionUUID->"f79de4e1-1dc7-4ccb-b9c4-f5d2af65cf27"],
+Cell["equations = AssembleEquations[flows];", "Input",ExpressionUUID->"27b8dfc7-c251-49ac-8d68-1b65a897d727"],
 
-Cell["ShowEquation[equations, gk]", "Input",ExpressionUUID->"9e255280-9606-4c54-b37c-8f6c73cf445e"],
+Cell["ShowEquation[equations, gk]", "Input",ExpressionUUID->"73b716ca-7232-4f3f-b58f-e9c488202986"],
 
-Cell["ShowEquation[equations, Dhk aDhk]", "Input",ExpressionUUID->"5f369002-9c2e-4982-8999-16ebb473a2dc"],
+Cell["ShowEquation[equations, Dhk aDhk]", "Input",ExpressionUUID->"50f92c44-e8ea-482d-87be-841079d069a0"],
 
-Cell["6. Numerical oracle", "Section",ExpressionUUID->"519bbe00-7112-4e96-b3d6-6320c10e555d"],
+Cell["6. Numerical oracle", "Section",ExpressionUUID->"26bed8d3-b845-4cc7-ac97-195b2e14c48b"],
 
 Cell["\<\
 RunOracle recomputes every equation numerically at one random point, without \
@@ -153,24 +153,24 @@ numerical frequency integral, finite differences in the external frequency \
 and momentum, in d = 2 and d = 3. It shares the vertices and the loop formula \
 with the symbolic chain, so it does not test the loop normalisation; the KPZ \
 notebook does.\
-\>", "Text",ExpressionUUID->"77f47465-1621-48b1-b6fa-d8ac966dab0c"],
+\>", "Text",ExpressionUUID->"6160efe2-cd90-42cc-b9d4-27b21d06265f"],
 
-Cell["oracle = RunOracle[equations];", "Input",ExpressionUUID->"cb7e94a4-9708-4626-bef7-4de9384f84ef"],
+Cell["oracle = RunOracle[equations];", "Input",ExpressionUUID->"d508cc97-e31e-42ca-a811-2a18237b1b78"],
 
-Cell["7. Saving", "Section",ExpressionUUID->"1c086f50-8486-4f88-b06c-cbf211f2b051"],
+Cell["7. Saving", "Section",ExpressionUUID->"4056f2e9-74df-48d9-bdd1-0bb10c4413ab"],
 
 Cell["\<\
 file = SaveStage[equations, FileNameJoin[{$TemporaryDirectory, \
 \"swDE4plus-equations.wdx\"}]]\
-\>", "Input",ExpressionUUID->"a3abae3b-cc1a-4bb2-822e-731fbecd301e"],
+\>", "Input",ExpressionUUID->"636f0676-cae6-4fc4-8427-b38c7729f4a7"],
 
 Cell["\<\
 equations2 = LoadStage[file, \"Expect\" -> {theory, ansatz, regulator, \
 symmetries}];
 equations2 === equations\
-\>", "Input",ExpressionUUID->"3ac58fce-7a7e-40f7-af26-6f4e48a1f668"],
+\>", "Input",ExpressionUUID->"05f7b03e-79a0-4393-8de3-7e5f079acc2c"],
 
-Cell["8. Dimensionless flows and the FlowRG file", "Section",ExpressionUUID->"23a90590-a146-4964-b442-08d667b6af25"],
+Cell["8. Dimensionless flows and the FlowRG file", "Section",ExpressionUUID->"29e4da64-8bec-4da8-84d7-2475ba20b677"],
 
 Cell["\<\
 DeriveDimensions derives the dimension of every coupling from the ansatz \
@@ -181,19 +181,19 @@ values exactly. Here every reference appears only times an amplitude (nk ank, \
 Dhk aDhk, Dphik aDphik); \"Mode\" -> \"Running\" makes each eta follow from \
 that equation (the amplitude is counted as 1), the convention of the old \
 hand-built export. Without it the eta would be fixed at run time (MUST_FIX).\
-\>", "Text",ExpressionUUID->"4cbdef30-9398-4126-81a2-4b081bb1e6bc"],
+\>", "Text",ExpressionUUID->"fe2a1c31-8fa0-48d3-9aec-aa4cc5f0970b"],
 
 Cell["\<\
 dims = DeriveDimensions[ansatz, \"References\" -> {Dphik -> {\"phi\", \
 \"Mode\" -> \"Running\"}, Dhk -> {\"h\", \"Mode\" -> \"Running\"},
     nk -> {\"nu\", \"Mode\" -> \"Running\", \"Equation\" -> nk ank}}, \
 \"Dimensionless\" -> {Ak, ank, aDhk, aDphik}];\
-\>", "Input",ExpressionUUID->"60258c75-ec5f-4015-8237-c500d0f0f51f"],
+\>", "Input",ExpressionUUID->"111c59d4-5ac3-4510-b893-62ae56f5521a"],
 
 Cell["\<\
 CheckDimensions[dims, <|gk -> k Dphik^(1/2) Dhk^(-1/2) nk, lk -> k^(1 - \
 Dim/2) Dphik^(-1/2) nk^(3/2), \"Frequency\" -> k^2 nk|>]\
-\>", "Input",ExpressionUUID->"1538f750-7743-4ce3-965c-bc46628c8f35"],
+\>", "Input",ExpressionUUID->"7de60d9e-9ef5-4ae1-a120-3e7617d1cd8d"],
 
 Cell["\<\
 AdimensionalEquations writes d_s chat = BetaL (not integrated) + Integral daq \
@@ -202,22 +202,22 @@ etas. Every beta is checked to be free of k and the references, structurally \
 and by a random rescaling of the units. ExportJulia writes the FlowRG \
 equations file for one d (this one uses r'', D2<shape>, which FlowRG must \
 bind).\
-\>", "Text",ExpressionUUID->"469200be-d92d-4cbf-98ae-04d50c9042de"],
+\>", "Text",ExpressionUUID->"d4f2a46c-cd0f-4ce6-9f32-c38e6ea53779"],
 
 Cell["\<\
 adim = AdimensionalEquations[equations, dims, \"State\" -> {gk, g2k, lk, Hk, \
 aDphik, D2phik, Kk, Ak, ank, aDhk}];
 ShowBeta[adim, gk]\
-\>", "Input",ExpressionUUID->"925c53c2-80e4-4afb-857a-baefbb794011"],
+\>", "Input",ExpressionUUID->"91ca2e12-b89a-4a7a-8434-6cad9d499a18"],
 
 Cell["\<\
 ExportJulia[adim, \"Dimension\" -> 2, \"File\" -> \
 FileNameJoin[{$TemporaryDirectory, \"swDE4plus\", \"Equations2D.jl\"}]]\
-\>", "Input",ExpressionUUID->"573a00b3-9d00-4344-8790-19547a0b7cf1"]
+\>", "Input",ExpressionUUID->"612329ce-c02a-4d20-b08d-4be775820c9f"]
 },
 FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
 StyleDefinitions->"Default.nb",
-ExpressionUUID->"bac4b446-e164-413d-b92c-2fae239d37fa"
+ExpressionUUID->"9183c8b4-822c-43b7-bc9c-2384501bdac9"
 ]
 (* End of Notebook Content *)
 
@@ -230,46 +230,46 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[554, 20, 101, 0, 70, "Title",ExpressionUUID->"2f0af63b-361d-4b96-9c15-17c349dd722e"],
-Cell[658, 22, 615, 9, 70, "Text",ExpressionUUID->"53ce1d5e-d09c-4281-959d-0589dec790a4"],
-Cell[1276, 33, 127, 0, 70, "Input",ExpressionUUID->"185e31c4-ba6c-4914-af31-5e4949158bff"],
-Cell[1406, 35, 94, 0, 70, "Section",ExpressionUUID->"9fbf5ea7-2891-4213-9012-807bfef7b734"],
-Cell[1503, 37, 379, 5, 70, "Text",ExpressionUUID->"9ca7255c-140f-4dd9-9718-c6f50ed63f98"],
-Cell[1885, 44, 148, 2, 70, "Input",ExpressionUUID->"a9e7ef23-6ae6-4574-bdc6-b5518032c3b1"],
-Cell[2036, 48, 506, 9, 70, "Input",ExpressionUUID->"5c8fbd2b-092d-4daa-a25b-153f7ea95c7e"],
-Cell[2545, 59, 108, 0, 70, "Section",ExpressionUUID->"bd0b3e0d-2ff6-4599-a432-d04c0f778301"],
-Cell[2656, 61, 568, 8, 70, "Text",ExpressionUUID->"f4598d3b-21f5-4219-be3b-989339b4b7db"],
-Cell[3227, 71, 105, 0, 70, "Input",ExpressionUUID->"3590978f-1173-4d90-ae91-af1941d3c6e7"],
-Cell[3335, 73, 332, 6, 70, "Input",ExpressionUUID->"42f4f717-7f99-4325-8e7d-4e152946f589"],
-Cell[3670, 81, 116, 0, 70, "Input",ExpressionUUID->"63c7547d-7928-42da-9161-08beb3a0f086"],
-Cell[3789, 83, 131, 0, 70, "Section",ExpressionUUID->"a0c30a06-cf9e-44a6-89d8-b77ae200a16f"],
-Cell[3923, 85, 473, 7, 70, "Text",ExpressionUUID->"158ab0f0-62a4-4367-9ab6-e438e752371a"],
-Cell[4399, 94, 796, 14, 70, "Input",ExpressionUUID->"6c27974e-db25-4015-9a6d-64d16346b046"],
-Cell[5198, 110, 124, 0, 70, "Section",ExpressionUUID->"e4a60ea0-7cb7-47a0-8186-a8c923c20c51"],
-Cell[5325, 112, 518, 7, 70, "Text",ExpressionUUID->"33fec1c6-9c6e-4182-b847-7d359ad66157"],
-Cell[5846, 121, 127, 0, 70, "Input",ExpressionUUID->"d83f595f-e699-4d49-b4f9-aaf70e820b8e"],
-Cell[5976, 123, 122, 0, 70, "Input",ExpressionUUID->"029bcdbc-e545-4928-bd2f-550947bf25ae"],
-Cell[6101, 125, 117, 0, 70, "Input",ExpressionUUID->"0d94c10a-43fc-407f-883f-75f52532a61e"],
-Cell[6221, 127, 117, 0, 70, "Input",ExpressionUUID->"8d578910-14d4-47db-a749-5d5ff4bce72e"],
-Cell[6341, 129, 96, 0, 70, "Input",ExpressionUUID->"f9c243aa-0833-4058-b592-c406f0203ace"],
-Cell[6440, 131, 86, 0, 70, "Section",ExpressionUUID->"e5ef54d9-7c40-4e6b-b01e-d937f6f4ad16"],
-Cell[6529, 133, 377, 5, 70, "Text",ExpressionUUID->"ec4576cb-ed77-44d0-a22a-1f3cf3c1e13c"],
-Cell[6909, 140, 109, 0, 70, "Input",ExpressionUUID->"f79de4e1-1dc7-4ccb-b9c4-f5d2af65cf27"],
-Cell[7021, 142, 99, 0, 70, "Input",ExpressionUUID->"9e255280-9606-4c54-b37c-8f6c73cf445e"],
-Cell[7123, 144, 105, 0, 70, "Input",ExpressionUUID->"5f369002-9c2e-4982-8999-16ebb473a2dc"],
-Cell[7231, 146, 93, 0, 70, "Section",ExpressionUUID->"519bbe00-7112-4e96-b3d6-6320c10e555d"],
-Cell[7327, 148, 480, 7, 70, "Text",ExpressionUUID->"77f47465-1621-48b1-b6fa-d8ac966dab0c"],
-Cell[7810, 157, 102, 0, 70, "Input",ExpressionUUID->"cb7e94a4-9708-4626-bef7-4de9384f84ef"],
-Cell[7915, 159, 83, 0, 70, "Section",ExpressionUUID->"1c086f50-8486-4f88-b06c-cbf211f2b051"],
-Cell[8001, 161, 175, 3, 70, "Input",ExpressionUUID->"a3abae3b-cc1a-4bb2-822e-731fbecd301e"],
-Cell[8179, 166, 191, 4, 70, "Input",ExpressionUUID->"3ac58fce-7a7e-40f7-af26-6f4e48a1f668"],
-Cell[8373, 172, 116, 0, 70, "Section",ExpressionUUID->"23a90590-a146-4964-b442-08d667b6af25"],
-Cell[8492, 174, 688, 9, 70, "Text",ExpressionUUID->"4cbdef30-9398-4126-81a2-4b081bb1e6bc"],
-Cell[9183, 185, 337, 5, 70, "Input",ExpressionUUID->"60258c75-ec5f-4015-8237-c500d0f0f51f"],
-Cell[9523, 192, 210, 3, 70, "Input",ExpressionUUID->"1538f750-7743-4ce3-965c-bc46628c8f35"],
-Cell[9736, 197, 467, 7, 70, "Text",ExpressionUUID->"469200be-d92d-4cbf-98ae-04d50c9042de"],
-Cell[10206, 206, 214, 4, 70, "Input",ExpressionUUID->"925c53c2-80e4-4afb-857a-baefbb794011"],
-Cell[10423, 212, 203, 3, 70, "Input",ExpressionUUID->"573a00b3-9d00-4344-8790-19547a0b7cf1"]
+Cell[554, 20, 101, 0, 70, "Title",ExpressionUUID->"aeedb676-8a0a-477a-9bb0-eb03f1f4395b"],
+Cell[658, 22, 615, 9, 70, "Text",ExpressionUUID->"5f410ac8-8062-4d64-a729-59a369400c55"],
+Cell[1276, 33, 127, 0, 70, "Input",ExpressionUUID->"3fa76023-8b92-4840-94b0-8af44d023b77"],
+Cell[1406, 35, 94, 0, 70, "Section",ExpressionUUID->"7e2e1cb4-94d3-4d5a-935a-a33a775f4e0f"],
+Cell[1503, 37, 379, 5, 70, "Text",ExpressionUUID->"b4dbfea0-bde8-4331-9d57-117904f0c84f"],
+Cell[1885, 44, 148, 2, 70, "Input",ExpressionUUID->"0cc8582f-b617-4b68-808d-ce61afb27ce2"],
+Cell[2036, 48, 506, 9, 70, "Input",ExpressionUUID->"b560181f-9df6-4a7b-8675-b37e3f6b2cbc"],
+Cell[2545, 59, 108, 0, 70, "Section",ExpressionUUID->"d6938f5f-d193-45b0-87b8-47cbbd4b110a"],
+Cell[2656, 61, 568, 8, 70, "Text",ExpressionUUID->"ff59f6ff-0eed-4a65-b15e-33ce947762e2"],
+Cell[3227, 71, 105, 0, 70, "Input",ExpressionUUID->"10b093ea-18a9-43d8-83dd-e230c8e40477"],
+Cell[3335, 73, 332, 6, 70, "Input",ExpressionUUID->"62840225-f4f1-42ed-af79-01de04d77489"],
+Cell[3670, 81, 116, 0, 70, "Input",ExpressionUUID->"3a7e9081-2a59-46df-9876-7de50e0c2162"],
+Cell[3789, 83, 131, 0, 70, "Section",ExpressionUUID->"c45b9846-5d76-4a45-8595-4ae793e11d1f"],
+Cell[3923, 85, 473, 7, 70, "Text",ExpressionUUID->"d3b2365e-e09b-4f17-a68d-9691aef8766a"],
+Cell[4399, 94, 796, 14, 70, "Input",ExpressionUUID->"fc1548e2-a411-45d1-a15b-7f386f3624d1"],
+Cell[5198, 110, 124, 0, 70, "Section",ExpressionUUID->"bb0f95a6-941b-4052-bc71-f5d7e0272f4d"],
+Cell[5325, 112, 518, 7, 70, "Text",ExpressionUUID->"40776454-96cb-49ef-a801-09bf56ac0720"],
+Cell[5846, 121, 127, 0, 70, "Input",ExpressionUUID->"fa0cc732-3682-4bdd-896c-ad007e71a3f9"],
+Cell[5976, 123, 122, 0, 70, "Input",ExpressionUUID->"4d5be2e0-8a74-4f3e-803e-7d57f19e9cb7"],
+Cell[6101, 125, 117, 0, 70, "Input",ExpressionUUID->"9091e77a-7c51-470c-8cc7-9b912c8dbff5"],
+Cell[6221, 127, 117, 0, 70, "Input",ExpressionUUID->"a3fd6665-9cd5-40d7-ba78-915e1e9623e8"],
+Cell[6341, 129, 96, 0, 70, "Input",ExpressionUUID->"bce8540e-0271-455b-8990-d6134e9b13fc"],
+Cell[6440, 131, 86, 0, 70, "Section",ExpressionUUID->"fba84ed4-defc-4bb5-9ed7-253f6692d6b0"],
+Cell[6529, 133, 377, 5, 70, "Text",ExpressionUUID->"79c0a608-e72b-45cf-9eac-86f1367a7d44"],
+Cell[6909, 140, 109, 0, 70, "Input",ExpressionUUID->"27b8dfc7-c251-49ac-8d68-1b65a897d727"],
+Cell[7021, 142, 99, 0, 70, "Input",ExpressionUUID->"73b716ca-7232-4f3f-b58f-e9c488202986"],
+Cell[7123, 144, 105, 0, 70, "Input",ExpressionUUID->"50f92c44-e8ea-482d-87be-841079d069a0"],
+Cell[7231, 146, 93, 0, 70, "Section",ExpressionUUID->"26bed8d3-b845-4cc7-ac97-195b2e14c48b"],
+Cell[7327, 148, 480, 7, 70, "Text",ExpressionUUID->"6160efe2-cd90-42cc-b9d4-27b21d06265f"],
+Cell[7810, 157, 102, 0, 70, "Input",ExpressionUUID->"d508cc97-e31e-42ca-a811-2a18237b1b78"],
+Cell[7915, 159, 83, 0, 70, "Section",ExpressionUUID->"4056f2e9-74df-48d9-bdd1-0bb10c4413ab"],
+Cell[8001, 161, 175, 3, 70, "Input",ExpressionUUID->"636f0676-cae6-4fc4-8427-b38c7729f4a7"],
+Cell[8179, 166, 191, 4, 70, "Input",ExpressionUUID->"05f7b03e-79a0-4393-8de3-7e5f079acc2c"],
+Cell[8373, 172, 116, 0, 70, "Section",ExpressionUUID->"29e4da64-8bec-4da8-84d7-2475ba20b677"],
+Cell[8492, 174, 688, 9, 70, "Text",ExpressionUUID->"fe2a1c31-8fa0-48d3-9aec-aa4cc5f0970b"],
+Cell[9183, 185, 337, 5, 70, "Input",ExpressionUUID->"111c59d4-5ac3-4510-b893-62ae56f5521a"],
+Cell[9523, 192, 210, 3, 70, "Input",ExpressionUUID->"7de60d9e-9ef5-4ae1-a120-3e7617d1cd8d"],
+Cell[9736, 197, 467, 7, 70, "Text",ExpressionUUID->"d4f2a46c-cd0f-4ce6-9f32-c38e6ea53779"],
+Cell[10206, 206, 214, 4, 70, "Input",ExpressionUUID->"91ca2e12-b89a-4a7a-8434-6cad9d499a18"],
+Cell[10423, 212, 203, 3, 70, "Input",ExpressionUUID->"612329ce-c02a-4d20-b08d-4be775820c9f"]
 }
 ]
 *)

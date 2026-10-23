@@ -14,7 +14,8 @@ ShowClosureReport::usage = "ShowClosureReport[closure] prints, for every monomia
 
 Begin["`Private`"];
 
-monomialString[r_] := "(I w)^" <> ToString[r["Frequency"]] <> " (q^2)^" <> ToString[r["Momentum"]];
+monomialString[r_] := "(I w)^" <> ToString[r["Frequency"]] <> Which[r["Momentum"] === "AllMomenta", " at every p",
+    r["Class"] === "Functional", " " <> ToString[r["Function"]] <> "(p^2) (q^2)^" <> ToString[r["Momentum"]], True, " (q^2)^" <> ToString[r["Momentum"]]];
 numString[x_] := ToString[CForm[N[x]]];
 recordString[r_] := ToString[r["Pair"]] <> " " <> monomialString[r];
 
@@ -37,6 +38,13 @@ CheckClosure[integrated_, symmetries_] := Block[{$FRGModule = "Closure"},
         ToString[Count[flows, KeyValuePattern["Class" -> cl]]] <> " " <> cl <> " flows vanish exactly (3 random rational points each)"]]],
     {c, {{"Protected", "Closure.protected"}, {"DeclaredNumeric", "Closure.declaredNumeric"}, {"Causality", "Closure.causality"}}}];
 
+   (* design/MOMENTUMFUNCTIONS.md B2: Protected at order n0 of a functional slot: the loop part of its flow at p = 0 vanishes *)
+   bad = Select[flows, #Class === "Functional" && Lookup[#, "ProtectedAtZero", None] =!= None && ! MatchQ[Lookup[#, "AtZeroSamples"], {0 ..}] &];
+   If[AnyTrue[flows, #Class === "Functional" && Lookup[#, "ProtectedAtZero", None] =!= None &],
+    AppendTo[checks, assertCheck["Closure.protectedAtZero", bad === {}, {#Pair, #Function, N[#AtZeroSamples, 4]} & /@ bad,
+      "the flow of F(0) does not vanish: " <> StringRiffle[(ToString[#Function] <> " (" <> #ProtectedAtZero <> ")") & /@ bad, "; "] <>
+       ". The tag is wrong, or the ansatz breaks the symmetry", "F(0) does not flow (3 random rational points each, p -> 0 operator)"]]];
+
    (* neglected flows: reported, not asserted *)
    neg = Select[flows, #Class === "Neglected" &];
    warns = Join[warns, If[First[#Samples] === 0,
@@ -49,7 +57,8 @@ CheckClosure[integrated_, symmetries_] := Block[{$FRGModule = "Closure"},
        {norm, comb} = splitCoefficient[r["GammaK"]];
        FRGAssert["Closure.normalisation", NumericQ[norm] && norm =!= 0 && Expand[norm comb - r["GammaK"]] === 0 && ! NumericQ[comb],
         {r["GammaK"], norm, comb}, "internal: the Gamma_k coefficient does not split into number x combination"];
-       Join[r, <|"Normalisation" -> norm, "Flowing" -> comb, "RHS" -> r["Value"]/norm|>]]] /@ Select[flows, #Class === "Declared" &];
+       Join[r, <|"Normalisation" -> norm, "Flowing" -> comb, "RHS" -> r["Value"]/norm|>,
+        If[r["Class"] === "Functional", <|"AtZeroRHS" -> r["AtZeroValue"]/norm|>, <||>]]]] /@ Select[flows, MemberQ[{"Declared", "Functional"}, #Class] &];
    AppendTo[checks, assertCheck["Closure.equations", eqs =!= {}, flows, "no declared monomial: nothing flows",
      ToString[Length[eqs]] <> " equations d_s(comb) = Value/norm: " <> StringRiffle[(inputForm[#Flowing] <> " (/" <> ToString[#Normalisation, InputForm] <> ")") & /@ eqs, ", "]]];
 
@@ -68,6 +77,7 @@ CheckClosure[integrated_, symmetries_] := Block[{$FRGModule = "Closure"},
 
 outcome[r_] := Switch[r["Class"],
    "Declared", "equation for d_s(" <> inputForm[Last[splitCoefficient[r["GammaK"]]]] <> ")",
+   "Functional", "equation for d_s(" <> inputForm[Last[splitCoefficient[r["GammaK"]]]] <> ") at every p",
    "Neglected", If[First[r["Samples"]] === 0, "vanishes (dropped)", "generated, dropped: " <> numString[First[r["Samples"]]]],
    "Structure", "vanishes identically (not computed)",
    _, "flow = 0 (checked)"];

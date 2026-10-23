@@ -23,11 +23,11 @@ dimensionless β functions → FlowRG (Julia) equations file.
   `docs/FUTURE.md`.
 - `design/` - decision records with their adversarial reviews: `FRGDESIGN.md` (v1), `LEVICIVITA.md` (`jac`), `ADIMENSIONAL.md`
   (dimensions, export), `MOMENTUMPROJECTION.md` (p^{2n} projection, any n), `CAUSALITY.md` (causal-pole conditions exported as
-  `causal_poles`); `design/reviews/`.
+  `causal_poles`), `MOMENTUMFUNCTIONS.md` (momentum functions F(p²) in Γ2: flows at generic p, `Related`); `design/reviews/`.
 - `docs/handoff/` - specs for work in other repos (FlowRG: `MUST_FIX`, `D2<shape>`).
-- `tests/reference/` - shared pipeline setups (`ShallowWaterSetup.wl`, `KPZSetup.wl`), `JuliaRoundTrip.wl`, `OldProjection.wl`
-  (the pre-p^{2n} Laplacian operator, test-only regression reference); `legacy/` holds the old
-  notebooks' results used as references (`legacy/README.md` maps the old notation).
+- `tests/reference/` - shared pipeline setups (`ShallowWaterSetup.wl`, `KPZSetup.wl`, `KPZLOSetup.wl` with momentum functions),
+  `JuliaRoundTrip.wl`, `OldProjection.wl` (the pre-p^{2n} Laplacian operator, test-only regression reference); `legacy/` holds the
+  old notebooks' results used as references (`legacy/README.md` maps the old notation).
 - `benchmarks/` - literature benchmarks, one folder each (`README.md` is the index): `README.md`, `Reference.wl` (the paper's
   equations), `Pipeline.wl`, `Checks.wl` (`ksChecks[]`-style records, no harness dependency), `run.wl`, `makeNotebook.wl` → `.nb`.
 - `lessons/` - one teaching notebook per module (`README.md`: index, source format): sources `src/NN-Name.md` → `makeLessons.wl`
@@ -62,6 +62,8 @@ dimensionless β functions → FlowRG (Julia) equations file.
   (`ShallowWaterSetup.wl` takes ~85 s). The harness defines `test`, `expectFail`, `skip`, `quiet`, `testRoot`.
 - Generated DE4plus Julia functions are huge: full compilation takes ~15 min per file. Tests run julia with
   `--compile=min -O0` (`$juliaFlags` in `tests/reference/JuliaRoundTrip.wl`).
+- Momentum functions (`"MomentumFunctions"`) are not couplings: every option that takes couplings rejects them, and the generic-p
+  integrands use the invariants `LoopMomentumSquared`, `ExternalMomentumSquared`, `MomentumProduct` until Assemble writes (q, p, c).
 - Regulator prefactors may contain reference couplings only (`AdimensionalEquations` aborts otherwise); a model with independent
   diffusion constants in two sectors' regulators hits this (`design/ADIMENSIONAL.md` §4).
 - FlowRG path: `~/Physics/Sources/FlowRG.jl`, or `FLOWRG_PATH`.

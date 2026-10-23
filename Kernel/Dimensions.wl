@@ -96,11 +96,14 @@ Options[DeriveDimensions] = {"References" -> {}, "Dimensionless" -> {}, "Names" 
 DeriveDimensions[ansatz_, opts : OptionsPattern[]] := Block[{$FRGModule = "Dimensions"},
   Module[{t0 = AbsoluteTime[], theory, nS, cps, fields, mons, dimSym, refSpec, refs, refNames, refModes, refEqs, dl, kk, basis, nb,
     eqs, unknownCps, cols, colNames, mFull, nsFull, mU, consts, sol, vec, dimOf, timeDim, checks = {}, warns = {}, bad, names,
-    etaSyms, stage, ns, refRows, undet, conflicts, residual, nUnk, generated, aq, nameOverride},
+    etaSyms, stage, ns, refRows, undet, conflicts, residual, nUnk, generated, aq, nameOverride, fns, fnPrefactors, dlInferred, ap},
    validateStage[ansatz, "Ansatz"];
    FRGAssert["Dimensions.options", MatchQ[{opts}, {(Rule | RuleDelayed)["References" | "Dimensionless" | "Names" | "Scale", _] ...}], {opts},
     "only the options \"References\", \"Dimensionless\", \"Names\", \"Scale\" are accepted"];
-   theory = ansatz["Theory"]; nS = Length[theory["Scalars"]]; cps = ansatz["Couplings"]; fields = theory["Fields"];
+   theory = ansatz["Theory"]; nS = Length[theory["Scalars"]]; fields = theory["Fields"];
+   fns = Lookup[ansatz, "MomentumFunctions", {}];
+   (* momentum functions get dimensions like couplings (their values; the argument p^2 has dimension k^2) *)
+   cps = Join[ansatz["Couplings"], fns];
    mons = ansatz["Monomials"]; dimSym = theory["Dimension"]; kk = OptionValue["Scale"];
    dl = OptionValue["Dimensionless"]; nameOverride = OptionValue["Names"];
 
@@ -116,8 +119,23 @@ DeriveDimensions[ansatz_, opts : OptionsPattern[]] := Block[{$FRGModule = "Dimen
    AppendTo[checks, assertCheck["Dimensions.referenceCount", Length[refs] == nS + 1, refs,
      "choose exactly N+1 = " <> ToString[nS + 1] <> " reference couplings: N for the field dimensions, 1 for the time dimension",
      ToString[nS + 1] <> " references for N = " <> ToString[nS] <> ": " <> StringRiffle[ToString /@ refs, ", "]]];
+   FRGAssert["Dimensions.functionReference", ! IntersectingQ[refs, fns], Intersection[refs, fns],
+    "references are constant couplings: a momentum function cannot be a reference (use the coupling that multiplies it)"];
    FRGAssert["Dimensions.referencesAreCouplings", SubsetQ[cps, refs] && DuplicateFreeQ[refs], refs, "references must be distinct couplings of the ansatz"];
-   FRGAssert["Dimensions.dimensionlessAreCouplings", ListQ[dl] && SubsetQ[cps, dl], dl, "\"Dimensionless\" -> {couplings of the ansatz}"];
+   FRGAssert["Dimensions.dimensionlessAreCouplings", ListQ[dl] && SubsetQ[cps, dl], dl, "\"Dimensionless\" -> {couplings or momentum functions of the ansatz}"];
+   (* "Equation" makes a reference Running (design/MOMENTUMFUNCTIONS.md D6) *)
+   FRGAssert["Dimensions.equationModeFixed", ! MemberQ[Transpose[{refModes, refEqs}], {"Fixed", Except[Automatic]}],
+    Pick[refs, MapThread[#1 === "Fixed" && #2 =!= Automatic &, {refModes, refEqs}]],
+    "\"Equation\" makes the reference Running: drop \"Mode\" -> \"Fixed\" or the \"Equation\""];
+   refModes = MapThread[If[#2 =!= Automatic, "Running", #1] &, {refModes, refEqs}];
+   (* A3: a function multiplies at most one constant coupling, which must be a reference; such a function is dimensionless *)
+   fnPrefactors = Association[Function[f, f -> Union[Flatten[Intersection[Variables[#], ansatz["Couplings"]] & /@
+          Select[mons, #FieldCount == 2 && ! FreeQ[#Coefficient, f] &][[All, "Coefficient"]]]]] /@ fns];
+   bad = Select[fns, ! SubsetQ[refs, fnPrefactors[#]] &];
+   FRGAssert["Dimensions.functionPrefactor", bad === {}, <|# -> fnPrefactors[#] & /@ bad|>,
+    "a momentum function multiplies a coupling that is not a reference: make that coupling a reference, or absorb it into the function"];
+   dlInferred = Select[fns, fnPrefactors[#] =!= {} && ! MemberQ[dl, #] &];
+   dl = Join[dl, dlInferred];
    FRGAssert["Dimensions.referenceDimensionless", Intersection[refs, dl] === {}, Intersection[refs, dl], "a reference cannot be dimensionless"];
    FRGAssert["Dimensions.etaNames", DuplicateFreeQ[refNames] && AllTrue[refNames, StringMatchQ[#, RegularExpression["[A-Za-z][A-Za-z0-9]*"]] &], refNames,
     "eta names must be distinct alphanumeric strings (\"nu\" gives the symbol etanu and the FlowRG name :nu)"];
@@ -140,7 +158,7 @@ DeriveDimensions[ansatz_, opts : OptionsPattern[]] := Block[{$FRGModule = "Dimen
     undet = If[Length[nsFull] > nS + 1, Pick[colNames, Map[AnyTrue[#, # =!= 0 &] &, Transpose[Join[NullSpace[mU], {ConstantArray[0, nUnk]}]]], True], {}];
     FRGAssert["Dimensions.freedoms", False, <|"freedoms" -> Length[nsFull], "expected" -> nS + 1, "undetermined" -> undet|>,
      If[Length[nsFull] > nS + 1,
-      "the ansatz leaves more than N+1 units free: declare the amplitudes in \"Dimensionless\" (e.g. Ak in nk Ak), or check the undetermined ones",
+      "the ansatz leaves more than N+1 units free: declare the amplitudes in \"Dimensionless\" (e.g. Ak in nk Ak, or a MomentumFunction that is a pure number), or check the undetermined ones",
       "the ansatz fixes more units than expected: is each phibar dt[phi] written with coefficient 1? Is a \"Dimensionless\" coupling really dimensionless?"]]];
    AppendTo[checks, assertCheck["Dimensions.freedoms", True, Null, "", ToString[nS + 1] <> " free units besides k (Gamma dimensionless fixes the rest)"]];
    refRows = nsFull[[All, nUnk + Range[nS + 1]]];
@@ -172,12 +190,13 @@ DeriveDimensions[ansatz_, opts : OptionsPattern[]] := Block[{$FRGModule = "Dimen
      "action invariant under the derived rescaling (raw density, test fields, d = " <> If[dimSym === 2, "2", "2, 3"] <> ")"]];
 
    (* names of the dimensionless couplings and of the etas *)
-   names = Association[# -> Lookup[nameOverride, #, If[AllTrue[dimOf[#], # === 0 &], #, Symbol[Context[#] <> "a" <> SymbolName[#]]]] & /@
+   (* a momentum function always gets a new name a<>F (design/MOMENTUMFUNCTIONS.md R8): F(p^2) and Fhat(p^2/k^2) differ *)
+   names = Association[# -> Lookup[nameOverride, #, If[AllTrue[dimOf[#], # === 0 &] && ! MemberQ[fns, #], #, Symbol[Context[#] <> "a" <> SymbolName[#]]]] & /@
       Select[cps, ! MemberQ[refs, #] &]];
    etaSyms = With[{ctx = Context @@ {First[refs]}}, Symbol[ctx <> "eta" <> #] & /@ refNames];
-   aq = Symbol["Global`aq"];
+   aq = Symbol["Global`aq"]; ap = Symbol["Global`ap"];
    generated = Join[Cases[KeyValueMap[List, names], {c_, n_} /; c =!= n :> n], etaSyms];
-   bad = Union[Select[generated, MemberQ[Join[cps, fields, {kk, aq, dimSym}], #] || OwnValues[#] =!= {} || DownValues[#] =!= {} &],
+   bad = Union[Select[generated, MemberQ[Join[cps, fields, {kk, aq, ap, dimSym}], #] || OwnValues[#] =!= {} || DownValues[#] =!= {} &],
      Select[generated, Count[Join[Values[names], etaSyms], #] > 1 &]];
    FRGAssert["Dimensions.names", bad === {}, bad,
     "a generated name collides with a coupling, a field, k, aq or another generated name, or has a value: rename with \"Names\" -> <|c -> newName|>"];
@@ -185,11 +204,14 @@ DeriveDimensions[ansatz_, opts : OptionsPattern[]] := Block[{$FRGModule = "Dimen
    With[{undeclared = Select[Complement[unknownCps, Keys[nameOverride]], AllTrue[dimOf[#], # === 0 &] &]},
     If[undeclared =!= {}, AppendTo[warns, infoCheck["INFO", "Dimensions.derivedDimensionless",
        "dimensionless without being declared (name kept): " <> StringRiffle[ToString /@ undeclared, ", "]]]]];
+   If[dlInferred =!= {}, AppendTo[warns, infoCheck["INFO", "Dimensions.functionDimensionless",
+      "dimensionless because they multiply a reference: " <> StringRiffle[(ToString[#] <> " (times " <> ToString[First[fnPrefactors[#]]] <> ")") & /@ dlInferred, ", "]]]];
 
    stage = stampStage[<|"Stage" -> "Dimensions", "Pipeline" -> "DerivativeExpansion", "Upstream" -> {ansatz["Fingerprint"]},
       "Ansatz" -> ansatz, "Basis" -> basis, "Scale" -> kk, "Dimension" -> dimSym,
       "References" -> refs, "EtaNames" -> AssociationThread[refs -> refNames], "Etas" -> AssociationThread[refs -> etaSyms],
       "ReferenceModes" -> AssociationThread[refs -> refModes], "ReferenceEquations" -> AssociationThread[refs -> refEqs], "Dimensionless" -> dl,
+      Sequence @@ If[fns === {}, {}, {"MomentumFunctions" -> fns}],
       "Vectors" -> dimOf, "Time" -> timeDim, "Frequency" -> -timeDim, "Names" -> names, "Equations" -> eqs,
       "Checks" -> checks, "Warnings" -> warns, "Timing" -> AbsoluteTime[] - t0|>];
    ShowDimensions[stage];
@@ -209,7 +231,7 @@ DimensionOf[dims_Association, x_] := Block[{$FRGModule = "Dimensions"},
     True, FRGAssert["Dimensions.unknownSymbol", False, x, "not a coupling or field of this ansatz (or \"Frequency\", \"Time\")"]]];
 LinearPart[dims_Association, c_] := Block[{$FRGModule = "Dimensions"},
    validateStage[dims, "Dimensions"];
-   FRGAssert["Dimensions.unknownCoupling", MemberQ[dims["Ansatz"]["Couplings"], c], c, "not a coupling of this ansatz"];
+   FRGAssert["Dimensions.unknownCoupling", MemberQ[Join[dims["Ansatz"]["Couplings"], Lookup[dims, "MomentumFunctions", {}]], c], c, "not a coupling of this ansatz"];
    Expand[linearPart[dims["Vectors"][c], Values[dims["Etas"]]]]];
 
 (* z-like exponent of a quantity of dimension v: d_s ln(value in units k^x ref^y) = x - Sum y_j eta_j *)
@@ -217,7 +239,7 @@ scalingExponent[dims_, v_] := Expand[First[v] - Rest[v] . Values[dims["Etas"]]];
 
 ShowDimensions[dims_Association] := Module[{cps, rows, refs, header, fieldRows, mons},
    validateStage[dims, "Dimensions"];
-   cps = dims["Ansatz"]["Couplings"]; refs = dims["References"];
+   cps = Join[dims["Ansatz"]["Couplings"], Lookup[dims, "MomentumFunctions", {}]]; refs = dims["References"];
    mons[c_] := StringRiffle[Union[Select[dims["Equations"], ! FreeQ[#Term, c] &][[All, "Monomial"]]], "; "];
    rows = {ToString[#], mons[#], displayString[dimForm[dims, dims["Vectors"][#]]],
        If[MemberQ[refs, #], "reference (eta" <> dims["EtaNames"][#] <> ")", ToString[dims["Names"][#]]],

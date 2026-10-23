@@ -10,15 +10,15 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       154,          7]
-NotebookDataLength[     45602,       1107]
-NotebookOptionsPosition[     39227,       1025]
-NotebookOutlinePosition[     39564,       1040]
-CellTagsIndexPosition[     39521,       1037]
+NotebookDataLength[     50251,       1188]
+NotebookOptionsPosition[     43868,       1106]
+NotebookOutlinePosition[     44205,       1121]
+CellTagsIndexPosition[     44162,       1118]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
-Cell["Lesson 14 - Adimensional", "Title",ExpressionUUID->"3f3dea13-680d-4843-be77-fcb8617c2b8d"],
+Cell["Lesson 14 - Adimensional", "Title",ExpressionUUID->"3e0341b3-a386-4b09-ade4-bee6b474f0bc"],
 
 Cell[TextData[{
  StyleBox["Physics step.",
@@ -45,7 +45,7 @@ Cell[TextData[{
  StyleBox["\:0109",
   FontFamily->"Noto Sans"],
  " = c/[c], with"
-}], "Text",ExpressionUUID->"df64aa47-7717-4e49-9a1d-4d05cb2d1142"],
+}], "Text",ExpressionUUID->"30ca9658-aa4c-4d41-8478-7c9913fbd799"],
 
 Cell[TextData[{
  StyleBox["\[PartialD]",
@@ -63,7 +63,7 @@ Cell[TextData[{
  StyleBox["\[Pi]",
   FontFamily->"Noto Sans"],
  ")^d,"
-}], "Text",ExpressionUUID->"c66343e5-5f78-40e9-8baa-688863a42539"],
+}], "Text",ExpressionUUID->"5de4edbd-968c-4205-825f-6869185ccb27"],
 
 Cell[TextData[{
  "where BetaL is the local part (canonical scaling and Leibniz terms, not \
@@ -75,7 +75,7 @@ q/k. The reference couplings do not get a ",
  StyleBox["\[Eta]",
   FontFamily->"Noto Sans"],
  ". The module proves that nothing depends on k or on the references any more."
-}], "Text",ExpressionUUID->"fa92de8a-62cc-42af-a71d-c6502ffe2fbf"],
+}], "Text",ExpressionUUID->"ea8992e0-764a-4f7a-b6ff-9ad120bbf7ed"],
 
 Cell[TextData[{
  StyleBox["Stage.",
@@ -87,7 +87,7 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " stage, the input of the Julia export."
-}], "Text",ExpressionUUID->"eab5092a-4eae-48f5-84ce-cd444e544807"],
+}], "Text",ExpressionUUID->"3069a962-faa0-4027-a526-897774112325"],
 
 Cell["\<\
 Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
@@ -95,11 +95,11 @@ Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
 equations = lessonUpTo[\"Equations\"];
 dims = Block[{Print}, DeriveDimensions[kpzAnsatz, \"References\" -> {nuk -> \
 \"nu\", Dk -> \"D\"}, \"Scale\" -> k]];\
-\>", "Input",ExpressionUUID->"4492d0ab-f0c7-40cf-8930-2b960c6534b5"],
+\>", "Input",ExpressionUUID->"b9ee9aa0-675c-4908-9311-63d38c0032c8"],
 
-Cell["1. Using it", "Section",ExpressionUUID->"f98509aa-6e6a-48fc-9827-9b3eda2eab16"],
+Cell["1. Using it", "Section",ExpressionUUID->"0115318d-9ce6-4553-b7b2-f172cab05141"],
 
-Cell["adim = AdimensionalEquations[equations, dims];", "Input",ExpressionUUID->"f0695905-390f-48c6-bcb6-b60c8ef495c8"],
+Cell["adim = AdimensionalEquations[equations, dims];", "Input",ExpressionUUID->"ecee7a0c-54b1-4506-be1c-f833f36d4ca4"],
 
 Cell[TextData[{
  "KPZ has one state coupling, ",
@@ -112,9 +112,9 @@ Cell[TextData[{
  StyleBox["\[Lambda]",
   FontFamily->"Noto Sans"],
  " is not renormalised (lesson 06):"
-}], "Text",ExpressionUUID->"53d8b4e3-9f31-4e98-8508-93594d1927f2"],
+}], "Text",ExpressionUUID->"217321f2-5ef1-497a-ae10-ed7b495025ef"],
 
-Cell["ShowBeta[adim, lamk]", "Input",ExpressionUUID->"b0e66999-26d0-48b3-884d-44ed1f7d2866"],
+Cell["ShowBeta[adim, lamk]", "Input",ExpressionUUID->"d1dad59e-02f3-419d-9368-76a20f761575"],
 
 Cell[TextData[{
  "The anomalous dimensions solve (EtaML + ",
@@ -127,11 +127,11 @@ Cell[TextData[{
  StyleBox["\[Integral]",
   FontFamily->"Noto Sans"],
  " Measure EtaBNL, one row per running reference:"
-}], "Text",ExpressionUUID->"fc03f513-371f-4a3a-82a1-fbe7d9868dd5"],
+}], "Text",ExpressionUUID->"741913d4-c940-4677-bc2d-c746325b8c89"],
 
-Cell["ShowEtaSystem[adim]", "Input",ExpressionUUID->"2ee7839a-d498-48c5-8095-bf766efa10e9"],
+Cell["ShowEtaSystem[adim]", "Input",ExpressionUUID->"0720934f-9ae0-4ff4-a427-f8ed47e1cc90"],
 
-Cell["ShowCausalPoles[adim]", "Input",ExpressionUUID->"2d978fac-d760-4127-9eb6-d3c994e7b4ce"],
+Cell["ShowCausalPoles[adim]", "Input",ExpressionUUID->"4fad90ab-68eb-403e-a715-89409d0d8164"],
 
 Cell[TextData[{
  "The propagator's validity condition of lesson 05 has become 1 + r_n(aq",
@@ -144,12 +144,12 @@ the integration (",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ", lesson 15)."
-}], "Text",ExpressionUUID->"1a5a3b6d-b4e3-418b-bb75-5522b9d3d525"],
+}], "Text",ExpressionUUID->"860fc6dc-3127-45f8-87c4-10bc9c1a1b6e"],
 
-Cell["2. Units out, by Leibniz", "Section",ExpressionUUID->"9349cdba-e085-4f0e-b698-24528f9f580b"],
+Cell["2. Units out, by Leibniz", "Section",ExpressionUUID->"61c7bb06-a93b-4358-bc24-d2b7dd0c8a7d"],
 
 Cell["\<\
-(* Kernel/Adimensional.wl:92-123 *)
+(* Kernel/Adimensional.wl:100-139 *)
 AdimensionalEquations[equations_, dims_, opts : OptionsPattern[]] := \
 Block[{$FRGModule = \"Adimensional\"},
   Module[{t0 = AbsoluteTime[], checks = {}, warns = {}, ansatz, theory, \
@@ -160,12 +160,14 @@ defEq, running, fixed, state, dsC, lhs, unknowns, uEqs, mat, rhsVec,
 adimAtoms, compactPiece, explicitPiece, etaRows, mL, mNL, bL, bNL,
     mustFix, stage, testDims, cand, bad, compactAtoms, etaRowsExplicit, mNLx, \
 bNLx, causalRaw, causalOrig, causalStripped, causalMin,
-    causalExpl, causalKeep},
+    causalExpl, causalKeep, fns, ap, cU, pU, fnUnits, unitsOf, applied, \
+functional, isFn, measureOf, atZeroOf, adimApplied, adimArg,
+    rels, elims, relInfo, relSubst, relDim, stateFull, userState, sub},
    validateStage[equations, \"Equations\"]; validateStage[dims, \
 \"Dimensions\"];
    FRGAssert[\"Adimensional.options\", MatchQ[{opts}, {(Rule | \
-RuleDelayed)[\"State\", _] ...}], {opts}, \"only the option \\\"State\\\" is \
-accepted\"];
+RuleDelayed)[\"State\" | \"Related\", _] ...}], {opts}, \"only the options \\\
+\"State\\\" and \\\"Related\\\" are accepted\"];
    ansatz = AnsatzOf[equations];
    AppendTo[checks, assertCheck[\"Adimensional.sameAnsatz\", \
 ansatz[\"Fingerprint\"] === dims[\"Ansatz\"][\"Fingerprint\"],
@@ -173,13 +175,17 @@ ansatz[\"Fingerprint\"] === dims[\"Ansatz\"][\"Fingerprint\"],
 dimensions were derived from another ansatz: \
 DeriveDimensions[AnsatzOf[equations], ...]\",
      \"dimensions and equations from the same ansatz\"]];
-   theory = ansatz[\"Theory\"]; fields = theory[\"Fields\"]; cps = \
-ansatz[\"Couplings\"];
+   theory = ansatz[\"Theory\"]; fields = theory[\"Fields\"]; fns = \
+Lookup[ansatz, \"MomentumFunctions\", {}];
+   cps = Join[ansatz[\"Couplings\"], fns];
    refs = dims[\"References\"]; etas = dims[\"Etas\"]; names = \
 dims[\"Names\"]; vecs = dims[\"Vectors\"]; basis = dims[\"Basis\"]; nb = \
 Length[basis];
    kk = dims[\"Scale\"]; dimSym = dims[\"Dimension\"]; qU = \
-equations[\"LoopMomentum\"]; aq = Symbol[\"Global`aq\"];
+equations[\"LoopMomentum\"]; aq = Symbol[\"Global`aq\"]; ap = \
+Symbol[\"Global`ap\"];
+   pU = Lookup[equations, \"ExternalMomentum\", Symbol[\"Global`p\"]]; cU = \
+Lookup[equations, \"Cosine\", Symbol[\"Global`c\"]];
    FRGAssert[\"Adimensional.scale\", equations[\"Scale\"] === kk, {equations[\
 \"Scale\"], kk}, \"the regulator scale and the \\\"Scale\\\" of \
 DeriveDimensions differ\"];
@@ -205,11 +211,19 @@ StringRiffle[ToString /@ regC, \", \"]]];
    (* units: c -> chat [c] for non-references, q -> k aq, d_s ref -> -eta ref \
 *)
    form[c_] := basisForm[vecs[c], basis];
-   toUnits = Join[(# -> names[#] form[#]) & /@ Complement[cps, refs], {qU -> \
-kk aq}, (dsCoupling[#] -> -etas[#] #) & /@ refs];
+   toUnits = Join[(# -> names[#] form[#]) & /@ Complement[cps, refs, fns], \
+{qU -> kk aq, pU -> kk ap}, (dsCoupling[#] -> -etas[#] #) & /@ refs];
+   (* a momentum function F(x) of the momentum squared x -> [F] Fhat(x/k^2); \
+a bare F (in a combination) is F(p^2) -> [F] Fhat(ap^2) *)
+   adimArg[x_] := Expand[(x /. {qU -> kk aq, pU -> kk ap})/kk^2];
+   fnUnits = Join[Flatten[{#[x_] :> form[#] names[#][adimArg[x]], \
+Derivative[j_][#][x_] :> form[#] kk^(-2 j) \
+Derivative[j][names[#]][adimArg[x]]} & /@ fns],
+     (# -> form[#] names[#][ap^2]) & /@ fns];
+   unitsOf[e_] := (e /. fnUnits) /. toUnits;
    gamma2Dim[{a_, b_}] := Expand[dimSym UnitVector[nb, 1] - dims[\"Time\"] - \
 vecs[a] - vecs[b]];\
-\>", "Program",ExpressionUUID->"d47379d7-c62a-4147-8ed9-041730dc6831"],
+\>", "Program",ExpressionUUID->"6554dfe8-94e3-4a09-8bd7-38fe8ed09ec5"],
 
 Cell[TextData[{
  "The substitution ",
@@ -252,10 +266,10 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " (lesson 13) would be caught."
-}], "Text",ExpressionUUID->"55b7345e-a06a-4cf1-bc0e-096930132099"],
+}], "Text",ExpressionUUID->"acad66c3-cbf8-45c6-9fc5-e5d2d3875857"],
 
 Cell["\<\
-(* Kernel/Adimensional.wl:162-187 *)
+(* Kernel/Adimensional.wl:178-229 *)
    (* Leibniz: d_s(comb) = sum_c (d comb/d c) d_s c, d_s ref = -eta ref, d_s \
 c = 0 for NonRenormalised c; one loop symbol per equation *)
    loopSym = Array[loopOf, Length[eqs]];
@@ -284,21 +298,68 @@ ToString[Length[unknowns]] <> \" flowing couplings solved from \" <>
        ToString[Length[uEqs]] <> \" equations: \" <> StringRiffle[ToString /@ \
 Keys[sol], \", \"]]];
 
+   (* Related (design/MOMENTUMFUNCTIONS.md D7): parsed here, imposed on the \
+outputs at the end *)
+   rels = OptionValue[\"Related\"];
+   FRGAssert[\"Adimensional.relatedSyntax\", ListQ[rels] && AllTrue[rels, \
+MatchQ[#, Related[_Symbol -> _, o___ /; MatchQ[{o}, {((\"AtDimension\" -> \
+_Integer?Positive) | (\"Reason\" -> _String)) ...}] &&
+         StringQ[Lookup[{o}, \"Reason\", None]]]] &], rels,
+    \"\\\"Related\\\" -> {Related[FD -> Fnu, \\\"AtDimension\\\" -> 1, \
+\\\"Reason\\\" -> \\\"time reversal (d = 1)\\\"]} (\\\"Reason\\\" required, \
+\\\"AtDimension\\\" optional)\"];
+   relInfo = Function[rr, Module[{e = rr[[1, 1]], rhs = rr[[1, 2]], kept, \
+al},
+       kept = Union[Cases[{rhs}, Alternatives @@ fns, {0, Infinity}]];
+       al = If[Length[kept] == 1, Together[rhs/First[kept]], None];
+       FRGAssert[\"Adimensional.relatedFunctions\", MemberQ[fns, e] && \
+Length[kept] == 1 && First[kept] =!= e && NumericQ[al] && al =!= 0, rr,
+        \"Related relates two momentum functions: Related[FD -> Fnu] or \
+Related[FD -> 2 Fnu] (a nonzero number times the kept function)\"];
+       <|\"Eliminated\" -> e, \"Kept\" -> First[kept], \"Factor\" -> al, \
+\"AtDimension\" -> Lookup[Rest[List @@ rr], \"AtDimension\", None],
+        \"Reason\" -> Lookup[Rest[List @@ rr], \"Reason\"]|>]] /@ rels;
+   elims = relInfo[[All, \"Eliminated\"]];
+   FRGAssert[\"Adimensional.relatedChain\", DuplicateFreeQ[elims] && ! \
+IntersectingQ[elims, relInfo[[All, \"Kept\"]]], relInfo[[All, \
+{\"Eliminated\", \"Kept\"}]],
+    \"each function is eliminated at most once and an eliminated function is \
+never kept by another relation (no chains or cycles)\"];
+   relDim = DeleteDuplicates[DeleteCases[relInfo[[All, \"AtDimension\"]], \
+None]];
+   FRGAssert[\"Adimensional.relatedDimension\", Length[relDim] <= 1 && \
+(relDim === {} || ! NumberQ[dimSym] || dimSym === First[relDim]) &&
+      AllTrue[relInfo, AllTrue[Expand[vecs[#Eliminated] - vecs[#Kept]], # === \
+0 &] &],
+    {relDim, dimSym, relInfo[[All, {\"Eliminated\", \"Kept\"}]]},
+    \"the two related functions must have the same dimension (so the factor \
+is a pure number), and one AtDimension compatible with the Theory's dimension\
+\"];
+
    (* state *)
-   state = Replace[OptionValue[\"State\"], Automatic -> Select[cps, ! \
-MemberQ[refs, #] &]];
+   userState = OptionValue[\"State\"];
+   FRGAssert[\"Adimensional.relatedState\", userState === Automatic || ! \
+IntersectingQ[userState, elims], Intersection[Replace[userState, Automatic -> \
+{}], elims],
+    \"an eliminated function (Related) is not part of the state: drop it from \
+\\\"State\\\"\"];
+   state = Replace[userState, Automatic -> Select[cps, ! MemberQ[refs, #] && \
+! MemberQ[elims, #] &]];
    FRGAssert[\"Adimensional.state\", ListQ[state] && DuplicateFreeQ[state] && \
 SubsetQ[Complement[cps, refs], state], state,
     \"\\\"State\\\" -> {couplings of the ansatz that are not references}\"];
+   (* the eliminated functions are computed too (for the Related check), then \
+dropped *)
+   stateFull = Join[state, elims];
    bad = Select[state, ! KeyExistsQ[sol, #] && ! MemberQ[nonren, #] &];
    FRGAssert[\"Adimensional.noBeta\", bad === {}, bad, \"these state \
 couplings get no flow: no equation determines them and they are not \
 NonRenormalised\"];
-   bad = Complement[Keys[sol], state];
+   bad = Complement[Keys[sol], stateFull];
    FRGAssert[\"Adimensional.stateMissing\", bad === {}, bad, \"these \
 couplings have a flow equation but are missing from \\\"State\\\"\"];
    dsOf[c_] := Lookup[sol, c, 0];\
-\>", "Program",ExpressionUUID->"6736cc38-67ae-4a86-a56f-a1d57f0103bc"],
+\>", "Program",ExpressionUUID->"bef66c12-2836-4a79-b2f3-b93aa00577bc"],
 
 Cell[TextData[{
  "A flowing combination such as ",
@@ -342,14 +403,14 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " lists the variables of a polynomial."
-}], "Text",ExpressionUUID->"c2ad8e28-b92b-4aa4-b245-a37ae23a7f10"],
+}], "Text",ExpressionUUID->"d3842f1f-e850-457e-b081-df246a28d6a9"],
 
-Cell["{Variables[nuk Dk + lamk^2], Array[loopOf, 3]}", "Input",ExpressionUUID->"6533c029-0512-4254-9fb8-26900bd1fccd"],
+Cell["{Variables[nuk Dk + lamk^2], Array[loopOf, 3]}", "Input",ExpressionUUID->"2e7bb9ed-40a6-4c8d-a2d4-6a1149af3d7a"],
 
-Cell["3. Proving homogeneity", "Section",ExpressionUUID->"f13b102a-1da1-42d4-9ca1-2c2ed3f404f7"],
+Cell["3. Proving homogeneity", "Section",ExpressionUUID->"c9d66fe3-7ecb-4dd9-9331-0a8e0570b8e1"],
 
 Cell["\<\
-(* Kernel/Adimensional.wl:28-45 *)
+(* Kernel/Adimensional.wl:36-53 *)
 (* ---------- homogeneity in the units (generalises HomVec/HomClean of \
 AdimensionalFlowEQGenericRegLargeScale.nb) ----------
    hom[e] = {v, rest}: e = (product of units with exponent vector v) x rest, \
@@ -377,10 +438,10 @@ homTag]];
 function argument\", f[args]}, homTag]];
      {zero, f @@ h[[All, 2]]}];
    hv[e]];\
-\>", "Program",ExpressionUUID->"320a3984-f07c-433c-9015-3f350827c1a0"],
+\>", "Program",ExpressionUUID->"2055db34-27d9-4f32-8751-b90547c722c5"],
 
 Cell["\<\
-(* Kernel/Adimensional.wl:47-55 *)
+(* Kernel/Adimensional.wl:55-63 *)
 (* dimension vector of e (units substituted); aborts with the reason if e is \
 not homogeneous *)
 dimensionVector[check_, e_, unitIndex_, nb_, what_] := Module[{r = \
@@ -396,7 +457,7 @@ dimension\" -> Expand[r[[1]] - v]},
     \"the expression still depends on the units k, references (dimension \
 mismatch)\"];
    r[[2]]];\
-\>", "Program",ExpressionUUID->"7bf7ebd7-3365-4cf7-abc1-3e42febf3bb0"],
+\>", "Program",ExpressionUUID->"3b6ac455-0342-4829-81fc-aa62c532c051"],
 
 Cell[TextData[{
  StyleBox["homVec",
@@ -422,7 +483,7 @@ argument (a shape argument must reduce to aq",
  StyleBox["\.b2",
   FontFamily->"Noto Sans"],
  ")."
-}], "Text",ExpressionUUID->"4a451713-9fd1-41d0-b0f8-249653878bed"],
+}], "Text",ExpressionUUID->"a701b274-ffa9-4632-a986-0984e1383afb"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Catch and Throw",
@@ -462,7 +523,7 @@ mechanism."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"325abd51-a2b4-4835-95f4-d80ac74d01d8"],
+  0.91, 0.95, 1.],ExpressionUUID->"f967c2f9-ff2e-4259-b5d7-da317ecf0ad2"],
 
 Cell["\<\
 ui = <|k -> 1, nuk -> 2, Dk -> 3|>;
@@ -474,10 +535,10 @@ FRGscalarMSR`Private`homTag]}\
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"28a106f3-9225-49fd-aeb5-94e52d1fd41a"],
+  0.91, 0.95, 1.],ExpressionUUID->"bb7ff12f-73ed-4745-85cc-d28bf087a3e8"],
 
 Cell["\<\
-(* Kernel/Adimensional.wl:57-69 *)
+(* Kernel/Adimensional.wl:65-77 *)
 (* independent route (review E8): e must be unchanged when every unit is \
 multiplied by a random factor. Units are random perfect
    powers so that every fractional power stays rational; d is set to each \
@@ -501,31 +562,42 @@ enough here, AdimAtom[..] takes no argument and shapes are symbols *)
      val[u_] := Together[(ed /. Thread[units -> (u units)] /. pt /. \
 Thread[units -> (Last /@ lam)] /. atom)];
      Together[val[1] - val[Last /@ lam]] === 0]]];\
-\>", "Program",ExpressionUUID->"985c997c-d536-4233-9a8d-a1e5ee727a5c"],
+\>", "Program",ExpressionUUID->"ae3610d1-7dca-4cae-ae13-40e60fb816ad"],
 
 Cell["\<\
 The independent route (review E8): every loop piece, before the units are \
 stripped, is evaluated with every unit multiplied by a random factor, in d = \
 2 and 3, and must not change. Structural homogeneity and numerical invariance \
 are two different arguments for the same fact.\
-\>", "Text",ExpressionUUID->"4ce09917-884b-4cfd-b6c5-a3fdebb1f5d3"],
+\>", "Text",ExpressionUUID->"c6570de6-6d8a-480a-adbe-a67a14d19c24"],
 
-Cell["4. The \[Beta] functions and the \[Eta] system", "Section",ExpressionUUID->"df6dbdf2-fe8b-49f9-87bd-12016a1da30c"],
+Cell["4. The \[Beta] functions and the \[Eta] system", "Section",ExpressionUUID->"bfb61a28-edd8-4427-a5ad-581f0fb6fc95"],
 
 Cell["\<\
-(* Kernel/Adimensional.wl:221-242 *)
+(* Kernel/Adimensional.wl:263-291 *)
    (* a loop piece  alpha x Integral d^dq/(2 Pi)^d I(q) / [c]  as the \
 integrand of Integral daq LoopMeasure: alpha k^d I(k aq)/[c] *)
-   explicitPiece[alpha_, e_, v_, what_] := Module[{x = (alpha kk^dimSym \
-eqs[[e]][\"Integrand\"]) /. toUnits},
+   (* the equation record (or its exact p -> 0 row, for an eta normalised on \
+a function: C4) whose integrand a piece uses *)
+   isFn[e_] := KeyExistsQ[eqs[[e]], \"Functional\"];
+   atZeroOf[e_] := If[isFn[e], eqs[[e]][\"AtZero\"], eqs[[e]]];
+   explicitPiece[alpha_, e_, v_, what_, zero_ : False] := Module[{x = \
+unitsOf[alpha kk^dimSym If[zero, atZeroOf[e], eqs[[e]]][\"Integrand\"]]},
      FRGAssert[\"Adimensional.unitInvariance\", unitInvariantQ[x, basis, \
 dimSym, testDims, e], what,
       \"the loop integrand changes when the units are rescaled: it is not \
 dimensionless (independent route)\"];
      homClean[\"Adimensional.homogeneous\", x, v, unitIndex, nb, what]];
-   compactPiece[alpha_, e_, v_, what_] := Module[{x = (alpha kk^dimSym \
-(eqs[[e]][\"Compact\"] /. equations[\"DsRRules\"] /. compactAtoms)) /. \
-toUnits},
+   (* applied atoms of the generic-p rows: ScaleAtom[a, b, m, j][x] -> [atom] \
+AdimAtom[a, b, m, j][x/k^2], dsR[a, b][x] explicit *)
+   adimApplied = {ScaleAtom[a_, b_, m_, j_][y_] :> \
+basisForm[atomVecs[ScaleAtom[a, b, m, j]][[1]], basis] AdimAtom[a, b, m, \
+j][adimArg[y]]};
+   compactPiece[alpha_, e_, v_, what_, zero_ : False] := Module[{rec = \
+If[zero, atZeroOf[e], eqs[[e]]], x},
+     x = unitsOf[alpha kk^dimSym If[isFn[e] && ! zero, rec[\"Compact\"] /. \
+dsRAtRules[reg] /. adimApplied, rec[\"Compact\"] /. equations[\"DsRRules\"] \
+/. compactAtoms]];
      homClean[\"Adimensional.homogeneousCompact\", x, v, unitIndex, nb, what]];
 
    (* beta functions: d_s chat = chat (-x + Sum y eta) + (d_s c)/[c], local \
@@ -534,8 +606,10 @@ part not integrated, loop part per Integral daq *)
    Do[Module[{ds = dsOf[c], v = vecs[c], hat = names[c], local, alphas},
       alphas = Coefficient[ds, #] & /@ loopSym;
       local = Expand[ds /. Thread[loopSym -> 0]];
-      betaL[c] = Expand[hat linearPart[v, Values[etas]] + \
-homClean[\"Adimensional.homogeneousLocal\", (local/form[c]) /. toUnits, \
+      betaL[c] = Expand[If[MemberQ[fns, c], hat[ap^2] linearPart[v, \
+Values[etas]] + 2 ap^2 Derivative[1][hat][ap^2], hat linearPart[v, \
+Values[etas]]] +
+         homClean[\"Adimensional.homogeneousLocal\", unitsOf[local/form[c]], \
 ConstantArray[0, nb], unitIndex, nb, c]];
       betaNL[c] = Total[MapThread[If[#1 === 0 || \
 eqs[[#2]][\"IdenticallyZero\"], 0, compactPiece[#1/form[c], #2, \
@@ -543,7 +617,7 @@ ConstantArray[0, nb], c]] &, {alphas, Range[Length[eqs]]}]];
       betaNLExplicit[c] = Total[MapThread[If[#1 === 0 || \
 eqs[[#2]][\"IdenticallyZero\"], 0, explicitPiece[#1/form[c], #2, \
 ConstantArray[0, nb], c]] &, {alphas, Range[Length[eqs]]}]]],
-    {c, state}];
+    {c, stateFull}];
    AppendTo[checks, assertCheck[\"Adimensional.homogeneous\", True, Null, \"\",
      \"every beta free of k and the references: homogeneity of every sum \
 (structural) and invariance under random unit rescaling (numerical, d = \" <>
@@ -553,7 +627,7 @@ FreeQ[Values[betaL], aq | qU | kk], Select[betaL, ! FreeQ[#, aq | qU | kk] \
 &],
      \"internal: a linear part depends on the loop momentum\", \"linear parts \
 free of aq (not integrated)\"]];\
-\>", "Program",ExpressionUUID->"50960fed-98ea-4876-8856-8bd440b11271"],
+\>", "Program",ExpressionUUID->"0c32e677-57e1-48c1-bd6c-de74fcfdaae8"],
 
 Cell[TextData[{
  StyleBox["linearPart",
@@ -576,37 +650,44 @@ Cell[TextData[{
  StyleBox["\[Integral]",
   FontFamily->"Noto Sans"],
  "daq with k^d from the measure."
-}], "Text",ExpressionUUID->"a007a06c-f0f8-426d-9f58-152482c3df1d"],
+}], "Text",ExpressionUUID->"a4a80abc-10dc-4ca3-9bf7-2a39b22e8952"],
 
 Cell["\<\
-(* Kernel/Adimensional.wl:26 *)
+(* Kernel/Adimensional.wl:33 *)
 LoopMeasure[d_, aq_] := 2 Pi^(d/2)/Gamma[d/2] aq^(d - 1)/(2 Pi)^d;\
-\>", "Program",ExpressionUUID->"4879191e-f7b0-4f92-b2a8-254920631213"],
+\>", "Program",ExpressionUUID->"1fea3e37-d3fc-449a-88f1-7196649fa473"],
 
-Cell["{LoopMeasure[3, aq], LoopMeasure[Dim, aq]}", "Input",ExpressionUUID->"1a41783c-bec5-4d25-b270-4831002cfcce"],
+Cell["{LoopMeasure[3, aq], LoopMeasure[Dim, aq]}", "Input",ExpressionUUID->"1c1b0463-9c22-4590-b01f-faf15a2ea04d"],
 
 Cell["\<\
-(* Kernel/Adimensional.wl:244-255 *)
+(* Kernel/Adimensional.wl:294-308 *)
    (* eta system: running ref r: eta_r = -(loop of its equation)/r (amplitude \
 counted as 1); fixed ref: placeholder row eta = 0 *)
    etaRows = Table[If[kind[r] === \"Running\", compactPiece[-1/r, defEq[r], \
-ConstantArray[0, nb], \"eta\" <> dims[\"EtaNames\"][r]], None], {r, refs}];
-   etaRowsExplicit = Table[If[kind[r] === \"Running\", explicitPiece[-1/r, \
-defEq[r], ConstantArray[0, nb], \"eta\" <> dims[\"EtaNames\"][r]], 0], {r, \
+ConstantArray[0, nb], \"eta\" <> dims[\"EtaNames\"][r], True], None], {r, \
 refs}];
+   etaRowsExplicit = Table[If[kind[r] === \"Running\", explicitPiece[-1/r, \
+defEq[r], ConstantArray[0, nb], \"eta\" <> dims[\"EtaNames\"][r], True], 0], \
+{r, refs}];
    {bNL, mNL} = Module[{rows = Replace[etaRows, None -> 0, {1}], ca},
      ca = Normal[CoefficientArrays[rows, Values[etas]]];
+     (* every reference Fixed: the rows are all 0 and CoefficientArrays has \
+no linear part *)
+     If[Length[ca] == 1, ca = {ca[[1]], ConstantArray[0, {Length[refs], \
+Length[refs]}]}];
      FRGAssert[\"Adimensional.etaLinear\", Length[ca] == 2, rows, \"the eta \
 system is not linear in the etas\"];
      {ca[[1]], -ca[[2]]}];
    {bNLx, mNLx} = Module[{ca = Normal[CoefficientArrays[etaRowsExplicit, \
-Values[etas]]]}, {ca[[1]], -ca[[2]]}];
+Values[etas]]]},
+     If[Length[ca] == 1, ca = {ca[[1]], ConstantArray[0, {Length[refs], \
+Length[refs]}]}]; {ca[[1]], -ca[[2]]}];
    mL = IdentityMatrix[Length[refs]]; bL = ConstantArray[0, Length[refs]];
    mustFix = dims[\"EtaNames\"] /@ fixed;
    AppendTo[checks, assertCheck[\"Adimensional.etaSystem\", True, Null, \"\",
      \"eta system: \" <> ToString[Length[running]] <> \" running row(s)\" <> \
 If[fixed === {}, \"\", \", placeholder row(s) eta = 0 for \" <>\
-\>", "Program",ExpressionUUID->"2620078c-3bb0-4b56-bc12-06fc9b4cf9e0"],
+\>", "Program",ExpressionUUID->"2bfa1412-eb2d-46e5-a68c-616e0fa1629c"],
 
 Cell[TextData[{
  StyleBox["Mathematica: CoefficientArrays",
@@ -654,18 +735,18 @@ Cell[TextData[{
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"1b76e6c6-f0a2-469b-9430-07493ff4caa4"],
+  0.91, 0.95, 1.],ExpressionUUID->"1dc3d031-50fd-4256-ba80-830da9a35905"],
 
 Cell["Normal[CoefficientArrays[{a e1 + b e2 + c, d e1}, {e1, e2}]]", "Input",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"3e06f51b-8e52-4997-8419-3c111d6b6fef"],
+  0.91, 0.95, 1.],ExpressionUUID->"7d38059f-534d-4a75-bf53-7b270ba022aa"],
 
-Cell["5. References: running or fixed", "Section",ExpressionUUID->"16ab855c-e4c2-4812-b1d2-1448e1806e47"],
+Cell["5. References: running or fixed", "Section",ExpressionUUID->"ccbd6563-9097-4a12-b1d7-31320be4a6ab"],
 
 Cell["\<\
-(* Kernel/Adimensional.wl:140-158 *)
+(* Kernel/Adimensional.wl:156-174 *)
    (* references: running (eta from the equation of ref or ref x amplitude) \
 or fixed (eta given at run time) *)
    cand[r_] := Select[Range[Length[eqs]], With[{q = Together[combs[[#]]/r]},
@@ -696,7 +777,7 @@ combs[[cand[r]]]},
        True, kind[r] = \"Fixed\"]], {r, refs}];
    running = Select[refs, kind[#] === \"Running\" &]; fixed = Select[refs, \
 kind[#] === \"Fixed\" &];\
-\>", "Program",ExpressionUUID->"b509423c-63de-4ff8-a987-bea6dca58950"],
+\>", "Program",ExpressionUUID->"d6a11d36-a047-4aa2-b124-1f60c52978af"],
 
 Cell[TextData[{
  "A reference that appears alone in an equation (KPZ: ",
@@ -742,7 +823,7 @@ dimensionless amplitudes (the shallow-water ",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ")."
-}], "Text",ExpressionUUID->"232c2e1e-d443-4089-8b0c-d84d3cd61553"],
+}], "Text",ExpressionUUID->"913269c6-5030-462b-952a-8e46a175efa6"],
 
 Cell[TextData[{
  StyleBox["Why it's built this way: Which part of the flow is integrated",
@@ -769,12 +850,12 @@ integrals depend on the state at which FlowRG evaluates them."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->GrayLevel[0.55],
  Background->RGBColor[
-  0.93, 0.93, 0.93],ExpressionUUID->"dcc50390-5966-41d7-b892-0ffdc19f1e6a"],
+  0.93, 0.93, 0.93],ExpressionUUID->"461ac061-9695-4403-a276-2303ae59e9f9"],
 
-Cell["6. Causal poles in minimal form", "Section",ExpressionUUID->"5b173f40-2420-4ce5-84c0-2d460664a91d"],
+Cell["6. Causal poles in minimal form", "Section",ExpressionUUID->"cda92f33-dbab-44bb-a2ba-1445e16f3eb3"],
 
 Cell["\<\
-(* Kernel/Adimensional.wl:73-86 *)
+(* Kernel/Adimensional.wl:81-94 *)
 (* numeric coefficient of one term of an expanded polynomial *)
 causalPolesCoefficient[t_] := Which[NumberQ[t], t, Head[t] === Times, Times \
 @@ Select[List @@ t, NumberQ], True, 1];
@@ -795,7 +876,7 @@ causalPolesPositiveQ[s_, syms_] := AllTrue[If[Head[s] === Times, List @@ s, \
 {s}],
    (NumberQ[#] && # > 0) || MatchQ[#, Alternatives @@ syms] || MatchQ[#, \
 Power[Alternatives @@ syms, _]] &];\
-\>", "Program",ExpressionUUID->"b267eae4-5780-497c-acba-5d01cfb4d781"],
+\>", "Program",ExpressionUUID->"0e8a4460-bc78-4147-8d62-cc5fe8a6d1d9"],
 
 Cell[TextData[{
  "Each condition e > 0 is brought to p > 0 with p a polynomial (",
@@ -837,17 +918,17 @@ line), and the positive numeric content and lowest power of aq are stripped (",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ")."
-}], "Text",ExpressionUUID->"6c97a9e6-cfe4-42be-8ffc-7527ae439a57"],
+}], "Text",ExpressionUUID->"692f1913-7d8a-48dc-bec1-3ac89e2ab98a"],
 
-Cell["{NumeratorDenominator[(a + b)/c], GCD[6, 9, 12], Sign[-3]}", "Input",ExpressionUUID->"3ee89b28-3628-4232-a651-1c840c44e745"],
+Cell["{NumeratorDenominator[(a + b)/c], GCD[6, 9, 12], Sign[-3]}", "Input",ExpressionUUID->"de0f30b0-700e-4624-a20f-38352810f5d8"],
 
-Cell["7. The stage", "Section",ExpressionUUID->"a12455ea-8597-4ae6-a1eb-989d54ade073"],
+Cell["7. The stage", "Section",ExpressionUUID->"02531fe1-96aa-4d43-96d8-2bfae80b7813"],
 
 Cell[BoxData[
  $CellContext`regionCells[
  "Kernel/Adimensional.wl", "stage = stampStage[<", 
   "\"Stage\" -> \"Adimensional\"", "PrintCard[stage];"]], "Input",ExpressionUU\
-ID->"24a7ed8d-fbb4-486a-88b6-373251a39101"],
+ID->"5c04cb23-7c0a-4d74-9e10-5aec88c6c0ca"],
 
 Cell[TextData[{
  StyleBox["\"Couplings\"",
@@ -888,15 +969,15 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  "."
-}], "Text",ExpressionUUID->"cb44d064-2b32-47a3-8077-4022af0c7001"],
+}], "Text",ExpressionUUID->"0f1cdaca-6a80-4659-8d95-e6a2a483005f"],
 
 Cell["\<\
 {adim[\"State\"], adim[\"Couplings\"], adim[\"Etas\"], adim[\"Atoms\"]}\
-\>", "Input",ExpressionUUID->"ae7fd438-16d0-482a-91dd-584a37fc656a"],
+\>", "Input",ExpressionUUID->"8abdd549-a2ab-4c4b-9499-edbb8649e05f"],
 
-Cell["Exercises", "Section",ExpressionUUID->"bf652ffb-45fd-4d0d-bbe2-bbf5d8438333"],
+Cell["Exercises", "Section",ExpressionUUID->"ca576f6b-0f30-429a-a079-989ced659960"],
 
-Cell["Exercise: A NonRenormalised reference", "Subsection",ExpressionUUID->"ba8ece16-35c0-44e1-8742-db26dd3514ce"],
+Cell["Exercise: A NonRenormalised reference", "Subsection",ExpressionUUID->"c15717fc-0d6c-4e17-a6da-eaea651e41c9"],
 
 Cell[TextData[{
  "Use ",
@@ -904,17 +985,17 @@ Cell[TextData[{
   FontFamily->"Noto Sans"],
  " as a reference instead of D. Which check fails, and why must a reference \
 flow?"
-}], "Text",ExpressionUUID->"3cd6f247-cf10-4640-8f84-d01cd2bdb198"],
+}], "Text",ExpressionUUID->"8eab31e0-f7c4-47f1-b7e3-4b98df833e35"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"7339dd0c-d76c-4793-a24c-45476630cc61"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"86baba8d-58e5-48ef-8db0-d6681554126c"],
 
 Cell["\<\
 dims2 = Block[{Print}, DeriveDimensions[kpzAnsatz, \"References\" -> {nuk -> \
 \"nu\", lamk -> \"l\"}, \"Scale\" -> k]];
 showFailure[AdimensionalEquations[equations, dims2]]\
-\>", "Input",ExpressionUUID->"a495fa82-eaeb-4150-8d11-9ffb6e4d751d"],
+\>", "Input",ExpressionUUID->"a345202a-fa80-4987-8e05-d2ae0c435c57"],
 
 Cell[TextData[{
  StyleBox["Adimensional.referencesFlow",
@@ -934,26 +1015,26 @@ Cell[TextData[{
  StyleBox["\[Lambda]",
   FontFamily->"Noto Sans"],
  " would be fixed to 0 by assumption, not computed."
-}], "Text",ExpressionUUID->"7813e2da-a603-4ce0-bda2-6466ecd4a112"]
+}], "Text",ExpressionUUID->"4e16b04a-f9de-4a8d-9145-460bc9f45691"]
 }, Closed]],
 
-Cell["Exercise: The \[Eta] system with the Litim shape", "Subsection",ExpressionUUID->"ea56acb3-fb93-42fe-8639-666a98ecd639"],
+Cell["Exercise: The \[Eta] system with the Litim shape", "Subsection",ExpressionUUID->"ded493e8-3f03-4ba1-8e8f-76d25d5f5def"],
 
 Cell[TextData[{
  "Substitute the Litim shape r(y) = 1/y ",
  StyleBox["\[Minus]",
   FontFamily->"Noto Sans"],
  " 1 into the first row of EtaMNL (valid for aq < 1). Which atoms simplify?"
-}], "Text",ExpressionUUID->"830ba44c-3a0d-45e1-967c-f3f0e8fa30fc"],
+}], "Text",ExpressionUUID->"b6cefc90-e4ea-4ffc-ac7e-43cf48036bdd"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"5ae1229d-fca9-4d9d-a267-fb98ea41f43c"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"cd7242f6-e48b-42d9-96d6-713831f942a0"],
 
 Cell["\<\
 litim = {rn -> Function[y, 1/y - 1], rd -> Function[y, 1/y - 1]};
 Together[adim[\"EtaMNL\"][[1]] /. adim[\"Atoms\"] /. litim]\
-\>", "Input",ExpressionUUID->"8a8e8d9f-cff6-4bf6-9d40-e2cf1ab1e5ff"],
+\>", "Input",ExpressionUUID->"812bf3c4-b5b9-41eb-9d4f-c0e35e96384f"],
 
 Cell[TextData[{
  StyleBox["AdimAtom[h, hbar, 0, 0]",
@@ -978,10 +1059,10 @@ Cell[TextData[{
  StyleBox["\[Prime]",
   FontFamily->"Noto Sans"],
  " becomes 0: the Litim shape makes the second atom vanish for aq < 1."
-}], "Text",ExpressionUUID->"1de638c7-779b-42f7-a565-0deec1e51cb2"]
+}], "Text",ExpressionUUID->"1d6e38b7-86bb-4d87-8d46-e0d02f1f4e4f"]
 }, Closed]],
 
-Cell["Exercise: The dimensionless measure", "Subsection",ExpressionUUID->"df3381db-ca9d-4c97-886d-94b8cb56ea7e"],
+Cell["Exercise: The dimensionless measure", "Subsection",ExpressionUUID->"5b785e3e-2c36-44b5-a27f-391e65777f64"],
 
 Cell[TextData[{
  "Check that ",
@@ -1005,28 +1086,28 @@ Cell[TextData[{
  StyleBox["\[CapitalGamma]",
   FontFamily->"Noto Sans"],
  "(d/2 + 1), for d = 3."
-}], "Text",ExpressionUUID->"0519af04-7936-4122-9b27-8875c2eddf24"],
+}], "Text",ExpressionUUID->"de4e67cb-d759-4456-83ee-0fd06005950a"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"6ad7f490-e972-4d23-a2a3-78c651183d78"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"855f4efa-1186-4a92-bb07-27daf4df7d1b"],
 
 Cell["\<\
 {Integrate[LoopMeasure[3, aq], {aq, 0, 1}], Pi^(3/2)/Gamma[5/2]/(2 Pi)^3}\
-\>", "Input",ExpressionUUID->"d1b59c1f-c836-4ce8-885d-61c7403a026f"],
+\>", "Input",ExpressionUUID->"a1df6cdf-74f8-4b18-8a73-f86222cea707"],
 
 Cell[TextData[{
  "Both are 1/(6",
  StyleBox["\[Pi]\.b2",
   FontFamily->"Noto Sans"],
  ")."
-}], "Text",ExpressionUUID->"3ce0ec18-1b85-426f-9e33-2fa2febf5df6"]
+}], "Text",ExpressionUUID->"56409195-411f-400a-b88d-e31f42b0766c"]
 }, Closed]]
 },
 CellContext->Notebook,
 FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
 StyleDefinitions->"Default.nb",
-ExpressionUUID->"68ca8ccf-8ceb-4f4a-8543-fab9318d86bc"
+ExpressionUUID->"3cc61674-820d-4389-b436-542045a0c982"
 ]
 (* End of Notebook Content *)
 
@@ -1039,75 +1120,75 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[554, 20, 96, 0, 70, "Title",ExpressionUUID->"3f3dea13-680d-4843-be77-fcb8617c2b8d"],
-Cell[653, 22, 645, 25, 70, "Text",ExpressionUUID->"df64aa47-7717-4e49-9a1d-4d05cb2d1142"],
-Cell[1301, 49, 434, 16, 70, "Text",ExpressionUUID->"c66343e5-5f78-40e9-8baa-688863a42539"],
-Cell[1738, 67, 531, 10, 70, "Text",ExpressionUUID->"fa92de8a-62cc-42af-a71d-c6502ffe2fbf"],
-Cell[2272, 79, 418, 10, 70, "Text",ExpressionUUID->"eab5092a-4eae-48f5-84ce-cd444e544807"],
-Cell[2693, 91, 357, 6, 70, "Input",ExpressionUUID->"4492d0ab-f0c7-40cf-8930-2b960c6534b5"],
-Cell[3053, 99, 85, 0, 70, "Section",ExpressionUUID->"f98509aa-6e6a-48fc-9827-9b3eda2eab16"],
-Cell[3141, 101, 118, 0, 70, "Input",ExpressionUUID->"f0695905-390f-48c6-bcb6-b60c8ef495c8"],
-Cell[3262, 103, 375, 11, 70, "Text",ExpressionUUID->"53d8b4e3-9f31-4e98-8508-93594d1927f2"],
-Cell[3640, 116, 92, 0, 70, "Input",ExpressionUUID->"b0e66999-26d0-48b3-884d-44ed1f7d2866"],
-Cell[3735, 118, 370, 11, 70, "Text",ExpressionUUID->"fc03f513-371f-4a3a-82a1-fbe7d9868dd5"],
-Cell[4108, 131, 91, 0, 70, "Input",ExpressionUUID->"2ee7839a-d498-48c5-8095-bf766efa10e9"],
-Cell[4202, 133, 93, 0, 70, "Input",ExpressionUUID->"2d978fac-d760-4127-9eb6-d3c994e7b4ce"],
-Cell[4298, 135, 450, 11, 70, "Text",ExpressionUUID->"1a5a3b6d-b4e3-418b-bb75-5522b9d3d525"],
-Cell[4751, 148, 98, 0, 70, "Section",ExpressionUUID->"9349cdba-e085-4f0e-b698-24528f9f580b"],
-Cell[4852, 150, 3312, 61, 70, "Program",ExpressionUUID->"d47379d7-c62a-4147-8ed9-041730dc6831"],
-Cell[8167, 213, 1263, 41, 70, "Text",ExpressionUUID->"55b7345e-a06a-4cf1-bc0e-096930132099"],
-Cell[9433, 256, 2435, 44, 70, "Program",ExpressionUUID->"6736cc38-67ae-4a86-a56f-a1d57f0103bc"],
-Cell[11871, 302, 1292, 42, 70, "Text",ExpressionUUID->"c2ad8e28-b92b-4aa4-b245-a37ae23a7f10"],
-Cell[13166, 346, 118, 0, 70, "Input",ExpressionUUID->"6533c029-0512-4254-9fb8-26900bd1fccd"],
-Cell[13287, 348, 96, 0, 70, "Section",ExpressionUUID->"f13b102a-1da1-42d4-9ca1-2c2ed3f404f7"],
-Cell[13386, 350, 1460, 29, 70, "Program",ExpressionUUID->"320a3984-f07c-433c-9015-3f350827c1a0"],
-Cell[14849, 381, 881, 17, 70, "Program",ExpressionUUID->"7bf7ebd7-3365-4cf7-abc1-3e42febf3bb0"],
-Cell[15733, 400, 905, 24, 70, "Text",ExpressionUUID->"4a451713-9fd1-41d0-b0f8-249653878bed"],
-Cell[16641, 426, 1381, 38, 70, "Text",ExpressionUUID->"325abd51-a2b4-4835-95f4-d80ac74d01d8"],
-Cell[18025, 466, 426, 10, 70, "Input",ExpressionUUID->"28a106f3-9225-49fd-aeb5-94e52d1fd41a"],
-Cell[18454, 478, 1445, 25, 70, "Program",ExpressionUUID->"985c997c-d536-4233-9a8d-a1e5ee727a5c"],
-Cell[19902, 505, 360, 5, 70, "Text",ExpressionUUID->"4ce09917-884b-4cfd-b6c5-a3fdebb1f5d3"],
-Cell[20265, 512, 120, 0, 70, "Section",ExpressionUUID->"df6dbdf2-fe8b-49f9-87bd-12016a1da30c"],
-Cell[20388, 514, 2364, 41, 70, "Program",ExpressionUUID->"50960fed-98ea-4876-8856-8bd440b11271"],
-Cell[22755, 557, 616, 21, 70, "Text",ExpressionUUID->"a007a06c-f0f8-426d-9f58-152482c3df1d"],
-Cell[23374, 580, 180, 3, 70, "Program",ExpressionUUID->"4879191e-f7b0-4f92-b2a8-254920631213"],
-Cell[23557, 585, 114, 0, 70, "Input",ExpressionUUID->"1a41783c-bec5-4d25-b270-4831002cfcce"],
-Cell[23674, 587, 1288, 21, 70, "Program",ExpressionUUID->"2620078c-3bb0-4b56-bc12-06fc9b4cf9e0"],
-Cell[24965, 610, 1483, 46, 70, "Text",ExpressionUUID->"1b76e6c6-f0a2-469b-9430-07493ff4caa4"],
-Cell[26451, 658, 247, 4, 70, "Input",ExpressionUUID->"3e06f51b-8e52-4997-8419-3c111d6b6fef"],
-Cell[26701, 664, 105, 0, 70, "Section",ExpressionUUID->"16ab855c-e4c2-4812-b1d2-1448e1806e47"],
-Cell[26809, 666, 1676, 32, 70, "Program",ExpressionUUID->"b509423c-63de-4ff8-a987-bea6dca58950"],
-Cell[28488, 700, 1297, 44, 70, "Text",ExpressionUUID->"232c2e1e-d443-4089-8b0c-d84d3cd61553"],
-Cell[29788, 746, 978, 25, 70, "Text",ExpressionUUID->"dcc50390-5966-41d7-b892-0ffdc19f1e6a"],
-Cell[30769, 773, 105, 0, 70, "Section",ExpressionUUID->"5b173f40-2420-4ce5-84c0-2d460664a91d"],
-Cell[30877, 775, 1172, 22, 70, "Program",ExpressionUUID->"b267eae4-5780-497c-acba-5d01cfb4d781"],
-Cell[32052, 799, 1388, 40, 70, "Text",ExpressionUUID->"6c97a9e6-cfe4-42be-8ffc-7527ae439a57"],
-Cell[33443, 841, 130, 0, 70, "Input",ExpressionUUID->"3ee89b28-3628-4232-a651-1c840c44e745"],
-Cell[33576, 843, 86, 0, 70, "Section",ExpressionUUID->"a12455ea-8597-4ae6-a1eb-989d54ade073"],
-Cell[33665, 845, 216, 4, 70, "Input",ExpressionUUID->"24a7ed8d-fbb4-486a-88b6-373251a39101"],
-Cell[33884, 851, 1166, 39, 70, "Text",ExpressionUUID->"cb44d064-2b32-47a3-8077-4022af0c7001"],
-Cell[35053, 892, 151, 2, 70, "Input",ExpressionUUID->"ae7fd438-16d0-482a-91dd-584a37fc656a"],
-Cell[35207, 896, 83, 0, 70, "Section",ExpressionUUID->"bf652ffb-45fd-4d0d-bbe2-bbf5d8438333"],
-Cell[35293, 898, 114, 0, 70, "Subsection",ExpressionUUID->"ba8ece16-35c0-44e1-8742-db26dd3514ce"],
-Cell[35410, 900, 227, 6, 70, "Text",ExpressionUUID->"3cd6f247-cf10-4640-8f84-d01cd2bdb198"],
+Cell[554, 20, 96, 0, 70, "Title",ExpressionUUID->"3e0341b3-a386-4b09-ade4-bee6b474f0bc"],
+Cell[653, 22, 645, 25, 70, "Text",ExpressionUUID->"30ca9658-aa4c-4d41-8478-7c9913fbd799"],
+Cell[1301, 49, 434, 16, 70, "Text",ExpressionUUID->"5de4edbd-968c-4205-825f-6869185ccb27"],
+Cell[1738, 67, 531, 10, 70, "Text",ExpressionUUID->"ea8992e0-764a-4f7a-b6ff-9ad120bbf7ed"],
+Cell[2272, 79, 418, 10, 70, "Text",ExpressionUUID->"3069a962-faa0-4027-a526-897774112325"],
+Cell[2693, 91, 357, 6, 70, "Input",ExpressionUUID->"b9ee9aa0-675c-4908-9311-63d38c0032c8"],
+Cell[3053, 99, 85, 0, 70, "Section",ExpressionUUID->"0115318d-9ce6-4553-b7b2-f172cab05141"],
+Cell[3141, 101, 118, 0, 70, "Input",ExpressionUUID->"ecee7a0c-54b1-4506-be1c-f833f36d4ca4"],
+Cell[3262, 103, 375, 11, 70, "Text",ExpressionUUID->"217321f2-5ef1-497a-ae10-ed7b495025ef"],
+Cell[3640, 116, 92, 0, 70, "Input",ExpressionUUID->"d1dad59e-02f3-419d-9368-76a20f761575"],
+Cell[3735, 118, 370, 11, 70, "Text",ExpressionUUID->"741913d4-c940-4677-bc2d-c746325b8c89"],
+Cell[4108, 131, 91, 0, 70, "Input",ExpressionUUID->"0720934f-9ae0-4ff4-a427-f8ed47e1cc90"],
+Cell[4202, 133, 93, 0, 70, "Input",ExpressionUUID->"4fad90ab-68eb-403e-a715-89409d0d8164"],
+Cell[4298, 135, 450, 11, 70, "Text",ExpressionUUID->"860fc6dc-3127-45f8-87c4-10bc9c1a1b6e"],
+Cell[4751, 148, 98, 0, 70, "Section",ExpressionUUID->"61c7bb06-a93b-4358-bc24-d2b7dd0c8a7d"],
+Cell[4852, 150, 4225, 75, 70, "Program",ExpressionUUID->"6554dfe8-94e3-4a09-8bd7-38fe8ed09ec5"],
+Cell[9080, 227, 1263, 41, 70, "Text",ExpressionUUID->"acad66c3-cbf8-45c6-9fc5-e5d2d3875857"],
+Cell[10346, 270, 5079, 91, 70, "Program",ExpressionUUID->"bef66c12-2836-4a79-b2f3-b93aa00577bc"],
+Cell[15428, 363, 1292, 42, 70, "Text",ExpressionUUID->"d3842f1f-e850-457e-b081-df246a28d6a9"],
+Cell[16723, 407, 118, 0, 70, "Input",ExpressionUUID->"2e7bb9ed-40a6-4c8d-a2d4-6a1149af3d7a"],
+Cell[16844, 409, 96, 0, 70, "Section",ExpressionUUID->"c9d66fe3-7ecb-4dd9-9331-0a8e0570b8e1"],
+Cell[16943, 411, 1460, 29, 70, "Program",ExpressionUUID->"2055db34-27d9-4f32-8751-b90547c722c5"],
+Cell[18406, 442, 881, 17, 70, "Program",ExpressionUUID->"3b6ac455-0342-4829-81fc-aa62c532c051"],
+Cell[19290, 461, 905, 24, 70, "Text",ExpressionUUID->"a701b274-ffa9-4632-a986-0984e1383afb"],
+Cell[20198, 487, 1381, 38, 70, "Text",ExpressionUUID->"f967c2f9-ff2e-4259-b5d7-da317ecf0ad2"],
+Cell[21582, 527, 426, 10, 70, "Input",ExpressionUUID->"bb7ff12f-73ed-4745-85cc-d28bf087a3e8"],
+Cell[22011, 539, 1445, 25, 70, "Program",ExpressionUUID->"ae3610d1-7dca-4cae-ae13-40e60fb816ad"],
+Cell[23459, 566, 360, 5, 70, "Text",ExpressionUUID->"c6570de6-6d8a-480a-adbe-a67a14d19c24"],
+Cell[23822, 573, 120, 0, 70, "Section",ExpressionUUID->"bfb61a28-edd8-4427-a5ad-581f0fb6fc95"],
+Cell[23945, 575, 3154, 54, 70, "Program",ExpressionUUID->"0c32e677-57e1-48c1-bd6c-de74fcfdaae8"],
+Cell[27102, 631, 616, 21, 70, "Text",ExpressionUUID->"a4a80abc-10dc-4ca3-9bf7-2a39b22e8952"],
+Cell[27721, 654, 180, 3, 70, "Program",ExpressionUUID->"1fea3e37-d3fc-449a-88f1-7196649fa473"],
+Cell[27904, 659, 114, 0, 70, "Input",ExpressionUUID->"1c1b0463-9c22-4590-b01f-faf15a2ea04d"],
+Cell[28021, 661, 1582, 28, 70, "Program",ExpressionUUID->"2bfa1412-eb2d-46e5-a68c-616e0fa1629c"],
+Cell[29606, 691, 1483, 46, 70, "Text",ExpressionUUID->"1dc3d031-50fd-4256-ba80-830da9a35905"],
+Cell[31092, 739, 247, 4, 70, "Input",ExpressionUUID->"7d38059f-534d-4a75-bf53-7b270ba022aa"],
+Cell[31342, 745, 105, 0, 70, "Section",ExpressionUUID->"ccbd6563-9097-4a12-b1d7-31320be4a6ab"],
+Cell[31450, 747, 1676, 32, 70, "Program",ExpressionUUID->"d6a11d36-a047-4aa2-b124-1f60c52978af"],
+Cell[33129, 781, 1297, 44, 70, "Text",ExpressionUUID->"913269c6-5030-462b-952a-8e46a175efa6"],
+Cell[34429, 827, 978, 25, 70, "Text",ExpressionUUID->"461ac061-9695-4403-a276-2303ae59e9f9"],
+Cell[35410, 854, 105, 0, 70, "Section",ExpressionUUID->"cda92f33-dbab-44bb-a2ba-1445e16f3eb3"],
+Cell[35518, 856, 1172, 22, 70, "Program",ExpressionUUID->"0e8a4460-bc78-4147-8d62-cc5fe8a6d1d9"],
+Cell[36693, 880, 1388, 40, 70, "Text",ExpressionUUID->"692f1913-7d8a-48dc-bec1-3ac89e2ab98a"],
+Cell[38084, 922, 130, 0, 70, "Input",ExpressionUUID->"de0f30b0-700e-4624-a20f-38352810f5d8"],
+Cell[38217, 924, 86, 0, 70, "Section",ExpressionUUID->"02531fe1-96aa-4d43-96d8-2bfae80b7813"],
+Cell[38306, 926, 216, 4, 70, "Input",ExpressionUUID->"5c04cb23-7c0a-4d74-9e10-5aec88c6c0ca"],
+Cell[38525, 932, 1166, 39, 70, "Text",ExpressionUUID->"0f1cdaca-6a80-4659-8d95-e6a2a483005f"],
+Cell[39694, 973, 151, 2, 70, "Input",ExpressionUUID->"8abdd549-a2ab-4c4b-9499-edbb8649e05f"],
+Cell[39848, 977, 83, 0, 70, "Section",ExpressionUUID->"ca576f6b-0f30-429a-a079-989ced659960"],
+Cell[39934, 979, 114, 0, 70, "Subsection",ExpressionUUID->"c15717fc-0d6c-4e17-a6da-eaea651e41c9"],
+Cell[40051, 981, 227, 6, 70, "Text",ExpressionUUID->"8eab31e0-f7c4-47f1-b7e3-4b98df833e35"],
 Cell[CellGroupData[{
-Cell[35662, 910, 88, 0, 70, "Subsubsection",ExpressionUUID->"7339dd0c-d76c-4793-a24c-45476630cc61"],
-Cell[35753, 912, 253, 4, 70, "Input",ExpressionUUID->"a495fa82-eaeb-4150-8d11-9ffb6e4d751d"],
-Cell[36009, 918, 576, 18, 70, "Text",ExpressionUUID->"7813e2da-a603-4ce0-bda2-6466ecd4a112"]
+Cell[40303, 991, 88, 0, 70, "Subsubsection",ExpressionUUID->"86baba8d-58e5-48ef-8db0-d6681554126c"],
+Cell[40394, 993, 253, 4, 70, "Input",ExpressionUUID->"a345202a-fa80-4987-8e05-d2ae0c435c57"],
+Cell[40650, 999, 576, 18, 70, "Text",ExpressionUUID->"4e16b04a-f9de-4a8d-9145-460bc9f45691"]
 }, Closed]],
-Cell[36600, 939, 125, 0, 70, "Subsection",ExpressionUUID->"ea56acb3-fb93-42fe-8639-666a98ecd639"],
-Cell[36728, 941, 252, 5, 70, "Text",ExpressionUUID->"830ba44c-3a0d-45e1-967c-f3f0e8fa30fc"],
+Cell[41241, 1020, 125, 0, 70, "Subsection",ExpressionUUID->"ded493e8-3f03-4ba1-8e8f-76d25d5f5def"],
+Cell[41369, 1022, 252, 5, 70, "Text",ExpressionUUID->"b6cefc90-e4ea-4ffc-ac7e-43cf48036bdd"],
 Cell[CellGroupData[{
-Cell[37005, 950, 88, 0, 70, "Subsubsection",ExpressionUUID->"5ae1229d-fca9-4d9d-a267-fb98ea41f43c"],
-Cell[37096, 952, 205, 3, 70, "Input",ExpressionUUID->"8a8e8d9f-cff6-4bf6-9d40-e2cf1ab1e5ff"],
-Cell[37304, 957, 701, 23, 70, "Text",ExpressionUUID->"1de638c7-779b-42f7-a565-0deec1e51cb2"]
+Cell[41646, 1031, 88, 0, 70, "Subsubsection",ExpressionUUID->"cd7242f6-e48b-42d9-96d6-713831f942a0"],
+Cell[41737, 1033, 205, 3, 70, "Input",ExpressionUUID->"812bf3c4-b5b9-41eb-9d4f-c0e35e96384f"],
+Cell[41945, 1038, 701, 23, 70, "Text",ExpressionUUID->"1d6e38b7-86bb-4d87-8d46-e0d02f1f4e4f"]
 }, Closed]],
-Cell[38020, 983, 112, 0, 70, "Subsection",ExpressionUUID->"df3381db-ca9d-4c97-886d-94b8cb56ea7e"],
-Cell[38135, 985, 647, 22, 70, "Text",ExpressionUUID->"0519af04-7936-4122-9b27-8875c2eddf24"],
+Cell[42661, 1064, 112, 0, 70, "Subsection",ExpressionUUID->"5b785e3e-2c36-44b5-a27f-391e65777f64"],
+Cell[42776, 1066, 647, 22, 70, "Text",ExpressionUUID->"de4e67cb-d759-4456-83ee-0fd06005950a"],
 Cell[CellGroupData[{
-Cell[38807, 1011, 88, 0, 70, "Subsubsection",ExpressionUUID->"6ad7f490-e972-4d23-a2a3-78c651183d78"],
-Cell[38898, 1013, 153, 2, 70, "Input",ExpressionUUID->"d1b59c1f-c836-4ce8-885d-61c7403a026f"],
-Cell[39054, 1017, 157, 5, 70, "Text",ExpressionUUID->"3ce0ec18-1b85-426f-9e33-2fa2febf5df6"]
+Cell[43448, 1092, 88, 0, 70, "Subsubsection",ExpressionUUID->"855f4efa-1186-4a92-bb07-27daf4df7d1b"],
+Cell[43539, 1094, 153, 2, 70, "Input",ExpressionUUID->"a1df6cdf-74f8-4b18-8a73-f86222cea707"],
+Cell[43695, 1098, 157, 5, 70, "Text",ExpressionUUID->"56409195-411f-400a-b88d-e31f42b0766c"]
 }, Closed]]
 }
 ]

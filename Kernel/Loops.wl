@@ -12,6 +12,9 @@ BuildLoopIntegrands::usage = "BuildLoopIntegrands[vertices, prop, regulator] ret
 is the integrand of d_s Gamma2_ab(nu, p) (leg a at (nu, p), leg b at (-nu, -p)) at loop point (w, q) = LoopVariables[loops].";
 LoopIntegrand::usage = "LoopIntegrand[loops, {a, b}, nu, p] is the integrand of d_s Gamma2_ab(nu, p), with abstract d_s R entries dsR[c, d].";
 LoopVariables::usage = "LoopVariables[loops] = {w, q}: the loop frequency and the loop momentum (a vector symbol) used by LoopIntegrand.";
+MidpointLoopIntegrand::usage = "MidpointLoopIntegrand[loops, {a, b}, nu, p] is the integrand of d_s Gamma2_ab(nu, p) with the loop momentum routed \
+at the midpoint (lines q - p/2 and q + p/2), every d_s R entry carrying the momentum squared of its line (dsR[c, d][s]), symmetrised under \
+q -> -q (design/MOMENTUMFUNCTIONS.md C1): even in p at fixed q. Used for the flows at generic p.";
 
 Begin["`Private`"];
 
@@ -21,7 +24,15 @@ gMat[prop_, w_, vec_] := prop["G"][w, scal[vec, vec]];
 
 gamma4Matrix[v_, a_, b_, {nu_, p_}, {w_, q_}] := Table[VertexValue[v, {a, b, c, d}, {{nu, p}, {-nu, -p}, {w, q}}], {c, v["Fields"]}, {d, v["Fields"]}];
 
-LoopIntegrand[l_Association, {a_, b_}, nu_, p_] := Module[{v = l["Vertices"], prop = l["Propagator"], dsr = l["DsR"], g0, gm, bubble, tadpole},
+LoopIntegrand[l_Association, {a_, b_}, nu_, p_] := loopTrace[l, l["DsR"], {a, b}, nu, p];
+
+(* C1: d_s R sits on the q line only, so q -> -q (which swaps the two lines) is needed on top of the midpoint routing; each dsR entry
+   carries its line's momentum squared before the shift (E25, E26) *)
+MidpointLoopIntegrand[l_Association, {a_, b_}, nu_, p_] := Module[{e},
+   e = loopTrace[l, l["DsR"] /. d_dsR :> d[scal[qL, qL]], {a, b}, nu, p] /. qL -> qL - p/2;
+   (e + (e /. qL -> -qL))/2];
+
+loopTrace[l_Association, dsr_, {a_, b_}, nu_, p_] := Module[{v = l["Vertices"], prop = l["Propagator"], g0, gm, bubble, tadpole},
    g0 = gMat[prop, wL, qL];
    gm = gMat[prop, wL + nu, p + qL];
    bubble = Tr[dsr . g0 . Gamma3Matrix[v, a, {nu, p}, {wL, qL}] . gm . Gamma3Matrix[v, b, {-nu, -p}, {wL + nu, p + qL}] . g0];

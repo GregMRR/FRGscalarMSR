@@ -10,15 +10,15 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       154,          7]
-NotebookDataLength[     38160,        958]
-NotebookOptionsPosition[     32081,        879]
-NotebookOutlinePosition[     32418,        894]
-CellTagsIndexPosition[     32375,        891]
+NotebookDataLength[     45465,       1081]
+NotebookOptionsPosition[     39383,       1002]
+NotebookOutlinePosition[     39720,       1017]
+CellTagsIndexPosition[     39677,       1014]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
-Cell["Lesson 06 - Symmetries", "Title",ExpressionUUID->"e839bebe-21ea-4c72-93c7-484a5c0c05a1"],
+Cell["Lesson 06 - Symmetries", "Title",ExpressionUUID->"13ca939e-e225-44c4-b93a-450f201ec10b"],
 
 Cell[TextData[{
  StyleBox["Physics step.",
@@ -39,7 +39,7 @@ Cell[TextData[{
 flow is an equation), protected by a symmetry (its flow must vanish), \
 neglected (its flow is computed, reported and dropped), or zero by structure. \
 Ward identities are declared by you, not derived: the card says so."
-}], "Text",ExpressionUUID->"61b5bbf6-c0bd-44de-b174-d2a6ffafbdf6"],
+}], "Text",ExpressionUUID->"5d82de71-ff1c-4499-8571-a21e83f0e7b4"],
 
 Cell[TextData[{
  StyleBox["Stage.",
@@ -71,15 +71,15 @@ Cell[TextData[{
   Background->GrayLevel[0.92]],
  " stage, with one record per monomial. It is used by the projection (lesson \
 08) and the closure check (lesson 10)."
-}], "Text",ExpressionUUID->"fa9e58c1-ccda-4eeb-b621-736dc4dff86a"],
+}], "Text",ExpressionUUID->"be17f09c-2b92-4295-b45c-bdca4629807d"],
 
 Cell["\<\
 Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
 Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
 ansatz = lessonUpTo[\"Ansatz\"];\
-\>", "Input",ExpressionUUID->"85264bc4-acf7-4b43-b840-3065a9078ef9"],
+\>", "Input",ExpressionUUID->"25f7ebee-fa10-4490-91ff-60613a48254b"],
 
-Cell["1. Using it", "Section",ExpressionUUID->"b0a09d2e-910f-4fc0-8bb3-67a00ff42075"],
+Cell["1. Using it", "Section",ExpressionUUID->"c5795f57-eae6-429e-b84a-cf6b1e6e32f4"],
 
 Cell[TextData[{
  "For KPZ: the coefficient of i",
@@ -112,7 +112,7 @@ symmetry h ",
  StyleBox["\.b9",
   FontFamily->"Noto Sans"],
  " is neglected."
-}], "Text",ExpressionUUID->"c020256a-9c5a-451f-a3e6-4bd865a7a2af"],
+}], "Text",ExpressionUUID->"a3129f05-9b05-4f50-9386-60c3c7345a1d"],
 
 Cell["\<\
 symmetries = DeclareSymmetries[ansatz,
@@ -123,7 +123,7 @@ symmetries = DeclareSymmetries[ansatz,
    Neglected[_, \"Reason\" -> \"beyond the ansatz\"], NonRenormalised[lamk, \
 \"Reason\" -> \"Galilean invariance\"],
    \"TruncationOrders\" -> <|\"Frequency\" -> 2, \"Momentum\" -> 1|>];\
-\>", "Input",ExpressionUUID->"b82b65d4-e7de-4b13-b54a-225a19cdb8d5"],
+\>", "Input",ExpressionUUID->"cb8c84a4-d85f-4937-9e5b-4bacab5f6b0c"],
 
 Cell[TextData[{
  "The table has 18 rows: 3 pairs ",
@@ -133,13 +133,13 @@ Cell[TextData[{
  StyleBox["\[Times]",
   FontFamily->"Noto Sans"],
  " 2 momentum powers. Each row is a record:"
-}], "Text",ExpressionUUID->"ad5d1b96-1a9a-48d9-9dc0-7985e3c2be01"],
+}], "Text",ExpressionUUID->"0a4bd994-742f-4746-bd57-b2fe9c4e418a"],
 
 Cell["\<\
 Select[symmetries[\"Classification\"], #Class === \"Declared\" &]\
-\>", "Input",ExpressionUUID->"977187b1-35f7-4c13-8248-36cbdb0148f4"],
+\>", "Input",ExpressionUUID->"56840330-3bcb-4e43-8b29-931e28c8f438"],
 
-Cell["2. Tags are expressions", "Section",ExpressionUUID->"97324cd2-d6d0-45f7-83f9-afd82cc99558"],
+Cell["2. Tags are expressions", "Section",ExpressionUUID->"8ce398ab-c7d1-43e2-988f-0a742e3fadb2"],
 
 Cell["\<\
 (* Kernel/Symmetries.wl:13-15 *)
@@ -150,14 +150,14 @@ dropped.\";
 NonRenormalised::usage = \"NonRenormalised[coupling, \\\"Reason\\\" -> text]: \
 a vertex coupling assumed not to flow (not checkable in v1: needs d_s \
 Gamma3).\";\
-\>", "Program",ExpressionUUID->"a09d9a56-b119-41e9-ae65-4d169b7a8952"],
+\>", "Program",ExpressionUUID->"6f465cfb-2c67-4389-87e3-de2c361955a1"],
 
 Cell["\<\
 (* Kernel/Symmetries.wl:23-24 *)
 (* Protected is a System symbol (attribute); the tag is used in the \
 unambiguous form Protected[pattern, opts] *)
 SetAttributes[{Neglected, NonRenormalised}, Protected];\
-\>", "Program",ExpressionUUID->"b9625236-6cf0-4d4e-b2a0-dbb2f84e37e4"],
+\>", "Program",ExpressionUUID->"5250756e-b360-45c2-ae3a-576c588d0389"],
 
 Cell[TextData[{
  StyleBox["Neglected",
@@ -199,9 +199,9 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " stays unevaluated, and the library reuses it as a tag."
-}], "Text",ExpressionUUID->"bc7338a5-961b-46bd-a503-48c2fdc76d45"],
+}], "Text",ExpressionUUID->"4a6b3962-0b7f-4d20-a0ba-b170d2220b71"],
 
-Cell["{Attributes[Protected], Protected[{a, b}, \"x\" -> 1]}", "Input",ExpressionUUID->"927d1f3b-bdc4-4e15-90a3-77d1a35761dc"],
+Cell["{Attributes[Protected], Protected[{a, b}, \"x\" -> 1]}", "Input",ExpressionUUID->"0a5fd2e4-6d3c-40a9-9177-556320f4c440"],
 
 Cell[TextData[{
  StyleBox["Why it's built this way: Declarations as data",
@@ -227,44 +227,48 @@ to forget."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->GrayLevel[0.55],
  Background->RGBColor[
-  0.93, 0.93, 0.93],ExpressionUUID->"6d49886f-6901-4fc9-8eb8-9dcfdcd8c770"],
+  0.93, 0.93, 0.93],ExpressionUUID->"3eab5536-c6e3-4f34-8341-221dfecccbfb"],
 
-Cell["3. Reading the tags", "Section",ExpressionUUID->"386dac08-e8bc-44fd-9dcb-287cc5d685c0"],
+Cell["3. Reading the tags", "Section",ExpressionUUID->"ae37c26d-facc-4335-a88c-c84e4b89d465"],
 
 Cell["\<\
 (* Kernel/Symmetries.wl:26-29 *)
-specMatchQ[All, _] := True;
+specMatchQ[All, _Integer] := True;
 specMatchQ[l_List, x_] := MemberQ[l, x];
 specMatchQ[i_Integer, x_] := i === x;
 specMatchQ[_, _] := False;\
-\>", "Program",ExpressionUUID->"2d5c7b59-69f9-4241-8566-9d1a8e16c4f5"],
+\>", "Program",ExpressionUUID->"e842360d-cf3d-4f3f-9f7c-fb3d02a9d29e"],
 
 Cell["\<\
 (* Kernel/Symmetries.wl:31 *)
 pairMatchQ[pat_, {a_, b_}] := MatchQ[{a, b}, pat] || MatchQ[{b, a}, pat];\
-\>", "Program",ExpressionUUID->"ef16a159-16e1-4c28-9aac-084f233beb95"],
+\>", "Program",ExpressionUUID->"e926af0c-2659-4732-a7f1-50dc89399fb0"],
 
 Cell["\<\
-(* Kernel/Symmetries.wl:33-38 *)
+(* Kernel/Symmetries.wl:33-40 *)
 tagRecord[tag_, kind_] := Module[{pat = First[tag], o = Association[Rest[List \
 @@ tag]]},
    FRGAssert[\"Symmetries.tagOptions\", SubsetQ[{\"Frequency\", \"Momentum\", \
 \"Reason\"}, Keys[o]], tag,
     kind <> \"[pairPattern, \\\"Frequency\\\" -> .., \\\"Momentum\\\" -> .., \
 \\\"Reason\\\" -> \\\"..\\\"]\"];
+   FRGAssert[\"Symmetries.tagMomentum\", MatchQ[Lookup[o, \"Momentum\", All], \
+All | \"AllMomenta\" | _Integer?NonNegative | {__Integer?NonNegative}], tag,
+    \"\\\"Momentum\\\" -> n, {n, ...}, All (every order up to the truncation, \
+at p -> 0) or \\\"AllMomenta\\\" (the whole slot at generic p)\"];
    FRGAssert[\"Symmetries.reason\", StringQ[Lookup[o, \"Reason\", None]] && \
 Lookup[o, \"Reason\"] =!= \"\", tag, \"every tag needs a \\\"Reason\\\" -> \\\
 \"...\\\"\"];
    <|\"Kind\" -> kind, \"Pattern\" -> pat, \"Frequency\" -> Lookup[o, \
 \"Frequency\", All], \"Momentum\" -> Lookup[o, \"Momentum\", All],
     \"Reason\" -> o[\"Reason\"], \"Tag\" -> tag|>];\
-\>", "Program",ExpressionUUID->"20e8fe16-ddcc-4726-b5eb-21ea332f4bb9"],
+\>", "Program",ExpressionUUID->"46f8ffcf-698a-48b2-82c6-5acbd117af4a"],
 
 Cell["\<\
-(* Kernel/Symmetries.wl:40 *)
+(* Kernel/Symmetries.wl:42 *)
 tagMatchQ[t_, {a_, b_}, m_, n_] := pairMatchQ[t[\"Pattern\"], {a, b}] && \
 specMatchQ[t[\"Frequency\"], m] && specMatchQ[t[\"Momentum\"], n];\
-\>", "Program",ExpressionUUID->"2ebd116a-6b43-4be4-bea7-50f08be1dec9"],
+\>", "Program",ExpressionUUID->"815527fd-a7fc-4bc4-a248-03ad920ea085"],
 
 Cell[TextData[{
  StyleBox["specMatchQ",
@@ -333,17 +337,20 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " drops the pattern."
-}], "Text",ExpressionUUID->"47929c81-7f87-4ef7-a6a5-6e1148354317"],
+}], "Text",ExpressionUUID->"ced0155d-1035-4c5a-8e06-5b6a0726d6a7"],
 
 Cell["\<\
-(* Kernel/Symmetries.wl:45-65 *)
+(* Kernel/Symmetries.wl:51-72 *)
 DeclareSymmetries[ansatz_, args___] := Block[{$FRGModule = \"Symmetries\"},
   Module[{t0 = AbsoluteTime[], theory, fields, phis, pos, opts, trunc, mf, \
 mp, tags, prot, negl, nonren, v, g2, pairs, cls, checks = {}, warns = {},
-    used = {}, stage, cps, bad, declOutside},
+    used = {}, stage, cps, bad, declOutside, fns, fnPat, slotRows, classify, \
+fnSlots, siblings, nAll},
    validateStage[ansatz, \"Ansatz\"];
    theory = ansatz[\"Theory\"]; fields = theory[\"Fields\"]; phis = \
 theory[\"Scalars\"]; cps = ansatz[\"Couplings\"];
+   fns = Lookup[ansatz, \"MomentumFunctions\", {}]; fnPat = Alternatives @@ \
+fns;
    pos[a_] := First[FirstPosition[fields, a]];
    opts = Cases[{args}, (Rule | RuleDelayed)[_String, _]];
    tags = Complement[{args}, opts];
@@ -367,7 +374,7 @@ IntegerQ[#] && # >= 0 &],
    prot = tagRecord[#, \"Protected\"] & /@ Cases[tags, _Protected];
    negl = tagRecord[#, \"Neglected\"] & /@ Cases[tags, _Neglected];
    nonren = Cases[tags, _NonRenormalised];\
-\>", "Program",ExpressionUUID->"857526d7-f6c7-4aee-9d2b-af897be7b870"],
+\>", "Program",ExpressionUUID->"8f7459b4-81e7-442a-bd35-f67f97423666"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Multiple assignment",
@@ -401,20 +408,17 @@ Cell[TextData[{
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"5b7cf624-430a-4f46-98f7-a251e752e600"],
+  0.91, 0.95, 1.],ExpressionUUID->"2c250ba9-fa33-4050-986d-dd034186c0b8"],
 
-Cell["4. Classifying every monomial", "Section",ExpressionUUID->"bfe43285-b3c4-4019-a7f2-d6699f3db699"],
+Cell["4. Classifying every monomial", "Section",ExpressionUUID->"5824e79e-5138-4796-bbec-549da6ad5961"],
 
 Cell["\<\
-(* Kernel/Symmetries.wl:69-90 *)
+(* Kernel/Symmetries.wl:78-153 *)
    (* Gamma_k coefficients (regulator off) from the vertices; silent: \
 BuildVertices prints its own table *)
    v = Block[{Print}, BuildVertices[ansatz]];
    pairs = Select[Tuples[fields, 2], pos[#[[1]]] <= pos[#[[2]]] &];
-   cls = Flatten[Table[Module[{a = pr[[1]], b = pr[[2]], e, coef, cl, reason, \
-pt, nt},
-       e = VertexValue[v, {a, b}, {{nu, p}}];
-       coef = gammaCoefficient[e, nu, p, m, n];
+   classify[a_, b_, m_, n_, coef_] := Module[{cl, reason, pt, nt},
        pt = Select[prot, tagMatchQ[#, {a, b}, m, n] &]; nt = Select[negl, \
 tagMatchQ[#, {a, b}, m, n] &];
        {cl, reason} = Which[
@@ -437,8 +441,113 @@ vanish\"},
 First[nt][\"Reason\"]}),
          True, {\"Untagged\", \"\"}];
        <|\"Pair\" -> {a, b}, \"Frequency\" -> m, \"Momentum\" -> n, \"Class\" \
--> cl, \"GammaK\" -> coef, \"Reason\" -> reason|>],
-      {pr, pairs}, {m, 0, mf}, {n, 0, mp}], 2];
+-> cl, \"GammaK\" -> coef, \"Reason\" -> reason|>];
+
+   (* one slot (pair, m): ordinary rows (I w)^m (q^2)^n, n <= mp; a slot \
+carrying a momentum function F (design/MOMENTUMFUNCTIONS.md A4,
+      B1, B2): its orders below n0 are ordinary rows, the orders >= n0 are \
+one row of class Functional; a function-free slot with an
+      \"AllMomenta\" tag also gets one row at generic p (B3) *)
+   slotRows[a_, b_, m_] := Module[{e = VertexValue[v, {a, b}, {{nu, p}}], cm, \
+fa, f, t, n0, pref, rest, hi, ft, atZero, am},
+      cm = Expand[Coefficient[Expand[e /. scal[p, p] -> pp2], nu, m]/I^m];
+      fa = Union[Cases[cm, fnPat[_], {0, Infinity}][[All, 0]]];
+      am = Select[Join[prot, negl], allMomentaQ[#, {a, b}, m] &];
+      If[fa === {},
+       Join[Table[classify[a, b, m, n, Coefficient[cm, pp2, n]], {n, 0, mp}],
+        If[am === {} || ! IntersectingQ[{a, b}, theory[\"ResponseFields\"]] \
+|| (a === b && OddQ[m]), {},
+         FRGAssert[\"Symmetries.contradiction\", First[am][\"Kind\"] === \
+\"Neglected\" || FreeQ[cm, Alternatives @@ cps], {{a, b}, m, cm, \
+First[am][\"Tag\"]},
+          \"this slot carries a coupling of the ansatz and is also Protected \
+at every momentum (its flow would have to vanish): drop the tag or the \
+coupling\"];
+         used = Join[used, {First[am][\"Tag\"]}];
+         {<|\"Pair\" -> {a, b}, \"Frequency\" -> m, \"Momentum\" -> \
+\"AllMomenta\", \"Class\" -> First[am][\"Kind\"], \"GammaK\" -> cm, \
+\"Reason\" -> First[am][\"Reason\"]|>}]],
+       FRGAssert[\"Symmetries.functionalSlot\", Length[fa] == 1, {{a, b}, m, \
+fa}, \"one function per slot: two functions in one slot are one function, \
+keep one\"];
+       f = First[fa];
+       t = Expand[D[cm /. f[pp2] -> fz, fz]];
+       n0 = Exponent[t, pp2]; pref = Expand[t/pp2^n0];
+       rest = Expand[cm /. f[pp2] -> 0];
+       hi = Select[Range[n0, Max[n0, Exponent[rest, pp2]]], Coefficient[rest, \
+pp2, #] =!= 0 &];
+       FRGAssert[\"Symmetries.functionalSlot\", hi === {}, {{a, b}, m, f, \
+\"orders \" -> hi},
+        \"a constant term at an order >= n0 of the function's slot is F's job \
+(e.g. -nk hbar lap[h] next to -nk Fnu hbar lap[h]): drop it\"];
+       FRGAssert[\"Symmetries.contradiction\", am === {}, {{a, b}, m, f, \
+am[[All, \"Tag\"]]},
+        \"an \\\"AllMomenta\\\" tag on a slot that carries the momentum \
+function \" <> ToString[f] <> \": use \\\"Momentum\\\" -> \" <> ToString[n0] \
+<> \" (Protected) for F(0), or Related\"];
+       (* tags naming explicit orders >= n0: only Protected at exactly n0 \
+(the loop part of the flow at p = 0 vanishes) *)
+       ft = Select[Join[prot, negl], pairMatchQ[#Pattern, {a, b}] && \
+specMatchQ[#Frequency, m] && AnyTrue[explicitOrders[#], # >= n0 &] &];
+       FRGAssert[\"Symmetries.functionalTag\", AllTrue[ft, #Kind === \
+\"Protected\" && explicitOrders[#] === {n0} &], {{a, b}, m, f, ft[[All, \"Tag\
+\"]]},
+        \"only Protected[pair, \\\"Frequency\\\" -> \" <> ToString[m] <> \", \
+\\\"Momentum\\\" -> \" <> ToString[n0] <>
+         \", ...] is allowed on a functional slot (F(0) does not flow); \
+Neglected or higher orders have no meaning there\"];
+       used = Join[used, ft[[All, \"Tag\"]]];
+       atZero = If[ft === {}, None, First[ft][\"Reason\"]];
+       Append[Table[classify[a, b, m, n, Coefficient[rest, pp2, n]], {n, 0, \
+Min[mp, n0 - 1]}],
+        <|\"Pair\" -> {a, b}, \"Frequency\" -> m, \"Momentum\" -> n0, \"Class\
+\" -> \"Functional\", \"GammaK\" -> pref f, \"Function\" -> f,
+         \"ProtectedAtZero\" -> atZero,
+         \"Reason\" -> \"flow equation for the function \" <> ToString[f] <> \
+\"(p^2) at generic p\" <> If[atZero === None, \"\", \"; F(0) does not flow \
+(\" <> atZero <> \")\"]|>]]];
+   cls = Flatten[Table[slotRows[pr[[1]], pr[[2]], m], {pr, pairs}, {m, 0, \
+mf}], 2];
+
+   (* design/MOMENTUMFUNCTIONS.md A4: every declared function sits in exactly \
+one slot with a nonzero Gamma2 *)
+   fnSlots = AssociationMap[Function[f, Select[cls, Lookup[#, \"Function\", \
+None] === f &][[All, {\"Pair\", \"Frequency\"}]]], fns];
+   If[fns =!= {},
+    bad = Select[fns, Length[fnSlots[#]] =!= 1 &];
+    FRGAssert[\"Symmetries.functionSlot\", bad === {}, <|# -> fnSlots[#] & /@ \
+bad|>,
+     \"every momentum function sits in exactly one Gamma2 slot: a function \
+whose term vanishes in Gamma2 (total derivative, odd w on a diagonal \\
+entry, e.g. Fnu div[hbar grad[h]]) must be dropped; a function in two slots \
+must become two functions related by Related[...]\"];
+    AppendTo[checks, assertCheck[\"Symmetries.functionSlot\", True, Null, \"\",
+      \"one slot per momentum function: \" <> StringRiffle[(ToString[#] <> \" \
+in \" <> ToString[fnSlots[#][[1, \"Pair\"]]] <> \" (I w)^\" <> \
+ToString[fnSlots[#][[1, \"Frequency\"]]]) & /@ fns, \", \"]]];
+    AppendTo[warns, infoCheck[\"INFO\", \"Symmetries.functionalTruncation\", \
+\"\\\"TruncationOrders\\\" \\\"Momentum\\\" applies to function-free slots \
+and to the orders below n0 of functional slots\"]];
+    (* B4: siblings of a functional slot that are computed at p -> 0 only \
+(e.g. the I w slot of LO KPZ, f^lambda = 1) *)
+    siblings = Select[cls, Function[r, MemberQ[{\"Declared\", \
+\"DeclaredNumeric\", \"Protected\", \"Neglected\"}, r[\"Class\"]] && \
+IntegerQ[r[\"Momentum\"]] &&
+          AnyTrue[Values[fnSlots], Function[sl, sl[[1, \"Pair\"]] === \
+r[\"Pair\"] && sl[[1, \"Frequency\"]] =!= r[\"Frequency\"]]] &&
+          ! MemberQ[cls, KeyValuePattern[{\"Pair\" -> r[\"Pair\"], \
+\"Frequency\" -> r[\"Frequency\"], \"Momentum\" -> \"AllMomenta\"}]]]];
+    siblings = DeleteDuplicates[siblings[[All, {\"Pair\", \"Frequency\"}]]];
+    warns = Join[warns, infoCheck[\"ASSUMPTION\", \
+\"Symmetries.siblingAtZeroMomentum\", ToString[#Pair] <> \" (I w)^\" <> \
+ToString[#Frequency] <>
+         \" computed at p -> 0 only (add Neglected[\" <> ToString[#Pair] <> \
+\", \\\"Frequency\\\" -> \" <> ToString[#Frequency] <> \", \\\"Momentum\\\" \
+-> \\\"AllMomenta\\\", ...] to see its size)\"] & /@ siblings]];
+   nAll = Count[cls, KeyValuePattern[\"Momentum\" -> \"AllMomenta\"]];
+   If[nAll > 0, AppendTo[checks, assertCheck[\"Symmetries.allMomenta\", True, \
+Null, \"\", ToString[nAll] <> \" slot(s) tagged \\\"AllMomenta\\\": computed \
+at generic p\"]]];
    bad = Select[cls, #Class === \"Untagged\" &];
    AppendTo[checks, assertCheck[\"Symmetries.allTagged\", bad === {}, {#Pair, \
 \"(I w)^\" <> ToString[#Frequency], \"(q^2)^\" <> ToString[#Momentum]} & /@ \
@@ -446,15 +555,15 @@ bad,
      \"every monomial up to the truncation orders must be declared in the \
 ansatz, Protected or Neglected\", ToString[Length[cls]] <> \" monomials \
 classified\"]];\
-\>", "Program",ExpressionUUID->"bafea5ae-c4b7-48a1-bb62-c899022805bb"],
+\>", "Program",ExpressionUUID->"de3ca756-2fba-42a7-a3d4-084e6f59e5d2"],
 
 Cell["\<\
-(* Kernel/Symmetries.wl:42-43 *)
+(* Kernel/Symmetries.wl:48-49 *)
 (* coefficient of (I nu)^m (p^2)^n in a Gamma2 entry written with scal[p, p] *)
 gammaCoefficient[e_, nu_, p_, m_, n_] := \
 Expand[Coefficient[Coefficient[Expand[e /. scal[p, p] -> pp2], pp2, n], nu, \
 m]/I^m];\
-\>", "Program",ExpressionUUID->"c153a71d-66fa-45e8-bd55-5e8f21d41e5d"],
+\>", "Program",ExpressionUUID->"d2f94b00-e459-4b45-a81d-e78068d0609f"],
 
 Cell[TextData[{
  "The module rebuilds the vertices itself, silently (",
@@ -486,7 +595,7 @@ second stage argument that could come from a different ansatz. ",
   FontSlant->Italic,
   FontColor->GrayLevel[0.4]],
  "."
-}], "Text",ExpressionUUID->"0d202074-2c15-479e-a23a-cf380c18a88b"],
+}], "Text",ExpressionUUID->"7ae624ed-06fc-43af-9d4b-ea915b56a913"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Iterators that depend on each other",
@@ -525,7 +634,7 @@ or associations."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"e8e65699-17ed-47f3-8b26-ebccc29d2560"],
+  0.91, 0.95, 1.],ExpressionUUID->"5b2a70f8-5242-46f0-ab0e-5bd163737577"],
 
 Cell["\<\
 {Table[{i, j}, {i, 2}, {j, 2}], Flatten[Table[{i, j}, {i, 2}, {j, 2}], 1]}\
@@ -533,7 +642,7 @@ Cell["\<\
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"029f87b6-5cf9-46b3-869b-3548e7f4d6ea"],
+  0.91, 0.95, 1.],ExpressionUUID->"787a00ca-38ce-481f-9b3a-1bec52afa9be"],
 
 Cell[TextData[{
  "The order of the ",
@@ -545,7 +654,7 @@ Cell[TextData[{
   FontSlant->Italic,
   FontColor->GrayLevel[0.4]],
  " is the precedence of the classes:"
-}], "Text",ExpressionUUID->"03d803ea-8fd1-4819-aa34-33a6065733c8"],
+}], "Text",ExpressionUUID->"c8f698ca-e900-417f-b152-626a0b12a643"],
 
 Cell[TextData[{
  StyleBox["Causality",
@@ -557,7 +666,7 @@ Cell[TextData[{
  StyleBox["\[CurlyPhi]\[CurlyPhi]",
   FontFamily->"Noto Sans"],
  " = 0, and its flow will be checked to vanish."
-}], "Item",ExpressionUUID->"57ae81c9-e2dd-48c6-805c-e0ea599ba084"],
+}], "Item",ExpressionUUID->"c74a88c9-5d6d-49e1-b9ab-9ed81a2cb976"],
 
 Cell[TextData[{
  StyleBox["Structure",
@@ -575,14 +684,14 @@ Cell[TextData[{
  StyleBox["\[Minus]\[Omega]",
   FontFamily->"Noto Sans"],
  "), so it vanishes identically and is not computed."
-}], "Item",ExpressionUUID->"94f55450-1933-464e-9339-bee63bf69ff5"],
+}], "Item",ExpressionUUID->"e6e9364f-d523-4c58-97a5-3996d5e9129a"],
 
 Cell[TextData[{
  StyleBox["Protected",
   FontWeight->Bold],
  " wins over everything else, but a Protected monomial that carries a \
 coupling is a contradiction, and aborts."
-}], "Item",ExpressionUUID->"67d23b54-6405-48f5-b4e8-3f00acf2db1c"],
+}], "Item",ExpressionUUID->"43f0ed44-245c-4560-b788-4ee27dfd8781"],
 
 Cell[TextData[{
  StyleBox["DeclaredNumeric",
@@ -591,13 +700,13 @@ Cell[TextData[{
  StyleBox["\[Omega]",
   FontFamily->"Noto Sans"],
  "; its flow must vanish."
-}], "Item",ExpressionUUID->"3f4a3123-a4a4-4bab-9313-a02d4de8b7bf"],
+}], "Item",ExpressionUUID->"df249a8f-87fd-4e9e-a2b0-cfd644c33a0d"],
 
 Cell[TextData[{
  StyleBox["Declared",
   FontWeight->Bold],
  ": a coefficient with couplings; it gets a flow equation."
-}], "Item",ExpressionUUID->"11168695-38a5-4340-8d90-29c3ccf9cc96"],
+}], "Item",ExpressionUUID->"57e75af4-1fdd-43b7-8b2c-6e7c1e2f866e"],
 
 Cell[TextData[{
  StyleBox["Neglected",
@@ -611,14 +720,14 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " aborts."
-}], "Item",ExpressionUUID->"5a534a0f-79e1-4bd3-a4cb-ef081dcd0e81"],
+}], "Item",ExpressionUUID->"38999bf2-a307-493b-a028-06de9404b484"],
 
 Cell["\<\
 showFailure[DeclareSymmetries[ansatz, Protected[{hbar, h}, \"Frequency\" -> \
 0, \"Momentum\" -> 1, \"Reason\" -> \"a mistake\"], Neglected[_, \"Reason\" \
 -> \"rest\"],
   \"TruncationOrders\" -> <|\"Frequency\" -> 2, \"Momentum\" -> 1|>]]\
-\>", "Input",ExpressionUUID->"54e4e4c2-e1e1-418f-9dfe-ab29574341fa"],
+\>", "Input",ExpressionUUID->"33ae7bbd-7532-4541-be20-7152e4e5c640"],
 
 Cell[TextData[{
  StyleBox["Why it's built this way: Classify before computing",
@@ -648,19 +757,28 @@ an untagged monomial forces every truncation decision to be written down."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->GrayLevel[0.55],
  Background->RGBColor[
-  0.93, 0.93, 0.93],ExpressionUUID->"3f5ee3d1-f681-4ced-a050-81ea2d7591b5"],
+  0.93, 0.93, 0.93],ExpressionUUID->"07c9e551-89ad-4400-a9c3-53c1a01222f0"],
 
-Cell["5. Checks on the declaration as a whole", "Section",ExpressionUUID->"b6c28670-81da-490b-ba62-25210d82b8b1"],
+Cell["5. Checks on the declaration as a whole", "Section",ExpressionUUID->"f1dbf90e-7918-45a4-8b28-4dc4b4e02a05"],
 
 Cell["\<\
-(* Kernel/Symmetries.wl:92-100 *)
+(* Kernel/Symmetries.wl:155-167 *)
    (* declared monomials of the ansatz beyond the truncation orders would be \
 silently ignored *)
+   (* functional slots: only their orders below n0 (the function is a single \
+row at any order) *)
    declOutside = Select[Flatten[Table[{pr, m, n}, {pr, pairs}, {m, 0, 2 mf + \
 4}, {n, 0, Max[2, Max[ansatz[\"Monomials\"][[All, \"MomentumOrder\"]]]/2]}], \
 2],
-     (#[[2]] > mf || #[[3]] > mp) && gammaCoefficient[VertexValue[v, #[[1]], \
-{{nu, p}}], nu, p, #[[2]], #[[3]]] =!= 0 &];
+     (#[[2]] > mf || #[[3]] > mp) && With[{fr = SelectFirst[cls, Function[r, \
+r[\"Class\"] === \"Functional\" && r[\"Pair\"] === #[[1]] && r[\"Frequency\"] \
+=== #[[2]]]]},
+        If[MissingQ[fr], gammaCoefficient[VertexValue[v, #[[1]], {{nu, p}}] \
+/. fnPat[_] -> 0, nu, p, #[[2]], #[[3]]] =!= 0 ||
+          (#[[2]] > mf && ! FreeQ[Coefficient[Expand[VertexValue[v, #[[1]], \
+{{nu, p}}]], nu, #[[2]]], fnPat]),
+         #[[3]] < fr[\"Momentum\"] && gammaCoefficient[VertexValue[v, #[[1]], \
+{{nu, p}}] /. fnPat[_] -> 0, nu, p, #[[2]], #[[3]]] =!= 0]] &];
    AppendTo[checks, assertCheck[\"Symmetries.truncationCoversAnsatz\", \
 declOutside === {}, declOutside,
      \"the ansatz contains Gamma2 monomials beyond \\\"TruncationOrders\\\": \
@@ -674,17 +792,17 @@ ToString[#[[1]]] <> \"]\", #[[2, 2]] <> \" (not checkable in v1: needs d_s \
 Gamma3)\"] & /@ nonren];
    AppendTo[warns, infoCheck[\"ASSUMPTION\", \"Symmetries.wardIdentities\", \
 \"Protected tags are user-declared Ward identities, not derived\"]];\
-\>", "Program",ExpressionUUID->"f5a3cf6a-daa0-4dfe-b4d8-5a3c05a94634"],
+\>", "Program",ExpressionUUID->"b1496097-4854-43ee-9f97-416813b87c97"],
 
 Cell["\<\
 A truncation lower than the ansatz would silently drop a coupling's equation:\
 \
-\>", "Text",ExpressionUUID->"f03b583d-d8f9-48a1-a5ba-13ef48f02fc3"],
+\>", "Text",ExpressionUUID->"01bc22c7-a642-4696-b536-8e69845fa9cd"],
 
 Cell["\<\
 showFailure[DeclareSymmetries[ansatz, Neglected[_, \"Reason\" -> \"rest\"], \
 \"TruncationOrders\" -> <|\"Frequency\" -> 2, \"Momentum\" -> 0|>]]\
-\>", "Input",ExpressionUUID->"c99268a2-a66e-4226-9208-fd4884abbdc9"],
+\>", "Input",ExpressionUUID->"0dfecb23-4348-41d9-886f-1419a3e1731e"],
 
 Cell[TextData[{
  "A tag that matches no monomial, because a tag of higher precedence took \
@@ -699,17 +817,22 @@ would need the flow of ",
   FontFamily->"Noto Sans"],
  ". And one ASSUMPTION line always reminds that the Protected tags are \
 declared Ward identities."
-}], "Text",ExpressionUUID->"e2d130a6-ad03-44f8-8cbe-b47d96ebf93e"],
+}], "Text",ExpressionUUID->"49cebf85-fa22-4cda-913e-2603d59d8d17"],
 
-Cell["6. The table", "Section",ExpressionUUID->"0d3b359c-dc1d-40af-b6ca-315247bb2948"],
+Cell["6. The table", "Section",ExpressionUUID->"dfcea23e-8474-40ff-a806-42059061bd02"],
 
 Cell["\<\
-(* Kernel/Symmetries.wl:110-116 *)
+(* Kernel/Symmetries.wl:177-184 *)
 ShowClassification[s_Association] := Module[{rows},
-   rows = {ToString[#Pair], \"(I w)^\" <> ToString[#Frequency] <> \" (q^2)^\" \
-<> ToString[#Momentum], #Class,
-       If[#GammaK === 0, \"\", inputForm[#GammaK]], #Reason} & /@ \
-s[\"Classification\"];
+   rows = {ToString[#Pair], \"(I w)^\" <> ToString[#Frequency] <> \
+Switch[#Momentum, \"AllMomenta\", \" all p\", _, If[#Class === \
+\"Functional\",
+          \" (q^2)^{>=\" <> ToString[#Momentum] <> \"}\", \" (q^2)^\" <> \
+ToString[#Momentum]]], #Class,
+       If[#GammaK === 0, \"\", If[#Class === \"Functional\", With[{f = \
+Lookup[#, \"Function\", None]}, displayString[#GammaK /. f -> \
+f[Symbol[\"FRGscalarMSR`Symmetries`Private`p\"]^2]]] , inputForm[#GammaK]]], \
+#Reason} & /@ s[\"Classification\"];
    Print[\"Monomial classification (Gamma2_ab, a before b in field order; \
 precedence Protected > declared > Neglected):\"];
    Print[If[$FrontEnd === Null,
@@ -718,7 +841,7 @@ precedence Protected > declared > Neglected):\"];
 \"Gamma_k coeff.\", \"reason\"}], \"\\n\"],
      Grid[Prepend[rows, {\"pair\", \"monomial\", \"class\", \"Gamma_k \
 coeff.\", \"reason\"}], Frame -> All, Alignment -> Left]]]];\
-\>", "Program",ExpressionUUID->"2bd33ef9-4b3f-4256-a500-db7697748ac3"],
+\>", "Program",ExpressionUUID->"149c6a74-1cfc-48d7-84b6-ccc0080f90eb"],
 
 Cell[TextData[{
  "The same structure as ",
@@ -732,11 +855,11 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " in a notebook, padded text in a script."
-}], "Text",ExpressionUUID->"2564bc67-8152-4d86-b515-5a194c430219"],
+}], "Text",ExpressionUUID->"c38aa9b7-f07e-417a-8e6e-7487d958eb17"],
 
-Cell["Exercises", "Section",ExpressionUUID->"ad3f00d2-5d14-4c19-be23-139ed73aae1c"],
+Cell["Exercises", "Section",ExpressionUUID->"6a640fbf-bccc-4c80-a74a-ccbe77d77132"],
 
-Cell["Exercise: A forgotten Neglected", "Subsection",ExpressionUUID->"56e3c36f-06f9-4567-8eac-d5313790346f"],
+Cell["Exercise: A forgotten Neglected", "Subsection",ExpressionUUID->"091882b7-850e-42ac-aa02-5014c2e46556"],
 
 Cell[TextData[{
  "Declare only the two Protected tags, without ",
@@ -751,11 +874,11 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " not among them?"
-}], "Text",ExpressionUUID->"fdab1d63-4fdf-427a-bab1-05b791bdfc18"],
+}], "Text",ExpressionUUID->"bebaa273-17e9-40c2-a5f4-0366f7e40cea"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"40193541-fbc3-431d-bbbd-5be6e5fff0d2"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"ab26fe5f-9cff-414b-8a92-3ef2e23b127c"],
 
 Cell["\<\
 showFailure[DeclareSymmetries[ansatz, Protected[{hbar, h}, \"Frequency\" -> \
@@ -763,7 +886,7 @@ showFailure[DeclareSymmetries[ansatz, Protected[{hbar, h}, \"Frequency\" -> \
   Protected[{h, hbar}, \"Frequency\" -> 0, \"Momentum\" -> 0, \"Reason\" -> \
 \"shift\"], \"TruncationOrders\" -> <|\"Frequency\" -> 2, \"Momentum\" -> \
 1|>]]\
-\>", "Input",ExpressionUUID->"3f04e352-733d-404a-9fbd-fe0b4222308c"],
+\>", "Input",ExpressionUUID->"55fe1f56-50d3-45c5-b127-db38ec4cc038"],
 
 Cell[TextData[{
  "The six (i",
@@ -792,10 +915,10 @@ odd powers of ",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " as Structure."
-}], "Text",ExpressionUUID->"4e01c9da-8a21-46b1-9bed-003adfad223b"]
+}], "Text",ExpressionUUID->"1d3500ee-b233-4af1-b6c5-2330958087f6"]
 }, Closed]],
 
-Cell["Exercise: Precedence", "Subsection",ExpressionUUID->"5eceb87c-5253-40b4-9ca0-008dcfd21df6"],
+Cell["Exercise: Precedence", "Subsection",ExpressionUUID->"0afdba71-67fe-448d-9fa7-5e7fdb344ef3"],
 
 Cell[TextData[{
  "Add ",
@@ -810,11 +933,11 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ". What does the card say about it, and why?"
-}], "Text",ExpressionUUID->"16ba3006-705d-44f8-94df-ecf9b6632a9a"],
+}], "Text",ExpressionUUID->"75d04547-f213-4e90-aac1-3c79a24edde3"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"cb0ce3a2-e5e2-412e-8d5c-5ae0bd2a6586"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"d18e6a80-f800-47f3-b1bd-164f0728af51"],
 
 Cell["\<\
 DeclareSymmetries[ansatz,
@@ -827,7 +950,7 @@ DeclareSymmetries[ansatz,
    Neglected[_, \"Reason\" -> \"beyond the ansatz\"], NonRenormalised[lamk, \
 \"Reason\" -> \"Galilean invariance\"],
    \"TruncationOrders\" -> <|\"Frequency\" -> 2, \"Momentum\" -> 1|>];\
-\>", "Input",ExpressionUUID->"eae825a5-e808-45a5-8824-cadcc9375692"],
+\>", "Input",ExpressionUUID->"183d6ca6-9eb3-4e42-bdba-24d8c25e89bc"],
 
 Cell[TextData[{
  "A WARN ",
@@ -852,10 +975,10 @@ Cell[TextData[{
   FontFamily->"Noto Sans"],
  "h is already Protected, and Protected takes precedence over Neglected, so \
 the new tag matches nothing."
-}], "Text",ExpressionUUID->"94a521e9-b570-474b-932d-8106f03b84eb"]
+}], "Text",ExpressionUUID->"2c1d0a4b-c241-418a-b548-ac3c63a6459b"]
 }, Closed]],
 
-Cell["Exercise: Query the classification", "Subsection",ExpressionUUID->"a23e4804-bd07-43a1-b0ff-72fe37e76e66"],
+Cell["Exercise: Query the classification", "Subsection",ExpressionUUID->"3d08299e-644f-4e46-af1d-de4687d30fc4"],
 
 Cell[TextData[{
  "List, as ",
@@ -865,22 +988,22 @@ Cell[TextData[{
   Background->GrayLevel[0.92]],
  ", the monomials whose flow must vanish exactly (Protected, DeclaredNumeric \
 or Causality)."
-}], "Text",ExpressionUUID->"934c4683-49c6-4acb-b5e8-814dc2dee40e"],
+}], "Text",ExpressionUUID->"e3e5b501-0c5f-43b4-861f-e5b1c39b2267"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"abc5420c-acf6-4833-aae4-e1076bdda07b"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"cee70159-60aa-48a0-bc58-2445e57ed60b"],
 
 Cell["\<\
 {#Pair, #Frequency, #Momentum} & /@ Select[symmetries[\"Classification\"], \
 MemberQ[{\"Protected\", \"DeclaredNumeric\", \"Causality\"}, #Class] &]\
-\>", "Input",ExpressionUUID->"998a1170-2c65-4e16-bf0a-6fb2f02a926a"]
+\>", "Input",ExpressionUUID->"922ebbb5-7916-4266-9c5d-3ff46e2c495a"]
 }, Closed]]
 },
 CellContext->Notebook,
 FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
 StyleDefinitions->"Default.nb",
-ExpressionUUID->"68ca8ccf-8ceb-4f4a-8543-fab9318d86bc"
+ExpressionUUID->"3cc61674-820d-4389-b436-542045a0c982"
 ]
 (* End of Notebook Content *)
 
@@ -893,72 +1016,72 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[554, 20, 94, 0, 70, "Title",ExpressionUUID->"e839bebe-21ea-4c72-93c7-484a5c0c05a1"],
-Cell[651, 22, 725, 19, 70, "Text",ExpressionUUID->"61b5bbf6-c0bd-44de-b174-d2a6ffafbdf6"],
-Cell[1379, 43, 994, 30, 70, "Text",ExpressionUUID->"fa9e58c1-ccda-4eeb-b621-736dc4dff86a"],
-Cell[2376, 75, 233, 4, 70, "Input",ExpressionUUID->"85264bc4-acf7-4b43-b840-3065a9078ef9"],
-Cell[2612, 81, 85, 0, 70, "Section",ExpressionUUID->"b0a09d2e-910f-4fc0-8bb3-67a00ff42075"],
-Cell[2700, 83, 810, 31, 70, "Text",ExpressionUUID->"c020256a-9c5a-451f-a3e6-4bd865a7a2af"],
-Cell[3513, 116, 528, 9, 70, "Input",ExpressionUUID->"b82b65d4-e7de-4b13-b54a-225a19cdb8d5"],
-Cell[4044, 127, 288, 8, 70, "Text",ExpressionUUID->"ad5d1b96-1a9a-48d9-9dc0-7985e3c2be01"],
-Cell[4335, 137, 145, 2, 70, "Input",ExpressionUUID->"977187b1-35f7-4c13-8248-36cbdb0148f4"],
-Cell[4483, 141, 97, 0, 70, "Section",ExpressionUUID->"97324cd2-d6d0-45f7-83f9-afd82cc99558"],
-Cell[4583, 143, 513, 9, 70, "Program",ExpressionUUID->"a09d9a56-b119-41e9-ae65-4d169b7a8952"],
-Cell[5099, 154, 285, 5, 70, "Program",ExpressionUUID->"b9625236-6cf0-4d4e-b2a0-dbb2f84e37e4"],
-Cell[5387, 161, 1297, 40, 70, "Text",ExpressionUUID->"bc7338a5-961b-46bd-a503-48c2fdc76d45"],
-Cell[6687, 203, 126, 0, 70, "Input",ExpressionUUID->"927d1f3b-bdc4-4e15-90a3-77d1a35761dc"],
-Cell[6816, 205, 1000, 24, 70, "Text",ExpressionUUID->"6d49886f-6901-4fc9-8eb8-9dcfdcd8c770"],
-Cell[7819, 231, 93, 0, 70, "Section",ExpressionUUID->"386dac08-e8bc-44fd-9dcb-287cc5d685c0"],
-Cell[7915, 233, 248, 6, 70, "Program",ExpressionUUID->"2d5c7b59-69f9-4241-8566-9d1a8e16c4f5"],
-Cell[8166, 241, 185, 3, 70, "Program",ExpressionUUID->"ef16a159-16e1-4c28-9aac-084f233beb95"],
-Cell[8354, 246, 788, 14, 70, "Program",ExpressionUUID->"20e8fe16-ddcc-4726-b5eb-21ea332f4bb9"],
-Cell[9145, 262, 253, 4, 70, "Program",ExpressionUUID->"2ebd116a-6b43-4be4-bea7-50f08be1dec9"],
-Cell[9401, 268, 2126, 67, 70, "Text",ExpressionUUID->"47929c81-7f87-4ef7-a6a5-6e1148354317"],
-Cell[11530, 337, 1867, 32, 70, "Program",ExpressionUUID->"857526d7-f6c7-4aee-9d2b-af897be7b870"],
-Cell[13400, 371, 1070, 32, 70, "Text",ExpressionUUID->"5b7cf624-430a-4f46-98f7-a251e752e600"],
-Cell[14473, 405, 103, 0, 70, "Section",ExpressionUUID->"bfe43285-b3c4-4019-a7f2-d6699f3db699"],
-Cell[14579, 407, 2257, 41, 70, "Program",ExpressionUUID->"bafea5ae-c4b7-48a1-bb62-c899022805bb"],
-Cell[16839, 450, 324, 6, 70, "Program",ExpressionUUID->"c153a71d-66fa-45e8-bd55-5e8f21d41e5d"],
-Cell[17166, 458, 1065, 30, 70, "Text",ExpressionUUID->"0d202074-2c15-479e-a23a-cf380c18a88b"],
-Cell[18234, 490, 1360, 37, 70, "Text",ExpressionUUID->"e8e65699-17ed-47f3-8b26-ebccc29d2560"],
-Cell[19597, 529, 269, 6, 70, "Input",ExpressionUUID->"029f87b6-5cf9-46b3-869b-3548e7f4d6ea"],
-Cell[19869, 537, 352, 10, 70, "Text",ExpressionUUID->"03d803ea-8fd1-4819-aa34-33a6065733c8"],
-Cell[20224, 549, 347, 10, 70, "Item",ExpressionUUID->"57ae81c9-e2dd-48c6-805c-e0ea599ba084"],
-Cell[20574, 561, 482, 16, 70, "Item",ExpressionUUID->"94f55450-1933-464e-9339-bee63bf69ff5"],
-Cell[21059, 579, 240, 5, 70, "Item",ExpressionUUID->"67d23b54-6405-48f5-b4e8-3f00acf2db1c"],
-Cell[21302, 586, 264, 7, 70, "Item",ExpressionUUID->"3f4a3123-a4a4-4bab-9313-a02d4de8b7bf"],
-Cell[21569, 595, 185, 4, 70, "Item",ExpressionUUID->"11168695-38a5-4340-8d90-29c3ccf9cc96"],
-Cell[21757, 601, 354, 12, 70, "Item",ExpressionUUID->"5a534a0f-79e1-4bd3-a4cb-ef081dcd0e81"],
-Cell[22114, 615, 319, 5, 70, "Input",ExpressionUUID->"54e4e4c2-e1e1-418f-9dfe-ab29574341fa"],
-Cell[22436, 622, 1130, 28, 70, "Text",ExpressionUUID->"3f5ee3d1-f681-4ced-a050-81ea2d7591b5"],
-Cell[23569, 652, 113, 0, 70, "Section",ExpressionUUID->"b6c28670-81da-490b-ba62-25210d82b8b1"],
-Cell[23685, 654, 1272, 22, 70, "Program",ExpressionUUID->"f5a3cf6a-daa0-4dfe-b4d8-5a3c05a94634"],
-Cell[24960, 678, 158, 3, 70, "Text",ExpressionUUID->"f03b583d-d8f9-48a1-a5ba-13ef48f02fc3"],
-Cell[25121, 683, 225, 3, 70, "Input",ExpressionUUID->"c99268a2-a66e-4226-9208-fd4884abbdc9"],
-Cell[25349, 688, 591, 13, 70, "Text",ExpressionUUID->"e2d130a6-ad03-44f8-8cbe-b47d96ebf93e"],
-Cell[25943, 703, 86, 0, 70, "Section",ExpressionUUID->"0d3b359c-dc1d-40af-b6ca-315247bb2948"],
-Cell[26032, 705, 858, 15, 70, "Program",ExpressionUUID->"2bd33ef9-4b3f-4256-a500-db7697748ac3"],
-Cell[26893, 722, 427, 12, 70, "Text",ExpressionUUID->"2564bc67-8152-4d86-b515-5a194c430219"],
-Cell[27323, 736, 83, 0, 70, "Section",ExpressionUUID->"ad3f00d2-5d14-4c19-be23-139ed73aae1c"],
-Cell[27409, 738, 108, 0, 70, "Subsection",ExpressionUUID->"56e3c36f-06f9-4567-8eac-d5313790346f"],
-Cell[27520, 740, 484, 13, 70, "Text",ExpressionUUID->"fdab1d63-4fdf-427a-bab1-05b791bdfc18"],
+Cell[554, 20, 94, 0, 70, "Title",ExpressionUUID->"13ca939e-e225-44c4-b93a-450f201ec10b"],
+Cell[651, 22, 725, 19, 70, "Text",ExpressionUUID->"5d82de71-ff1c-4499-8571-a21e83f0e7b4"],
+Cell[1379, 43, 994, 30, 70, "Text",ExpressionUUID->"be17f09c-2b92-4295-b45c-bdca4629807d"],
+Cell[2376, 75, 233, 4, 70, "Input",ExpressionUUID->"25f7ebee-fa10-4490-91ff-60613a48254b"],
+Cell[2612, 81, 85, 0, 70, "Section",ExpressionUUID->"c5795f57-eae6-429e-b84a-cf6b1e6e32f4"],
+Cell[2700, 83, 810, 31, 70, "Text",ExpressionUUID->"a3129f05-9b05-4f50-9386-60c3c7345a1d"],
+Cell[3513, 116, 528, 9, 70, "Input",ExpressionUUID->"cb8c84a4-d85f-4937-9e5b-4bacab5f6b0c"],
+Cell[4044, 127, 288, 8, 70, "Text",ExpressionUUID->"0a4bd994-742f-4746-bd57-b2fe9c4e418a"],
+Cell[4335, 137, 145, 2, 70, "Input",ExpressionUUID->"56840330-3bcb-4e43-8b29-931e28c8f438"],
+Cell[4483, 141, 97, 0, 70, "Section",ExpressionUUID->"8ce398ab-c7d1-43e2-988f-0a742e3fadb2"],
+Cell[4583, 143, 513, 9, 70, "Program",ExpressionUUID->"6f465cfb-2c67-4389-87e3-de2c361955a1"],
+Cell[5099, 154, 285, 5, 70, "Program",ExpressionUUID->"5250756e-b360-45c2-ae3a-576c588d0389"],
+Cell[5387, 161, 1297, 40, 70, "Text",ExpressionUUID->"4a6b3962-0b7f-4d20-a0ba-b170d2220b71"],
+Cell[6687, 203, 126, 0, 70, "Input",ExpressionUUID->"0a5fd2e4-6d3c-40a9-9177-556320f4c440"],
+Cell[6816, 205, 1000, 24, 70, "Text",ExpressionUUID->"3eab5536-c6e3-4f34-8341-221dfecccbfb"],
+Cell[7819, 231, 93, 0, 70, "Section",ExpressionUUID->"ae37c26d-facc-4335-a88c-c84e4b89d465"],
+Cell[7915, 233, 255, 6, 70, "Program",ExpressionUUID->"e842360d-cf3d-4f3f-9f7c-fb3d02a9d29e"],
+Cell[8173, 241, 185, 3, 70, "Program",ExpressionUUID->"e926af0c-2659-4732-a7f1-50dc89399fb0"],
+Cell[8361, 246, 1092, 18, 70, "Program",ExpressionUUID->"46f8ffcf-698a-48b2-82c6-5acbd117af4a"],
+Cell[9456, 266, 253, 4, 70, "Program",ExpressionUUID->"815527fd-a7fc-4bc4-a248-03ad920ea085"],
+Cell[9712, 272, 2126, 67, 70, "Text",ExpressionUUID->"ced0155d-1035-4c5a-8e06-5b6a0726d6a7"],
+Cell[11841, 341, 2009, 35, 70, "Program",ExpressionUUID->"8f7459b4-81e7-442a-bd35-f67f97423666"],
+Cell[13853, 378, 1070, 32, 70, "Text",ExpressionUUID->"2c250ba9-fa33-4050-986d-dd034186c0b8"],
+Cell[14926, 412, 103, 0, 70, "Section",ExpressionUUID->"5824e79e-5138-4796-bbec-549da6ad5961"],
+Cell[15032, 414, 8265, 143, 70, "Program",ExpressionUUID->"de3ca756-2fba-42a7-a3d4-084e6f59e5d2"],
+Cell[23300, 559, 324, 6, 70, "Program",ExpressionUUID->"d2f94b00-e459-4b45-a81d-e78068d0609f"],
+Cell[23627, 567, 1065, 30, 70, "Text",ExpressionUUID->"7ae624ed-06fc-43af-9d4b-ea915b56a913"],
+Cell[24695, 599, 1360, 37, 70, "Text",ExpressionUUID->"5b2a70f8-5242-46f0-ab0e-5bd163737577"],
+Cell[26058, 638, 269, 6, 70, "Input",ExpressionUUID->"787a00ca-38ce-481f-9b3a-1bec52afa9be"],
+Cell[26330, 646, 352, 10, 70, "Text",ExpressionUUID->"c8f698ca-e900-417f-b152-626a0b12a643"],
+Cell[26685, 658, 347, 10, 70, "Item",ExpressionUUID->"c74a88c9-5d6d-49e1-b9ab-9ed81a2cb976"],
+Cell[27035, 670, 482, 16, 70, "Item",ExpressionUUID->"e6e9364f-d523-4c58-97a5-3996d5e9129a"],
+Cell[27520, 688, 240, 5, 70, "Item",ExpressionUUID->"43f0ed44-245c-4560-b788-4ee27dfd8781"],
+Cell[27763, 695, 264, 7, 70, "Item",ExpressionUUID->"df249a8f-87fd-4e9e-a2b0-cfd644c33a0d"],
+Cell[28030, 704, 185, 4, 70, "Item",ExpressionUUID->"57e75af4-1fdd-43b7-8b2c-6e7c1e2f866e"],
+Cell[28218, 710, 354, 12, 70, "Item",ExpressionUUID->"38999bf2-a307-493b-a028-06de9404b484"],
+Cell[28575, 724, 319, 5, 70, "Input",ExpressionUUID->"33ae7bbd-7532-4541-be20-7152e4e5c640"],
+Cell[28897, 731, 1130, 28, 70, "Text",ExpressionUUID->"07c9e551-89ad-4400-a9c3-53c1a01222f0"],
+Cell[30030, 761, 113, 0, 70, "Section",ExpressionUUID->"f1dbf90e-7918-45a4-8b28-4dc4b4e02a05"],
+Cell[30146, 763, 1808, 31, 70, "Program",ExpressionUUID->"b1496097-4854-43ee-9f97-416813b87c97"],
+Cell[31957, 796, 158, 3, 70, "Text",ExpressionUUID->"01bc22c7-a642-4696-b536-8e69845fa9cd"],
+Cell[32118, 801, 225, 3, 70, "Input",ExpressionUUID->"0dfecb23-4348-41d9-886f-1419a3e1731e"],
+Cell[32346, 806, 591, 13, 70, "Text",ExpressionUUID->"49cebf85-fa22-4cda-913e-2603d59d8d17"],
+Cell[32940, 821, 86, 0, 70, "Section",ExpressionUUID->"dfcea23e-8474-40ff-a806-42059061bd02"],
+Cell[33029, 823, 1163, 20, 70, "Program",ExpressionUUID->"149c6a74-1cfc-48d7-84b6-ccc0080f90eb"],
+Cell[34195, 845, 427, 12, 70, "Text",ExpressionUUID->"c38aa9b7-f07e-417a-8e6e-7487d958eb17"],
+Cell[34625, 859, 83, 0, 70, "Section",ExpressionUUID->"6a640fbf-bccc-4c80-a74a-ccbe77d77132"],
+Cell[34711, 861, 108, 0, 70, "Subsection",ExpressionUUID->"091882b7-850e-42ac-aa02-5014c2e46556"],
+Cell[34822, 863, 484, 13, 70, "Text",ExpressionUUID->"bebaa273-17e9-40c2-a5f4-0366f7e40cea"],
 Cell[CellGroupData[{
-Cell[28029, 757, 88, 0, 70, "Subsubsection",ExpressionUUID->"40193541-fbc3-431d-bbbd-5be6e5fff0d2"],
-Cell[28120, 759, 368, 6, 70, "Input",ExpressionUUID->"3f04e352-733d-404a-9fbd-fe0b4222308c"],
-Cell[28491, 767, 792, 27, 70, "Text",ExpressionUUID->"4e01c9da-8a21-46b1-9bed-003adfad223b"]
+Cell[35331, 880, 88, 0, 70, "Subsubsection",ExpressionUUID->"ab26fe5f-9cff-414b-8a92-3ef2e23b127c"],
+Cell[35422, 882, 368, 6, 70, "Input",ExpressionUUID->"55fe1f56-50d3-45c5-b127-db38ec4cc038"],
+Cell[35793, 890, 792, 27, 70, "Text",ExpressionUUID->"1d3500ee-b233-4af1-b6c5-2330958087f6"]
 }, Closed]],
-Cell[29298, 797, 97, 0, 70, "Subsection",ExpressionUUID->"5eceb87c-5253-40b4-9ca0-008dcfd21df6"],
-Cell[29398, 799, 520, 13, 70, "Text",ExpressionUUID->"16ba3006-705d-44f8-94df-ecf9b6632a9a"],
+Cell[36600, 920, 97, 0, 70, "Subsection",ExpressionUUID->"0afdba71-67fe-448d-9fa7-5e7fdb344ef3"],
+Cell[36700, 922, 520, 13, 70, "Text",ExpressionUUID->"75d04547-f213-4e90-aac1-3c79a24edde3"],
 Cell[CellGroupData[{
-Cell[29943, 816, 88, 0, 70, "Subsubsection",ExpressionUUID->"cb0ce3a2-e5e2-412e-8d5c-5ae0bd2a6586"],
-Cell[30034, 818, 605, 11, 70, "Input",ExpressionUUID->"eae825a5-e808-45a5-8824-cadcc9375692"],
-Cell[30642, 831, 629, 23, 70, "Text",ExpressionUUID->"94a521e9-b570-474b-932d-8106f03b84eb"]
+Cell[37245, 939, 88, 0, 70, "Subsubsection",ExpressionUUID->"d18e6a80-f800-47f3-b1bd-164f0728af51"],
+Cell[37336, 941, 605, 11, 70, "Input",ExpressionUUID->"183d6ca6-9eb3-4e42-bdba-24d8c25e89bc"],
+Cell[37944, 954, 629, 23, 70, "Text",ExpressionUUID->"2c1d0a4b-c241-418a-b548-ac3c63a6459b"]
 }, Closed]],
-Cell[31286, 857, 111, 0, 70, "Subsection",ExpressionUUID->"a23e4804-bd07-43a1-b0ff-72fe37e76e66"],
-Cell[31400, 859, 321, 8, 70, "Text",ExpressionUUID->"934c4683-49c6-4acb-b5e8-814dc2dee40e"],
+Cell[38588, 980, 111, 0, 70, "Subsection",ExpressionUUID->"3d08299e-644f-4e46-af1d-de4687d30fc4"],
+Cell[38702, 982, 321, 8, 70, "Text",ExpressionUUID->"e3e5b501-0c5f-43b4-861f-e5b1c39b2267"],
 Cell[CellGroupData[{
-Cell[31746, 871, 88, 0, 70, "Subsubsection",ExpressionUUID->"abc5420c-acf6-4833-aae4-e1076bdda07b"],
-Cell[31837, 873, 228, 3, 70, "Input",ExpressionUUID->"998a1170-2c65-4e16-bf0a-6fb2f02a926a"]
+Cell[39048, 994, 88, 0, 70, "Subsubsection",ExpressionUUID->"cee70159-60aa-48a0-bc58-2445e57ed60b"],
+Cell[39139, 996, 228, 3, 70, "Input",ExpressionUUID->"922ebbb5-7916-4266-9c5d-3ff46e2c495a"]
 }, Closed]]
 }
 ]

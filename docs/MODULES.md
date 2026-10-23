@@ -84,7 +84,8 @@ Output: the `"Ansatz"` stage. Its key `"Monomials"` is a list of
 `Lookup[ansatz, "Epsilon", False]`.
 
 **Assumptions.**
-- Couplings depend on k only. They have no t or x dependence and never sit under an operator.
+- Couplings depend on k only. They have no t or x dependence and never sit under an operator. Momentum functions (below) depend on p²
+  as well, in quadratic terms only.
 - The density is a polynomial in the fields, at most quartic.
 - Any momentum order: the projection downstream is valid for every (p²)ⁿ (design/MOMENTUMPROJECTION.md).
 - MSR structure: every monomial contains a response field. There are no linear terms.
@@ -124,6 +125,13 @@ Output: the `"Ansatz"` stage. Its key `"Monomials"` is a list of
 - `Ansatz.MSR`, `Ansatz.noLinear`, `Ansatz.quartic`.
 - `Ansatz.pipeline`: only `"DerivativeExpansion"` exists in v1.
 - Warning `Ansatz.unusedCouplings`: a declared coupling is absent from the density.
+
+**Momentum functions** (design/MOMENTUMFUNCTIONS.md A). `"MomentumFunctions" -> {Fnu, FD}` declares functions of the external momentum p²,
+written bare in quadratic terms (`- nk Fnu hbar lap[h]` means −nk Fnu(p²) h̄ ∇²h). They are declared there only, not in `"Couplings"`.
+The stage then has `"MomentumFunctions"` and `"Pipeline" -> "MomentumFunctions"` (set automatically). Checks: `Ansatz.functionList`,
+`Ansatz.functions.*` (fresh symbols; `c` and `ap` are reserved), `Ansatz.functionsDistinct`, `Ansatz.functionBare` (no `Fnu[0]`),
+`Ansatz.functionNotInOperator` (no `lap[Fnu h]`), `Ansatz.functionQuadraticOnly` (Γ3/Γ4 couplings stay constant), and
+`Ansatz.pipeline` (a user `"Pipeline"` that contradicts the functions aborts). `ShowMonomials` prints `Fnu[p^2]`.
 
 **Show.** `ShowMonomials[ansatz]` prints the table coefficient | fields | operators | order. It is printed automatically by
 `DefineAnsatz`. `MonomialString[m]` writes a monomial back in the DSL (the ε pair as `jac[a, b]`).
@@ -171,6 +179,11 @@ in field order, to Γ⁽ⁿ⁾ as a function of all n leg momenta, before the δ
 - WARN `Vertices.gamma4`: Γ⁽⁴⁾ ≠ 0. The tadpole term of the flow is hand-derived and untested. The bubble is tested against
   KPZ; see Loops.
 
+**Momentum functions.** A function F of a quadratic monomial becomes F(q²) at its leg momentum: Γ2_{h h̄} = iω + nk Fnu(q²) q². In
+`Vertices.planeWave` the function is replaced by a constant on both sides; its argument is a definition (F(−∇²)). `Vertices.functionalTerm`:
+in every Γ2 slot (entry, power of iω) a function enters as one term, number × (at most one coupling) × F(q²) × (q²)^{n₀}
+(`Fnu^2`, `1/Fnu`, `nk Ak Fnu`, F at two powers abort). `Vertices.gamma2Polynomial` allows function-valued coefficients.
+
 **Show.** The vertex table, with the convention header, is printed by `BuildVertices`. The commands are `ShowVertexTable[v]`,
 `ShowGamma2[v]` and `ShowVertex[v, {Hbar, H, Psi}]`.
 
@@ -216,6 +229,8 @@ to the export.
 - `Regulator.onlyDeclaredShapes` and `Regulator.shapeArgument`: every shape appears only as r[q²/k²].
 - `Regulator.dsRChainRule`: the same ∂sR is computed by a second route (couplings as functions c(k), total derivative) and the
   two results are compared exactly.
+
+**Momentum functions.** `Regulator.noFunctions`: R contains constant couplings only (use the reference: `nk q^2 rn[q^2/k^2]`).
 
 **Show.** `ShowRegulator[reg]` prints R_ab and ∂sR_ab. `DefineRegulator` calls it automatically.
 
@@ -315,6 +330,19 @@ lists one record per monomial: pair, m, n, class, Γ_k coefficient and reason.
 - WARN for an unused tag.
 - ASSUMPTION lines for `NonRenormalised` and for the Ward identities, which are declared, not derived.
 
+**Momentum functions** (B). A slot (pair, m) that carries a function F is Σ_{n<n₀} c_n p^{2n} + p^{2n₀}·[ref]·F(p²):
+- its orders below n₀ are ordinary rows, classified at p → 0 as above (KPZ's shift symmetry stays `Protected[{h, hbar}, "Frequency" -> 0,
+  "Momentum" -> 0]`); `"TruncationOrders"` applies to them and to function-free slots only;
+- the orders ≥ n₀ are one row of class `Functional` (keys `Function`, `Momentum` = n₀, `GammaK` = ref F, `ProtectedAtZero`);
+- `Symmetries.functionalSlot`: a constant at an order ≥ n₀, or a second function, in the slot; `Symmetries.functionSlot`: every function
+  sits in exactly one slot with a nonzero Γ2 (zero slots, e.g. `Fnu div[hbar grad[hbar]]`, and two slots abort);
+- tags: only an explicit `Protected[pair, "Frequency" -> m, "Momentum" -> n₀]` reaches a functional slot (F(0) does not flow, checked at
+  p = 0 by `Closure.protectedAtZero`); `All` and patterns never do; anything else at ≥ n₀ aborts `Symmetries.functionalTag`;
+- `"Momentum" -> "AllMomenta"` (`Symmetries.tagMomentum`) tags a whole function-free slot at generic p: one row, Protected (exact zero) or
+  Neglected (WARN); on a functional slot it aborts `Symmetries.contradiction`;
+- ASSUMPTION `Symmetries.siblingAtZeroMomentum`: a sibling slot (same pair, other m) of a functional slot without an `"AllMomenta"` tag is
+  computed at p → 0 only (LO KPZ: f^λ = 1); `Symmetries.nonRenormalisedFunction`: `NonRenormalised[Fnu]` aborts.
+
 **Show.** `ShowClassification[sym]` is printed automatically.
 
 ---
@@ -366,6 +394,10 @@ lists one record per monomial: pair, m, n, class, Γ_k coefficient and reason.
     to hold for every d and g.
 - The card prints "tadpole … hand-derived, untested" whenever Γ⁽⁴⁾ ≠ 0.
 
+**Generic p** (design/MOMENTUMFUNCTIONS.md C1). `MidpointLoopIntegrand[loops, {a, b}, nu, p]` is the same loop with the momentum routed at the
+midpoint (lines q − p/2, q + p/2), each ∂sR entry carrying its line's momentum squared (`dsR[c, d][s]`), symmetrised under q → −q
+(∂sR sits on one line only, so the routing alone is not enough). It is even in p at fixed q.
+
 **Checks.** `Loops.sameUpstream` and `Loops.dsRSymmetric`. The normalisation is printed on the card as an ASSUMPTION.
 
 ---
@@ -411,6 +443,13 @@ integrand, followed by the direction average of its s^{2n} Taylor coefficient al
   ±wedge[p, q] to a power ≤ 1, and the projection of the dropped part, (∇²_p)ⁿ on explicit 2-vectors at a random rational
   point, must be exactly 0 (any n). The card counts the integrands with a nonzero dropped part.
 
+**Generic p** (C2, C4). Functional and `"AllMomenta"` rows use `MidpointLoopIntegrand`: the frequency operator at ν = 0, the invariants
+q² = `LoopMomentumSquared`, p² = `ExternalMomentumSquared`, p·q = `MomentumProduct`; a functional row then subtracts its orders below n₀
+by their un-averaged Taylor coefficients in p at fixed q (p → t p) and divides by p^{2n₀}. Each functional row also gets `"AtZero"`: its order
+n₀ by the p → 0 operator above (used for η and for `Protected` at n₀). Checks: `Projection.functionalOrder` (the odd orders t^{2j+1}, j < n₀,
+vanish: the quotient is regular), `Projection.LHSGeneric` (the operator on Γ_k gives ref F(p²), and F(0) at p → 0),
+`Projection.functionalEpsilon` (`jac` with functions is not supported).
+
 **Show.** `ShowIntegrand[projected, nk*Ak]` or `ShowIntegrand[projected, {a, b}, {m, n}]`.
 
 ---
@@ -443,6 +482,13 @@ roots. This replaces the notebook's lookup table and generalises the script's `I
   module aborts with `FrequencyIntegration.validPoint`. A value reported as a size must come from a physical point. Zero
   tests need no such point, because an exact zero is a zero everywhere.
 - `CheckClosure` asserts the zeros and reports the sizes.
+
+**Several pole families** (C3). A generic-p integrand contains Δ at |q ∓ p/2|² (and at q² in the subtracted orders): one family per
+distinct momentum argument. A monomial with one family uses `FrequencyIntegral`; several use `FrequencyIntegralFamilies[n, {{a1, b1}, …},
+deg]`, the residues at the upper-half-plane roots of every family, made rational per family (even in each β_f), combined and cancelled
+before storing. `FrequencyIntegration.coincidentFinite`: the result is finite where two families coincide (|q − p/2| = |q + p/2| happens
+inside the domain, at c = 0). Functional rows are integrated symbolically (`Value`, `AtZeroValue`, and `AtZeroSamples` for `Protected` at
+n₀); `"AllMomenta"` rows are sampled at a physical (q², p², p·q).
 
 **Checks.** `FrequencyIntegration.convergence`, `.evenInBeta`, `.rational`, `.ready`, `.complete` and `.validPoint`. The unit tests compare
 the results with the script's I(0,1,1) = π/(2AC) and with `NIntegrate`, in the overdamped, underdamped and degree-1 cases.
@@ -483,6 +529,9 @@ stage aborts with `Closure.sameSymmetries`. Output: the "Closure" stage, with th
 
 **Assumptions printed.** Every `NonRenormalised` tag with its reason (not checkable in v1, because that needs ∂sΓ⁽³⁾), and
 the banner "Ward identities are assumed (the Protected tags), not derived".
+
+**Momentum functions.** A `Functional` flow becomes the equation ∂s(ref F(p²)) = RHS(q, p, c) at generic p, with `AtZeroRHS` its exact
+p → 0 row. `Closure.protectedAtZero`: `Protected` at n₀ (F(0) does not flow) samples to 0 at 3 random points.
 
 **Show.** `ShowClosureReport[closure]` prints a table pair | monomial | class | outcome, preceded by a plain-words
 explanation of each class.
@@ -540,6 +589,11 @@ The stage also carries:
 - `DsRRules`, `LoopMomentum`, `Scale`, `Shapes`, `Couplings`, `Dimension`.
 
 Shapes appear as r[q²/k²], r′ and r″. FlowRG supports only r′ today (docs/FUTURE.md).
+
+**Functional equations** (D2). `EquationOf[eqs, Fnu]` returns the equation of the function. Its `Integrand` is in (q, p, c): q the
+midpoint loop momentum, p = |p|, c = cos(p, q); the functions appear as `Fnu[x]` of the momentum squared, the atoms as `ScaleAtom[a, b, m, j][x]`
+and the ∂sR entries as `dsR[a, b][x]` (compact form), d_sR on its own line. Extra keys: `Functional`, `Argument` (p²), `Variables`, `AtZero`
+(the exact p → 0 row, in the bare atoms at q). The stage has `MomentumFunctions`, `ExternalMomentum` (`p`) and `Cosine` (`c`).
 
 **Show.** `ShowEquation[equations, comb]` prints the compact form, the atoms it uses, the ∂sR entries and the validity
 conditions. `EquationOf[equations, comb]` returns the equation record.
@@ -604,6 +658,10 @@ equation:
 **What it does not test.** It shares the vertices and the loop formula (prefactor, −½ tadpole, 1/(2π)) with the symbolic
 chain, so it does not test the normalisation (E3/E4). The card says so. The bubble normalisation is tested by the KPZ comparison
 with Canet's flow instead (see Loops).
+
+**Generic p** (E2). Each functional equation is compared twice: at generic p (the loop with explicit line vectors q ∓ p/2, ∂sR on
+its own line, mirrored q → −q, the orders below n₀ subtracted by differences in t, n₀ ≤ 2) and at p = 0 (`AtZero` vs the p → 0 path).
+Momentum functions get explicit smooth positive test functions. Mutation check (manual run): ∂sR put on the other line fails the generic-p comparison.
 
 **Acceptance.**
 - Shallow water, 9 equations in d = 2 and 3: relative errors ≤ 2·10⁻⁹. This is the finite-difference error, about h²; the
@@ -674,6 +732,12 @@ dimensionless, keeps its name (the latter is reported INFO). A reference has no 
 **Options.** `"References" -> {nk -> "nu", …}`; a reference times an amplitude may be written
 `nk -> {"nu", "Mode" -> "Running", "Equation" -> nk ank}` (see Adimensional). `"Dimensionless" -> {…}`, `"Names"`,
 `"Scale" -> k`.
+
+**Momentum functions** (A3, D6). Functions get dimensions like couplings. A function times a reference is dimensionless (INFO
+`Dimensions.functionDimensionless`); a function alone has a derived dimension, or is declared in `"Dimensionless"`. Its dimensionless name is
+always `a<>F` (aFnu): F(p²) and F̂(p²/k²) are different functions. Checks: `Dimensions.functionReference` (a function as reference),
+`Dimensions.functionPrefactor` (a function times a non-reference), `Dimensions.equationModeFixed`. `"Equation"` always makes the reference
+Running (the earlier code silently ignored `"Equation"` without `"Mode" -> "Running"`).
 
 **Show.** `ShowDimensions[dims]` prints coupling | monomials it appears in | dimension | dimensionless name | linear part, then
 the field dimensions, [ω] and z (e.g. [ω] = k² nk, z = 2 − η_ν). `CheckDimensions[dims, <|gk -> k Dphik^(1/2) Dhk^(-1/2) nk,
@@ -747,6 +811,17 @@ the η's: (EtaML + ∫daq LoopMeasure EtaMNL) η = EtaBL + ∫daq LoopMeasure Et
 **Options.** `"State" -> {gk, lk, …}`: dimensionful names, in the order of FlowRG's COUPLINGS. Default: every non-reference
 coupling in ansatz order.
 
+**Momentum functions** (D3–D7). A function F(x) becomes [F] F̂(x/k²) (`aFnu[...]`), p → k ap. The state includes the functions; their
+linear part gains 2ap² F̂′(ap²) (∂s at fixed ap) and their loop part is integrated with `FunctionalMeasure[d, aq, c]` = S_{d−1} aq^{d−1}
+(1−c²)^{(d−3)/2}/(2π)^d over aq and c ∈ [−1, 1] (d = 1: 1/(2π) Σ_{c=±1}), stage keys `MeasureOf`, `FunctionalMeasure`, `FunctionalCosines`.
+A reference that appears only times functions is Fixed (`MustFix`); `"Equation" -> nk Fnu` makes it Running with F̂(0) = 1, its η row
+taken from the exact p → 0 row. Compact form: `AdimAtom[a, b, m, j][x]`. INFO `Adimensional.functionalSmallMomentum`: for n₀ ≥ 1 the loop
+integrand is 0/0 at ap = 0 (exact for ap > 0). `"Related" -> {Related[FD -> Fnu, "AtDimension" -> 1, "Reason" -> …]}` eliminates FD (FD̂ = Fnû,
+or a number times it), derives and imposes the η balance of the two slots' references, the relation of their regulator shapes and
+d = AtDimension, checks β_FD̂ = α̂ β_Fnû pointwise (c = ±1 at d = 1, random c otherwise; `Adimensional.related`) and prints them as
+ASSUMPTION lines; `Adimensional.relatedSyntax`, `.relatedFunctions`, `.relatedChain`, `.relatedDimension`, `.relatedState`,
+`.relatedRegulator`.
+
 **Show.** `ShowBeta[adim, c]` prints BetaL, the measure, BetaNL and the atoms used. `ShowEtaSystem[adim]` prints the η system
 row by row, with the placeholder rows marked MUST_FIX. `ShowCausalPoles[adim]` prints the minimal causal-pole conditions
 (explicit, with the compact form and the atoms used).
@@ -772,6 +847,9 @@ multiplied into every loop part; shape derivatives become applied functions `Dar
 (default): each loop function first computes the dimensionless atoms it uses as local variables `atom_H_Hbar_0_1`.
 `"Form" -> "Explicit"` writes the expanded expressions. `JuliaParts[adim, d]` returns the same parts as Mathematica
 expressions.
+
+**Momentum functions.** `JuliaExport.functionalCouplings`: functional equations are not exportable (FlowRG integrates couplings of k
+only); use the Adimensional stage.
 
 **Checks.** `JuliaExport.noUnits` (no k, references, q, symbolic `Dim`), `knownSymbols`, `systemHeads` (only + × ^ and
 sqrt/exp/log/abs), `linearNoMomentum`, `shapeDerivative` (only r, r′, r″: p⁴ flows need r‴/r⁗ and a FlowRG interface

@@ -16,7 +16,7 @@ that explains it.
 | 05 | Propagator | 14 | Adimensional |
 | 06 | Symmetries | 15 | JuliaExport |
 | 07 | Loops | 16 | Tests (the harness of `tests/runTests.wl`, benchmarks) |
-| 08 | Projection | | |
+| 08 | Projection | 17 | Momentum functions (flows at generic p, `Related`) |
 
 ## Building and checking
 

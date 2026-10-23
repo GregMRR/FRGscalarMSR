@@ -1,0 +1,225 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[     10454,        216]
+NotebookOptionsPosition[      7874,        179]
+NotebookOutlinePosition[      8188,        193]
+CellTagsIndexPosition[      8145,        190]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["KPZ, LO: momentum-dependent nu(p) and D(p)", "Title",ExpressionUUID->"595510de-383b-4df3-8634-8ea66431d7a2"],
+
+Cell["\<\
+The LO scheme of the KPZ literature: Gamma_{hbar h} = I w + nu_k Fnu(p^2) p^2 \
+and Gamma_{hbar hbar} = -2 D_k FD(p^2), with lambda and the coefficient 1 of \
+dt h not renormalised (Galilean invariance; f^lambda = 1). The flows of Fnu \
+and FD are computed at generic external momentum p. Design: \
+design/MOMENTUMFUNCTIONS.md; lesson: lessons/17-MomentumFunctions.nb. As in \
+Canet, Chate, Delamotte, Wschebor, PRL 104, 150601 (2010), one shape r for \
+both sectors.\
+\>", "Text",ExpressionUUID->"538c7ae9-26a7-45c3-81aa-84d776d1fc0c"],
+
+Cell["Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"]", "Input",ExpressionUUID->"164a052b-eaa1-47a4-b5bc-a98c4a6b5a0a"],
+
+Cell["1. Ansatz and symmetries", "Section",ExpressionUUID->"fda503c3-6f59-4c70-a955-15628e470704"],
+
+Cell["\<\
+theory = DefineTheory[\"Scalars\" -> {h}, \"Dimension\" -> Dim];
+ansatz = DefineAnsatz[theory, \"Density\" -> hbar (dt[h] - nuk Fnu lap[h] - \
+lamk/2 grad[h].grad[h]) - Dk FD hbar^2,
+  \"Couplings\" -> {nuk, lamk, Dk}, \"MomentumFunctions\" -> {Fnu, FD}];\
+\>", "Input",ExpressionUUID->"13a6f769-7f37-41d6-8b94-d014678b9ee3"],
+
+Cell["\<\
+symmetries = DeclareSymmetries[ansatz,
+  Protected[{hbar, h}, \"Frequency\" -> 1, \"Momentum\" -> 0, \"Reason\" -> \
+\"Galilean Ward identity\"],
+  Protected[{h, hbar}, \"Frequency\" -> 0, \"Momentum\" -> 0, \"Reason\" -> \
+\"h -> h + c (shift symmetry)\"],
+  Neglected[_, \"Reason\" -> \"beyond the LO ansatz\"], NonRenormalised[lamk, \
+\"Reason\" -> \"Galilean invariance\"],
+  \"TruncationOrders\" -> <|\"Frequency\" -> 2, \"Momentum\" -> 1|>];\
+\>", "Input",ExpressionUUID->"9692e574-6d0e-4066-b8f7-15630368c360"],
+
+Cell["2. Flows at generic p", "Section",ExpressionUUID->"b244866e-6846-403f-8eee-f855cb7c2380"],
+
+Cell["\<\
+The loop is routed at the midpoint (lines q - p/2, q + p/2) and symmetrised \
+under q -> -q; Fnu's equation is the loop minus its p^0 order, divided by \
+p^2. Variables of the integrand: q (midpoint loop momentum), p = |p|, c = \
+cos(p, q); Int d^dq/(2 Pi)^d.\
+\>", "Text",ExpressionUUID->"11431fa8-8b2b-4d11-90a7-0c087dba8c88"],
+
+Cell["\<\
+vertices = BuildVertices[ansatz];
+regulator = DefineRegulator[ansatz, {hbar, h} -> nuk q^2 r[q^2/k^2], {hbar, \
+hbar} -> -2 Dk r[q^2/k^2], \"Shapes\" -> {r}];
+prop = BuildPropagator[vertices, regulator];\
+\>", "Input",ExpressionUUID->"0902bdf9-dd5d-4754-99b5-480118787052"],
+
+Cell["\<\
+flows = CheckClosure[IntegrateFrequencies[ProjectOnMonomials[\
+BuildLoopIntegrands[vertices, prop, regulator], symmetries]], symmetries];
+equations = AssembleEquations[flows];\
+\>", "Input",ExpressionUUID->"174cfa15-c254-4723-a248-2cde2f38a74d"],
+
+Cell["\<\
+ShowEquation[equations, Fnu]
+ShowEquation[equations, FD]\
+\>", "Input",ExpressionUUID->"0f75e56f-d802-4c7c-92fd-c0f6752d1f34"],
+
+Cell["\<\
+(* the exact p -> 0 rows (used for the etas) *)
+EquationOf[equations, Fnu][\"AtZero\"][\"Integrand\"] // Short
+EquationOf[equations, FD][\"AtZero\"][\"Integrand\"] // Short\
+\>", "Input",ExpressionUUID->"01f829e7-8b8f-4e19-a056-9162e2d16f15"],
+
+Cell["oracle = RunOracle[equations];", "Input",ExpressionUUID->"3e2bfe5c-c17a-42a4-a03c-5e9eaa6a3ec6"],
+
+Cell["3. Dimensionless form", "Section",ExpressionUUID->"8230c79e-863c-4d02-ba7b-9db7d12223b0"],
+
+Cell["\<\
+Fnu, FD multiply the references nuk, Dk, so they are dimensionless; their \
+dimensionless versions are aFnu, aFD of ap^2. \"Equation\" -> nuk Fnu makes \
+nuk Running with aFnu(0) = 1 (its eta from the p -> 0 row); without it the \
+reference is Fixed (eta at run time).\
+\>", "Text",ExpressionUUID->"c5b1d863-825c-434b-8654-0b336fc8dd7e"],
+
+Cell["\<\
+dims = DeriveDimensions[ansatz, \"References\" -> {nuk -> {\"nu\", \"Equation\
+\" -> nuk Fnu}, Dk -> {\"D\", \"Equation\" -> Dk FD}}, \"Scale\" -> k];
+adim = AdimensionalEquations[equations, dims];\
+\>", "Input",ExpressionUUID->"85c8c3c0-fbdf-4bac-8c89-d2117433a99c"],
+
+Cell["\<\
+ShowBeta[adim, Fnu]
+ShowBeta[adim, FD]
+ShowEtaSystem[adim]\
+\>", "Input",ExpressionUUID->"40ff0f34-7809-46ef-a20d-6e77acdf4e4f"],
+
+Cell["\<\
+(* loop integrands of d^d aq/(2 Pi)^d, in (aq, ap, c) *)
+betaNL = AssociationThread[adim[\"State\"] -> adim[\"BetaNLExplicit\"]];\
+\>", "Input",ExpressionUUID->"e66f1e8c-4a4f-4e8a-8e01-a29ce4d410a5"],
+
+Cell["4. d = 1: time reversal", "Section",ExpressionUUID->"c7c70978-6fc3-4c1b-a671-eba9ce79a383"],
+
+Cell["\<\
+adim1 = AdimensionalEquations[equations, dims, \"Related\" -> {Related[FD -> \
+Fnu, \"AtDimension\" -> 1, \"Reason\" -> \"time reversal (d = 1)\"]}];
+ShowBeta[adim1, Fnu]\
+\>", "Input",ExpressionUUID->"292ce502-a767-4c9c-91ac-8002e148e112"],
+
+Cell["\<\
+5. Comparison with Canet et al. PRL 104, 150601 (2010), Eqs. (14)-(17)\
+\>", "Section",ExpressionUUID->"9dfff0c2-e22e-4e5d-84ba-2700a8759a03"],
+
+Cell["\<\
+The reference as transcribed from arXiv:0905.1025 (q-routing, u = p + q, P = \
+-p^2 + q^2 + u^2, Q = p^2 - q^2 + u^2, U = p^2 + q^2 - u^2; g11 = q^2 \
+(gamma11 + r), g02 = gamma02 + r, r_nu = eta_nu r + q r'(q) = eta_nu r + 2 y \
+r'(y)). This reading does NOT agree with the library, not even at p = 0 where \
+it must reduce to the derivative expansion: check the conventions (g02, r', \
+the measure Int_q) here.\
+\>", "Text",ExpressionUUID->"52560e08-e228-48eb-9ec9-658818b69cad"],
+
+Cell["\<\
+g11[x_] := x (aFnu[x] + r[x]); g02[x_] := aFD[x] + r[x];
+rnu[x_] := etanu r[x] + 2 x r'[x]; rD[x_] := etaD r[x] + 2 x r'[x];
+H[x_, y_] := g11[x] ((g11[x] + g11[y]) rD[x] - g02[x] (2 g11[x] + g11[y]) \
+rnu[x]);
+L[x_, y_] := g11[x]^2 g11[y] (g11[x] + g11[y])^2;
+P[p2_, x_, y_] := -p2 + x + y; Q[p2_, x_, y_] := p2 - x + y; U[p2_, x_, y_] \
+:= p2 + x - y;
+(* x = q^2, y = u^2, p2 = p^2; loop part of d_s gamma02, d_s gamma11 with g = \
+alamk^2 *)
+ref02[p2_, x_, y_] := -alamk^2 P[p2, x, y]^4 g02[y] H[x, y]/(y L[x, y]);
+ref11[p2_, x_, y_] := alamk^2 P[p2, x, y]^2/L[x, y] (U[p2, x, y]^2/x g11[y] \
+H[x, y] - Q[p2, x, y]^2/y g11[x]^2 g02[y] rnu[x]);\
+\>", "Input",ExpressionUUID->"8715d426-f2bb-4f2a-aee3-a127c1b3cbaa"],
+
+Cell["\<\
+(* pointwise: the reference shifted to the midpoint (q -> q - p/2) and \
+symmetrised under c -> -c, vs the library *)
+mid[f_] := With[{xm = aq^2 - ap aq c + ap^2/4, xp = aq^2 + ap aq c + ap^2/4}, \
+(f[ap^2, xm, xp] + (f[ap^2, xm, xp] /. c -> -c))/2];
+{ExactlyZeroQ[betaNL[FD] - mid[ref02]], ExactlyZeroQ[betaNL[Fnu] - \
+mid[ref11]]}\
+\>", "Input",ExpressionUUID->"cfc95282-ab4c-4bf6-b7bb-dd8ce9ab4a43"],
+
+Cell["\<\
+(* p = 0: the eta_D integrand of the library (F = 1) vs the reference, eta_D \
+= -Int ref02(0) *)
+etaRows = adim[\"EtaBNLExplicit\"] - adim[\"EtaMNLExplicit\"] . {etanu, \
+etaD};
+Simplify[{etaRows[[2]], -ref02[0, aq^2, aq^2]} /. {aFnu -> (1 &), aFD -> (1 \
+&)}]\
+\>", "Input",ExpressionUUID->"c0f37cc4-3d3a-43b6-90c5-50a25d50a54c"],
+
+Cell["\<\
+(* integrated, d = 3, test functions: routing-independent *)
+par = {alamk -> 1, etanu -> 1/5, etaD -> 1/7, Dim -> 3, aFnu -> (1 + #/(2 + \
+#) &), aFD -> (3/(3 + #) &), r -> (1/(1 + #^2) &)};
+int3[e_] := NIntegrate[aq^2/(4 Pi^2) e, {aq, 0, 12}, {c, -1, 1}, \
+PrecisionGoal -> 8, MaxRecursion -> 20];
+Table[{a, int3[betaNL[FD] /. par /. ap -> a], int3[ref02[a^2, aq^2, aq^2 + 2 \
+a aq c + a^2] /. par]}, {a, {3/5, 3/10}}]\
+\>", "Input",ExpressionUUID->"3d5040e2-e67b-45f6-8055-725c224e4173"]
+},
+FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"9183c8b4-822c-43b7-bc9c-2384501bdac9"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 114, 0, 70, "Title",ExpressionUUID->"595510de-383b-4df3-8634-8ea66431d7a2"],
+Cell[671, 22, 546, 8, 70, "Text",ExpressionUUID->"538c7ae9-26a7-45c3-81aa-84d776d1fc0c"],
+Cell[1220, 32, 127, 0, 70, "Input",ExpressionUUID->"164a052b-eaa1-47a4-b5bc-a98c4a6b5a0a"],
+Cell[1350, 34, 98, 0, 70, "Section",ExpressionUUID->"fda503c3-6f59-4c70-a955-15628e470704"],
+Cell[1451, 36, 335, 5, 70, "Input",ExpressionUUID->"13a6f769-7f37-41d6-8b94-d014678b9ee3"],
+Cell[1789, 43, 527, 9, 70, "Input",ExpressionUUID->"9692e574-6d0e-4066-b8f7-15630368c360"],
+Cell[2319, 54, 95, 0, 70, "Section",ExpressionUUID->"b244866e-6846-403f-8eee-f855cb7c2380"],
+Cell[2417, 56, 338, 5, 70, "Text",ExpressionUUID->"11431fa8-8b2b-4d11-90a7-0c087dba8c88"],
+Cell[2758, 63, 283, 5, 70, "Input",ExpressionUUID->"0902bdf9-dd5d-4754-99b5-480118787052"],
+Cell[3044, 70, 255, 4, 70, "Input",ExpressionUUID->"174cfa15-c254-4723-a248-2cde2f38a74d"],
+Cell[3302, 76, 136, 3, 70, "Input",ExpressionUUID->"0f75e56f-d802-4c7c-92fd-c0f6752d1f34"],
+Cell[3441, 81, 252, 4, 70, "Input",ExpressionUUID->"01f829e7-8b8f-4e19-a056-9162e2d16f15"],
+Cell[3696, 87, 102, 0, 70, "Input",ExpressionUUID->"3e2bfe5c-c17a-42a4-a03c-5e9eaa6a3ec6"],
+Cell[3801, 89, 95, 0, 70, "Section",ExpressionUUID->"8230c79e-863c-4d02-ba7b-9db7d12223b0"],
+Cell[3899, 91, 347, 5, 70, "Text",ExpressionUUID->"c5b1d863-825c-434b-8654-0b336fc8dd7e"],
+Cell[4249, 98, 277, 4, 70, "Input",ExpressionUUID->"85c8c3c0-fbdf-4bac-8c89-d2117433a99c"],
+Cell[4529, 104, 138, 4, 70, "Input",ExpressionUUID->"40ff0f34-7809-46ef-a20d-6e77acdf4e4f"],
+Cell[4670, 110, 209, 3, 70, "Input",ExpressionUUID->"e66f1e8c-4a4f-4e8a-8e01-a29ce4d410a5"],
+Cell[4882, 115, 97, 0, 70, "Section",ExpressionUUID->"c7c70978-6fc3-4c1b-a671-eba9ce79a383"],
+Cell[4982, 117, 250, 4, 70, "Input",ExpressionUUID->"292ce502-a767-4c9c-91ac-8002e148e112"],
+Cell[5235, 123, 152, 2, 70, "Section",ExpressionUUID->"9dfff0c2-e22e-4e5d-84ba-2700a8759a03"],
+Cell[5390, 127, 491, 7, 70, "Text",ExpressionUUID->"52560e08-e228-48eb-9ec9-658818b69cad"],
+Cell[5884, 136, 725, 13, 70, "Input",ExpressionUUID->"8715d426-f2bb-4f2a-aee3-a127c1b3cbaa"],
+Cell[6612, 151, 412, 7, 70, "Input",ExpressionUUID->"cfc95282-ab4c-4bf6-b7bb-dd8ce9ab4a43"],
+Cell[7027, 160, 341, 7, 70, "Input",ExpressionUUID->"c0f37cc4-3d3a-43b6-90c5-50a25d50a54c"],
+Cell[7371, 169, 499, 8, 70, "Input",ExpressionUUID->"3d5040e2-e67b-45f6-8055-725c224e4173"]
+}
+]
+*)
+
+(* End of internal cache information *)

@@ -19,12 +19,16 @@ Begin["`Private`"];
 (* concrete shapes for the numerical point, as in the script's randomPoint *)
 oracleShapes = {Function[y, 1/(1 + y^2)], Function[y, Exp[-y]], Function[y, 2/(2 + y)], Function[y, 1/(1 + y)], Function[y, 3/(3 + y^2)]};
 
+(* smooth positive momentum functions F(x) of the momentum squared x (design/MOMENTUMFUNCTIONS.md E2) *)
+oracleFunctions = {Function[x, 1 + x/(2 + x)], Function[x, 3/(3 + x)], Function[x, (2 + x^2)/(2 + x)], Function[x, 1 + Exp[-x]/2]};
+
 oraclePoint[eqs_, seed_, d_] := Module[{cps = eqs["Couplings"], dsc, pt},
    dsc = dsCoupling /@ cps;
    SeedRandom[seed];
    pt = Join[Thread[cps -> RandomInteger[{1, 30}, Length[cps]]/17], Thread[dsc -> RandomInteger[{-30, 30}, Length[dsc]]/17],
      {eqs["Scale"] -> RandomInteger[{10, 30}]/17, eqs["Dimension"] -> d},
-     MapIndexed[#1 -> oracleShapes[[Mod[#2[[1]] - 1, Length[oracleShapes]] + 1]] &, eqs["Shapes"]]];
+     MapIndexed[#1 -> oracleShapes[[Mod[#2[[1]] - 1, Length[oracleShapes]] + 1]] &, eqs["Shapes"]],
+     MapIndexed[#1 -> oracleFunctions[[Mod[#2[[1]] - 1, Length[oracleFunctions]] + 1]] &, Lookup[eqs, "MomentumFunctions", {}]]];
    pt];
 
 sci[x_, n_] := If[x == 0, "0", ToString[CForm[N[Chop[x, 10^-30], n]]]];
@@ -57,18 +61,27 @@ RunOracle[eqs_, OptionsPattern[]] := Block[{$FRGModule = "Oracle"},
      "\"Dimensions\" must be a non-empty subset of {2, 3}"]];
    closure = eqs["Closure"]; loops = closure["Integrated"]["Projection"]["Loops"];
    v = loops["Vertices"]; reg = loops["Regulator"]; fields = v["Fields"]; hasG4 = loops["HasGamma4"];
-   recs = Join[Function[e, <|"Pair" -> e["Pair"], "Frequency" -> e["Frequency"], "Momentum" -> e["Momentum"], "Label" -> inputForm[e["Flowing"]],
-         "Symbolic" -> e["Integrand"], "Normalisation" -> e["Normalisation"]|>] /@ eqs["Equations"],
+   recs = Join[Flatten[Function[e, If[KeyExistsQ[e, "Functional"],
+          {<|"Pair" -> e["Pair"], "Frequency" -> e["Frequency"], "Momentum" -> e["Momentum"], "Label" -> inputForm[e["Flowing"]] <> " at generic p",
+            "Symbolic" -> e["Integrand"], "Normalisation" -> e["Normalisation"], "Generic" -> True|>,
+           <|"Pair" -> e["Pair"], "Frequency" -> e["Frequency"], "Momentum" -> e["Momentum"], "Label" -> inputForm[e["Flowing"]] <> " at p = 0",
+            "Symbolic" -> e["AtZero"]["Integrand"], "Normalisation" -> e["Normalisation"]|>},
+          {<|"Pair" -> e["Pair"], "Frequency" -> e["Frequency"], "Momentum" -> e["Momentum"], "Label" -> inputForm[e["Flowing"]],
+            "Symbolic" -> e["Integrand"], "Normalisation" -> e["Normalisation"]|>}]] /@ eqs["Equations"]],
      If[TrueQ[OptionValue["ZeroFlows"]],
       Function[r, <|"Pair" -> r["Pair"], "Frequency" -> r["Frequency"], "Momentum" -> r["Momentum"],
           "Label" -> r["Class"] <> " " <> ToString[r["Pair"]] <> " (I w)^" <> ToString[r["Frequency"]] <> " (q^2)^" <> ToString[r["Momentum"]], "Symbolic" -> 0, "Normalisation" -> 1|>] /@
        Select[closure["Integrated"]["Flows"], MemberQ[{"Protected", "DeclaredNumeric", "Causality"}, #Class] &], {}]];
 
-   Do[Module[{pt, sd = OptionValue["Seed"], qVec, q2, valid, mat, gNum, g3, g4, dsr, fLoop, memo, vecs, dot},
+   Do[Module[{pt, sd = OptionValue["Seed"], qVec, q2, valid, mat, gNum, g3, g4, dsr, fLoop, memo, vecs, dot, pGen, g3v, g4v, dsrAt, fMid,
+      memoMid, genQ},
       qVec = Take[{3/10, -1/2, 2/5, 1/7}, d]; q2 = qVec . qVec;
-      (* a point where the poles are causal: the residue formula of the symbolic side assumes it *)
+      pGen = Take[{1/4, 1/3, -1/5, 1/6}, d];   (* external momentum of the generic-p comparison *)
+      genQ = AnyTrue[recs, TrueQ[Lookup[#, "Generic", False]] &];
+      (* a point where the poles are causal: the residue formula of the symbolic side assumes it (generic p: on both lines too) *)
       Do[pt = oraclePoint[eqs, sd + 7919 j, d];
-       valid = TrueQ[And @@ (eqs["ValidityConditions"]["Explicit"] /. pt /. eqs["LoopMomentum"] -> Sqrt[q2])];
+       valid = AllTrue[If[genQ, {q2, (qVec - pGen/2) . (qVec - pGen/2), (qVec + pGen/2) . (qVec + pGen/2)}, {q2}],
+         TrueQ[And @@ (eqs["ValidityConditions"]["Explicit"] /. pt /. eqs["LoopMomentum"] -> Sqrt[#])] &];
        If[valid, Break[]], {j, 0, 99}];
       FRGAssert["Oracle.validPoint", valid, eqs["ValidityConditions"]["Explicit"], "no random point satisfies the validity conditions"];
 
@@ -93,7 +106,39 @@ RunOracle[eqs_, OptionsPattern[]] := Block[{$FRGModule = "Oracle"},
          If[Chop[tr, 10^-(wp - 5)] === 0, 0,
          Quiet[NIntegrate[tr, {wO, -Infinity, -10, 0, 10, Infinity}, WorkingPrecision -> wp, PrecisionGoal -> pg, AccuracyGoal -> wp - 8, MaxRecursion -> 30],
           {NIntegrate::izero, NIntegrate::precw}]]];
+      (* generic p: the loop with explicit line vectors l1 = q - p/2, l2 = q + p/2, d_s R on l1, mirrored q -> -q (E2) *)
+      g3v[i_, {nu_, pv_}, {w_, lv_}, wp_] := N[Gamma3Matrix[v, i, {nuO, pO}, {wO, qO}] /. {scal[a_, b_] :> ((a /. {qO -> lv, pO -> pv}) . (b /. {qO -> lv, pO -> pv})),
+            wedge[a_, b_] :> wedgeN[a /. {qO -> lv, pO -> pv}, b /. {qO -> lv, pO -> pv}]} /. pt /. {nuO -> nu, wO -> w}, wp + 10];
+      g4v[a_, b_, {nu_, pv_}, {w_, lv_}, wp_] := N[Table[VertexValue[v, {a, b, c, e}, {{nuO, pO}, {-nuO, -pO}, {wO, qO}}], {c, fields}, {e, fields}] /.
+            {scal[x_, y_] :> ((x /. {qO -> lv, pO -> pv}) . (y /. {qO -> lv, pO -> pv}))} /. pt /. {nuO -> nu, wO -> w}, wp + 10];
+      dsrAt[x2_, wp_] := N[DsRegulatorMatrix[reg, x2] /. pt, wp + 10];
+      fMid[{a_, b_}, nu_, pv_, qv_, {wp_, pg_}] := memoMid[{a, b}, nu, pv, qv, {wp, pg}] = Module[{l1 = qv - pv/2, l2 = qv + pv/2, tr},
+         tr = Tr[dsrAt[l1 . l1, wp] . gNum[wO, l1 . l1, wp] . g3v[a, {nu, pv}, {wO, l1}, wp] . gNum[wO + nu, l2 . l2, wp] .
+             g3v[b, {-nu, -pv}, {wO + nu, l2}, wp] . gNum[wO, l1 . l1, wp]];
+         If[hasG4, tr = tr - Tr[dsrAt[l1 . l1, wp] . gNum[wO, l1 . l1, wp] . g4v[a, b, {nu, pv}, {wO, l1}, wp] . gNum[wO, l1 . l1, wp]]/2];
+         tr = Together[tr/(2 Pi)];
+         If[Chop[tr, 10^-(wp - 5)] === 0, 0,
+          Quiet[NIntegrate[tr, {wO, -Infinity, -10, 0, 10, Infinity}, WorkingPrecision -> wp, PrecisionGoal -> pg, AccuracyGoal -> wp - 8, MaxRecursion -> 30],
+           {NIntegrate::izero, NIntegrate::precw}]]];
       Do[Module[{m = r["Frequency"], n = r["Momentum"], units = IdentityMatrix[d], num, sym, err, ok, t1 = AbsoluteTime[], pspec},
+       If[TrueQ[Lookup[r, "Generic", False]],
+        (* (d/d(I nu))^m/m! by central differences; f(t) = mirrored loop at external t p; subtract the Taylor orders t^(2j), j < n, by
+           differences in t (j <= 1 here), divide by |p|^(2n) *)
+        pspec = {prec + 10 n, 22};
+        num = Module[{f, low},
+          f[t_] := Total[Table[sn[[2]] (fMid[r["Pair"], sn[[1]], t pGen, qVec, pspec] + fMid[r["Pair"], sn[[1]], t pGen, -qVec, pspec])/2, {sn, stencil[m, h]}]];
+          low = Which[n == 0, 0, n == 1, f[0], n == 2, f[0] + Total[#[[2]] f[#[[1]]] & /@ stencil[2, 10^-4]]/2,
+            True, FRGAssert["Oracle.functionalOrder", False, n, "the oracle subtracts at most the orders p^0, p^2 (n0 <= 2)"]];
+          (f[1] - low)/((pGen . pGen)^n I^m m! r["Normalisation"])];
+        sym = N[r["Symbolic"] /. pt /. {eqs["LoopMomentum"] -> Sqrt[q2], eqs["ExternalMomentum"] -> Sqrt[pGen . pGen],
+             eqs["Cosine"] -> (pGen . qVec)/Sqrt[(pGen . pGen) q2]}, First[pspec]];
+        err = If[sym == 0, Abs[num], Abs[(num - sym)/sym]];
+        ok = err < If[n == 2, 10^-5, tol];
+        AppendTo[results, <|"Dimension" -> d, "Label" -> r["Label"], "Numeric" -> num, "Symbolic" -> sym, "Error" -> err, "Seconds" -> AbsoluteTime[] - t1|>];
+        AppendTo[checks, assertCheck["Oracle." <> r["Label"] <> " (d = " <> ToString[d] <> ")", ok, {num, sym},
+          "the symbolic functional equation and the numerical loop disagree at the oracle point",
+          "numeric " <> sci[num, 10] <> ", symbolic " <> sci[sym, 10] <> If[sym == 0, ", |numeric| = ", ", rel. diff "] <> sci[err, 2]]];
+        Continue[]];
          (* (d/d(I nu))^m / m!  and  (Laplacian_p)^n / N_n, by central differences; equations are d_s(comb) = coefficient / norm *)
          If[n == 0,
           pspec = {prec, 22};

@@ -108,21 +108,27 @@ ShowVertexTable[v_Association] := (
 
 BuildVertices[ansatz_] := Block[{$FRGModule = "Vertices"},
   Module[{t0 = AbsoluteTime[], theory, fields, phis, bars, sortF, mons, nmax, msets, table, checks = {}, warns = {}, stage, w, q, g2, bad,
-    pw, conv, nc},
+    pw, conv, nc, fns, fnPat, toConst},
    validateStage[ansatz, "Ansatz"];
    theory = ansatz["Theory"]; fields = theory["Fields"]; phis = theory["Scalars"]; bars = theory["ResponseFields"];
-   mons = ansatz["Monomials"];
+   fns = Lookup[ansatz, "MomentumFunctions", {}]; fnPat = Alternatives @@ fns;
+   (* a momentum function F of a quadratic monomial is F(p^2) with p the momentum of a leg (both legs carry +-p): F[scal[qv[1], qv[1]]] *)
+   mons = If[#FieldCount == 2, MapAt[# /. f : fnPat :> f[scal[qv[1], qv[1]]] &, #, "Coefficient"], #] & /@ ansatz["Monomials"];
    sortF[l_] := SortBy[l, First[FirstPosition[fields, #]] &];
    nmax = Max[4, Max[#FieldCount & /@ mons]];
    msets = Join @@ Table[Union[sortF /@ Tuples[fields, n]], {n, 2, nmax}];
    table = Association[DeleteCases[(# -> vertexExpr[#, mons, sortF]) & /@ msets, _ -> 0]];
 
-   (* (a) plane waves into the raw density, every multiset (also those with no vertex: nothing may be lost) *)
+   (* (a) plane waves into the raw density, every multiset (also those with no vertex: nothing may be lost). A momentum function is
+      replaced by a constant on both sides: the check covers everything but its argument, which is a definition (F(-Laplacian)) *)
    nc = If[theory["Dimension"] === 2, 2, 3];
-   bad = Select[msets, Expand[planeWaveCoefficient[ansatz["Density"], fields, #, nc] - symbolAsPlaneWave[Lookup[table, Key[#], 0], nc]] =!= 0 &];
+   toConst = Thread[fns -> (pwConst /@ fns)];
+   bad = Select[msets, Expand[planeWaveCoefficient[ansatz["Density"] /. toConst, fields, #, nc] -
+         symbolAsPlaneWave[Lookup[table, Key[#], 0] /. f : fnPat[_] :> pwConst[Head[f]], nc]] =!= 0 &];
    AppendTo[checks, assertCheck["Vertices.planeWave", bad === {}, bad,
      "the Fourier vertex differs from the plane-wave substitution into the density: parser or Fourier-transform error",
-     "plane waves in the raw density = derived vertex, " <> ToString[Length[msets]] <> " field multisets (n = 2.." <> ToString[nmax] <> ", d = " <> ToString[nc] <> " components)"]];
+     "plane waves in the raw density = derived vertex, " <> ToString[Length[msets]] <> " field multisets (n = 2.." <> ToString[nmax] <> ", d = " <>
+      ToString[nc] <> " components" <> If[fns === {}, "", "; momentum functions as constants, their argument p^2 by definition"] <> ")"]];
 
    stage = <|"Fields" -> fields, "VertexTable" -> table|>;
    g2 = Gamma2Matrix[stage, w, q];
@@ -132,14 +138,28 @@ BuildVertices[ansatz_] := Block[{$FRGModule = "Vertices"},
    AppendTo[checks, assertCheck["Vertices.causality", AllTrue[Tuples[phis, 2], VertexValue[stage, #, {{w, q}}] === 0 &],
      Select[Tuples[phis, 2], VertexValue[stage, #, {{w, q}}] =!= 0 &], "a term quadratic in physical fields without response field (MSR)",
      "(implementation check) Gamma2_{phi phi} = 0 for physical fields"]];
-   AppendTo[checks, assertCheck["Vertices.gamma2Polynomial", AllTrue[Flatten[g2], PolynomialQ[# /. scal[q, q] -> ss, {w, ss}] && FreeQ[# /. scal[q, q] -> ss, q] &],
-     g2, "Gamma2 entries must be polynomials in I w and q^2", "(implementation check) Gamma2 entries polynomial in I w and q^2"]];
+   AppendTo[checks, assertCheck["Vertices.gamma2Polynomial", AllTrue[Flatten[g2], PolynomialQ[# /. scal[q, q] -> ss /. fnPat[ss] -> fnAtom, {w, ss}] && FreeQ[# /. scal[q, q] -> ss, q] &],
+     g2, "Gamma2 entries must be polynomials in I w and q^2", "(implementation check) Gamma2 entries polynomial in I w and q^2" <>
+      If[fns === {}, "", " (momentum functions F(q^2) as coefficients)"]]];
+   (* design/MOMENTUMFUNCTIONS.md A3: in every Gamma2 slot (entry, power of I w) a function enters as one term
+      number x (at most one coupling) x F(q^2) x (q^2)^n0 *)
+   If[fns =!= {}, Module[{slots, badT},
+     slots = Flatten[Table[{fields[[i]], fields[[j]], m, Expand[Coefficient[g2[[i, j]] /. scal[q, q] -> ss, w, m]/I^m]},
+        {i, Length[fields]}, {j, i, Length[fields]}, {m, 0, Max[0, Exponent[g2[[i, j]], w]]}], 2];
+     slots = Select[slots, ! FreeQ[#[[4]], fnPat] &];
+     badT = Select[slots, Function[sl, Module[{fa = Union[Cases[sl[[4]], fnPat[_], {0, Infinity}]]},
+          ! AllTrue[fa, Function[f, Module[{t = D[sl[[4]] /. f -> fz, fz]},
+               FreeQ[t, fnPat | fz] && Head[Expand[t]] =!= Plus && With[{tt = Expand[t] /. ss -> 1},
+                 NumericQ[tt] || MatchQ[tt, _?NumericQ _Symbol | _Symbol]]]]]]]];
+     AppendTo[checks, assertCheck["Vertices.functionalTerm", badT === {}, {#[[1 ;; 2]], "(I w)^" <> ToString[#[[3]]], displayString[#[[4]]]} & /@ badT,
+       "one term ref x Fnu x (p^2)^n0 per function: absorb any extra factor (another coupling, a power, an inverse, a second power of p^2) into the function",
+       "momentum functions enter each Gamma2 slot as number x (at most one coupling) x F(q^2) x (q^2)^n0"]]]];
 
    (* convention check (E1): the free response G_{phibar phi}(w) = 1 / Gamma2_{phi phibar}(w) has its pole in the upper half plane
       (with the couplings at random positive values, q^2 = 1/2) *)
    conv = Table[Module[{e = VertexValue[stage, {phis[[a]], bars[[a]]}, {{w, q}}], cs, roots},
        cs = Complement[Cases[e, s_Symbol /; Context[s] =!= "System`", Infinity], {w}];
-       e = e /. scal[q, q] -> 1/2 /. RandomRationalPoint[cs, 1];
+       e = e /. scal[q, q] -> 1/2 /. fnPat[_] -> 1 /. RandomRationalPoint[cs, 1];
        roots = If[Exponent[e, w] >= 1, w /. Solve[e == 0, w], {}];
        Which[
         roots === {}, infoCheck["WARN", "Vertices.retardedPole[" <> ToString[phis[[a]]] <> "]", "no dt term in Gamma2_{phi phibar}: convention check skipped"],

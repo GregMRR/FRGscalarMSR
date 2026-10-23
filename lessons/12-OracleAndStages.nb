@@ -10,15 +10,15 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       154,          7]
-NotebookDataLength[     32410,        791]
-NotebookOptionsPosition[     27274,        722]
-NotebookOutlinePosition[     27611,        737]
-CellTagsIndexPosition[     27568,        734]
+NotebookDataLength[     32544,        793]
+NotebookOptionsPosition[     27408,        724]
+NotebookOutlinePosition[     27745,        739]
+CellTagsIndexPosition[     27702,        736]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
-Cell["Lesson 12 - Oracle and Stages", "Title",ExpressionUUID->"4ab53248-3ffd-4625-ba7a-5fa0e0786a39"],
+Cell["Lesson 12 - Oracle and Stages", "Title",ExpressionUUID->"fefeaf40-d546-450a-85a2-c1ef9adabc14"],
 
 Cell[TextData[{
  "Two tools that sit beside the pipeline rather than in it. ",
@@ -29,15 +29,15 @@ with Propagator, Projection, FrequencyIntegration and Assemble. ",
  StyleBox["Stages",
   FontWeight->Bold],
  " saves any stage to disk and loads it back, refusing a file that is stale."
-}], "Text",ExpressionUUID->"04e5ece1-a8f3-4e83-bdaf-62175c95fb6a"],
+}], "Text",ExpressionUUID->"68f4ae05-3d37-4ff4-9f50-adfc48cab7fc"],
 
 Cell["\<\
 Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
 Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
 equations = lessonUpTo[\"Equations\"];\
-\>", "Input",ExpressionUUID->"73b6604f-4fac-4823-b487-f89535ec74d0"],
+\>", "Input",ExpressionUUID->"b61a7b65-10e6-490e-add1-183e705f0a59"],
 
-Cell["1. The oracle", "Section",ExpressionUUID->"b18cd628-ad1d-428e-987e-2332605e597e"],
+Cell["1. The oracle", "Section",ExpressionUUID->"56b475c1-26bd-4895-af22-673a2ad86570"],
 
 Cell[TextData[{
  StyleBox["What it does.",
@@ -67,16 +67,16 @@ Cell[TextData[{
   Background->GrayLevel[0.92]],
  ", and takes the frequency and momentum projections by finite differences. \
 The result must agree with the symbolic integrand at the same point."
-}], "Text",ExpressionUUID->"8b7451a3-e6ea-42cd-9563-6df3df3e2f5b"],
+}], "Text",ExpressionUUID->"e792495f-5c07-4df6-b07a-ba5fea93c2dd"],
 
-Cell["oracle = RunOracle[equations, \"ZeroFlows\" -> True];", "Input",ExpressionUUID->"74347033-f2b0-4e8e-87f0-63da5ff53f4e"],
+Cell["oracle = RunOracle[equations, \"ZeroFlows\" -> True];", "Input",ExpressionUUID->"a93ce67a-e2c2-4bab-abad-5fa5ecb0da01"],
 
 Cell["\<\
 20 comparisons: 2 equations and 8 flows that must vanish, in d = 2 and d = 3. \
 One of them in detail:\
-\>", "Text",ExpressionUUID->"a77c3dbd-6c49-4b85-8e60-e543b629b850"],
+\>", "Text",ExpressionUUID->"1afb46f5-ce0c-4444-af3c-670153a0a3fb"],
 
-Cell["oracle[\"Results\"][[1]]", "Input",ExpressionUUID->"a4953069-2af2-48e2-9109-e91dc4ede525"],
+Cell["oracle[\"Results\"][[1]]", "Input",ExpressionUUID->"36fa851c-a326-4fdd-816c-029ee5b67962"],
 
 Cell[TextData[{
  StyleBox["Why it's built this way: A numerical oracle beside an exact \
@@ -102,19 +102,19 @@ last exercise) is for."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->GrayLevel[0.55],
  Background->RGBColor[
-  0.93, 0.93, 0.93],ExpressionUUID->"15ed6336-e6ed-4a0d-9b12-22a0193f8942"],
+  0.93, 0.93, 0.93],ExpressionUUID->"2efdfd35-2d73-46b3-974c-dcd7f57c5a77"],
 
-Cell["2. How the oracle computes", "Section",ExpressionUUID->"1f7052b3-ee09-4bcd-ab38-b91d57c6672f"],
+Cell["2. How the oracle computes", "Section",ExpressionUUID->"4a201dd3-fce2-4d09-a7ef-d66c775a32c6"],
 
 Cell["\<\
 (* Kernel/Oracle.wl:19-20 *)
 (* concrete shapes for the numerical point, as in the script's randomPoint *)
 oracleShapes = {Function[y, 1/(1 + y^2)], Function[y, Exp[-y]], Function[y, \
 2/(2 + y)], Function[y, 1/(1 + y)], Function[y, 3/(3 + y^2)]};\
-\>", "Program",ExpressionUUID->"92a0f32d-fadd-45a1-95d1-496b6bb5b1c2"],
+\>", "Program",ExpressionUUID->"cf48d925-5b4a-4ffb-a174-ba35bb780ec8"],
 
 Cell["\<\
-(* Kernel/Oracle.wl:22-28 *)
+(* Kernel/Oracle.wl:25-32 *)
 oraclePoint[eqs_, seed_, d_] := Module[{cps = eqs[\"Couplings\"], dsc, pt},
    dsc = dsCoupling /@ cps;
    SeedRandom[seed];
@@ -122,9 +122,11 @@ oraclePoint[eqs_, seed_, d_] := Module[{cps = eqs[\"Couplings\"], dsc, pt},
 Thread[dsc -> RandomInteger[{-30, 30}, Length[dsc]]/17],
      {eqs[\"Scale\"] -> RandomInteger[{10, 30}]/17, eqs[\"Dimension\"] -> d},
      MapIndexed[#1 -> oracleShapes[[Mod[#2[[1]] - 1, Length[oracleShapes]] + \
-1]] &, eqs[\"Shapes\"]]];
+1]] &, eqs[\"Shapes\"]],
+     MapIndexed[#1 -> oracleFunctions[[Mod[#2[[1]] - 1, \
+Length[oracleFunctions]] + 1]] &, Lookup[eqs, \"MomentumFunctions\", {}]]];
    pt];\
-\>", "Program",ExpressionUUID->"7fa25999-18b4-498a-a574-136115ea1497"],
+\>", "Program",ExpressionUUID->"3e87434c-04a1-46ec-a337-6e84d9b7faf6"],
 
 Cell[TextData[{
  StyleBox["MapIndexed[f, list]",
@@ -142,10 +144,10 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " wraps around if there are more shapes than functions)."
-}], "Text",ExpressionUUID->"56a675c0-9990-4f7e-bf0e-94e6bb9df072"],
+}], "Text",ExpressionUUID->"13ee6742-a207-4fe4-a000-800dc55aac6d"],
 
 Cell["\<\
-(* Kernel/Oracle.wl:75-95 *)
+(* Kernel/Oracle.wl:88-108 *)
       (* numeric Gamma2 + R as a polynomial in w, at momentum squared x2 *)
       (* numerics per working precision wp: 40 digits (PrecisionGoal 22) for \
 n = 0 as before; more for n >= 1, where 2n-th
@@ -183,7 +185,7 @@ stops the search on integrands that vanish *)
 WorkingPrecision -> wp, PrecisionGoal -> pg, AccuracyGoal -> wp - 8, \
 MaxRecursion -> 30],
           {NIntegrate::izero, NIntegrate::precw}]]];\
-\>", "Program",ExpressionUUID->"b72f857e-eb1c-4176-9137-46415a30b0ab"],
+\>", "Program",ExpressionUUID->"40d7f1c7-2e5d-4397-aa0e-b4715511d259"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Arbitrary precision",
@@ -225,7 +227,7 @@ with 40 or more digits: ",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"a6544fd8-6991-4a3c-acbf-a42339e22fdb"],
+  0.91, 0.95, 1.],ExpressionUUID->"5a4ec72b-fef1-4cb3-97dd-c4ead13cf52f"],
 
 Cell["\<\
 {N[Pi, 30], Chop[10.^-20 + 1. - 1.], Inverse[{{1, 2}, {3, 4}}]}\
@@ -233,7 +235,7 @@ Cell["\<\
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"4d73049d-117d-49e1-9385-492003ad98f0"],
+  0.91, 0.95, 1.],ExpressionUUID->"616df494-566a-49a5-9cbe-63c481faefa9"],
 
 Cell[TextData[{
  StyleBox["Mathematica: NIntegrate",
@@ -288,7 +290,7 @@ be met. ",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"6465dcc1-17ac-4b56-9270-b29a6c5720fb"],
+  0.91, 0.95, 1.],ExpressionUUID->"1fedcb89-c787-44b1-8565-bf904370daf0"],
 
 Cell[TextData[{
  "The memo keys of ",
@@ -321,18 +323,18 @@ Cell[TextData[{
   FontColor->GrayLevel[0.4]],
  "): a value computed with 40 digits is never reused where 60 are needed \
 (review E15)."
-}], "Text",ExpressionUUID->"ab7c1df6-54fd-4ba3-9701-d893ac295f2f"],
+}], "Text",ExpressionUUID->"c665e877-954b-451f-8ee3-0aec22137f69"],
 
 Cell["\<\
-(* Kernel/Oracle.wl:32-35 *)
+(* Kernel/Oracle.wl:36-39 *)
 (* finite-difference stencils {shift, weight} of d^m/dx^m at 0 *)
 stencil[0, h_] := {{0, 1}};
 stencil[1, h_] := {{h, 1/(2 h)}, {-h, -1/(2 h)}};
 stencil[2, h_] := {{h, 1/h^2}, {0, -2/h^2}, {-h, 1/h^2}};\
-\>", "Program",ExpressionUUID->"f3862559-6b61-4f99-bce3-5b77937cd97b"],
+\>", "Program",ExpressionUUID->"4dcec752-6a92-40f2-8d3d-fcc280a64526"],
 
 Cell["\<\
-(* Kernel/Oracle.wl:37-43 *)
+(* Kernel/Oracle.wl:41-47 *)
 (* (Laplacian_p)^n at p = 0 by nested central second differences over \
 direction tuples (c1, ..., cn), and its normalisation
    N_n = (Laplacian)^n (p^2)^n = 4^n n! (d/2)_n (written here independently \
@@ -348,7 +350,7 @@ Sum[sh[[i, 1]] units[[cs[[i]]]], {i, n}]], {cs, Tuples[Range[d], n]}, {sh, \
 Tuples[st, n]}]]]];
 oracleLaplacianN[f_, d_, n_, h_] := If[n == 0, oracleLapStencil[f, d, n, h], \
 (4 oracleLapStencil[f, d, n, h/2] - oracleLapStencil[f, d, n, h])/3];\
-\>", "Program",ExpressionUUID->"d010a141-ea72-43fa-9d9a-14c10bed7ee0"],
+\>", "Program",ExpressionUUID->"2bcb46d6-5974-4e97-ba83-9572c71661d1"],
 
 Cell[TextData[{
  "The derivatives are central finite differences: ",
@@ -385,7 +387,7 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " in Projection."
-}], "Text",ExpressionUUID->"4333f784-e671-4396-91b4-f0499d73fbf3"],
+}], "Text",ExpressionUUID->"bd229ded-f67f-459e-9889-207788617bc4"],
 
 Cell[TextData[{
  StyleBox["wedgeN[a_?VectorQ, b_?VectorQ] /; Length[a] == Length[b] == 2",
@@ -409,12 +411,12 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " stays symbolic."
-}], "Text",ExpressionUUID->"9cb40147-db37-441c-96ed-04856fbef072"],
+}], "Text",ExpressionUUID->"767efc4a-c084-42c5-9195-1ea0fd0d4685"],
 
-Cell["3. Options and checks of the oracle", "Section",ExpressionUUID->"1b26a633-3127-4bb3-8056-a194f9938f4f"],
+Cell["3. Options and checks of the oracle", "Section",ExpressionUUID->"14892be7-3b57-4e14-bdcc-2bdb6f2e6637"],
 
 Cell["\<\
-(* Kernel/Oracle.wl:48-57 *)
+(* Kernel/Oracle.wl:52-61 *)
 Options[RunOracle] = {\"Dimensions\" -> Automatic, \"Tolerance\" -> 10^-8, \
 \"Seed\" -> 1, \"ZeroFlows\" -> False};
 
@@ -430,9 +432,9 @@ If[eqs[\"Dimension\"] === 2, {2}, {2, 3}]];
     If[eqs[\"Dimension\"] === 2, \"the dimension is declared: d = 2 only \
 (\\\"Dimensions\\\" -> {2} or Automatic)\",
      \"\\\"Dimensions\\\" must be a non-empty subset of {2, 3}\"]];\
-\>", "Program",ExpressionUUID->"fed3c9bc-e6d3-4743-b65b-888a3909b59b"],
+\>", "Program",ExpressionUUID->"f589499c-2d07-47be-9dca-b81684a6854a"],
 
-Cell["showFailure[RunOracle[equations, \"Dimensions\" -> {4}]]", "Input",ExpressionUUID->"2f34154e-6658-4ee4-9b3e-5cb6575d7b44"],
+Cell["showFailure[RunOracle[equations, \"Dimensions\" -> {4}]]", "Input",ExpressionUUID->"5106cc19-3b3e-4e7e-bf6a-8044470f5357"],
 
 Cell[TextData[{
  "The validity conditions are also respected: the point is redrawn (up to 100 \
@@ -448,9 +450,9 @@ times, ",
   Background->GrayLevel[0.92]],
  " loop) until the poles are causal, because the symbolic residues assume \
 they are."
-}], "Text",ExpressionUUID->"cceb0d8a-6bab-4863-adba-31c3272dc843"],
+}], "Text",ExpressionUUID->"e9119ac1-2ebf-4134-b134-6772089318a7"],
 
-Cell["4. Saving and loading stages", "Section",ExpressionUUID->"692686ba-fb1c-4d32-a4eb-8a25ecceee99"],
+Cell["4. Saving and loading stages", "Section",ExpressionUUID->"0b9417db-10c6-40a4-807d-586d33423059"],
 
 Cell["\<\
 (* Kernel/Stages.wl:16-17 *)
@@ -458,7 +460,7 @@ StageFingerprints[s_Association] := Union[Flatten[{Lookup[s, \"Fingerprint\", \
 {}], Lookup[s, \"Upstream\", {}],
      StageFingerprints /@ Select[Values[s], AssociationQ[#] && KeyExistsQ[#, \
 \"Stage\"] &]}]];\
-\>", "Program",ExpressionUUID->"d3835df9-eff7-4c82-99c2-e2da78b4ff0a"],
+\>", "Program",ExpressionUUID->"fb8e1318-d0fa-4277-87b1-9f416dadfb70"],
 
 Cell["\<\
 (* Kernel/Stages.wl:19-22 *)
@@ -468,7 +470,7 @@ SaveStage[stage_, file_String] := Block[{$FRGModule = \"Stages\"},
 takes a stage\"];
    validateStage[stage, stage[\"Stage\"]];
    Export[file, stage, \"WDX\"]];\
-\>", "Program",ExpressionUUID->"8347aaa7-6be3-4255-bcb7-45cabf8b906d"],
+\>", "Program",ExpressionUUID->"ecefea77-c36b-4cfc-9d48-b0bffe7a4d61"],
 
 Cell["\<\
 (* Kernel/Stages.wl:24-38 *)
@@ -492,7 +494,7 @@ StringTake[s[\"Fingerprint\"], 8], If[exp === {}, \"\",
      \", built from the current \" <> StringRiffle[#Stage & /@ exp, \", \
 \"]]];
    s]];\
-\>", "Program",ExpressionUUID->"bb8a07f1-b56a-4082-b917-196f86a58277"],
+\>", "Program",ExpressionUUID->"2128f82d-d19d-4f3d-afbb-5ef0bd1af4d2"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Export and Import",
@@ -525,7 +527,7 @@ stage comes back as the same association. ",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"fd06bda8-a251-4000-850e-a47b4fd926a6"],
+  0.91, 0.95, 1.],ExpressionUUID->"d3cb277f-4bdf-46e6-be8f-ba4a8ea9bcb5"],
 
 Cell["\<\
 file = FileNameJoin[{$TemporaryDirectory, \"lessonKPZEquations.wdx\"}];
@@ -533,7 +535,7 @@ SaveStage[equations, file];
 reloaded = LoadStage[file, \"Expect\" -> {kpzAnsatz, kpzRegulator, \
 kpzSymmetries}];
 reloaded === equations\
-\>", "Input",ExpressionUUID->"1e8f4894-e297-427e-9f9d-c038dfa4bb98"],
+\>", "Input",ExpressionUUID->"5e0fdf5a-3c8d-4c0c-99f3-0b6c61f924b5"],
 
 Cell[TextData[{
  StyleBox["StageFingerprints",
@@ -548,13 +550,13 @@ and upstream lists. ",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " lists the stages you are working with now; each must be among them."
-}], "Text",ExpressionUUID->"a76fb143-227e-4206-887f-96c92eb28934"],
+}], "Text",ExpressionUUID->"959d2307-6a16-44a3-b33c-159b869c82da"],
 
 Cell["\<\
 ansatzWithoutLambda = Block[{Print}, DefineAnsatz[kpzTheory, \"Density\" -> \
 hbar (dt[h] - nuk lap[h]) - Dk hbar^2, \"Couplings\" -> {nuk, Dk}]];
 showFailure[LoadStage[file, \"Expect\" -> {ansatzWithoutLambda}]]\
-\>", "Input",ExpressionUUID->"96b81d8d-173a-4785-a840-ebcb4c972908"],
+\>", "Input",ExpressionUUID->"1b9405a3-6b48-4e22-ab21-112fd4b2a19d"],
 
 Cell[TextData[{
  StyleBox["Why it's built this way: Persistence with a guard",
@@ -587,11 +589,11 @@ file and can be checked (",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->GrayLevel[0.55],
  Background->RGBColor[
-  0.93, 0.93, 0.93],ExpressionUUID->"c67fe7ff-8610-42d9-925c-6578c32cf977"],
+  0.93, 0.93, 0.93],ExpressionUUID->"e6f20974-1fe0-4922-af48-361c62932a1f"],
 
-Cell["Exercises", "Section",ExpressionUUID->"7021c597-42b6-4f98-95a3-8f0a5a700e21"],
+Cell["Exercises", "Section",ExpressionUUID->"fa4a2bcf-d4c0-4b16-b451-bede39aba830"],
 
-Cell["Exercise: A tighter tolerance", "Subsection",ExpressionUUID->"bee0bc09-0eab-4a0a-a6ab-f9c42f74555f"],
+Cell["Exercise: A tighter tolerance", "Subsection",ExpressionUUID->"e3ea0daa-bb3b-4608-896f-8a195ef3f396"],
 
 Cell[TextData[{
  "Run the oracle with ",
@@ -600,16 +602,16 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " and only d = 2. Does it pass? What sets the size of the error?"
-}], "Text",ExpressionUUID->"5646bc20-f9a1-4834-9e2a-7331541ebcc6"],
+}], "Text",ExpressionUUID->"39b47fc7-4754-4d79-8363-6674af31163f"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"f6917961-ae1f-402c-94cc-f0cd2ec9a6d2"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"3722e26a-9785-4406-b430-43869c768b5b"],
 
 Cell["\<\
 Block[{Print}, RunOracle[equations, \"Tolerance\" -> 10^-15, \"Dimensions\" \
 -> {2}]][\"Results\"][[All, {\"Label\", \"Error\"}]]\
-\>", "Input",ExpressionUUID->"7665b125-05dd-4772-81c4-9a09a604cde6"],
+\>", "Input",ExpressionUUID->"e01ab02c-39bc-4fce-b07f-156548f195df"],
 
 Cell[TextData[{
  "It passes: the errors are of order 10",
@@ -617,10 +619,10 @@ Cell[TextData[{
   FontFamily->"Noto Sans"],
  ", the size of the finite-difference error after Richardson extrapolation at \
 the precision used."
-}], "Text",ExpressionUUID->"85606cf7-c272-4d93-87bf-113f87f9ace0"]
+}], "Text",ExpressionUUID->"1e216813-ee22-4378-8c13-8fb3b00afd64"]
 }, Closed]],
 
-Cell["Exercise: A modified file", "Subsection",ExpressionUUID->"78999e4d-5cf7-4f5e-9908-3639c67522c1"],
+Cell["Exercise: A modified file", "Subsection",ExpressionUUID->"b5cd7a11-cefe-4b62-9003-1b7303469290"],
 
 Cell[TextData[{
  "Load the saved stage, change one key, save it under a new name with ",
@@ -639,18 +641,18 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ". Which check fails?"
-}], "Text",ExpressionUUID->"2255e608-7c0d-4082-a3b2-4879f6cdcc38"],
+}], "Text",ExpressionUUID->"6fff5183-d3c5-42e2-83b4-6b2856b14012"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"4b7d4d9e-71b6-4aac-9582-9d736fb7e546"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"879f0658-4819-4852-9f0b-e7bd3633e02c"],
 
 Cell["\<\
 file2 = FileNameJoin[{$TemporaryDirectory, \
 \"lessonKPZEquationsEdited.wdx\"}];
 Export[file2, Append[reloaded, \"Couplings\" -> {nuk}], \"WDX\"];
 showFailure[LoadStage[file2]]\
-\>", "Input",ExpressionUUID->"948c7a73-0dff-4cf9-9993-ce3f2aa865b9"],
+\>", "Input",ExpressionUUID->"b13dcba2-8857-4dac-b3ac-df06390d2ac7"],
 
 Cell[TextData[{
  StyleBox["Stage.fingerprint",
@@ -669,10 +671,10 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " would have refused to write it in the first place."
-}], "Text",ExpressionUUID->"30fb1167-9e88-4862-9df2-520515bd2fa6"]
+}], "Text",ExpressionUUID->"342db2cf-f5c9-4a98-847a-2c4bdd7f3890"]
 }, Closed]],
 
-Cell["Exercise: How much history is in a file", "Subsection",ExpressionUUID->"07ce2d39-34f9-4bb0-9fd9-6531efd37fbe"],
+Cell["Exercise: How much history is in a file", "Subsection",ExpressionUUID->"7f3c8159-c0b6-431f-8e25-dc2cb12d2906"],
 
 Cell[TextData[{
  "How many fingerprints does ",
@@ -681,16 +683,16 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " find? Which stages do they belong to?"
-}], "Text",ExpressionUUID->"43f8fe67-1e6b-4acc-92a9-4c8bb18a26f0"],
+}], "Text",ExpressionUUID->"ef451b40-dc45-4097-a25e-d4610f1868a6"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"f5dd5698-95e5-4148-b083-4fef00c7242c"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"723ae430-42f7-479c-b9c8-235fde2fe738"],
 
 Cell["\<\
 {Length[StageFingerprints[equations]], Union[Cases[equations, \
 KeyValuePattern[\"Stage\" -> s_String] :> s, {0, Infinity}]]}\
-\>", "Input",ExpressionUUID->"664c4a2c-7e44-4504-92c3-9c880f4ae356"],
+\>", "Input",ExpressionUUID->"6d01104e-4f7c-4654-8646-0f1ed66acaca"],
 
 Cell[TextData[{
  "Every stage of the chain, from Theory to Equations. ",
@@ -717,13 +719,13 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " key."
-}], "Text",ExpressionUUID->"7b243510-51dd-425b-9cd1-c1f9e1228cd6"]
+}], "Text",ExpressionUUID->"4c590840-11f9-4fa1-a3ea-128707d7359a"]
 }, Closed]]
 },
 CellContext->Notebook,
 FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
 StyleDefinitions->"Default.nb",
-ExpressionUUID->"68ca8ccf-8ceb-4f4a-8543-fab9318d86bc"
+ExpressionUUID->"3cc61674-820d-4389-b436-542045a0c982"
 ]
 (* End of Notebook Content *)
 
@@ -736,62 +738,62 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[554, 20, 101, 0, 70, "Title",ExpressionUUID->"4ab53248-3ffd-4625-ba7a-5fa0e0786a39"],
-Cell[658, 22, 452, 9, 70, "Text",ExpressionUUID->"04e5ece1-a8f3-4e83-bdaf-62175c95fb6a"],
-Cell[1113, 33, 239, 4, 70, "Input",ExpressionUUID->"73b6604f-4fac-4823-b487-f89535ec74d0"],
-Cell[1355, 39, 87, 0, 70, "Section",ExpressionUUID->"b18cd628-ad1d-428e-987e-2332605e597e"],
-Cell[1445, 41, 1039, 28, 70, "Text",ExpressionUUID->"8b7451a3-e6ea-42cd-9563-6df3df3e2f5b"],
-Cell[2487, 71, 125, 0, 70, "Input",ExpressionUUID->"74347033-f2b0-4e8e-87f0-63da5ff53f4e"],
-Cell[2615, 73, 181, 3, 70, "Text",ExpressionUUID->"a77c3dbd-6c49-4b85-8e60-e543b629b850"],
-Cell[2799, 78, 96, 0, 70, "Input",ExpressionUUID->"a4953069-2af2-48e2-9109-e91dc4ede525"],
-Cell[2898, 80, 1099, 24, 70, "Text",ExpressionUUID->"15ed6336-e6ed-4a0d-9b12-22a0193f8942"],
-Cell[4000, 106, 100, 0, 70, "Section",ExpressionUUID->"1f7052b3-ee09-4bcd-ab38-b91d57c6672f"],
-Cell[4103, 108, 329, 5, 70, "Program",ExpressionUUID->"92a0f32d-fadd-45a1-95d1-496b6bb5b1c2"],
-Cell[4435, 115, 553, 11, 70, "Program",ExpressionUUID->"7fa25999-18b4-498a-a574-136115ea1497"],
-Cell[4991, 128, 627, 16, 70, "Text",ExpressionUUID->"56a675c0-9990-4f7e-bf0e-94e6bb9df072"],
-Cell[5621, 146, 2173, 39, 70, "Program",ExpressionUUID->"b72f857e-eb1c-4176-9137-46415a30b0ab"],
-Cell[7797, 187, 1404, 40, 70, "Text",ExpressionUUID->"a6544fd8-6991-4a3c-acbf-a42339e22fdb"],
-Cell[9204, 229, 258, 6, 70, "Input",ExpressionUUID->"4d73049d-117d-49e1-9385-492003ad98f0"],
-Cell[9465, 237, 1818, 53, 70, "Text",ExpressionUUID->"6465dcc1-17ac-4b56-9270-b29a6c5720fb"],
-Cell[11286, 292, 956, 31, 70, "Text",ExpressionUUID->"ab7c1df6-54fd-4ba3-9701-d893ac295f2f"],
-Cell[12245, 325, 312, 6, 70, "Program",ExpressionUUID->"f3862559-6b61-4f99-bce3-5b77937cd97b"],
-Cell[12560, 333, 1018, 17, 70, "Program",ExpressionUUID->"d010a141-ea72-43fa-9d9a-14c10bed7ee0"],
-Cell[13581, 352, 1177, 35, 70, "Text",ExpressionUUID->"4333f784-e671-4396-91b4-f0499d73fbf3"],
-Cell[14761, 389, 768, 22, 70, "Text",ExpressionUUID->"9cb40147-db37-441c-96ed-04856fbef072"],
-Cell[15532, 413, 109, 0, 70, "Section",ExpressionUUID->"1b26a633-3127-4bb3-8056-a194f9938f4f"],
-Cell[15644, 415, 968, 17, 70, "Program",ExpressionUUID->"fed3c9bc-e6d3-4743-b65b-888a3909b59b"],
-Cell[16615, 434, 128, 0, 70, "Input",ExpressionUUID->"2f34154e-6658-4ee4-9b3e-5cb6575d7b44"],
-Cell[16746, 436, 521, 14, 70, "Text",ExpressionUUID->"cceb0d8a-6bab-4863-adba-31c3272dc843"],
-Cell[17270, 452, 102, 0, 70, "Section",ExpressionUUID->"692686ba-fb1c-4d32-a4eb-8a25ecceee99"],
-Cell[17375, 454, 321, 6, 70, "Program",ExpressionUUID->"d3835df9-eff7-4c82-99c2-e2da78b4ff0a"],
-Cell[17699, 462, 423, 8, 70, "Program",ExpressionUUID->"8347aaa7-6be3-4255-bcb7-45cabf8b906d"],
-Cell[18125, 472, 1190, 22, 70, "Program",ExpressionUUID->"bb8a07f1-b56a-4082-b917-196f86a58277"],
-Cell[19318, 496, 1104, 31, 70, "Text",ExpressionUUID->"fd06bda8-a251-4000-850e-a47b4fd926a6"],
-Cell[20425, 529, 288, 6, 70, "Input",ExpressionUUID->"1e8f4894-e297-427e-9f9d-c038dfa4bb98"],
-Cell[20716, 537, 590, 13, 70, "Text",ExpressionUUID->"a76fb143-227e-4206-887f-96c92eb28934"],
-Cell[21309, 552, 292, 4, 70, "Input",ExpressionUUID->"96b81d8d-173a-4785-a840-ebcb4c972908"],
-Cell[21604, 558, 1225, 31, 70, "Text",ExpressionUUID->"c67fe7ff-8610-42d9-925c-6578c32cf977"],
-Cell[22832, 591, 83, 0, 70, "Section",ExpressionUUID->"7021c597-42b6-4f98-95a3-8f0a5a700e21"],
-Cell[22918, 593, 106, 0, 70, "Subsection",ExpressionUUID->"bee0bc09-0eab-4a0a-a6ab-f9c42f74555f"],
-Cell[23027, 595, 315, 7, 70, "Text",ExpressionUUID->"5646bc20-f9a1-4834-9e2a-7331541ebcc6"],
+Cell[554, 20, 101, 0, 70, "Title",ExpressionUUID->"fefeaf40-d546-450a-85a2-c1ef9adabc14"],
+Cell[658, 22, 452, 9, 70, "Text",ExpressionUUID->"68f4ae05-3d37-4ff4-9f50-adfc48cab7fc"],
+Cell[1113, 33, 239, 4, 70, "Input",ExpressionUUID->"b61a7b65-10e6-490e-add1-183e705f0a59"],
+Cell[1355, 39, 87, 0, 70, "Section",ExpressionUUID->"56b475c1-26bd-4895-af22-673a2ad86570"],
+Cell[1445, 41, 1039, 28, 70, "Text",ExpressionUUID->"e792495f-5c07-4df6-b07a-ba5fea93c2dd"],
+Cell[2487, 71, 125, 0, 70, "Input",ExpressionUUID->"a93ce67a-e2c2-4bab-abad-5fa5ecb0da01"],
+Cell[2615, 73, 181, 3, 70, "Text",ExpressionUUID->"1afb46f5-ce0c-4444-af3c-670153a0a3fb"],
+Cell[2799, 78, 96, 0, 70, "Input",ExpressionUUID->"36fa851c-a326-4fdd-816c-029ee5b67962"],
+Cell[2898, 80, 1099, 24, 70, "Text",ExpressionUUID->"2efdfd35-2d73-46b3-974c-dcd7f57c5a77"],
+Cell[4000, 106, 100, 0, 70, "Section",ExpressionUUID->"4a201dd3-fce2-4d09-a7ef-d66c775a32c6"],
+Cell[4103, 108, 329, 5, 70, "Program",ExpressionUUID->"cf48d925-5b4a-4ffb-a174-ba35bb780ec8"],
+Cell[4435, 115, 686, 13, 70, "Program",ExpressionUUID->"3e87434c-04a1-46ec-a337-6e84d9b7faf6"],
+Cell[5124, 130, 627, 16, 70, "Text",ExpressionUUID->"13ee6742-a207-4fe4-a000-800dc55aac6d"],
+Cell[5754, 148, 2174, 39, 70, "Program",ExpressionUUID->"40d7f1c7-2e5d-4397-aa0e-b4715511d259"],
+Cell[7931, 189, 1404, 40, 70, "Text",ExpressionUUID->"5a4ec72b-fef1-4cb3-97dd-c4ead13cf52f"],
+Cell[9338, 231, 258, 6, 70, "Input",ExpressionUUID->"616df494-566a-49a5-9cbe-63c481faefa9"],
+Cell[9599, 239, 1818, 53, 70, "Text",ExpressionUUID->"1fedcb89-c787-44b1-8565-bf904370daf0"],
+Cell[11420, 294, 956, 31, 70, "Text",ExpressionUUID->"c665e877-954b-451f-8ee3-0aec22137f69"],
+Cell[12379, 327, 312, 6, 70, "Program",ExpressionUUID->"4dcec752-6a92-40f2-8d3d-fcc280a64526"],
+Cell[12694, 335, 1018, 17, 70, "Program",ExpressionUUID->"2bcb46d6-5974-4e97-ba83-9572c71661d1"],
+Cell[13715, 354, 1177, 35, 70, "Text",ExpressionUUID->"bd229ded-f67f-459e-9889-207788617bc4"],
+Cell[14895, 391, 768, 22, 70, "Text",ExpressionUUID->"767efc4a-c084-42c5-9195-1ea0fd0d4685"],
+Cell[15666, 415, 109, 0, 70, "Section",ExpressionUUID->"14892be7-3b57-4e14-bdcc-2bdb6f2e6637"],
+Cell[15778, 417, 968, 17, 70, "Program",ExpressionUUID->"f589499c-2d07-47be-9dca-b81684a6854a"],
+Cell[16749, 436, 128, 0, 70, "Input",ExpressionUUID->"5106cc19-3b3e-4e7e-bf6a-8044470f5357"],
+Cell[16880, 438, 521, 14, 70, "Text",ExpressionUUID->"e9119ac1-2ebf-4134-b134-6772089318a7"],
+Cell[17404, 454, 102, 0, 70, "Section",ExpressionUUID->"0b9417db-10c6-40a4-807d-586d33423059"],
+Cell[17509, 456, 321, 6, 70, "Program",ExpressionUUID->"fb8e1318-d0fa-4277-87b1-9f416dadfb70"],
+Cell[17833, 464, 423, 8, 70, "Program",ExpressionUUID->"ecefea77-c36b-4cfc-9d48-b0bffe7a4d61"],
+Cell[18259, 474, 1190, 22, 70, "Program",ExpressionUUID->"2128f82d-d19d-4f3d-afbb-5ef0bd1af4d2"],
+Cell[19452, 498, 1104, 31, 70, "Text",ExpressionUUID->"d3cb277f-4bdf-46e6-be8f-ba4a8ea9bcb5"],
+Cell[20559, 531, 288, 6, 70, "Input",ExpressionUUID->"5e0fdf5a-3c8d-4c0c-99f3-0b6c61f924b5"],
+Cell[20850, 539, 590, 13, 70, "Text",ExpressionUUID->"959d2307-6a16-44a3-b33c-159b869c82da"],
+Cell[21443, 554, 292, 4, 70, "Input",ExpressionUUID->"1b9405a3-6b48-4e22-ab21-112fd4b2a19d"],
+Cell[21738, 560, 1225, 31, 70, "Text",ExpressionUUID->"e6f20974-1fe0-4922-af48-361c62932a1f"],
+Cell[22966, 593, 83, 0, 70, "Section",ExpressionUUID->"fa4a2bcf-d4c0-4b16-b451-bede39aba830"],
+Cell[23052, 595, 106, 0, 70, "Subsection",ExpressionUUID->"e3ea0daa-bb3b-4608-896f-8a195ef3f396"],
+Cell[23161, 597, 315, 7, 70, "Text",ExpressionUUID->"39b47fc7-4754-4d79-8363-6674af31163f"],
 Cell[CellGroupData[{
-Cell[23367, 606, 88, 0, 70, "Subsubsection",ExpressionUUID->"f6917961-ae1f-402c-94cc-f0cd2ec9a6d2"],
-Cell[23458, 608, 210, 3, 70, "Input",ExpressionUUID->"7665b125-05dd-4772-81c4-9a09a604cde6"],
-Cell[23671, 613, 283, 6, 70, "Text",ExpressionUUID->"85606cf7-c272-4d93-87bf-113f87f9ace0"]
+Cell[23501, 608, 88, 0, 70, "Subsubsection",ExpressionUUID->"3722e26a-9785-4406-b430-43869c768b5b"],
+Cell[23592, 610, 210, 3, 70, "Input",ExpressionUUID->"e01ab02c-39bc-4fce-b07f-156548f195df"],
+Cell[23805, 615, 283, 6, 70, "Text",ExpressionUUID->"1e216813-ee22-4378-8c13-8fb3b00afd64"]
 }, Closed]],
-Cell[23969, 622, 102, 0, 70, "Subsection",ExpressionUUID->"78999e4d-5cf7-4f5e-9908-3639c67522c1"],
-Cell[24074, 624, 593, 17, 70, "Text",ExpressionUUID->"2255e608-7c0d-4082-a3b2-4879f6cdcc38"],
+Cell[24103, 624, 102, 0, 70, "Subsection",ExpressionUUID->"b5cd7a11-cefe-4b62-9003-1b7303469290"],
+Cell[24208, 626, 593, 17, 70, "Text",ExpressionUUID->"6fff5183-d3c5-42e2-83b4-6b2856b14012"],
 Cell[CellGroupData[{
-Cell[24692, 645, 88, 0, 70, "Subsubsection",ExpressionUUID->"4b7d4d9e-71b6-4aac-9582-9d736fb7e546"],
-Cell[24783, 647, 256, 5, 70, "Input",ExpressionUUID->"948c7a73-0dff-4cf9-9993-ce3f2aa865b9"],
-Cell[25042, 654, 625, 17, 70, "Text",ExpressionUUID->"30fb1167-9e88-4862-9df2-520515bd2fa6"]
+Cell[24826, 647, 88, 0, 70, "Subsubsection",ExpressionUUID->"879f0658-4819-4852-9f0b-e7bd3633e02c"],
+Cell[24917, 649, 256, 5, 70, "Input",ExpressionUUID->"b13dcba2-8857-4dac-b3ac-df06390d2ac7"],
+Cell[25176, 656, 625, 17, 70, "Text",ExpressionUUID->"342db2cf-f5c9-4a98-847a-2c4bdd7f3890"]
 }, Closed]],
-Cell[25682, 674, 116, 0, 70, "Subsection",ExpressionUUID->"07ce2d39-34f9-4bb0-9fd9-6531efd37fbe"],
-Cell[25801, 676, 302, 7, 70, "Text",ExpressionUUID->"43f8fe67-1e6b-4acc-92a9-4c8bb18a26f0"],
+Cell[25816, 676, 116, 0, 70, "Subsection",ExpressionUUID->"7f3c8159-c0b6-431f-8e25-dc2cb12d2906"],
+Cell[25935, 678, 302, 7, 70, "Text",ExpressionUUID->"ef451b40-dc45-4097-a25e-d4610f1868a6"],
 Cell[CellGroupData[{
-Cell[26128, 687, 88, 0, 70, "Subsubsection",ExpressionUUID->"f5dd5698-95e5-4148-b083-4fef00c7242c"],
-Cell[26219, 689, 205, 3, 70, "Input",ExpressionUUID->"664c4a2c-7e44-4504-92c3-9c880f4ae356"],
-Cell[26427, 694, 831, 25, 70, "Text",ExpressionUUID->"7b243510-51dd-425b-9cd1-c1f9e1228cd6"]
+Cell[26262, 689, 88, 0, 70, "Subsubsection",ExpressionUUID->"723ae430-42f7-479c-b9c8-235fde2fe738"],
+Cell[26353, 691, 205, 3, 70, "Input",ExpressionUUID->"6d01104e-4f7c-4654-8646-0f1ed66acaca"],
+Cell[26561, 696, 831, 25, 70, "Text",ExpressionUUID->"4c590840-11f9-4fa1-a3ea-128707d7359a"]
 }, Closed]]
 }
 ]

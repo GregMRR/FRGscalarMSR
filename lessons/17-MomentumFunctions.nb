@@ -1,0 +1,680 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[     25542,        671]
+NotebookOptionsPosition[     21545,        617]
+NotebookOutlinePosition[     21882,        632]
+CellTagsIndexPosition[     21839,        629]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["Lesson 17 - Momentum functions", "Title",ExpressionUUID->"bcb2f60f-f940-46cd-b8fa-9260908f8348"],
+
+Cell[TextData[{
+ StyleBox["Physics step.",
+  FontWeight->Bold],
+ " Let a ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2 coupling depend on the external momentum: ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ "_k ",
+ StyleBox["\[RightArrow]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ "_k F",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ "(p",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "), D_k ",
+ StyleBox["\[RightArrow]",
+  FontFamily->"Noto Sans"],
+ " D_k F_D(p",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "), the leading-order (LO) scheme of the KPZ literature. The flow of a \
+function is a flow at ",
+ StyleBox["generic",
+  FontWeight->Bold],
+ " external p: the loop carries propagators at two different momenta, the \
+frequency integral has two pole families, and the angular integral stays in \
+the equation. The decisions are recorded in ",
+ StyleBox["design/MOMENTUMFUNCTIONS.md",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "; this lesson follows the KPZ example through every stage."
+}], "Text",ExpressionUUID->"529a5221-5fb0-42de-b65b-92604b23fe26"],
+
+Cell[TextData[{
+ StyleBox["Stage.",
+  FontWeight->Bold],
+ " The same chain as for KPZ (lessons 01 to 14), with ",
+ StyleBox["\"MomentumFunctions\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " declared in the ansatz. Output: functional equations in (q, p, c) and \
+their dimensionless form; ",
+ StyleBox["ExportJulia",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " refuses them."
+}], "Text",ExpressionUUID->"6dfdb009-a03a-4a2a-9203-0ae058de121b"],
+
+Cell["\<\
+Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
+theory = lessonUpTo[\"Theory\"];\
+\>", "Input",ExpressionUUID->"9b668d89-432f-497e-a852-6ea37749fd06"],
+
+Cell["1. Writing the ansatz", "Section",ExpressionUUID->"29d6b19b-4aad-4e4d-b20c-4fe8da72e4d5"],
+
+Cell[TextData[{
+ "A function is written bare, in a quadratic term, times its reference: ",
+ StyleBox["- nuk Fnu hbar lap[h]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " means ",
+ StyleBox["\[Minus]\[Nu]",
+  FontFamily->"Noto Sans"],
+ "_k F",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ "(p",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ") ",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[Del]\.b2",
+  FontFamily->"Noto Sans"],
+ "h. It is declared in ",
+ StyleBox["\"MomentumFunctions\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " only, not in ",
+ StyleBox["\"Couplings\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ "."
+}], "Text",ExpressionUUID->"cbd74ea3-5c47-4fee-b5c7-d8de7d97bb22"],
+
+Cell["\<\
+loAnsatz = DefineAnsatz[theory, \"Density\" -> hbar (dt[h] - nuk Fnu lap[h] - \
+lamk/2 grad[h].grad[h]) - Dk FD hbar^2,
+   \"Couplings\" -> {nuk, lamk, Dk}, \"MomentumFunctions\" -> {Fnu, FD}];\
+\>", "Input",ExpressionUUID->"20962d11-7a6d-4c5c-bc32-273d2297c54d"],
+
+Cell["\<\
+Every input that makes no sense has a named check with a hint. A function \
+under an operator, or in a cubic term:\
+\>", "Text",ExpressionUUID->"2379d8fd-26b3-4570-8751-1dd94b1f5820"],
+
+Cell["\<\
+showFailure[DefineAnsatz[theory, \"Density\" -> hbar dt[h] - nuk hbar lap[Fnu \
+h] - Dk hbar^2, \"Couplings\" -> {nuk, Dk}, \"MomentumFunctions\" -> {Fnu}]]\
+\>", "Input",ExpressionUUID->"11352bcb-640d-47bf-af2e-5cac6c434e22"],
+
+Cell["2. Vertices and slots", "Section",ExpressionUUID->"bf6419b7-e1ec-4a08-b308-18a1ae2af0a8"],
+
+Cell[TextData[{
+ "In ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2 the function becomes F(q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ") at its leg momentum (both legs carry ",
+ StyleBox["\[PlusMinus]",
+  FontFamily->"Noto Sans"],
+ "q):"
+}], "Text",ExpressionUUID->"ac8a4367-6149-4726-b975-b90ac7a9e383"],
+
+Cell["\<\
+loVertices = BuildVertices[loAnsatz];
+Gamma2Matrix[loVertices, w, q]\
+\>", "Input",ExpressionUUID->"1d6f82af-db1a-4895-a66c-aca51f5c39bc"],
+
+Cell[TextData[{
+ "A ",
+ StyleBox["slot",
+  FontWeight->Bold],
+ " is a ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2 entry at one power of i",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ". A slot with a function is ",
+ StyleBox["\[CapitalSigma]",
+  FontFamily->"Noto Sans"],
+ "_{n<n",
+ StyleBox["\:2080",
+  FontFamily->"Noto Sans"],
+ "} c_n p^{2n} + p^{2n",
+ StyleBox["\:2080",
+  FontFamily->"Noto Sans"],
+ "} ref F(p",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "): its orders below n",
+ StyleBox["\:2080",
+  FontFamily->"Noto Sans"],
+ " are ordinary monomials, the rest is the function. ",
+ StyleBox["DeclareSymmetries",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " prints the orders ",
+ StyleBox["\[GreaterEqual]",
+  FontFamily->"Noto Sans"],
+ " n",
+ StyleBox["\:2080",
+  FontFamily->"Noto Sans"],
+ " as one row of class ",
+ StyleBox["Functional",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ". The KPZ tags keep their meaning: the shift symmetry still protects the \
+p",
+ StyleBox["\:2070",
+  FontFamily->"Noto Sans"],
+ " order of the F",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ " slot."
+}], "Text",ExpressionUUID->"a2048387-3603-4968-b644-12b88e2c5846"],
+
+Cell["\<\
+loSymmetries = DeclareSymmetries[loAnsatz,
+   Protected[{hbar, h}, \"Frequency\" -> 1, \"Momentum\" -> 0, \"Reason\" -> \
+\"Galilean Ward identity\"],
+   Protected[{h, hbar}, \"Frequency\" -> 0, \"Momentum\" -> 0, \"Reason\" -> \
+\"h -> h + c (shift symmetry)\"],
+   Neglected[_, \"Reason\" -> \"beyond the LO ansatz\"], \
+NonRenormalised[lamk, \"Reason\" -> \"Galilean invariance\"],
+   \"TruncationOrders\" -> <|\"Frequency\" -> 2, \"Momentum\" -> 1|>];\
+\>", "Input",ExpressionUUID->"a1783404-46f7-4d92-ba41-c0e018f34817"],
+
+Cell[TextData[{
+ "The card's ASSUMPTION ",
+ StyleBox["Symmetries.siblingAtZeroMomentum",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " says that the i",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ " slot of ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "_{",
+ StyleBox["h\:0304",
+  FontFamily->"Noto Sans"],
+ "h} is computed at p ",
+ StyleBox["\[RightArrow]",
+  FontFamily->"Noto Sans"],
+ " 0 only: this is the LO approximation f^",
+ StyleBox["\[Lambda]",
+  FontFamily->"Noto Sans"],
+ " = 1, visible by default. ",
+ StyleBox["Neglected[{h, hbar}, \"Frequency\" -> 1, \"Momentum\" -> \
+\"AllMomenta\", ...]",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " would compute it at generic p and report its size."
+}], "Text",ExpressionUUID->"bbe9e1e6-15e7-4759-81c8-845dffde96de"],
+
+Cell["3. The loop at generic p", "Section",ExpressionUUID->"1e93cfa5-57a9-4ae5-84ea-c9dc848657fa"],
+
+Cell[TextData[{
+ "At generic p a constant-coupling ansatz gives a pointwise regular \
+integrand, but with functions the quotient by p^{2n",
+ StyleBox["\:2080",
+  FontFamily->"Noto Sans"],
+ "} is singular as p ",
+ StyleBox["\[RightArrow]",
+  FontFamily->"Noto Sans"],
+ " 0 unless the integrand is even in p at fixed loop momentum. The library \
+routes the loop at the midpoint (lines q ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ " p/2 and q + p/2) and symmetrises under q ",
+ StyleBox["\[RightArrow]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "q; the regulator derivative ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "sR sits on one line only, so the routing alone is not enough, and each ",
+ StyleBox["dsR",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " entry carries its line's momentum."
+}], "Text",ExpressionUUID->"2c63d160-2864-4935-977b-513b5c441dc9"],
+
+Cell["\<\
+(* Kernel/Loops.wl:29-33 *)
+(* C1: d_s R sits on the q line only, so q -> -q (which swaps the two lines) \
+is needed on top of the midpoint routing; each dsR entry
+   carries its line's momentum squared before the shift (E25, E26) *)
+MidpointLoopIntegrand[l_Association, {a_, b_}, nu_, p_] := Module[{e},
+   e = loopTrace[l, l[\"DsR\"] /. d_dsR :> d[scal[qL, qL]], {a, b}, nu, p] /. \
+qL -> qL - p/2;
+   (e + (e /. qL -> -qL))/2];\
+\>", "Program",ExpressionUUID->"3c6eb8c5-1d23-4bad-ba45-824f8af7a594"],
+
+Cell["\<\
+loRegulator = DefineRegulator[loAnsatz, {hbar, h} -> nuk q^2 rn[q^2/k^2], \
+{hbar, hbar} -> -2 Dk rd[q^2/k^2], \"Shapes\" -> {rn, rd}];
+loPropagator = BuildPropagator[loVertices, loRegulator];
+loLoops = BuildLoopIntegrands[loVertices, loPropagator, loRegulator];
+loProjected = ProjectOnMonomials[loLoops, loSymmetries];\
+\>", "Input",ExpressionUUID->"56a6d4ae-b3ec-447c-bf7c-8e902039f84e"],
+
+Cell[TextData[{
+ "The projection subtracts the orders below n",
+ StyleBox["\:2080",
+  FontFamily->"Noto Sans"],
+ " by their Taylor coefficients in p at fixed q (p ",
+ StyleBox["\[RightArrow]",
+  FontFamily->"Noto Sans"],
+ " t p) and divides by p^{2n",
+ StyleBox["\:2080",
+  FontFamily->"Noto Sans"],
+ "}; ",
+ StyleBox["Projection.functionalOrder",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " checks that the odd orders vanish, so the quotient is regular."
+}], "Text",ExpressionUUID->"8729d139-f9fa-471b-8d0c-7ec9090f8e8a"],
+
+Cell["\<\
+(* Kernel/Projection.wl:108-117 *)
+(* C2: subtract the orders p^(2j), j < n0, by their un-averaged Taylor \
+coefficients at fixed q (p -> t p) and divide by p^(2 n0).
+   Projection.functionalOrder: the odd orders t^(2j+1), j < n0, vanish (the q \
+-> -q symmetrisation), so the result is O(1) as p -> 0 *)
+subtractLowerOrders[e_, n0_, what_] := Module[{et, cl, odd},
+   If[n0 == 0, Return[e]];
+   et = e /. {ExternalMomentumSquared -> fnT^2 ExternalMomentumSquared, \
+MomentumProduct -> fnT MomentumProduct};
+   cl = Table[(D[et, {fnT, j}] /. fnT -> 0)/j!, {j, 0, 2 n0 - 1}] /. \
+deltaCompletionAny;
+   odd = cl[[2 ;; ;; 2]];
+   FRGAssert[\"Projection.functionalOrder\", ExactlyZeroQ[odd, \"Seeds\" -> \
+{1}], {what, \"odd orders\" -> Short[odd]},
+    \"the generic-p integrand is not even in p at fixed q: its quotient by \
+p^(2 n0) would be singular as p -> 0 (midpoint routing and q -> -q \
+symmetrisation)\"];
+   Together[(e - Total[cl[[1 ;; ;; 2]]])/ExternalMomentumSquared^n0]];\
+\>", "Program",ExpressionUUID->"8b7ce41c-d422-4193-bee6-43a910340b60"],
+
+Cell[TextData[{
+ StyleBox["Why it's built this way: Why the exact p = 0 row is computed \
+separately",
+  FontWeight->Bold],
+ "\n\n",
+ "At ap = 0 the stored functional integrand is 0/0. Its value there (needed \
+for ",
+ StyleBox["\[Eta]",
+  FontFamily->"Noto Sans"],
+ " when ",
+ StyleBox["F\:0302",
+  FontFamily->"Noto Sans"],
+ "(0) = 1, and for a ",
+ StyleBox["Protected",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " tag at n",
+ StyleBox["\:2080",
+  FontFamily->"Noto Sans"],
+ ") is the same integral as the derivative-expansion row of order n",
+ StyleBox["\:2080",
+  FontFamily->"Noto Sans"],
+ ", but not the same integrand. Each functional row therefore also carries ",
+ StyleBox["\"AtZero\"",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", built with the p ",
+ StyleBox["\[RightArrow]",
+  FontFamily->"Noto Sans"],
+ " 0 operator of lesson 08."
+}], "Text",
+ CellFrame->{{4, 0}, {0, 0}},
+ CellFrameColor->GrayLevel[0.55],
+ Background->RGBColor[
+  0.93, 0.93, 0.93],ExpressionUUID->"6546866e-8d6f-490d-8386-ca20938d1010"],
+
+Cell["4. Several pole families", "Section",ExpressionUUID->"0d575a7d-197f-4452-a68a-baac1bc91b3a"],
+
+Cell[TextData[{
+ "The generic-p integrand has ",
+ StyleBox["\[CapitalDelta]",
+  FontFamily->"Noto Sans"],
+ " at |q ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ " p/2|",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " and at |q + p/2|",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " (and at q",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ " in the subtracted orders). ",
+ StyleBox["integrate",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " gives each distinct momentum argument its own family; a monomial with \
+several families goes to ",
+ StyleBox["FrequencyIntegralFamilies",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ", which sums the residues of every family and cancels the factors that \
+vanish where two families coincide (|q ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ " p/2| = |q + p/2| happens inside the domain, at c = 0)."
+}], "Text",ExpressionUUID->"e12fb338-af3a-491c-bbd7-a37dcaac0a62"],
+
+Cell["\<\
+(* Kernel/FrequencyIntegration.wl:52-78 *)
+(* several families (generic p): residues at the upper-half-plane roots of \
+every Delta_f(w); each family's roots enter symmetrically,
+   so the sum is even in every beta_f and rational after beta_f^2 -> its \
+value; Together cancels the factors that vanish where two
+   families coincide (E3), checked by FrequencyIntegration.coincidentFinite \
+*)
+FrequencyIntegralFamilies[n_Integer, exps_List, deg_Integer] := \
+FrequencyIntegralFamilies[n, exps, deg] = Block[{$FRGModule = \
+\"FrequencyIntegration\"},
+   Module[{nf = Length[exps], w, al, be, xx, roots, fac, f, res, num, den, cf},
+    cf[i_, m_] := FrequencyIntegralC[i, m];
+    FRGAssert[\"FrequencyIntegration.convergence\", n - deg \
+Total[Flatten[exps]] <= -2, {n, exps, deg},
+     \"divergent frequency integral: the integrand does not decay faster than \
+1/w^2\"];
+    (* Delta_f(w) = -c2 (w - z1)(w - z2) (deg 2), I c1 (w - z) (deg 1); \
+Delta_f(-w) likewise with w -> -w *)
+    roots[i_] := If[deg == 2, {I al[i] + be[i], I al[i] - be[i]}, {I cf[i, \
+0]/cf[i, 1]}];
+    fac[i_, x_] := If[deg == 2, -cf[i, 2] (x - roots[i][[1]]) (x - \
+roots[i][[2]]), I cf[i, 1] (x - roots[i][[1]])];
+    f = w^n/Product[fac[i, w]^exps[[i, 1]] fac[i, -w]^exps[[i, 2]], {i, nf}];
+    res = Sum[If[exps[[i, 1]] == 0, 0,
+       Sum[With[{z = roots[i][[j]]}, Module[{g = Together[f (w - z)^exps[[i, \
+1]]]},
+          (D[g, {w, exps[[i, 1]] - 1}] /. w -> z)/(exps[[i, 1]] - 1)!]], {j, \
+Length[roots[i]]}]], {i, nf}];
+    res = Together[2 Pi I res];
+    If[deg == 2, Do[
+       num = Expand[Numerator[res] (Denominator[res] /. be[i] -> -be[i])]; \
+den = Expand[Denominator[res] (Denominator[res] /. be[i] -> -be[i])];
+       FRGAssert[\"FrequencyIntegration.evenInBeta\", Expand[(num /. be[i] -> \
+-be[i]) - num] === 0 && Expand[(den /. be[i] -> -be[i]) - den] === 0, {n, \
+exps},
+        \"internal: the residue sum is not symmetric in the two roots of one \
+family\"];
+       res = Together[(num /. be[i] -> Sqrt[xx[i]])/(den /. be[i] -> \
+Sqrt[xx[i]])], {i, nf}];
+     res = Together[res /. Flatten[Table[{xx[i] -> (4 cf[i, 0] cf[i, 2] - \
+cf[i, 1]^2)/(4 cf[i, 2]^2), al[i] -> cf[i, 1]/(2 cf[i, 2])}, {i, nf}]]]];
+    FRGAssert[\"FrequencyIntegration.rational\", FreeQ[res, be | xx | al | \
+Power[_, _Rational]], res, \"internal: square roots survived\"];
+    (* E3: finite where any two families coincide *)
+    Do[FRGAssert[\"FrequencyIntegration.coincidentFinite\", ! \
+ExactlyZeroQ[Denominator[res] /. Table[cf[j, m] -> cf[i, m], {m, 0, 2}], \
+\"Seeds\" -> {1}],
+       {n, exps, {i, j}}, \"internal: the combined residues are singular \
+where two pole families coincide\"], {i, nf}, {j, i + 1, nf}];
+    res]];\
+\>", "Program",ExpressionUUID->"1db97d43-638d-4908-9766-284452e0c1e0"],
+
+Cell["FrequencyIntegralFamilies[0, {{1, 1}, {1, 1}}, 1]", "Input",ExpressionUUID->"6ba946cb-933f-4f1d-8fa3-8f52e04809ab"],
+
+Cell["5. Equations in (q, p, c), and the oracle", "Section",ExpressionUUID->"6b6e98e1-b8eb-453e-87db-cd0845f9b61e"],
+
+Cell["\<\
+loIntegrated = IntegrateFrequencies[loProjected];
+loEquations = AssembleEquations[CheckClosure[loIntegrated, loSymmetries]];
+Short[EquationOf[loEquations, FD][\"Integrand\"], 3]\
+\>", "Input",ExpressionUUID->"2ccec1b3-d596-4c96-9059-d80d57bf74ea"],
+
+Cell[TextData[{
+ StyleBox["RunOracle",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " checks each functional equation numerically at an explicit (q, p, c): \
+numeric inverse of ",
+ StyleBox["\[CapitalGamma]",
+  FontFamily->"Noto Sans"],
+ "2 + R on both lines, ",
+ StyleBox["\[PartialD]",
+  FontFamily->"Noto Sans"],
+ "sR on its own line, the mirror q ",
+ StyleBox["\[RightArrow]",
+  FontFamily->"Noto Sans"],
+ " ",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "q, NIntegrate over ",
+ StyleBox["\[Omega]",
+  FontFamily->"Noto Sans"],
+ ", explicit smooth test functions; and its exact p = 0 row against the p ",
+ StyleBox["\[RightArrow]",
+  FontFamily->"Noto Sans"],
+ " 0 path."
+}], "Text",ExpressionUUID->"b529fde7-83ac-4d31-a83a-e0e1e64d65c7"],
+
+Cell["RunOracle[loEquations, \"Dimensions\" -> {2}];", "Input",ExpressionUUID->"1447888a-5122-4b73-839f-3abbfc1780db"],
+
+Cell["6. Dimensionless form and Related", "Section",ExpressionUUID->"91649745-ec8c-44fc-8b42-f0efd6d4f683"],
+
+Cell[TextData[{
+ "A function times a reference is dimensionless; its dimensionless version is \
+named ",
+ StyleBox["a<>F",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " (F(p",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ") and ",
+ StyleBox["F\:0302",
+  FontFamily->"Noto Sans"],
+ "(p",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ "/k",
+ StyleBox["\.b2",
+  FontFamily->"Noto Sans"],
+ ") are different functions). With ",
+ StyleBox["\"Equation\" -> nuk Fnu",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " the reference is Running and ",
+ StyleBox["F\:0302\[Nu]",
+  FontFamily->"Noto Sans"],
+ "(0) = 1."
+}], "Text",ExpressionUUID->"1499e0e7-e2d7-4fe7-b16d-f0244689bf89"],
+
+Cell["\<\
+loDims = DeriveDimensions[loAnsatz, \"References\" -> {nuk -> {\"nu\", \
+\"Equation\" -> nuk Fnu}, Dk -> {\"D\", \"Equation\" -> Dk FD}}, \"Scale\" -> \
+k];
+loAdim = AdimensionalEquations[loEquations, loDims];
+ShowBeta[loAdim, FD]\
+\>", "Input",ExpressionUUID->"041230c2-cdd5-4d6f-86f4-5b80417285be"],
+
+Cell[TextData[{
+ "In d = 1 KPZ has the time-reversal symmetry: ",
+ StyleBox["F\:0302",
+  FontFamily->"Noto Sans"],
+ "_D = ",
+ StyleBox["F\:0302\[Nu]",
+  FontFamily->"Noto Sans"],
+ ". ",
+ StyleBox["Related",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ " states it once; the library derives what it implies (",
+ StyleBox["\[Eta]",
+  FontFamily->"Noto Sans"],
+ "_D = ",
+ StyleBox["\[Eta]",
+  FontFamily->"Noto Sans"],
+ "_",
+ StyleBox["\[Nu]",
+  FontFamily->"Noto Sans"],
+ ", rd = rn, d = 1), checks that the two betas agree pointwise at c = ",
+ StyleBox["\[PlusMinus]",
+  FontFamily->"Noto Sans"],
+ "1, imposes it and drops F_D:"
+}], "Text",ExpressionUUID->"0ece748c-1f51-457c-b430-9a502be1d347"],
+
+Cell["\<\
+loRel = AdimensionalEquations[loEquations, loDims, \"Related\" -> {Related[FD \
+-> Fnu, \"AtDimension\" -> 1, \"Reason\" -> \"time reversal (d = 1)\"]}];
+{loRel[\"State\"], loRel[\"Dimension\"]}\
+\>", "Input",ExpressionUUID->"3d0b6943-af1c-4c9b-837f-0bc045b5917a"],
+
+Cell["Exercise: Time reversal in d = 2", "Subsection",ExpressionUUID->"87144094-4369-4b11-8153-fd8551178d0d"],
+
+Cell["\<\
+Ask for the same relation at d = 2. What happens, and why does the check need \
+random cosines there?\
+\>", "Text",ExpressionUUID->"51c4a54e-c4af-4fbb-93c1-271009e016c1"],
+
+Cell[CellGroupData[{
+
+Cell["Solution", "Subsubsection",ExpressionUUID->"157d9020-4611-4f27-a0c4-1dbc3d9d72ba"],
+
+Cell["\<\
+showFailure[AdimensionalEquations[loEquations, loDims, \"Related\" -> \
+{Related[FD -> Fnu, \"AtDimension\" -> 2, \"Reason\" -> \"false in d = 2\"]}]]\
+\>", "Input",ExpressionUUID->"009771b4-e759-4fdd-817c-c71a718cceab"],
+
+Cell[TextData[{
+ "It aborts with ",
+ StyleBox["Adimensional.related",
+  FontFamily->"Source Code Pro",
+  FontColor->RGBColor[0.6, 0.12, 0.1],
+  Background->GrayLevel[0.92]],
+ ": the identity does not hold in d = 2. At c = ",
+ StyleBox["\[PlusMinus]",
+  FontFamily->"Noto Sans"],
+ "1 (collinear p and q) the integrands reduce to the one-dimensional ones in \
+every d, so a check at c = ",
+ StyleBox["\[PlusMinus]",
+  FontFamily->"Noto Sans"],
+ "1 alone would accept it; at d ",
+ StyleBox["\[NotEqual]",
+  FontFamily->"Noto Sans"],
+ " 1 the library also draws random c in (",
+ StyleBox["\[Minus]",
+  FontFamily->"Noto Sans"],
+ "1, 1)."
+}], "Text",ExpressionUUID->"2eba0c1b-8faf-4b01-8184-0e52596b4e48"]
+}, Closed]]
+},
+CellContext->Notebook,
+FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"3cc61674-820d-4389-b436-542045a0c982"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 102, 0, 70, "Title",ExpressionUUID->"bcb2f60f-f940-46cd-b8fa-9260908f8348"],
+Cell[659, 22, 1197, 39, 70, "Text",ExpressionUUID->"529a5221-5fb0-42de-b65b-92604b23fe26"],
+Cell[1859, 63, 570, 15, 70, "Text",ExpressionUUID->"6dfdb009-a03a-4a2a-9203-0ae058de121b"],
+Cell[2432, 80, 233, 4, 70, "Input",ExpressionUUID->"9b668d89-432f-497e-a852-6ea37749fd06"],
+Cell[2668, 86, 95, 0, 70, "Section",ExpressionUUID->"29d6b19b-4aad-4e4d-b20c-4fe8da72e4d5"],
+Cell[2766, 88, 906, 32, 70, "Text",ExpressionUUID->"cbd74ea3-5c47-4fee-b5c7-d8de7d97bb22"],
+Cell[3675, 122, 273, 4, 70, "Input",ExpressionUUID->"20962d11-7a6d-4c5c-bc32-273d2297c54d"],
+Cell[3951, 128, 193, 3, 70, "Text",ExpressionUUID->"2379d8fd-26b3-4570-8751-1dd94b1f5820"],
+Cell[4147, 133, 236, 3, 70, "Input",ExpressionUUID->"11352bcb-640d-47bf-af2e-5cac6c434e22"],
+Cell[4386, 138, 95, 0, 70, "Section",ExpressionUUID->"bf6419b7-e1ec-4a08-b308-18a1ae2af0a8"],
+Cell[4484, 140, 329, 11, 70, "Text",ExpressionUUID->"ac8a4367-6149-4726-b975-b90ac7a9e383"],
+Cell[4816, 153, 148, 3, 70, "Input",ExpressionUUID->"1d6f82af-db1a-4895-a66c-aca51f5c39bc"],
+Cell[4967, 158, 1318, 49, 70, "Text",ExpressionUUID->"a2048387-3603-4968-b644-12b88e2c5846"],
+Cell[6288, 209, 535, 9, 70, "Input",ExpressionUUID->"a1783404-46f7-4d92-ba41-c0e018f34817"],
+Cell[6826, 220, 916, 28, 70, "Text",ExpressionUUID->"bbe9e1e6-15e7-4759-81c8-845dffde96de"],
+Cell[7745, 250, 98, 0, 70, "Section",ExpressionUUID->"1e93cfa5-57a9-4ae5-84ea-c9dc848657fa"],
+Cell[7846, 252, 984, 27, 70, "Text",ExpressionUUID->"2c63d160-2864-4935-977b-513b5c441dc9"],
+Cell[8833, 281, 512, 9, 70, "Program",ExpressionUUID->"3c6eb8c5-1d23-4bad-ba45-824f8af7a594"],
+Cell[9348, 292, 399, 6, 70, "Input",ExpressionUUID->"56a6d4ae-b3ec-447c-bf7c-8e902039f84e"],
+Cell[9750, 300, 585, 16, 70, "Text",ExpressionUUID->"8729d139-f9fa-471b-8d0c-7ec9090f8e8a"],
+Cell[10338, 318, 1065, 19, 70, "Program",ExpressionUUID->"8b7ce41c-d422-4193-bee6-43a910340b60"],
+Cell[11406, 339, 1145, 36, 70, "Text",ExpressionUUID->"6546866e-8d6f-490d-8386-ca20938d1010"],
+Cell[12554, 377, 98, 0, 70, "Section",ExpressionUUID->"0d575a7d-197f-4452-a68a-baac1bc91b3a"],
+Cell[12655, 379, 1051, 32, 70, "Text",ExpressionUUID->"e12fb338-af3a-491c-bbd7-a37dcaac0a62"],
+Cell[13709, 413, 2786, 51, 70, "Program",ExpressionUUID->"1db97d43-638d-4908-9766-284452e0c1e0"],
+Cell[16498, 466, 121, 0, 70, "Input",ExpressionUUID->"6ba946cb-933f-4f1d-8fa3-8f52e04809ab"],
+Cell[16622, 468, 115, 0, 70, "Section",ExpressionUUID->"6b6e98e1-b8eb-453e-87db-cd0845f9b61e"],
+Cell[16740, 470, 257, 4, 70, "Input",ExpressionUUID->"2ccec1b3-d596-4c96-9059-d80d57bf74ea"],
+Cell[17000, 476, 809, 25, 70, "Text",ExpressionUUID->"b529fde7-83ac-4d31-a83a-e0e1e64d65c7"],
+Cell[17812, 503, 118, 0, 70, "Input",ExpressionUUID->"1447888a-5122-4b73-839f-3abbfc1780db"],
+Cell[17933, 505, 107, 0, 70, "Section",ExpressionUUID->"91649745-ec8c-44fc-8b42-f0efd6d4f683"],
+Cell[18043, 507, 795, 28, 70, "Text",ExpressionUUID->"1499e0e7-e2d7-4fe7-b16d-f0244689bf89"],
+Cell[18841, 537, 310, 6, 70, "Input",ExpressionUUID->"041230c2-cdd5-4d6f-86f4-5b80417285be"],
+Cell[19154, 545, 754, 25, 70, "Text",ExpressionUUID->"0ece748c-1f51-457c-b430-9a502be1d347"],
+Cell[19911, 572, 274, 4, 70, "Input",ExpressionUUID->"3d0b6943-af1c-4c9b-837f-0bc045b5917a"],
+Cell[20188, 578, 109, 0, 70, "Subsection",ExpressionUUID->"87144094-4369-4b11-8153-fd8551178d0d"],
+Cell[20300, 580, 180, 3, 70, "Text",ExpressionUUID->"51c4a54e-c4af-4fbb-93c1-271009e016c1"],
+Cell[CellGroupData[{
+Cell[20505, 587, 88, 0, 70, "Subsubsection",ExpressionUUID->"157d9020-4611-4f27-a0c4-1dbc3d9d72ba"],
+Cell[20596, 589, 230, 3, 70, "Input",ExpressionUUID->"009771b4-e759-4fdd-817c-c71a718cceab"],
+Cell[20829, 594, 700, 20, 70, "Text",ExpressionUUID->"2eba0c1b-8faf-4b01-8184-0e52596b4e48"]
+}, Closed]]
+}
+]
+*)
+
+(* End of internal cache information *)

@@ -13,7 +13,8 @@ ScaleAtom::usage = "ScaleAtom[a, b, m, j] is a scale-stripped atom of the compac
 and its j-th s-derivative = (scale without s) ScaleAtom[a, b, m, j]; the scale is the common factor (number, couplings, power of s) \
 of the terms of the atom. Explicit values: the \"Atoms\" key of the Equations stage.";
 ShowEquation::usage = "ShowEquation[equations, comb] prints d_s(comb) = RHS in compact form, the atoms it uses and the validity conditions.";
-EquationOf::usage = "EquationOf[equations, comb] is the equation record whose flowing combination is comb.";
+EquationOf::usage = "EquationOf[equations, comb] is the equation record whose flowing combination is comb; EquationOf[equations, Fnu] \
+is the equation of the momentum function Fnu.";
 
 Begin["`Private`"];
 
@@ -44,6 +45,22 @@ atomSystem[prop_, cps_, shapes_, jmax_] := Module[{rules = {}, vals = <||>, form
     {g, prop["Atoms"]}];
    {rules, vals, forms}];
 
+(* generic-p rows (design/MOMENTUMFUNCTIONS.md D2): the same scale-stripped atoms, applied to their momentum argument,
+   GammaAtom[a, b, m][x] -> scale(x) ScaleAtom[a, b, m, 0][x] (or the explicit X(x) when X is a single term) *)
+genericAtomRules[prop_, cps_, shapes_, jmax_] := Flatten[Function[g, Module[{cs, n, x, a, b, m},
+     {a, b, m} = List @@ g;
+     {cs, n, x} = stripScale[prop["AtomValues"][g][xs], xs, cps, shapes];
+     Table[With[{xj = If[j == 0, x, Expand[D[xs^n x, {xs, j}]]], jj = j, aa = a, bb = b, mm = m, c0 = cs, n0 = n, gg = g},
+       If[jj == 0,
+        gg[y_] :> c0 y^n0 If[Head[xj] === Plus, ScaleAtom[aa, bb, mm, 0][y], xj /. xs -> y],
+        Derivative[jj][gg][y_] :> c0 If[Head[xj] === Plus, ScaleAtom[aa, bb, mm, jj][y], xj /. xs -> y]]], {j, 0, jmax}]]] /@ prop["Atoms"]];
+
+(* d_s R on a line of momentum squared y, and its y-derivatives (generic-p rows carry dsR[a, b][y], E26) *)
+dsRAtRules[reg_] := {dsR[a_, b_][y_] :> (dsRValue[reg, {a, b}, xs] /. xs -> y),
+   Derivative[j_][dsR[a_, b_]][y_] :> (D[dsRValue[reg, {a, b}, xs], {xs, j}] /. xs -> y)};
+dsRValue[reg_, {a_, b_}, s_] := With[{i = First[FirstPosition[reg["Fields"], a]], j = First[FirstPosition[reg["Fields"], b]]}, reg["DsRMatrix"][s][[i, j]]];
+dsRAtoms = x : (dsR[__][_] | Derivative[__][dsR[__]][_]);
+
 (* LeafCount with every atom ScaleAtom[..] and dsR[..] counted as one leaf, as the script's xE, dsNh *)
 atomLeaves[e_] := LeafCount[e /. (ScaleAtom | dsR)[__] -> atomLeaf];
 
@@ -69,7 +86,8 @@ compactify[a_, dsList_, orders_, explicit_] := Module[{tg, cands, best},
 
 AssembleEquations[closure_] := Block[{$FRGModule = "Assemble"},
   Module[{t0 = AbsoluteTime[], prop, reg, k, qU, cps, shapes, raw, deltaRules, jmax, rules, vals, forms, atomVals, toQ, d0, d1, orders,
-    eqs, checks = {}, warns = {}, stage, explicitAtoms, validity, dsrRules, bad, private},
+    eqs, checks = {}, warns = {}, stage, explicitAtoms, validity, dsrRules, bad, private, pU, cU, toQPC, gRules, genericVals, fns,
+    assembleZero, assembleGeneric, rawZero},
    validateStage[closure, "Closure"];
    prop = closure["Integrated"]["Projection"]["Loops"]["Propagator"];
    reg = closure["Integrated"]["Projection"]["Loops"]["Regulator"];
@@ -81,7 +99,12 @@ AssembleEquations[closure_] := Block[{$FRGModule = "Assemble"},
    deltaRules = {DeltaCoefficient[m_][x_] :> prop["DeltaCoefficients"][x][[m + 1]],
      Derivative[j_][DeltaCoefficient[m_]][x_] :> (D[prop["DeltaCoefficients"][xs][[m + 1]], {xs, j}] /. xs -> x)};
    raw = (#RHS /. deltaRules) & /@ closure["Equations"];
-   jmax = Max[0, Cases[raw, Derivative[j_][_GammaAtom][_] :> j, Infinity]];
+   rawZero = (Lookup[#, "AtZeroRHS", 0] /. deltaRules) & /@ closure["Equations"];
+   jmax = Max[0, Cases[{raw, rawZero}, Derivative[j_][_GammaAtom][_] :> j, Infinity]];
+   (* generic-p rows: invariants -> (q, p, c), q the midpoint loop momentum *)
+   pU = Symbol["Global`p"]; cU = Symbol["Global`c"];
+   toQPC = {LoopMomentumSquared -> qU^2, ExternalMomentumSquared -> pU^2, MomentumProduct -> pU qU cU};
+   fns = Lookup[closure["Integrated"]["Projection"]["Loops"]["Vertices"]["Ansatz"], "MomentumFunctions", {}];
 
    (* scale-stripped atoms and the sync check: atom form = explicit value, for every atom and derivative *)
    {rules, vals, forms} = atomSystem[prop, cps, shapes, jmax];
@@ -98,29 +121,56 @@ AssembleEquations[closure_] := Block[{$FRGModule = "Assemble"},
         Max[0, Exponent[#, Cases[#, _dsCoupling, {0, Infinity}]]] <= 1 &], dsrRules, "internal: d_s R is not linear in the dsCoupling symbols",
      "d_s R linear in dsCoupling[c]"]];
 
-   eqs = MapThread[Function[{r, rw}, Module[{t1 = AbsoluteTime[], a, dsList, cpt, how, integrand, lin, ref},
-        a = rw /. rules /. toQ;
-        FRGAssert["Assemble.atomsOnly", FreeQ[a, GammaAtom | DeltaCoefficient | \[CapitalDelta] | LoopMomentumSquared], a, "internal: leftover propagator atoms"];
-        dsList = Union[Cases[a, _dsR, {0, Infinity}]];
-        a = Collect[a, dsList, Together];
-        If[a =!= 0 && ExactlyZeroQ[a], a = 0];
-        lin = (a /. d_dsR :> 2 d) - 2 a;
-        FRGAssert["Assemble.linearInDsR", ExactlyZeroQ[{lin, a /. _dsR -> 0}, "Seeds" -> {1}], r["Flowing"], "the RHS must be linear and homogeneous in the d_s R entries"];
-        {cpt, how} = compactify[a, dsList, orders, (# /. atomVals) &];
-        integrand = cpt /. atomVals /. dsrRules;
+   (* p -> 0 rows (and the exact p -> 0 row of each function): bare atoms at q^2, abstract dsR[a, b] *)
+   assembleZero[r_, rw_] := Module[{a, dsList, cpt, how, integrand, lin},
+     a = rw /. rules /. toQ;
+     FRGAssert["Assemble.atomsOnly", FreeQ[a, GammaAtom | DeltaCoefficient | \[CapitalDelta] | LoopMomentumSquared], a, "internal: leftover propagator atoms"];
+     dsList = Union[Cases[a, _dsR, {0, Infinity}]];
+     a = Collect[a, dsList, Together];
+     If[a =!= 0 && ExactlyZeroQ[a], a = 0];
+     lin = (a /. d_dsR :> 2 d) - 2 a;
+     FRGAssert["Assemble.linearInDsR", ExactlyZeroQ[{lin, a /. _dsR -> 0}, "Seeds" -> {1}], r["Flowing"], "the RHS must be linear and homogeneous in the d_s R entries"];
+     {cpt, how} = compactify[a, dsList, orders, (# /. atomVals) &];
+     integrand = cpt /. atomVals /. dsrRules;
+     {cpt, how, integrand, dsList}];
+   (* generic-p rows: atoms and d_s R entries applied to their momentum argument, in (q, p, c) *)
+   gRules = genericAtomRules[prop, cps, shapes, jmax];
+   genericVals = {ScaleAtom[a_, b_, m_, j_][y_] :> vals[ScaleAtom[a, b, m, j]][y]};
+   assembleGeneric[r_, rw_] := Module[{a, dsList, cpt, integrand, lin},
+     a = rw /. gRules /. toQPC;
+     FRGAssert["Assemble.atomsOnly", FreeQ[a, GammaAtom | DeltaCoefficient | \[CapitalDelta] | LoopMomentumSquared | ExternalMomentumSquared | MomentumProduct], a,
+      "internal: leftover propagator atoms"];
+     dsList = Union[Cases[a, dsRAtoms, {0, Infinity}]];
+     a = Collect[a, dsList, Together];
+     If[a =!= 0 && ExactlyZeroQ[a], a = 0];
+     lin = (a /. dsRAtoms :> 2 x) - 2 a;
+     FRGAssert["Assemble.linearInDsR", ExactlyZeroQ[{lin, a /. dsRAtoms -> 0}, "Seeds" -> {1}], r["Flowing"], "the RHS must be linear and homogeneous in the d_s R entries"];
+     cpt = a;
+     integrand = cpt /. genericVals /. dsRAtRules[reg];
+     {cpt, "generic", integrand, dsList}];
+
+   eqs = MapThread[Function[{r, rw, rz}, Module[{t1 = AbsoluteTime[], cpt, how, integrand, dsList, gen = r["Class"] === "Functional", z},
+        {cpt, how, integrand, dsList} = If[gen, assembleGeneric[r, rw], assembleZero[r, rw]];
         private = Union[Cases[integrand, x_Symbol /; StringContainsQ[Context[x], "Private`"], {0, Infinity}, Heads -> True]];
-        FRGAssert["Assemble.noIntermediates", private === {} && FreeQ[integrand, GammaAtom | ScaleAtom | DeltaCoefficient | \[CapitalDelta] | dsR | LoopMomentumSquared],
-         {r["Flowing"], private}, "internal: intermediate symbols left in the explicit equation"];
+        FRGAssert["Assemble.noIntermediates", private === {} && FreeQ[integrand, GammaAtom | ScaleAtom | DeltaCoefficient | \[CapitalDelta] | dsR | LoopMomentumSquared |
+            ExternalMomentumSquared | MomentumProduct], {r["Flowing"], private}, "internal: intermediate symbols left in the explicit equation"];
+        z = If[gen, assembleZero[r, rz], None];
         Join[KeyTake[r, {"Pair", "Frequency", "Momentum", "GammaK", "Normalisation", "Flowing"}],
          <|"Compact" -> cpt, "Integrand" -> integrand, "DsR" -> dsList, "DsCouplings" -> Union[Cases[integrand, _dsCoupling, {0, Infinity}]],
           "IdenticallyZero" -> (cpt === 0), "CompactForm" -> how,
-          "LeafCount" -> <|"Compact" -> atomLeaves[cpt], "Explicit" -> LeafCount[cpt /. atomVals], "Integrand" -> LeafCount[integrand]|>,
-          "Seconds" -> AbsoluteTime[] - t1|>]]], {closure["Equations"], raw}];
+          "LeafCount" -> <|"Compact" -> atomLeaves[cpt], "Explicit" -> LeafCount[cpt /. atomVals /. genericVals], "Integrand" -> LeafCount[integrand]|>,
+          "Seconds" -> AbsoluteTime[] - t1|>,
+         If[gen, <|"Functional" -> r["Function"], "Argument" -> pU^2, "Variables" -> {qU, pU, cU},
+           "AtZero" -> <|"Compact" -> z[[1]], "Integrand" -> z[[3]], "DsR" -> z[[4]], "IdenticallyZero" -> (z[[1]] === 0)|>|>, <||>]]]],
+     {closure["Equations"], raw, rawZero}];
    AppendTo[checks, assertCheck["Assemble.equations", True, Null, "",
      ToString[Length[eqs]] <> " equations, compact = explicit (exact), no intermediate symbols, linear in dsR and dsCoupling; LeafCounts compact/explicit: " <>
       StringRiffle[(inputForm[#Flowing] <> " " <> ToString[#LeafCount["Compact"]] <> "/" <> ToString[#LeafCount["Integrand"]]) & /@ eqs, ", "]]];
    If[# =!= {}, AppendTo[warns, infoCheck["INFO", "Assemble.zero", "identically zero: " <> StringRiffle[inputForm /@ #, ", "]]]] &[Select[eqs, #IdenticallyZero &][[All, "Flowing"]]];
 
+   If[fns =!= {}, AppendTo[warns, infoCheck["INFO", "Assemble.functional", "equations of " <> StringRiffle[ToString /@ fns, ", "] <>
+       ": Integrand of d^dq/(2 Pi)^d at generic p in (" <> ToString[qU] <> ", " <> ToString[pU] <> ", " <> ToString[cU] <> "), " <> ToString[qU] <>
+       " the midpoint loop momentum (lines q -+ p/2), " <> ToString[cU] <> " = cos(p, q); functions F[x] of the momentum squared x; \"AtZero\": the exact p -> 0 row"]]];
    validity = prop["ValidityConditions"][LoopMomentumSquared] /. deltaRules /. rules /. toQ;
    explicitAtoms = validity /. atomVals;
    AppendTo[warns, infoCheck["ASSUMPTION", "Assemble.validity", displayString[validity] <> " at every q (causal poles; not checked by the library: exported as causal_poles by ExportJulia)"]];
@@ -131,11 +181,12 @@ AssembleEquations[closure_] := Block[{$FRGModule = "Assemble"},
       "Closure" -> closure, "Equations" -> eqs, "Atoms" -> Association[atomVals], "AtomForms" -> Association[KeyValueMap[#1 -> (#2 /. toQ) &, forms]],
       "ValidityConditions" -> <|"Atoms" -> validity, "Explicit" -> explicitAtoms|>, "DsRRules" -> dsrRules,
       "LoopMomentum" -> qU, "Scale" -> k, "Shapes" -> shapes, "Couplings" -> cps, "Dimension" -> closure["Symmetries"]["Dimension"],
+      Sequence @@ If[fns === {}, {}, {"MomentumFunctions" -> fns, "ExternalMomentum" -> pU, "Cosine" -> cU}],
       "Checks" -> checks, "Warnings" -> warns, "Timing" -> AbsoluteTime[] - t0|>];
    PrintCard[stage];
    stage]];
 
-EquationOf[e_Association, comb_] := SelectFirst[e["Equations"], Expand[#Flowing - comb] === 0 &];
+EquationOf[e_Association, comb_] := SelectFirst[e["Equations"], Lookup[#, "Functional", None] === comb || Expand[#Flowing - comb] === 0 &];
 
 ShowEquation[e_Association, comb_] := Module[{r = EquationOf[e, comb], used},
    If[MissingQ[r], Print["no equation for ", comb, "; equations: ", e["Equations"][[All, "Flowing"]]]; Return[Null]];

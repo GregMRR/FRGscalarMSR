@@ -66,6 +66,10 @@ DefineRegulator[ansatz_, args___] := Block[{$FRGModule = "Regulator"},
    AppendTo[checks, assertCheck["Regulator.evenInQ", FreeQ[Values[entries], Alternatives @@ qs], Select[entries, ! FreeQ[#, Alternatives @@ qs] &],
      "R_ab must depend on q through q^2 only (even powers of q)", "R depends on q^2 only"]];
 
+   (* design/MOMENTUMFUNCTIONS.md A5: regulators take constant couplings only *)
+   With[{fns = Lookup[ansatz, "MomentumFunctions", {}]}, If[fns =!= {},
+     AppendTo[checks, assertCheck["Regulator.noFunctions", FreeQ[Values[entries], Alternatives @@ fns], Select[entries, ! FreeQ[#, Alternatives @@ fns] &],
+       "regulators take constant couplings: use the reference (e.g. nk q^2 rn[q^2/k^2], not nk Fnu q^2 rn[q^2/k^2])", "no momentum function in R"]]]];
    allowed = Join[cps, {kk, sq}];
    bad = Complement[Cases[Values[entries], x_Symbol /; Context[x] =!= "System`", {0, Infinity}, Heads -> False], allowed];
    AppendTo[checks, assertCheck["Regulator.knownSymbols", bad === {}, bad,

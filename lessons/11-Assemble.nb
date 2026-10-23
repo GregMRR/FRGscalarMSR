@@ -10,15 +10,15 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       154,          7]
-NotebookDataLength[     39471,       1021]
-NotebookOptionsPosition[     33670,        945]
-NotebookOutlinePosition[     34007,        960]
-CellTagsIndexPosition[     33964,        957]
+NotebookDataLength[     40188,       1034]
+NotebookOptionsPosition[     34387,        958]
+NotebookOutlinePosition[     34724,        973]
+CellTagsIndexPosition[     34681,        970]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
-Cell["Lesson 11 - Assemble", "Title",ExpressionUUID->"cd3e1b25-d125-4463-9ed4-19dc24a9168a"],
+Cell["Lesson 11 - Assemble", "Title",ExpressionUUID->"cf189c5e-b0a6-435d-b2ac-4b266c7def27"],
 
 Cell[TextData[{
  StyleBox["Physics step.",
@@ -63,7 +63,7 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ". That is the q-integrand handed to the dimensionless step and to FlowRG."
-}], "Text",ExpressionUUID->"92166778-1a06-4f20-a7eb-678552371634"],
+}], "Text",ExpressionUUID->"be15385a-9f4a-4d0b-aaa7-96da6c5474b2"],
 
 Cell[TextData[{
  StyleBox["Stage.",
@@ -74,19 +74,19 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " stage, the end of the dimensionful pipeline."
-}], "Text",ExpressionUUID->"777e5054-ce53-448b-8590-33bb9b0e836b"],
+}], "Text",ExpressionUUID->"639a03c5-9b22-4f10-b4cb-d9e2e08b66bc"],
 
 Cell["\<\
 Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
 Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
 closure = lessonUpTo[\"Closure\"];\
-\>", "Input",ExpressionUUID->"d20d4460-822a-4f23-a76e-a951cc35600c"],
+\>", "Input",ExpressionUUID->"c1026d4e-cfdd-49fb-8046-a536ef8f06d7"],
 
-Cell["1. Using it", "Section",ExpressionUUID->"47919cbe-ef3c-4abd-af3d-4749fb749113"],
+Cell["1. Using it", "Section",ExpressionUUID->"004d86a2-e6b1-4563-8971-6891892185e9"],
 
-Cell["equations = AssembleEquations[closure];", "Input",ExpressionUUID->"112bafdb-992a-42d0-a375-5bb00ca2e38f"],
+Cell["equations = AssembleEquations[closure];", "Input",ExpressionUUID->"036de939-35cd-4857-bf3a-16358970a01e"],
 
-Cell["ShowEquation[equations, nuk]", "Input",ExpressionUUID->"f5c90322-9415-43eb-a409-0e8d19b29bac"],
+Cell["ShowEquation[equations, nuk]", "Input",ExpressionUUID->"1a9ed18c-103a-4692-a12d-b7d029ada72b"],
 
 Cell[TextData[{
  StyleBox["ShowEquation",
@@ -98,14 +98,14 @@ Cell[TextData[{
   FontFamily->"Noto Sans"],
  "sR entries and where the equation is valid (the causal-pole condition of \
 lesson 05, now in explicit form). The explicit integrand of the D equation:"
-}], "Text",ExpressionUUID->"57e5771f-179e-4579-89a2-9c53ca64b618"],
+}], "Text",ExpressionUUID->"0c8c455c-b2c8-4c61-b5fd-2592d3116902"],
 
-Cell["EquationOf[equations, Dk][\"Integrand\"]", "Input",ExpressionUUID->"bf379df6-3854-4c05-81ca-ed107fe01b77"],
+Cell["EquationOf[equations, Dk][\"Integrand\"]", "Input",ExpressionUUID->"9f8eaebc-8a78-4451-8b3d-67efc7e2b73f"],
 
-Cell["2. Scale-stripped atoms", "Section",ExpressionUUID->"962dd25e-1d2f-4a6c-8946-0ba288655403"],
+Cell["2. Scale-stripped atoms", "Section",ExpressionUUID->"785fad73-2c85-459f-a908-830d6bb0495f"],
 
 Cell["\<\
-(* Kernel/Assemble.wl:24-30 *)
+(* Kernel/Assemble.wl:25-31 *)
 (* for an atom value v(s): {cscale, n, X} with v = cscale s^n X, cscale = \
 number x couplings common to all terms *)
 stripScale[v_, s_, cps_, shapes_] := Module[{val = Expand[v], terms, tm, num, \
@@ -117,10 +117,10 @@ Derivative[__][Alternatives @@ shapes][__] -> shapeMark;
    ex = Table[Min[Exponent[#, x] & /@ tm], {x, Append[cps, s]}];
    {num Times @@ (cps^Most[ex]), Last[ex], Expand[val/(num Times @@ \
 (cps^Most[ex]) s^Last[ex])]}];\
-\>", "Program",ExpressionUUID->"a79d22ef-6330-4d83-8694-9e32c669fd9d"],
+\>", "Program",ExpressionUUID->"78348970-23ef-4dc2-8fda-bf6f22561fa7"],
 
 Cell["\<\
-(* Kernel/Assemble.wl:32-45 *)
+(* Kernel/Assemble.wl:33-46 *)
 (* atom form of GammaAtom[a, b, m] and of its s-derivatives up to jmax: rules \
 at s = LoopMomentumSquared, and atom values *)
 atomSystem[prop_, cps_, shapes_, jmax_] := Module[{rules = {}, vals = <||>, \
@@ -140,7 +140,7 @@ Derivative[j][g][LoopMomentumSquared] -> f]],
        {j, 0, jmax}]],
     {g, prop[\"Atoms\"]}];
    {rules, vals, forms}];\
-\>", "Program",ExpressionUUID->"60ac82a7-6c06-4328-a379-d6f940c678fc"],
+\>", "Program",ExpressionUUID->"916b2236-a742-49bf-8fa1-708f52e55d37"],
 
 Cell[TextData[{
  "Each propagator atom v(s), s = q",
@@ -160,12 +160,12 @@ smallest power of s, and X what is left. For R_{",
  StyleBox["\[Nu]",
   FontFamily->"Noto Sans"],
  ", n = 1, X = 1 + r_n(y)."
-}], "Text",ExpressionUUID->"0911a562-a568-4ef3-a296-54208043903f"],
+}], "Text",ExpressionUUID->"8a0d3ee0-7944-4738-a995-c52527e8219c"],
 
 Cell["\<\
 FRGscalarMSR`Private`stripScale[nuk s + nuk s rn[s/k^2], s, {nuk, lamk, Dk}, \
 {rn, rd}]\
-\>", "Input",ExpressionUUID->"9af2f9e7-c0d2-42a2-9d78-92d4e2211050"],
+\>", "Input",ExpressionUUID->"9eac829d-65ba-453d-810f-02f7fcefe580"],
 
 Cell[TextData[{
  "When X is a sum it becomes the atom ",
@@ -194,9 +194,9 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " can check every atom and derivative against the propagator."
-}], "Text",ExpressionUUID->"b108455b-2ad1-4d6b-a6d4-a5806a86fff7"],
+}], "Text",ExpressionUUID->"538d665b-4ec3-4b1b-a016-3bc07bd25ec3"],
 
-Cell["{equations[\"Atoms\"], equations[\"AtomForms\"]}", "Input",ExpressionUUID->"59ff97e2-34cd-4478-b95b-15d3afce9b96"],
+Cell["{equations[\"Atoms\"], equations[\"AtomForms\"]}", "Input",ExpressionUUID->"dac833c3-684b-4e9c-9b3c-e862d45f097f"],
 
 Cell[TextData[{
  StyleBox["Why it's built this way: Generate the atoms the hand calculation \
@@ -234,17 +234,18 @@ stand for (",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->GrayLevel[0.55],
  Background->RGBColor[
-  0.93, 0.93, 0.93],ExpressionUUID->"7a78c5d8-957f-4e8e-8527-1b6dcd61ff54"],
+  0.93, 0.93, 0.93],ExpressionUUID->"d9da0cba-9fcc-4ed5-b445-1fc0b253ec98"],
 
-Cell["3. From the closure to the equations", "Section",ExpressionUUID->"5553fd33-47d0-47b1-abd8-bb4b1af08d96"],
+Cell["3. From the closure to the equations", "Section",ExpressionUUID->"8c0df9eb-6bc8-492d-891e-153b41c3ffc6"],
 
 Cell["\<\
-(* Kernel/Assemble.wl:70-99 *)
+(* Kernel/Assemble.wl:87-122 *)
 AssembleEquations[closure_] := Block[{$FRGModule = \"Assemble\"},
   Module[{t0 = AbsoluteTime[], prop, reg, k, qU, cps, shapes, raw, \
 deltaRules, jmax, rules, vals, forms, atomVals, toQ, d0, d1, orders,
     eqs, checks = {}, warns = {}, stage, explicitAtoms, validity, dsrRules, \
-bad, private},
+bad, private, pU, cU, toQPC, gRules, genericVals, fns,
+    assembleZero, assembleGeneric, rawZero},
    validateStage[closure, \"Closure\"];
    prop = closure[\"Integrated\"][\"Projection\"][\"Loops\"][\"Propagator\"];
    reg = closure[\"Integrated\"][\"Projection\"][\"Loops\"][\"Regulator\"];
@@ -258,7 +259,17 @@ prop[\"DeltaCoefficients\"][x][[m + 1]],
      Derivative[j_][DeltaCoefficient[m_]][x_] :> \
 (D[prop[\"DeltaCoefficients\"][xs][[m + 1]], {xs, j}] /. xs -> x)};
    raw = (#RHS /. deltaRules) & /@ closure[\"Equations\"];
-   jmax = Max[0, Cases[raw, Derivative[j_][_GammaAtom][_] :> j, Infinity]];
+   rawZero = (Lookup[#, \"AtZeroRHS\", 0] /. deltaRules) & /@ \
+closure[\"Equations\"];
+   jmax = Max[0, Cases[{raw, rawZero}, Derivative[j_][_GammaAtom][_] :> j, \
+Infinity]];
+   (* generic-p rows: invariants -> (q, p, c), q the midpoint loop momentum \
+*)
+   pU = Symbol[\"Global`p\"]; cU = Symbol[\"Global`c\"];
+   toQPC = {LoopMomentumSquared -> qU^2, ExternalMomentumSquared -> pU^2, \
+MomentumProduct -> pU qU cU};
+   fns = Lookup[closure[\"Integrated\"][\"Projection\"][\"Loops\"][\"Vertices\
+\"][\"Ansatz\"], \"MomentumFunctions\", {}];
 
    (* scale-stripped atoms and the sync check: atom form = explicit value, \
 for every atom and derivative *)
@@ -283,7 +294,7 @@ Infinity}]] &&
         Max[0, Exponent[#, Cases[#, _dsCoupling, {0, Infinity}]]] <= 1 &], \
 dsrRules, \"internal: d_s R is not linear in the dsCoupling symbols\",
      \"d_s R linear in dsCoupling[c]\"]];\
-\>", "Program",ExpressionUUID->"85b9dc4b-34ec-4921-9424-bdb4b2d5766e"],
+\>", "Program",ExpressionUUID->"084cffed-61e0-478c-a5ff-a4116cb99ed6"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Replace and ReplaceAll",
@@ -339,7 +350,7 @@ Cell[TextData[{
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"b673614d-c7bc-4d0e-9f1b-b47c10b81e54"],
+  0.91, 0.95, 1.],ExpressionUUID->"2382bfb9-51bd-4616-b74a-a3c31d4bacf9"],
 
 Cell["\<\
 {Replace[None, None -> 1], Replace[{None}, None -> 1], {None} /. None -> 1}\
@@ -347,7 +358,7 @@ Cell["\<\
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"f2a7dc61-b244-4776-8866-6ce202b980be"],
+  0.91, 0.95, 1.],ExpressionUUID->"737603cb-512b-4306-a8ee-4ace3a85e017"],
 
 Cell[TextData[{
  "The ",
@@ -385,14 +396,14 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " doubles the result, and that setting them to 0 gives 0."
-}], "Text",ExpressionUUID->"213bdf29-201e-44cc-93e4-d762a72a7bb6"],
+}], "Text",ExpressionUUID->"e89bb6f3-fee1-44e8-ace8-37fab70a897d"],
 
 Cell[BoxData[
  $CellContext`regionCells[
  "Kernel/Assemble.wl", "eqs = MapThread[Function[{r, rw}", 
   "\"Seconds\" -> AbsoluteTime[] - t1", 
   ">]]], {closure[\"Equations\"], raw}];"]], "Input",ExpressionUUID->\
-"e4784a58-a69d-4552-a3e5-1e07f8abaaa2"],
+"f83e767c-0498-4205-bff8-16a721c9b1c3"],
 
 Cell[TextData[{
  StyleBox["MapThread[f, {list1, list2}]",
@@ -413,26 +424,26 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ") runs over the equations and their raw right-hand sides in parallel."
-}], "Text",ExpressionUUID->"5c4c58f0-7ed3-4d92-970f-01303c544378"],
+}], "Text",ExpressionUUID->"53916ad2-d6e6-4fa7-ad82-3524cf551d84"],
 
-Cell["4. Choosing a compact form", "Section",ExpressionUUID->"54b1e17d-f0e3-4316-9787-c89395f6e4bf"],
+Cell["4. Choosing a compact form", "Section",ExpressionUUID->"5d5317f7-2e30-4bae-85f1-b064549cfd8f"],
 
 Cell["\<\
-(* Kernel/Assemble.wl:47-48 *)
+(* Kernel/Assemble.wl:64-65 *)
 (* LeafCount with every atom ScaleAtom[..] and dsR[..] counted as one leaf, \
 as the script's xE, dsNh *)
 atomLeaves[e_] := LeafCount[e /. (ScaleAtom | dsR)[__] -> atomLeaf];\
-\>", "Program",ExpressionUUID->"ef33e7b0-90f5-4c48-894d-ad5b7a38c1cc"],
+\>", "Program",ExpressionUUID->"ed7755a5-baea-403f-87b8-c080ec6d6ef0"],
 
 Cell["\<\
-(* Kernel/Assemble.wl:52-53 *)
+(* Kernel/Assemble.wl:69-70 *)
 collectNum[o_][num_] := Module[{ftl = FactorTermsList[num, o]}, (Times @@ \
 Most[ftl]) Collect[Last[ftl], o, Factor]];
 compactFrac[o_][r_] := collectNum[o][Numerator[r]]/Factor[Denominator[r]];\
-\>", "Program",ExpressionUUID->"c0c8802b-e308-4381-9365-554ac160911c"],
+\>", "Program",ExpressionUUID->"aed4a214-42a6-46e4-adca-df6d7ac14bc3"],
 
 Cell["\<\
-(* Kernel/Assemble.wl:55-68 *)
+(* Kernel/Assemble.wl:72-85 *)
 (* candidates: per dsR coefficient or as one fraction, numerator content \
 pulled out and nested-Collected over the atoms; small results
    also get a time-limited Simplify per dsR coefficient; the smallest \
@@ -454,7 +465,7 @@ TimeConstrained[Simplify[#], 10, #] &]}];
    FRGAssert[\"Assemble.compactExact\", ExactlyZeroQ[best[[2]] - a], \
 best[[1]], \"internal: compactify changed the expression\"];
    {best[[2]], best[[1]]}];\
-\>", "Program",ExpressionUUID->"ee958ed7-9a0a-4802-8fd1-c8fd5966bb4a"],
+\>", "Program",ExpressionUUID->"ea2287de-c06a-49a4-ab6f-439f9562216a"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Collect and Factor",
@@ -507,7 +518,7 @@ the one with the smallest explicit ",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"c3ad9d02-73f0-4f31-a8f3-13c40b923446"],
+  0.91, 0.95, 1.],ExpressionUUID->"6f9bcd96-9f2d-4029-80e7-c5694f2b3336"],
 
 Cell["\<\
 {Collect[a^2 x^2 + 2 a b x^2 + b^2 x^2 + c x, x], Collect[a^2 x^2 + 2 a b x^2 \
@@ -516,7 +527,7 @@ Cell["\<\
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"edde53b0-c1c9-47c7-85a1-5ab5fbf98795"],
+  0.91, 0.95, 1.],ExpressionUUID->"eca5284b-cb70-4905-8e35-d4cf64e98ed9"],
 
 Cell[TextData[{
  StyleBox["Mathematica: TimeConstrained",
@@ -549,13 +560,13 @@ coefficient unchanged."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"35181c59-0422-464c-92a3-5214f0638df9"],
+  0.91, 0.95, 1.],ExpressionUUID->"93a80a99-6cb4-4265-b5b0-0a9bbf4344ec"],
 
 Cell["TimeConstrained[Pause[3]; \"finished\", 0.5, \"timed out\"]", "Input",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"c636f3e3-752c-431e-bd43-03bb01e67a65"],
+  0.91, 0.95, 1.],ExpressionUUID->"4305404a-0492-4964-9e0c-79eb2ba2730a"],
 
 Cell[TextData[{
  StyleBox["Why it's built this way: The one place where Simplify is allowed",
@@ -591,7 +602,7 @@ correctness."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->GrayLevel[0.55],
  Background->RGBColor[
-  0.93, 0.93, 0.93],ExpressionUUID->"0b40fe44-58c7-4037-ac6f-322094cbbd32"],
+  0.93, 0.93, 0.93],ExpressionUUID->"caf44114-2595-430d-aecd-dc8a2e3c2ce9"],
 
 Cell[TextData[{
  StyleBox["atomLeaves",
@@ -614,9 +625,9 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " on the card is comparable with the script's hand-made compact forms."
-}], "Text",ExpressionUUID->"82265207-97b6-4993-a8cb-d3d1a89f858c"],
+}], "Text",ExpressionUUID->"cbae636b-9f52-4cdc-bf43-389ad7e2072a"],
 
-Cell["5. The explicit form and the final checks", "Section",ExpressionUUID->"64b6bbdf-521b-42bb-8c03-1d0a3deb7c26"],
+Cell["5. The explicit form and the final checks", "Section",ExpressionUUID->"4e4f5a43-c820-445b-9090-1a7d408ca664"],
 
 Cell[TextData[{
  "The explicit integrand is ",
@@ -673,10 +684,10 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  "\"]`)."
-}], "Text",ExpressionUUID->"a1c65cfb-f8c0-4184-9abe-e62b22ebb568"],
+}], "Text",ExpressionUUID->"76dde7e2-2b04-4669-8d86-789c7820cb03"],
 
 Cell["\<\
-(* Kernel/Assemble.wl:124-135 *)
+(* Kernel/Assemble.wl:174-186 *)
    validity = prop[\"ValidityConditions\"][LoopMomentumSquared] /. deltaRules \
 /. rules /. toQ;
    explicitAtoms = validity /. atomVals;
@@ -701,10 +712,12 @@ explicitAtoms|>, \"DsRRules\" -> dsrRules,
       \"LoopMomentum\" -> qU, \"Scale\" -> k, \"Shapes\" -> shapes, \
 \"Couplings\" -> cps, \"Dimension\" -> \
 closure[\"Symmetries\"][\"Dimension\"],
+      Sequence @@ If[fns === {}, {}, {\"MomentumFunctions\" -> fns, \
+\"ExternalMomentum\" -> pU, \"Cosine\" -> cU}],
       \"Checks\" -> checks, \"Warnings\" -> warns, \"Timing\" -> \
 AbsoluteTime[] - t0|>];
    PrintCard[stage];\
-\>", "Program",ExpressionUUID->"37925e61-4a8e-4ec2-b7f5-1d3c3da1050f"],
+\>", "Program",ExpressionUUID->"a0ee33a8-dd04-46e1-8beb-589bf9331644"],
 
 Cell[TextData[{
  "The stage records everything a reader of the equations needs: the atoms, \
@@ -713,16 +726,16 @@ the ",
   FontFamily->"Noto Sans"],
  "sR rules, the loop momentum and scale symbols, the shapes, the couplings, \
 the dimension and the validity conditions."
-}], "Text",ExpressionUUID->"e8dc7c16-4d70-434d-b108-e643415672e3"],
+}], "Text",ExpressionUUID->"a8b0ae64-408a-456b-8334-677bb26d8413"],
 
 Cell["\<\
-(* Kernel/Assemble.wl:138 *)
-EquationOf[e_Association, comb_] := SelectFirst[e[\"Equations\"], \
-Expand[#Flowing - comb] === 0 &];\
-\>", "Program",ExpressionUUID->"2234caf6-3f99-40bb-a29e-784ac8a8db99"],
+(* Kernel/Assemble.wl:189 *)
+EquationOf[e_Association, comb_] := SelectFirst[e[\"Equations\"], Lookup[#, \
+\"Functional\", None] === comb || Expand[#Flowing - comb] === 0 &];\
+\>", "Program",ExpressionUUID->"052b647a-d7d9-4654-a713-989c3afa3bc4"],
 
 Cell["\<\
-(* Kernel/Assemble.wl:140-148 *)
+(* Kernel/Assemble.wl:191-199 *)
 ShowEquation[e_Association, comb_] := Module[{r = EquationOf[e, comb], used},
    If[MissingQ[r], Print[\"no equation for \", comb, \"; equations: \", \
 e[\"Equations\"][[All, \"Flowing\"]]]; Return[Null]];
@@ -739,11 +752,11 @@ explicit \",
 #[[1]]] &]];
    Print[\"valid where: \", \
 displayString[e[\"ValidityConditions\"][\"Atoms\"]]]];\
-\>", "Program",ExpressionUUID->"746e88b0-2658-44b6-9c75-19b292ea3e96"],
+\>", "Program",ExpressionUUID->"68452986-1df9-4a16-8773-e2343b2241da"],
 
-Cell["Exercises", "Section",ExpressionUUID->"2c165910-02cb-40c8-ad47-515d6ba47e08"],
+Cell["Exercises", "Section",ExpressionUUID->"18825e9c-be57-423e-baf6-a3f52ceba3e8"],
 
-Cell["Exercise: The size of the result", "Subsection",ExpressionUUID->"db9421f1-99c9-4eaa-a220-84f30f8acc29"],
+Cell["Exercise: The size of the result", "Subsection",ExpressionUUID->"b4636672-cba8-43f3-8d0e-18cacdaf5cc0"],
 
 Cell[TextData[{
  "For both equations, print ",
@@ -758,18 +771,18 @@ Cell[TextData[{
   Background->GrayLevel[0.92]],
  " (which candidate won). How much smaller is the compact form than the \
 explicit integrand?"
-}], "Text",ExpressionUUID->"d40f11f9-cfb6-4633-8ddd-f8cf77415acd"],
+}], "Text",ExpressionUUID->"60274185-7d51-4c9d-a01c-cdb9fee5fca1"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"e54ce94c-013d-4b12-9920-497950c6eca9"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"50313a03-f485-489d-abbc-dc18a7e540c0"],
 
 Cell["\<\
 {#Flowing, #CompactForm, #LeafCount} & /@ equations[\"Equations\"]\
-\>", "Input",ExpressionUUID->"a2eba469-59c0-43b8-959c-ca10a8773f7a"]
+\>", "Input",ExpressionUUID->"89bdd1a1-3e0b-4fed-835c-2910017ea884"]
 }, Closed]],
 
-Cell["Exercise: Linearity in dsCoupling", "Subsection",ExpressionUUID->"654d6785-0b0e-40b0-9d28-7b3be477bcc5"],
+Cell["Exercise: Linearity in dsCoupling", "Subsection",ExpressionUUID->"c1f92b42-d225-4ec4-9820-6a2a3f1e45fd"],
 
 Cell[TextData[{
  "The explicit integrand is linear in ",
@@ -788,16 +801,16 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " in the D equation."
-}], "Text",ExpressionUUID->"2aee9e5a-017b-4bcd-af9d-6fcf319d63c6"],
+}], "Text",ExpressionUUID->"f7411a68-e4e1-4d3e-b977-0a94313c2f42"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"f1987960-3495-41c4-b806-18246922015d"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"116dbc6c-a46e-4e2c-a475-e3f480c0d59d"],
 
 Cell["\<\
 Together[Coefficient[EquationOf[equations, Dk][\"Integrand\"], \
 dsCoupling[Dk]]]\
-\>", "Input",ExpressionUUID->"b96a5f79-4aa8-400b-8949-bbd7a2cfcb7a"],
+\>", "Input",ExpressionUUID->"5332989f-eea0-4717-9b22-e28f15d21ff4"],
 
 Cell[TextData[{
  "Downstream, ",
@@ -812,10 +825,10 @@ Cell[TextData[{
  StyleBox["\[Eta]",
   FontFamily->"Noto Sans"],
  "_D in the linear system for the anomalous dimensions (lesson 14)."
-}], "Text",ExpressionUUID->"83aea52c-e029-4518-93cb-de01fed6c3eb"]
+}], "Text",ExpressionUUID->"7bd3fc61-8652-44ec-9d79-cfaf67e49893"]
 }, Closed]],
 
-Cell["Exercise: Canet's KPZ flow", "Subsection",ExpressionUUID->"61924324-3208-4cb0-b67a-fa89182e95c8"],
+Cell["Exercise: Canet's KPZ flow", "Subsection",ExpressionUUID->"5fb6c1ac-7d20-466d-8a44-eec940a32b04"],
 
 Cell[TextData[{
  "With the Litim cutoff r(y) = (1/y ",
@@ -882,11 +895,11 @@ Cell[TextData[{
  StyleBox["\[Nu]\.b3",
   FontFamily->"Noto Sans"],
  ". This is the test that fixes the loop normalisation of lesson 07."
-}], "Text",ExpressionUUID->"f6b0607c-2f08-4b32-b541-a9063384a6b0"],
+}], "Text",ExpressionUUID->"d2cb1f1b-e1ea-490d-8d03-044f9b1cf98e"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"bb712aa0-70a3-4168-8348-1e1accf843b8"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"eeb88809-926d-4db9-9037-3796a182abcc"],
 
 Cell[TextData[{
  StyleBox["litimIntegral",
@@ -900,7 +913,7 @@ Cell[TextData[{
  StyleBox["\[Theta]",
   FontFamily->"Noto Sans"],
  " = 1), and integrates each power of y from 0 to 1."
-}], "Text",ExpressionUUID->"c5c48f5d-c504-4caa-8a6c-5e8c93a60508"],
+}], "Text",ExpressionUUID->"b53511db-70c7-43f8-b101-f76812c17579"],
 
 Cell["\<\
 litim = {rn -> Function[y, 1/y - 1], rd -> Function[y, 1/y - 1]};
@@ -910,7 +923,7 @@ litim] y^(d/2 - 1)], terms},
   vd k^d/2 Total[(# /. y -> 1)/(Exponent[#, y] + 1) & /@ terms]];
 flowOf[c_] := litimIntegral[EquationOf[equations, c][\"Integrand\"] /. Dim -> \
 d];\
-\>", "Input",ExpressionUUID->"39a5b874-7864-40ec-8640-367fd4d3ce7a"],
+\>", "Input",ExpressionUUID->"dd1f1a7a-1d93-4512-99ba-e2292f9bb95d"],
 
 Cell["\<\
 etas = First[Solve[{-etanu nuk == (flowOf[nuk] /. {dsCoupling[nuk] -> -etanu \
@@ -919,14 +932,14 @@ nuk, dsCoupling[Dk] -> -etaD Dk}),
 dsCoupling[Dk] -> -etaD Dk})}, {etanu, etaD}]];
 bracket = Together[(d - 2 - etaD + 3 etanu) /. etas /. lamk -> Sqrt[g \
 nuk^3/(vd k^(d - 2) Dk)]]\
-\>", "Input",ExpressionUUID->"5e495f10-239a-4966-93bc-e0c7f1b780cf"],
+\>", "Input",ExpressionUUID->"d378fe43-b2d5-4d5d-b714-814b3f0f2d87"],
 
 Cell["\<\
 canet = (2 d^6 + 4 d^5 - d^4 (7 g + 8) - 2 d^3 (3 g + 8) + d^2 g (3 g + 20) - \
 d (g - 8) g - 2 g^2)/
    (2 d^5 + 8 d^4 + d^3 (8 - 3 g) - 2 d^2 g + d g (g + 8) - g^2);
 Together[bracket - canet]\
-\>", "Input",ExpressionUUID->"55143f74-877b-4651-9f27-1bc7ae2c77e5"],
+\>", "Input",ExpressionUUID->"45f862bc-43f5-4911-b19e-2066b2a44a83"],
 
 Cell[TextData[{
  "0, for every d and g. The same computation is ",
@@ -940,13 +953,13 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  "."
-}], "Text",ExpressionUUID->"663c02d0-6dbb-48c9-b08c-4516f17edf21"]
+}], "Text",ExpressionUUID->"5d522f34-1c11-4c96-930f-c8354d956261"]
 }, Closed]]
 },
 CellContext->Notebook,
 FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
 StyleDefinitions->"Default.nb",
-ExpressionUUID->"68ca8ccf-8ceb-4f4a-8543-fab9318d86bc"
+ExpressionUUID->"3cc61674-820d-4389-b436-542045a0c982"
 ]
 (* End of Notebook Content *)
 
@@ -959,69 +972,69 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[554, 20, 92, 0, 70, "Title",ExpressionUUID->"cd3e1b25-d125-4463-9ed4-19dc24a9168a"],
-Cell[649, 22, 1321, 43, 70, "Text",ExpressionUUID->"92166778-1a06-4f20-a7eb-678552371634"],
-Cell[1973, 67, 347, 9, 70, "Text",ExpressionUUID->"777e5054-ce53-448b-8590-33bb9b0e836b"],
-Cell[2323, 78, 235, 4, 70, "Input",ExpressionUUID->"d20d4460-822a-4f23-a76e-a951cc35600c"],
-Cell[2561, 84, 85, 0, 70, "Section",ExpressionUUID->"47919cbe-ef3c-4abd-af3d-4749fb749113"],
-Cell[2649, 86, 111, 0, 70, "Input",ExpressionUUID->"112bafdb-992a-42d0-a375-5bb00ca2e38f"],
-Cell[2763, 88, 100, 0, 70, "Input",ExpressionUUID->"f5c90322-9415-43eb-a409-0e8d19b29bac"],
-Cell[2866, 90, 473, 10, 70, "Text",ExpressionUUID->"57e5771f-179e-4579-89a2-9c53ca64b618"],
-Cell[3342, 102, 112, 0, 70, "Input",ExpressionUUID->"bf379df6-3854-4c05-81ca-ed107fe01b77"],
-Cell[3457, 104, 97, 0, 70, "Section",ExpressionUUID->"962dd25e-1d2f-4a6c-8946-0ba288655403"],
-Cell[3557, 106, 695, 13, 70, "Program",ExpressionUUID->"a79d22ef-6330-4d83-8694-9e32c669fd9d"],
-Cell[4255, 121, 978, 21, 70, "Program",ExpressionUUID->"60ac82a7-6c06-4328-a379-d6f940c678fc"],
-Cell[5236, 144, 572, 18, 70, "Text",ExpressionUUID->"0911a562-a568-4ef3-a296-54208043903f"],
-Cell[5811, 164, 168, 3, 70, "Input",ExpressionUUID->"9af2f9e7-c0d2-42a2-9d78-92d4e2211050"],
-Cell[5982, 169, 994, 27, 70, "Text",ExpressionUUID->"b108455b-2ad1-4d6b-a6d4-a5806a86fff7"],
-Cell[6979, 198, 120, 0, 70, "Input",ExpressionUUID->"59ff97e2-34cd-4478-b95b-15d3afce9b96"],
-Cell[7102, 200, 1316, 36, 70, "Text",ExpressionUUID->"7a78c5d8-957f-4e8e-8527-1b6dcd61ff54"],
-Cell[8421, 238, 110, 0, 70, "Section",ExpressionUUID->"5553fd33-47d0-47b1-abd8-bb4b1af08d96"],
-Cell[8534, 240, 2492, 45, 70, "Program",ExpressionUUID->"85b9dc4b-34ec-4921-9424-bdb4b2d5766e"],
-Cell[11029, 287, 1728, 54, 70, "Text",ExpressionUUID->"b673614d-c7bc-4d0e-9f1b-b47c10b81e54"],
-Cell[12760, 343, 270, 6, 70, "Input",ExpressionUUID->"f2a7dc61-b244-4776-8866-6ce202b980be"],
-Cell[13033, 351, 1219, 36, 70, "Text",ExpressionUUID->"213bdf29-201e-44cc-93e4-d762a72a7bb6"],
-Cell[14255, 389, 252, 5, 70, "Input",ExpressionUUID->"e4784a58-a69d-4552-a3e5-1e07f8abaaa2"],
-Cell[14510, 396, 669, 19, 70, "Text",ExpressionUUID->"5c4c58f0-7ed3-4d92-970f-01303c544378"],
-Cell[15182, 417, 100, 0, 70, "Section",ExpressionUUID->"54b1e17d-f0e3-4316-9787-c89395f6e4bf"],
-Cell[15285, 419, 287, 5, 70, "Program",ExpressionUUID->"ef33e7b0-90f5-4c48-894d-ad5b7a38c1cc"],
-Cell[15575, 426, 306, 5, 70, "Program",ExpressionUUID->"c0c8802b-e308-4381-9365-554ac160911c"],
-Cell[15884, 433, 1206, 23, 70, "Program",ExpressionUUID->"ee958ed7-9a0a-4802-8fd1-c8fd5966bb4a"],
-Cell[17093, 458, 1664, 51, 70, "Text",ExpressionUUID->"c3ad9d02-73f0-4f31-a8f3-13c40b923446"],
-Cell[18760, 511, 320, 7, 70, "Input",ExpressionUUID->"edde53b0-c1c9-47c7-85a1-5ab5fbf98795"],
-Cell[19083, 520, 1049, 31, 70, "Text",ExpressionUUID->"35181c59-0422-464c-92a3-5214f0638df9"],
-Cell[20135, 553, 246, 4, 70, "Input",ExpressionUUID->"c636f3e3-752c-431e-bd43-03bb01e67a65"],
-Cell[20384, 559, 1285, 34, 70, "Text",ExpressionUUID->"0b40fe44-58c7-4037-ac6f-322094cbbd32"],
-Cell[21672, 595, 725, 21, 70, "Text",ExpressionUUID->"82265207-97b6-4993-a8cb-d3d1a89f858c"],
-Cell[22400, 618, 115, 0, 70, "Section",ExpressionUUID->"64b6bbdf-521b-42bb-8c03-1d0a3deb7c26"],
-Cell[22518, 620, 1731, 55, 70, "Text",ExpressionUUID->"a1c65cfb-f8c0-4184-9abe-e62b22ebb568"],
-Cell[24252, 677, 1588, 29, 70, "Program",ExpressionUUID->"37925e61-4a8e-4ec2-b7f5-1d3c3da1050f"],
-Cell[25843, 708, 341, 7, 70, "Text",ExpressionUUID->"e8dc7c16-4d70-434d-b108-e643415672e3"],
-Cell[26187, 717, 212, 4, 70, "Program",ExpressionUUID->"2234caf6-3f99-40bb-a29e-784ac8a8db99"],
-Cell[26402, 723, 1026, 18, 70, "Program",ExpressionUUID->"746e88b0-2658-44b6-9c75-19b292ea3e96"],
-Cell[27431, 743, 83, 0, 70, "Section",ExpressionUUID->"2c165910-02cb-40c8-ad47-515d6ba47e08"],
-Cell[27517, 745, 109, 0, 70, "Subsection",ExpressionUUID->"db9421f1-99c9-4eaa-a220-84f30f8acc29"],
-Cell[27629, 747, 476, 13, 70, "Text",ExpressionUUID->"d40f11f9-cfb6-4633-8ddd-f8cf77415acd"],
+Cell[554, 20, 92, 0, 70, "Title",ExpressionUUID->"cf189c5e-b0a6-435d-b2ac-4b266c7def27"],
+Cell[649, 22, 1321, 43, 70, "Text",ExpressionUUID->"be15385a-9f4a-4d0b-aaa7-96da6c5474b2"],
+Cell[1973, 67, 347, 9, 70, "Text",ExpressionUUID->"639a03c5-9b22-4f10-b4cb-d9e2e08b66bc"],
+Cell[2323, 78, 235, 4, 70, "Input",ExpressionUUID->"c1026d4e-cfdd-49fb-8046-a536ef8f06d7"],
+Cell[2561, 84, 85, 0, 70, "Section",ExpressionUUID->"004d86a2-e6b1-4563-8971-6891892185e9"],
+Cell[2649, 86, 111, 0, 70, "Input",ExpressionUUID->"036de939-35cd-4857-bf3a-16358970a01e"],
+Cell[2763, 88, 100, 0, 70, "Input",ExpressionUUID->"1a9ed18c-103a-4692-a12d-b7d029ada72b"],
+Cell[2866, 90, 473, 10, 70, "Text",ExpressionUUID->"0c8c455c-b2c8-4c61-b5fd-2592d3116902"],
+Cell[3342, 102, 112, 0, 70, "Input",ExpressionUUID->"9f8eaebc-8a78-4451-8b3d-67efc7e2b73f"],
+Cell[3457, 104, 97, 0, 70, "Section",ExpressionUUID->"785fad73-2c85-459f-a908-830d6bb0495f"],
+Cell[3557, 106, 695, 13, 70, "Program",ExpressionUUID->"78348970-23ef-4dc2-8fda-bf6f22561fa7"],
+Cell[4255, 121, 978, 21, 70, "Program",ExpressionUUID->"916b2236-a742-49bf-8fa1-708f52e55d37"],
+Cell[5236, 144, 572, 18, 70, "Text",ExpressionUUID->"8a0d3ee0-7944-4738-a995-c52527e8219c"],
+Cell[5811, 164, 168, 3, 70, "Input",ExpressionUUID->"9eac829d-65ba-453d-810f-02f7fcefe580"],
+Cell[5982, 169, 994, 27, 70, "Text",ExpressionUUID->"538d665b-4ec3-4b1b-a016-3bc07bd25ec3"],
+Cell[6979, 198, 120, 0, 70, "Input",ExpressionUUID->"dac833c3-684b-4e9c-9b3c-e862d45f097f"],
+Cell[7102, 200, 1316, 36, 70, "Text",ExpressionUUID->"d9da0cba-9fcc-4ed5-b445-1fc0b253ec98"],
+Cell[8421, 238, 110, 0, 70, "Section",ExpressionUUID->"8c0df9eb-6bc8-492d-891e-153b41c3ffc6"],
+Cell[8534, 240, 3047, 56, 70, "Program",ExpressionUUID->"084cffed-61e0-478c-a5ff-a4116cb99ed6"],
+Cell[11584, 298, 1728, 54, 70, "Text",ExpressionUUID->"2382bfb9-51bd-4616-b74a-a3c31d4bacf9"],
+Cell[13315, 354, 270, 6, 70, "Input",ExpressionUUID->"737603cb-512b-4306-a8ee-4ace3a85e017"],
+Cell[13588, 362, 1219, 36, 70, "Text",ExpressionUUID->"e89bb6f3-fee1-44e8-ace8-37fab70a897d"],
+Cell[14810, 400, 252, 5, 70, "Input",ExpressionUUID->"f83e767c-0498-4205-bff8-16a721c9b1c3"],
+Cell[15065, 407, 669, 19, 70, "Text",ExpressionUUID->"53916ad2-d6e6-4fa7-ad82-3524cf551d84"],
+Cell[15737, 428, 100, 0, 70, "Section",ExpressionUUID->"5d5317f7-2e30-4bae-85f1-b064549cfd8f"],
+Cell[15840, 430, 287, 5, 70, "Program",ExpressionUUID->"ed7755a5-baea-403f-87b8-c080ec6d6ef0"],
+Cell[16130, 437, 306, 5, 70, "Program",ExpressionUUID->"aed4a214-42a6-46e4-adca-df6d7ac14bc3"],
+Cell[16439, 444, 1206, 23, 70, "Program",ExpressionUUID->"ea2287de-c06a-49a4-ab6f-439f9562216a"],
+Cell[17648, 469, 1664, 51, 70, "Text",ExpressionUUID->"6f9bcd96-9f2d-4029-80e7-c5694f2b3336"],
+Cell[19315, 522, 320, 7, 70, "Input",ExpressionUUID->"eca5284b-cb70-4905-8e35-d4cf64e98ed9"],
+Cell[19638, 531, 1049, 31, 70, "Text",ExpressionUUID->"93a80a99-6cb4-4265-b5b0-0a9bbf4344ec"],
+Cell[20690, 564, 246, 4, 70, "Input",ExpressionUUID->"4305404a-0492-4964-9e0c-79eb2ba2730a"],
+Cell[20939, 570, 1285, 34, 70, "Text",ExpressionUUID->"caf44114-2595-430d-aecd-dc8a2e3c2ce9"],
+Cell[22227, 606, 725, 21, 70, "Text",ExpressionUUID->"cbae636b-9f52-4cdc-bf43-389ad7e2072a"],
+Cell[22955, 629, 115, 0, 70, "Section",ExpressionUUID->"4e4f5a43-c820-445b-9090-1a7d408ca664"],
+Cell[23073, 631, 1731, 55, 70, "Text",ExpressionUUID->"76dde7e2-2b04-4669-8d86-789c7820cb03"],
+Cell[24807, 688, 1706, 31, 70, "Program",ExpressionUUID->"a0ee33a8-dd04-46e1-8beb-589bf9331644"],
+Cell[26516, 721, 341, 7, 70, "Text",ExpressionUUID->"a8b0ae64-408a-456b-8334-677bb26d8413"],
+Cell[26860, 730, 256, 4, 70, "Program",ExpressionUUID->"052b647a-d7d9-4654-a713-989c3afa3bc4"],
+Cell[27119, 736, 1026, 18, 70, "Program",ExpressionUUID->"68452986-1df9-4a16-8773-e2343b2241da"],
+Cell[28148, 756, 83, 0, 70, "Section",ExpressionUUID->"18825e9c-be57-423e-baf6-a3f52ceba3e8"],
+Cell[28234, 758, 109, 0, 70, "Subsection",ExpressionUUID->"b4636672-cba8-43f3-8d0e-18cacdaf5cc0"],
+Cell[28346, 760, 476, 13, 70, "Text",ExpressionUUID->"60274185-7d51-4c9d-a01c-cdb9fee5fca1"],
 Cell[CellGroupData[{
-Cell[28130, 764, 88, 0, 70, "Subsubsection",ExpressionUUID->"e54ce94c-013d-4b12-9920-497950c6eca9"],
-Cell[28221, 766, 146, 2, 70, "Input",ExpressionUUID->"a2eba469-59c0-43b8-959c-ca10a8773f7a"]
+Cell[28847, 777, 88, 0, 70, "Subsubsection",ExpressionUUID->"50313a03-f485-489d-abbc-dc18a7e540c0"],
+Cell[28938, 779, 146, 2, 70, "Input",ExpressionUUID->"89bdd1a1-3e0b-4fed-835c-2910017ea884"]
 }, Closed]],
-Cell[28382, 771, 110, 0, 70, "Subsection",ExpressionUUID->"654d6785-0b0e-40b0-9d28-7b3be477bcc5"],
-Cell[28495, 773, 587, 17, 70, "Text",ExpressionUUID->"2aee9e5a-017b-4bcd-af9d-6fcf319d63c6"],
+Cell[29099, 784, 110, 0, 70, "Subsection",ExpressionUUID->"c1f92b42-d225-4ec4-9820-6a2a3f1e45fd"],
+Cell[29212, 786, 587, 17, 70, "Text",ExpressionUUID->"f7411a68-e4e1-4d3e-b977-0a94313c2f42"],
 Cell[CellGroupData[{
-Cell[29107, 794, 88, 0, 70, "Subsubsection",ExpressionUUID->"f1987960-3495-41c4-b806-18246922015d"],
-Cell[29198, 796, 161, 3, 70, "Input",ExpressionUUID->"b96a5f79-4aa8-400b-8949-bbd7a2cfcb7a"],
-Cell[29362, 801, 461, 13, 70, "Text",ExpressionUUID->"83aea52c-e029-4518-93cb-de01fed6c3eb"]
+Cell[29824, 807, 88, 0, 70, "Subsubsection",ExpressionUUID->"116dbc6c-a46e-4e2c-a475-e3f480c0d59d"],
+Cell[29915, 809, 161, 3, 70, "Input",ExpressionUUID->"5332989f-eea0-4717-9b22-e28f15d21ff4"],
+Cell[30079, 814, 461, 13, 70, "Text",ExpressionUUID->"7bd3fc61-8652-44ec-9d79-cfaf67e49893"]
 }, Closed]],
-Cell[29838, 817, 103, 0, 70, "Subsection",ExpressionUUID->"61924324-3208-4cb0-b67a-fa89182e95c8"],
-Cell[29944, 819, 1569, 65, 70, "Text",ExpressionUUID->"f6b0607c-2f08-4b32-b541-a9063384a6b0"],
+Cell[30555, 830, 103, 0, 70, "Subsection",ExpressionUUID->"5fb6c1ac-7d20-466d-8a44-eec940a32b04"],
+Cell[30661, 832, 1569, 65, 70, "Text",ExpressionUUID->"d2cb1f1b-e1ea-490d-8d03-044f9b1cf98e"],
 Cell[CellGroupData[{
-Cell[31538, 888, 88, 0, 70, "Subsubsection",ExpressionUUID->"bb712aa0-70a3-4168-8348-1e1accf843b8"],
-Cell[31629, 890, 443, 12, 70, "Text",ExpressionUUID->"c5c48f5d-c504-4caa-8a6c-5e8c93a60508"],
-Cell[32075, 904, 450, 8, 70, "Input",ExpressionUUID->"39a5b874-7864-40ec-8640-367fd4d3ce7a"],
-Cell[32528, 914, 405, 7, 70, "Input",ExpressionUUID->"5e495f10-239a-4966-93bc-e0c7f1b780cf"],
-Cell[32936, 923, 273, 5, 70, "Input",ExpressionUUID->"55143f74-877b-4651-9f27-1bc7ae2c77e5"],
-Cell[33212, 930, 442, 12, 70, "Text",ExpressionUUID->"663c02d0-6dbb-48c9-b08c-4516f17edf21"]
+Cell[32255, 901, 88, 0, 70, "Subsubsection",ExpressionUUID->"eeb88809-926d-4db9-9037-3796a182abcc"],
+Cell[32346, 903, 443, 12, 70, "Text",ExpressionUUID->"b53511db-70c7-43f8-b101-f76812c17579"],
+Cell[32792, 917, 450, 8, 70, "Input",ExpressionUUID->"dd1f1a7a-1d93-4512-99ba-e2292f9bb95d"],
+Cell[33245, 927, 405, 7, 70, "Input",ExpressionUUID->"d378fe43-b2d5-4d5d-b714-814b3f0f2d87"],
+Cell[33653, 936, 273, 5, 70, "Input",ExpressionUUID->"45f862bc-43f5-4911-b19e-2066b2a44a83"],
+Cell[33929, 943, 442, 12, 70, "Text",ExpressionUUID->"5d522f34-1c11-4c96-930f-c8354d956261"]
 }, Closed]]
 }
 ]

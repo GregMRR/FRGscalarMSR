@@ -66,12 +66,25 @@ This header is printed above every vertex table (from milestone 2 on). Every mod
   - Do not use System `Dt`, `D`, `Grad`, `Div` or `Laplacian`. `Dt[nk H]` silently adds `H Dt[nk]`, and the System operators
     applied to explicit coordinates evaluate to 0 before the library sees them.
 - Couplings depend on k only. They stand outside the operators: write `nk dt[H]`, not `dt[nk H]`.
+- Momentum functions (`"MomentumFunctions" -> {Fnu, ...}`, design/MOMENTUMFUNCTIONS.md) are written bare in quadratic terms, outside the
+  operators, at most one per slot, as number × (a reference, or nothing) × F: `- nk Fnu hbar lap[h]` is −nk Fnu(p²) h̄ ∇²h.
 - Each parsed monomial is coefficient × Π `FieldFactor[φ, n_t, {indices}]`. `FieldFactor[φ, n_t, {i, …}]` is ∂t^{n_t} ∂_i … φ.
   A repeated `SpaceIndex[1]` is summed over. The two indices of ε are `EpsIndex[1]` (on the factor of a) and `EpsIndex[2]` (on
   the factor of b).
 
 ## Reserved names
 
-Fields and couplings may not be named `k q p y t x ω ν`. These names have a fixed meaning in library input and output: RG
-scale, loop momentum, external momentum, shape argument, time, position, frequencies. They may not be System symbols or
+Fields and couplings may not be named `k q p y t x c ap ω ν`. These names have a fixed meaning in library input and output: RG
+scale, loop momentum, external momentum, shape argument, time, position, the cosine c = cos(p, q) and the dimensionless external
+momentum ap of the functional equations, frequencies. They may not be System symbols or
 FRGscalarMSR symbols either, and they must have no definitions.
+
+## Flows at generic p (momentum functions)
+
+- Functional equations are written at generic external momentum p with the loop momentum q routed at the midpoint: the two
+  propagator lines carry q − p/2 and q + p/2; the integrand is symmetrised under q → −q, so it is even in p at fixed q.
+  Variables: q = |q|, p = |p|, c = cos(p, q) (dimensionless: aq, ap, c); a function is F[x] of the momentum squared x.
+- ∫dᵈq/(2π)ᵈ = ∫dq ∫_{−1}^{1}dc S_{d−1} q^{d−1}(1−c²)^{(d−3)/2}/(2π)ᵈ, S_{d−1} = 2π^{(d−1)/2}/Γ((d−1)/2) (`FunctionalMeasure`);
+  in d = 1 it is ∫dq/(2π) Σ_{c=±1}.
+- A slot Σ_{n<n₀} c_n p^{2n} + p^{2n₀} ref F(p²) gives ∂s(ref F(p²)) = [loop(p) − its orders below n₀]/p^{2n₀}.
+- F̂(ŷ) = F(k² ŷ)/[F], ŷ = ap²; ∂s at fixed ŷ adds 2ŷ F̂′(ŷ) to the linear part. F̂(0) is free unless `"Equation" -> ref F` normalises it to 1.

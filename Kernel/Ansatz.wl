@@ -13,7 +13,9 @@ lap::usage = "lap[e]: Laplacian in the ansatz density.";
 jac::usage = "jac[a, b] = eps_ij d_i a d_j b (eps_12 = +1) in the ansatz density, a and b scalars. It exists only in d = 2: declare \
 \"Dimension\" -> FixedDimension[2] in DefineTheory. At most one jac per monomial.";
 DefineAnsatz::usage = "DefineAnsatz[theory, \"Density\" -> density, \"Couplings\" -> {c1, c2, ...}] parses the density \
-(Gamma_k = Integral dt d^dx density) into monomials, prints the parsed table and returns the \"Ansatz\" stage.";
+(Gamma_k = Integral dt d^dx density) into monomials, prints the parsed table and returns the \"Ansatz\" stage. \
+\"MomentumFunctions\" -> {Fnu, ...} declares functions of the external momentum p^2: written bare in quadratic terms \
+(- nk Fnu hbar lap[h]), each means Fnu(p^2) (design/MOMENTUMFUNCTIONS.md).";
 FieldFactor::usage = "FieldFactor[phi, nt, {i, ...}] is the factor dt^nt d_i ... phi of a parsed monomial; every repeated \
 SpaceIndex[n] is summed over (one index per contraction, numbered canonically).";
 SpaceIndex::usage = "SpaceIndex[n] is a summed spatial index in a parsed monomial.";
@@ -133,32 +135,44 @@ monomialRecord[{coef_, fac0_}, fieldOrder_, responses_] := Module[{nIx = Length[
 
 (* ---------- DefineAnsatz ---------- *)
 
-Options[DefineAnsatz] = {"Density" -> None, "Couplings" -> {}, "Pipeline" -> "DerivativeExpansion"};
+Options[DefineAnsatz] = {"Density" -> None, "Couplings" -> {}, "MomentumFunctions" -> {}, "Pipeline" -> Automatic};
 
 DefineAnsatz[theory_, opts : OptionsPattern[]] := Block[{$FRGModule = "Ansatz"},
   Module[{t0 = AbsoluteTime[], dens, cps, fields, fld, responses, checks = {}, warns = {}, counter = 0, new, ops, expanded, terms, mons,
-    badSyms, unused, stage, jacQ, epsQ},
+    badSyms, unused, stage, jacQ, epsQ, fns, fnPat, pipeline},
    validateStage[theory, "Theory"];
-   FRGAssert["Ansatz.options", MatchQ[{opts}, {(Rule | RuleDelayed)["Density" | "Couplings" | "Pipeline", _] ...}], {opts},
-    "only the options \"Density\", \"Couplings\", \"Pipeline\" are accepted"];
-   dens = OptionValue["Density"]; cps = OptionValue["Couplings"];
+   FRGAssert["Ansatz.options", MatchQ[{opts}, {(Rule | RuleDelayed)["Density" | "Couplings" | "MomentumFunctions" | "Pipeline", _] ...}], {opts},
+    "only the options \"Density\", \"Couplings\", \"MomentumFunctions\", \"Pipeline\" are accepted"];
+   dens = OptionValue["Density"]; cps = OptionValue["Couplings"]; fns = OptionValue["MomentumFunctions"];
    fields = theory["Fields"]; responses = theory["ResponseFields"]; fld = Alternatives @@ fields;
-   AppendTo[checks, assertCheck["Ansatz.pipeline", OptionValue["Pipeline"] === "DerivativeExpansion", OptionValue["Pipeline"],
-     "v1 implements only \"DerivativeExpansion\" (couplings depend on k only); see docs/FUTURE.md", "DerivativeExpansion"]];
+   FRGAssert["Ansatz.functionList", ListQ[fns], fns, "\"MomentumFunctions\" -> {Fnu, FD, ...}"];
+   (* the pipeline follows from the declared functions (design/MOMENTUMFUNCTIONS.md A2) *)
+   pipeline = If[fns === {}, "DerivativeExpansion", "MomentumFunctions"];
+   AppendTo[checks, assertCheck["Ansatz.pipeline", MemberQ[{Automatic, pipeline}, OptionValue["Pipeline"]], OptionValue["Pipeline"],
+     "drop \"Pipeline\": it is set from \"MomentumFunctions\" (\"DerivativeExpansion\" without functions, \"MomentumFunctions\" with them)", pipeline]];
    FRGAssert["Ansatz.density", dens =!= None && dens =!= 0, dens, "\"Density\" -> expression is required"];
    FRGAssert["Ansatz.couplingList", ListQ[cps], cps, "\"Couplings\" -> {c1, c2, ...}"];
    assertFreshSymbols["Ansatz.couplings", cps, "couplings"];
    FRGAssert["Ansatz.couplingsNotFields", Intersection[cps, Append[fields, theory["Dimension"]]] === {}, Intersection[cps, Append[fields, theory["Dimension"]]],
     "a coupling has the name of a field or of the dimension"];
+   If[fns =!= {},
+    assertFreshSymbols["Ansatz.functions", fns, "momentum functions"];
+    FRGAssert["Ansatz.functionsDistinct", Intersection[fns, Join[cps, fields, {theory["Dimension"]}]] === {}, Intersection[fns, Join[cps, fields, {theory["Dimension"]}]],
+     "a momentum function is declared only in \"MomentumFunctions\": not in \"Couplings\", and not with the name of a field or of the dimension"]];
+   fnPat = Alternatives @@ fns;
 
    (* E7: System derivative heads would silently differentiate the couplings (Dt[nk H] = H Dt[nk] + nk Dt[H]) *)
    AppendTo[checks, assertCheck["Ansatz.noSystemDerivatives", FreeQ[dens, systemOps], Cases[dens, systemOps[___] | Derivative[__][_], {0, Infinity}, Heads -> True],
      "use the package operators dt, grad, div, lap (System Dt, Grad, Div, Laplacian, D are not allowed)", "no Dt/D/Grad/Div/Laplacian"]];
 
-   badSyms = Complement[Cases[dens, s_Symbol /; Context[s] =!= "System`", {0, Infinity}, Heads -> True], fields, cps, {theory["Dimension"], dt, grad, div, lap, jac}];
+   badSyms = Complement[Cases[dens, s_Symbol /; Context[s] =!= "System`", {0, Infinity}, Heads -> True], fields, cps, fns, {theory["Dimension"], dt, grad, div, lap, jac}];
    AppendTo[checks, assertCheck["Ansatz.knownSymbols", badSyms === {}, badSyms,
      If[MemberQ[SymbolName /@ badSyms, "t" | "x"], "couplings depend on k only: no explicit t or x dependence is allowed",
-      "every symbol must be a declared coupling (\"Couplings\") or a field of the theory"], "every symbol is a field, a coupling or Dim"]];
+      "every symbol must be a declared coupling (\"Couplings\"), a momentum function (\"MomentumFunctions\") or a field of the theory"],
+     "every symbol is a field, a coupling" <> If[fns === {}, "", ", a momentum function"] <> " or Dim"]];
+   If[fns =!= {},
+    AppendTo[checks, assertCheck["Ansatz.functionBare", FreeQ[dens, fnPat[___]], Cases[dens, fnPat[___], {0, Infinity}],
+      "write the function bare (Fnu, not Fnu[0] or Fnu[p^2]): it already means Fnu(p^2)", "momentum functions written bare"]]];
 
    (* operators act on field expressions only: couplings depend on k only and must stand outside (no dt[nk H], no lap[nk]) *)
    ops = Cases[dens, opHeads[___], {0, Infinity}];
@@ -167,6 +181,8 @@ DefineAnsatz[theory_, opts : OptionsPattern[]] := Block[{$FRGModule = "Ansatz"},
    AppendTo[checks, assertCheck["Ansatz.couplingsOutsideOperators", AllTrue[ops, FreeQ[List @@ #, Alternatives @@ cps] &],
      Select[ops, ! FreeQ[List @@ #, Alternatives @@ cps] &],
      "couplings depend on k only: write nk dt[H], not dt[nk H] (and never differentiate a coupling)", "no coupling under dt/grad/div/lap"]];
+   If[fns =!= {}, AppendTo[checks, assertCheck["Ansatz.functionNotInOperator", AllTrue[ops, FreeQ[List @@ #, fnPat] &],
+      Select[ops, ! FreeQ[List @@ #, fnPat] &], "write the function outside the operators: Fnu lap[h], not lap[Fnu h]", "no momentum function under an operator"]]];
    FRGAssert["Ansatz.operatorOnField", AllTrue[ops, AllTrue[List @@ #, ! FreeQ[#, fld] &] &], Select[ops, ! AllTrue[List @@ #, ! FreeQ[#, fld] &] &],
     "an operator acts on an expression without fields"];
    jacQ = ! FreeQ[dens, jac];
@@ -203,18 +219,23 @@ DefineAnsatz[theory_, opts : OptionsPattern[]] := Block[{$FRGModule = "Ansatz"},
     "internal: every spatial index must appear exactly twice, and EpsIndex[1], EpsIndex[2] once each or not at all"];
    AppendTo[checks, assertCheck["Ansatz.couplingsInCoefficients", AllTrue[mons, FreeQ[#Coefficient, fld | opHeads | SpaceIndex | EpsIndex] &], mons,
      "internal: a coefficient contains a field", "coefficients are field-free"]];
+   If[fns =!= {}, AppendTo[checks, assertCheck["Ansatz.functionQuadraticOnly", NoneTrue[mons, #FieldCount =!= 2 && ! FreeQ[#Coefficient, fnPat] &],
+      MonomialString /@ Select[mons, #FieldCount =!= 2 && ! FreeQ[#Coefficient, fnPat] &],
+      "momentum functions multiply quadratic terms only (Gamma3/Gamma4 couplings stay constant, design/MOMENTUMFUNCTIONS.md A1)",
+      "momentum functions in quadratic terms only: " <> StringRiffle[ToString /@ fns, ", "]]]];
    unused = Select[cps, FreeQ[mons[[All, "Coefficient"]], #] &];
    If[unused =!= {}, AppendTo[warns, infoCheck["WARN", "Ansatz.unusedCouplings", "declared but absent from the density: " <> ToString[unused]]]];
 
-   stage = stampStage[<|"Stage" -> "Ansatz", "Pipeline" -> "DerivativeExpansion", "Upstream" -> {theory["Fingerprint"]},
-      "Theory" -> theory, "Density" -> dens, "Couplings" -> cps, "Monomials" -> mons, Sequence @@ If[epsQ, {"Epsilon" -> True}, {}],
+   stage = stampStage[<|"Stage" -> "Ansatz", "Pipeline" -> pipeline, "Upstream" -> {theory["Fingerprint"]},
+      "Theory" -> theory, "Density" -> dens, "Couplings" -> cps, Sequence @@ If[fns === {}, {}, {"MomentumFunctions" -> fns}], "Monomials" -> mons, Sequence @@ If[epsQ, {"Epsilon" -> True}, {}],
       "Checks" -> checks, "Warnings" -> warns, "Timing" -> AbsoluteTime[] - t0|>];
    ShowMonomials[stage];
    PrintCard[stage];
    stage]];
 
-ShowMonomials[ansatz_Association] := Module[{mons = validateStage[ansatz, "Ansatz"]["Monomials"], fo = ansatz["Theory"]["Fields"], rows},
-   rows = {inputForm[#Coefficient], ToString[#Fields], MonomialString[#],
+ShowMonomials[ansatz_Association] := Module[{mons = validateStage[ansatz, "Ansatz"]["Monomials"], fo = ansatz["Theory"]["Fields"], rows,
+   fns = Lookup[ansatz, "MomentumFunctions", {}], pDisp = Symbol["FRGscalarMSR`Ansatz`Private`p"]},
+   rows = {If[FreeQ[#Coefficient, Alternatives @@ fns], inputForm[#Coefficient], displayString[#Coefficient /. f : (Alternatives @@ fns) :> f[pDisp^2]]], ToString[#Fields], MonomialString[#],
        "dt^" <> ToString[#TimeOrder] <> " p^" <> ToString[#MomentumOrder]} & /@ mons;
    Print["Parsed density: ", Length[mons], " monomials   (Gamma_k = Integral dt d^dx [ sum of coefficient x operators ])"];
    Print[If[$FrontEnd === Null,

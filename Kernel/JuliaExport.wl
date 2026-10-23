@@ -50,6 +50,9 @@ ExportJulia[adim_, opts : OptionsPattern[]] := Block[{$FRGModule = "JuliaExport"
   Module[{t0 = AbsoluteTime[], d = OptionValue["Dimension"], file = OptionValue["File"], form = OptionValue["Form"], dimSym, parts, cps, etaSyms,
     etaNames, shapes, aq, units, all, bad, usedShapes, d2Q, header, defs, def, dims, checks = {}, warns = {}, atomKeys, placeholder, rename, jl},
    validateStage[adim, "Adimensional"];
+   (* design/MOMENTUMFUNCTIONS.md E1: FlowRG integrates couplings of k only *)
+   FRGAssert["JuliaExport.functionalCouplings", Lookup[adim, "MomentumFunctions", {}] === {}, adim["MomentumFunctions"],
+    "functional equations (couplings that depend on the momentum) are not exportable to FlowRG: use the Adimensional stage directly"];
    FRGAssert["JuliaExport.options", MatchQ[{opts}, {(Rule | RuleDelayed)["Dimension" | "File" | "Form", _] ...}], {opts},
     "options: \"Dimension\" -> d, \"File\" -> path, \"Form\" -> \"Compact\" | \"Explicit\""];
    dimSym = adim["Dimension"];

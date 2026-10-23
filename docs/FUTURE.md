@@ -2,10 +2,14 @@
 
 These are extensions the v1 design keeps room for. None of them is implemented yet.
 
-- **Pipeline 2: couplings that depend on ω and p.**
-  - Selected with the Ansatz `"Pipeline"` option. It replaces `ProjectOnMonomials`, and the external ν, p stay generic.
-  - The input contract of `IntegrateFrequencies` is "rational in ω with listed pole factors", so shifted poles Δ(ω+ν, p+q) plug
-    in without changes.
+- **Frequency-dependent functions, functions in vertices.** Momentum functions of p² in Γ2 slots are implemented
+  (design/MOMENTUMFUNCTIONS.md). Still open: functions of ω (non-polynomial frequency dependence: no closed-form residues), functions in
+  Γ3/Γ4 couplings (they need a rule for which leg momentum is the argument), `jac` together with functions, and an export of the functional
+  equations to FlowRG (FlowRG integrates couplings of k only).
+- **Small-ŷ form of the functional equations** (MomentumFunctions-r4 E33). For n₀ ≥ 1 the stored integrand (I − lower orders)/ap^{2n₀} is
+  exact for ap > 0, 0/0 at ap = 0, and loses float precision near it (≈ 10⁻¹⁶/ap^{2n₀}; matters for n₀ ≥ 2). The library never evaluates
+  it there (the ap = 0 value is the exact p → 0 row). A downstream fix: store an "AtZero" row (it exists: `EquationOf[eqs, F]["AtZero"]`)
+  and the next-order series for ap below a threshold.
 - **Δ of degree greater than 2 in ω** (N ≥ 3 scalars, or richer frequency structure).
   - Needs a general reduction by symmetric functions of the roots.
   - The validity condition becomes the Routh–Hurwitz criterion: an algebraic test on the coefficients of Δ that tells whether

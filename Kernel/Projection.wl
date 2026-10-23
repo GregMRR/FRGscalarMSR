@@ -10,6 +10,9 @@ BeginPackage["FRGscalarMSR`", {"FRGscalarMSR`Internal`"}];
 ProjectOnMonomials::usage = "ProjectOnMonomials[loops, symmetries] returns the \"Projection\" stage: one w-integrand per classified \
 monomial (all classes except \"Structure\"), at nu = p = 0, as a function of w and q^2 = LoopMomentumSquared.";
 LoopMomentumSquared::usage = "LoopMomentumSquared is the symbol for q^2 in projected integrands and in the flow equations.";
+ExternalMomentumSquared::usage = "ExternalMomentumSquared is the symbol for p^2 in the integrands of the flows at generic p (functional slots, \
+\"AllMomenta\" tags); MomentumProduct is p.q there (design/MOMENTUMFUNCTIONS.md C).";
+MomentumProduct::usage = "MomentumProduct is the symbol for p.q (midpoint loop momentum q) in the integrands of the flows at generic p.";
 ShowIntegrand::usage = "ShowIntegrand[projected, coefficient] or ShowIntegrand[projected, {a, b}, {m, n}] prints the w-integrand of a monomial.";
 
 Begin["`Private`"];
@@ -89,8 +92,37 @@ project[e0_, m_, n_, {nu_, p_}, {w_, q_}, dim_, deg_, eps_ : False] := Module[{e
     "internal: external variables, vectors or Delta derivatives left after the projection"];
    e/(I^m m!)];
 
+(* ---------- flows at generic p (design/MOMENTUMFUNCTIONS.md C1, C2) ---------- *)
+
+(* vectors -> invariants: q^2, p^2, p.q *)
+toInvariants[e_, p_, q_] := e /. {scal[p, p] -> ExternalMomentumSquared, scal[p, q] -> MomentumProduct, scal[q, q] -> LoopMomentumSquared};
+
+(* frequency operator at nu = 0 on a midpoint integrand, in the invariants *)
+genericFrequency[e0_, m_, {nu_, p_}, {w_, q_}, deg_] := Module[{e = e0},
+   If[m > 0, e = D[e, {nu, m}]];
+   e = toInvariants[e /. nu -> 0, p, q] /. deltaCompletion[deg];
+   FRGAssert["Projection.complete", FreeQ[e, q | p | nu | wedge | _scal | Derivative[__][\[CapitalDelta]]], e,
+    "internal: external variables, vectors or Delta derivatives left in a generic-p integrand"];
+   e/(I^m m!)];
+
+(* C2: subtract the orders p^(2j), j < n0, by their un-averaged Taylor coefficients at fixed q (p -> t p) and divide by p^(2 n0).
+   Projection.functionalOrder: the odd orders t^(2j+1), j < n0, vanish (the q -> -q symmetrisation), so the result is O(1) as p -> 0 *)
+subtractLowerOrders[e_, n0_, what_] := Module[{et, cl, odd},
+   If[n0 == 0, Return[e]];
+   et = e /. {ExternalMomentumSquared -> fnT^2 ExternalMomentumSquared, MomentumProduct -> fnT MomentumProduct};
+   cl = Table[(D[et, {fnT, j}] /. fnT -> 0)/j!, {j, 0, 2 n0 - 1}] /. deltaCompletionAny;
+   odd = cl[[2 ;; ;; 2]];
+   FRGAssert["Projection.functionalOrder", ExactlyZeroQ[odd, "Seeds" -> {1}], {what, "odd orders" -> Short[odd]},
+    "the generic-p integrand is not even in p at fixed q: its quotient by p^(2 n0) would be singular as p -> 0 (midpoint routing and q -> -q symmetrisation)"];
+   Together[(e - Total[cl[[1 ;; ;; 2]]])/ExternalMomentumSquared^n0]];
+
+(* derivatives of Delta left by the Taylor expansion, any degree <= 2 (the propagator degree is fixed later by the integrand) *)
+deltaCompletionAny = Derivative[i_, j_][\[CapitalDelta]][w_, s_] :>
+   (D[Sum[DeltaCoefficient[mm][xs] (I yw)^mm, {mm, 0, 2}], {yw, i}, {xs, j}] /. {yw -> w, xs -> s});
+
 ProjectOnMonomials[loops_, symmetries_] := Block[{$FRGModule = "Projection"},
-  Module[{t0 = AbsoluteTime[], v, prop, dim, deg, targets, lhsBad, byPair, res, nmax, nExplicit, checks = {}, warns = {}, stage, wq, eps},
+  Module[{t0 = AbsoluteTime[], v, prop, dim, deg, targets, lhsBad, byPair, res, nmax, nExplicit, checks = {}, warns = {}, stage, wq, eps,
+    generic, genRes, lhsGen},
    validateStage[loops, "Loops"]; validateStage[symmetries, "Symmetries"];
    v = loops["Vertices"]; prop = loops["Propagator"];
    FRGAssert["Projection.sameAnsatz", v["Upstream"] === symmetries["Upstream"], {v["Upstream"], symmetries["Upstream"]},
@@ -99,7 +131,10 @@ ProjectOnMonomials[loops_, symmetries_] := Block[{$FRGModule = "Projection"},
    eps = Lookup[v["Ansatz"], "Epsilon", False];
    If[eps, AppendTo[checks, assertCheck["Projection.epsilonDimension", dim === 2, dim, "internal: eps (jac) needs the declared d = 2", "eps with d = 2"]]];
    $wedgeDropped = 0;
-   targets = Select[symmetries["Classification"], #Class =!= "Structure" &];
+   targets = Select[symmetries["Classification"], #Class =!= "Structure" && #Class =!= "Functional" && IntegerQ[#Momentum] &];
+   generic = Select[symmetries["Classification"], #Class === "Functional" || #Momentum === "AllMomenta" &];
+   If[generic =!= {}, FRGAssert["Projection.functionalEpsilon", ! eps, generic[[All, "Pair"]],
+     "jac (eps) together with momentum functions or \"AllMomenta\" tags is not supported (docs/FUTURE.md)"]];
    nmax = Max[0, targets[[All, "Momentum"]]];
 
    (* the d-normalisation of the momentum projection, against an independent closed form (LHS cannot see it: review E2) *)
@@ -125,7 +160,30 @@ ProjectOnMonomials[loops_, symmetries_] := Block[{$FRGModule = "Projection"},
    If[nExplicit > 0, AppendTo[checks, assertCheck["Projection.explicitVectors", True, Null, "",
       ToString[nExplicit] <> " p^(2n >= 4) integrands = (Laplacian_p)^n/N_n on explicit vectors, d = " <>
        If[IntegerQ[dim], ToString[dim], "1, ..., " <> ToString[nmax + 1]]]]];
-   AppendTo[checks, assertCheck["Projection.integrandsBuilt", Length[res] == Length[targets], Length[res], "internal",
+   (* generic p: functional slots (subtract, divide; plus the exact p -> 0 row of order n0, C4) and "AllMomenta" slots (whole slot) *)
+   If[generic =!= {},
+    lhsGen = Select[generic, Function[r, With[{g = genericFrequency[VertexValue[v, r["Pair"], {{nu, p}}], r["Frequency"], {nu, p}, {zz, zq}, deg]},
+         If[r["Class"] === "Functional",
+          ! ExactlyZeroQ[subtractLowerOrders[g, r["Momentum"], r["Pair"]] - (r["GammaK"] /. r["Function"] -> r["Function"][ExternalMomentumSquared])] ||
+           Expand[project[VertexValue[v, r["Pair"], {{nu, p}}], r["Frequency"], r["Momentum"], {nu, p}, {zz, zq}, dim, deg] -
+              (r["GammaK"] /. r["Function"] -> r["Function"][0])] =!= 0,
+          ! ExactlyZeroQ[g - (r["GammaK"] /. pp2 -> ExternalMomentumSquared)]]]]];
+    AppendTo[checks, assertCheck["Projection.LHSGeneric", lhsGen === {}, lhsGen,
+      "internal: the generic-p operator does not reproduce the Gamma_k slot (functional: (slot - lower orders)/p^(2 n0) = ref F(p^2), and F(0) at p -> 0)",
+      "generic-p operator on Gamma_k = its slot, " <> ToString[Length[generic]] <> " slot(s)"]];
+    genRes = Function[r, Module[{mid = MidpointLoopIntegrand[loops, r["Pair"], nu, p], g},
+        g = genericFrequency[mid, r["Frequency"], {nu, p}, wq, deg];
+        If[r["Class"] === "Functional",
+         Join[r, <|"Integrand" -> subtractLowerOrders[g, r["Momentum"], r["Pair"]],
+           "AtZero" -> project[LoopIntegrand[loops, r["Pair"], nu, p], r["Frequency"], r["Momentum"], {nu, p}, wq, dim, deg]|>],
+         Append[r, "Integrand" -> g]]]] /@ generic;
+    AppendTo[checks, assertCheck["Projection.functionalOrder", True, Null, "",
+      ToString[Length[genRes]] <> " generic-p integrand(s): midpoint routing, q -> -q symmetrised, d_s R on its line; functional ones minus their " <>
+       "orders below n0, divided by p^(2 n0), O(1) as p -> 0; exact p -> 0 row of order n0 for each function"]];
+    AppendTo[warns, infoCheck["INFO", "Projection.genericMomentum", "generic-p integrands in q^2 = LoopMomentumSquared (midpoint loop momentum), " <>
+       "p^2 = ExternalMomentumSquared, p.q = MomentumProduct; Delta at |q -+ p/2|^2 (and q^2 for the subtracted orders)"]];
+    res = Join[res, genRes]];
+   AppendTo[checks, assertCheck["Projection.integrandsBuilt", Length[res] == Length[targets] + Length[generic], Length[res], "internal",
      ToString[Length[res]] <> " integrands at nu = p = 0 (largest LeafCount " <> ToString[Max[LeafCount[#Integrand] & /@ res]] <> ")"]];
    If[eps, AppendTo[checks, assertCheck["Projection.wedgeOdd", True, Null, "",
       "2D reduction (F2): one wedge at most; the part odd in wedge[p, q] dropped (F4) in " <> ToString[$wedgeDropped] <>
