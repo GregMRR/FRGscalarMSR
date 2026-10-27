@@ -1,0 +1,222 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[     11042,        213]
+NotebookOptionsPosition[      8275,        174]
+NotebookOutlinePosition[      8589,        188]
+CellTagsIndexPosition[      8546,        185]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["KPZ at LO: couplings that are functions of p^2", "Title",ExpressionUUID->"b1d2559f-e0bf-4b72-acd5-7aa97b72f2ac"],
+
+Cell["\<\
+The second pipeline of the library (design/LOPIPELINE.md). The Gamma2 \
+couplings of KPZ become functions of the momentum: Gamma^(1,1) = i w + nu p^2 \
+f_nu(p^2), Gamma^(0,2) = -2 D f_D(p^2), with f_nu(0) = f_D(0) = 1, the vertex \
+lambda constant. The library derives the flow of each function at generic p \
+(one loop, two pole families: Delta at q and at Q = p + q), the anomalous \
+dimensions from f(0) = 1, the dimensionless form at fixed p/k, and writes a \
+Python module for BMWflow. The exact comparison with BMWflow's notes \
+(LO_flow_equations.tex, kpz_notation.tex) is the benchmark benchmarks/KPZLO; \
+this notebook shows the workflow and checks f = 1 against Canet's Eq. (20).\
+\>", "Text",ExpressionUUID->"2b8c8df3-42f0-4785-82e3-3640d8d9fe93"],
+
+Cell["Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"]", "Input",ExpressionUUID->"a3cd647b-a063-43f1-a42f-2ee8f569ac4d"],
+
+Cell["1. Ansatz with functions", "Section",ExpressionUUID->"d60a73f9-05fe-435b-9b0c-34c65f737fc0"],
+
+Cell["\<\
+fn[f, X] in the density is f(-Laplacian) acting on X: it multiplies the term \
+by f(p^2), p the momentum of X's leg. \"Functions\" -> {f -> reference} \
+states f(0) = 1 and names the k-dependent amplitude; the ansatz infers \
+\"Pipeline\" -> \"LO\" from the fn. The symmetries take the same tags as in \
+DE but no truncation orders: the Galilean Ward identity protects the 1 of i \
+w, the shift symmetry h -> h + c makes the p^0 order of Gamma^(1,1) vanish.\
+\>", "Text",ExpressionUUID->"4b8d63ed-1f94-41f4-b020-4dbace078f82"],
+
+Cell["\<\
+theory = DefineTheory[\"Scalars\" -> {h}, \"Dimension\" -> Dim];
+ansatz = DefineAnsatz[theory,
+  \"Density\" -> hbar (dt[h] - nuk fn[fnu, lap[h]] - lamk/2 grad[h].grad[h]) \
+- Dk hbar fn[fD, hbar],
+  \"Couplings\" -> {nuk, lamk, Dk}, \"Functions\" -> {fD -> Dk, fnu -> nuk}];\
+\
+\>", "Input",ExpressionUUID->"23290f30-a380-4583-9ba6-00389ff58f65"],
+
+Cell["\<\
+symmetries = DeclareSymmetries[ansatz,
+  Protected[{hbar, h}, \"Frequency\" -> 1, \"Momentum\" -> 0, \"Reason\" -> \
+\"Galilean Ward identity\"],
+  Protected[{h, hbar}, \"Frequency\" -> 0, \"Momentum\" -> 0, \"Reason\" -> \
+\"h -> h + c (shift symmetry)\"],
+  NonRenormalised[lamk, \"Reason\" -> \"Galilean invariance\"]];\
+\>", "Input",ExpressionUUID->"ff430506-ea22-4d64-bb59-711a34e336ca"],
+
+Cell["2. Vertices, regulator, propagator, loops", "Section",ExpressionUUID->"94c70266-98ea-4813-92f6-80528cc39ec2"],
+
+Cell["\<\
+The same stages as in DE. The propagator atoms now contain fnu[s] and fD[s]; \
+the regulator shapes are functions of q^2/k^2.\
+\>", "Text",ExpressionUUID->"0bb49eb0-9fc3-48e1-bc78-79e2c63449d3"],
+
+Cell["\<\
+vertices = BuildVertices[ansatz];
+regulator = DefineRegulator[ansatz, {hbar, h} -> nuk q^2 rn[q^2/k^2], {hbar, \
+hbar} -> -2 Dk rd[q^2/k^2], \"Shapes\" -> {rn, rd}];
+prop = BuildPropagator[vertices, regulator];
+loops = BuildLoopIntegrands[vertices, prop, regulator];\
+\>", "Input",ExpressionUUID->"467f71ad-ae5e-4512-b845-fbf70e386a27"],
+
+Cell["3. Flows at generic p", "Section",ExpressionUUID->"5de1a5ca-d968-4f49-9363-a5bab530d889"],
+
+Cell["\<\
+BuildLOEquations replaces Projection ... Assemble. For each function it takes \
+the loop at external momentum p and zero external frequency, integrates the \
+loop frequency by residues at the poles of both families, and divides by the \
+ansatz prefactor (nuk p^2 for fnu, -2 Dk for fD: P2Divided records the p^2). \
+It checks that the entries outside the ansatz vanish at every p, the Ward \
+identity, that the p^0 order of the fnu row vanishes, and builds the eta rows \
+as the exact p -> 0 limit. The integrand is explicit in p, q, CosTheta = \
+cos(p, q), f at q^2 and at Q^2 = p^2 + q^2 + 2 p q CosTheta, the shapes and \
+dsCoupling.\
+\>", "Text",ExpressionUUID->"70056a73-3405-46a0-b87a-e11e0d4b18f2"],
+
+Cell["\<\
+equations = BuildLOEquations[loops, symmetries];
+ShowLOEquation[equations, fD]\
+\>", "Input",ExpressionUUID->"b12273b2-1f75-4388-9fc8-7a8d960cde98"],
+
+Cell["oracle = RunOracle[equations, \"ZeroFlows\" -> True];", "Input",ExpressionUUID->"6847aa04-8dcb-4e1f-916c-773253935c08"],
+
+Cell["4. Dimensionless flows", "Section",ExpressionUUID->"aad15057-21af-4244-91e0-7a442bd74a7d"],
+
+Cell["\<\
+F_k(p^2) = f(p^2/k^2), ap = p/k, aq = q/k. At fixed ap each function flows as \
+d_s f = eta f + 2 ap^2 f'(ap^2) + Loop (integrated with Measure[\"Loop\"] \
+over aq and theta). f(0) = 1 fixes the etas: (1 + <EtaMatrix>) eta = \
+-<EtaVector>, with <.> = Integral daq Measure[\"Eta\"]. The constant coupling \
+alamk = lamk Dk^(1/2) nuk^(-3/2) k^(d/2-1) has only a linear part.\
+\>", "Text",ExpressionUUID->"50771220-ad5a-46b2-af0b-e35413724385"],
+
+Cell["\<\
+dims = DeriveDimensions[ansatz, \"References\" -> {nuk -> \"nu\", Dk -> \
+\"D\"}];
+adim = AdimensionalEquations[equations, dims];\
+\>", "Input",ExpressionUUID->"27c0cdfe-64bb-4b0e-b1ed-744bfc6d19db"],
+
+Cell["Thread[adim[\"Functions\"] -> adim[\"Linear\"]]", "Input",ExpressionUUID->"a5d032d7-91e5-4b79-83f9-41ccf961bcc4"],
+
+Cell["\<\
+{adim[\"Etas\"], adim[\"Couplings\"] -> adim[\"BetaL\"], \
+adim[\"Measure\"][\"Eta\"]}\
+\>", "Input",ExpressionUUID->"ef3be5ab-2a10-44e5-957c-0469b8bde481"],
+
+Cell["Short[adim[\"Loop\"], 6]", "Input",ExpressionUUID->"3bf3f9c3-61d1-442a-bc40-62f38485f40c"],
+
+Cell["5. Check: f = 1 gives Canet's Eq. (20)", "Section",ExpressionUUID->"22771a7c-24be-415c-b064-a78e3aa94ff9"],
+
+Cell["\<\
+At f_D = f_nu = 1 the eta system is the one of the DE KPZ flow (KPZ.nb). With \
+the Litim cutoff r(y) = 1/y - 1 for y < 1 in both sectors, the aq integral is \
+elementary (y = aq^2). Measure[\"Eta\"] = v_d aq^(d-1) and Canet's g = v_d \
+alamk^2, so v_d drops out with alamk^2 = g/v_d: set the v_d of the measure to \
+1 and alamk^2 = g. The difference with Canet's d_s g/g is exactly 0 at every \
+d.\
+\>", "Text",ExpressionUUID->"a2e0cc27-0f51-4c0e-a842-fc54d74d0e36"],
+
+Cell["\<\
+litim = {fD -> Function[x, 1], fnu -> Function[x, 1], rn -> Function[y, 1/y - \
+1], rd -> Function[y, 1/y - 1]};
+litimAvg[f_] := Module[{e = Expand[Together[(f /. litim /. aq -> Sqrt[y] /. \
+alamk -> Sqrt[g] /. Dim -> d)] y^(d/2 - 1)/2], terms},
+  terms = If[Head[e] === Plus, List @@ e, {e}];
+  Total[(# /. y -> 1)/(Exponent[#, y] + 1) & /@ terms]];\
+\>", "Input",ExpressionUUID->"1a5de54a-10ab-4f7f-ac87-5be4a4f3f67d"],
+
+Cell["\<\
+etas = Thread[adim[\"Etas\"] -> LinearSolve[IdentityMatrix[2] + Map[litimAvg, \
+adim[\"EtaMatrix\"], {2}], -(litimAvg /@ adim[\"EtaVector\"])]];
+bracket = Together[2 First[adim[\"BetaL\"]]/alamk /. etas /. Dim -> d]\
+\>", "Input",ExpressionUUID->"8a8eff40-fd7b-415f-8ded-2da13f6cbc94"],
+
+Cell["\<\
+canet = (2 d^6 + 4 d^5 - d^4 (7 g + 8) - 2 d^3 (3 g + 8) + d^2 g (3 g + 20) - \
+d (g - 8) g - 2 g^2)/
+   (2 d^5 + 8 d^4 + d^3 (8 - 3 g) - 2 d^2 g + d g (g + 8) - g^2);
+Together[bracket - canet]\
+\>", "Input",ExpressionUUID->"5105802c-cdbe-4791-a1f9-374f57d5c221"],
+
+Cell["6. The BMWflow module", "Section",ExpressionUUID->"6040ed58-0a14-48df-8321-df79fd445ec2"],
+
+Cell["\<\
+ExportPython writes the module of the contract docs/handoff/BMWflow_LO.md: \
+FUNCTIONS, ETAS, COUPLINGS, P2_DIVIDED and the functions linear, loop, \
+eta_matrix, eta_vector, beta. The loop measure is not in the kernels (the \
+adapter applies it); primes on f are d/d|momentum|. \"Model\" -> \"KPZ\" \
+picks the row of PythonModelTable that maps alamk to BMWflow's g = alamk^2.\
+\>", "Text",ExpressionUUID->"c0f62262-be73-4b54-aae1-b7c518db78e5"],
+
+Cell["\<\
+ExportPython[adim, \"Model\" -> \"KPZ\", \"File\" -> \
+FileNameJoin[{$TemporaryDirectory, \"KPZLO\", \"KPZ_LO.py\"}]]\
+\>", "Input",ExpressionUUID->"01eacb58-af72-4105-a7c5-6a25dc8ae893"]
+},
+FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"c6daf2f9-7a8d-42e7-81d6-335a272a6867"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 118, 0, 70, "Title",ExpressionUUID->"b1d2559f-e0bf-4b72-acd5-7aa97b72f2ac"],
+Cell[675, 22, 768, 10, 70, "Text",ExpressionUUID->"2b8c8df3-42f0-4785-82e3-3640d8d9fe93"],
+Cell[1446, 34, 127, 0, 70, "Input",ExpressionUUID->"a3cd647b-a063-43f1-a42f-2ee8f569ac4d"],
+Cell[1576, 36, 98, 0, 70, "Section",ExpressionUUID->"d60a73f9-05fe-435b-9b0c-34c65f737fc0"],
+Cell[1677, 38, 536, 7, 70, "Text",ExpressionUUID->"4b8d63ed-1f94-41f4-b020-4dbace078f82"],
+Cell[2216, 47, 357, 7, 70, "Input",ExpressionUUID->"23290f30-a380-4583-9ba6-00389ff58f65"],
+Cell[2576, 56, 402, 7, 70, "Input",ExpressionUUID->"ff430506-ea22-4d64-bb59-711a34e336ca"],
+Cell[2981, 65, 115, 0, 70, "Section",ExpressionUUID->"94c70266-98ea-4813-92f6-80528cc39ec2"],
+Cell[3099, 67, 204, 3, 70, "Text",ExpressionUUID->"0bb49eb0-9fc3-48e1-bc78-79e2c63449d3"],
+Cell[3306, 72, 346, 6, 70, "Input",ExpressionUUID->"467f71ad-ae5e-4512-b845-fbf70e386a27"],
+Cell[3655, 80, 95, 0, 70, "Section",ExpressionUUID->"5de1a5ca-d968-4f49-9363-a5bab530d889"],
+Cell[3753, 82, 715, 10, 70, "Text",ExpressionUUID->"70056a73-3405-46a0-b87a-e11e0d4b18f2"],
+Cell[4471, 94, 158, 3, 70, "Input",ExpressionUUID->"b12273b2-1f75-4388-9fc8-7a8d960cde98"],
+Cell[4632, 99, 125, 0, 70, "Input",ExpressionUUID->"6847aa04-8dcb-4e1f-916c-773253935c08"],
+Cell[4760, 101, 96, 0, 70, "Section",ExpressionUUID->"aad15057-21af-4244-91e0-7a442bd74a7d"],
+Cell[4859, 103, 452, 6, 70, "Text",ExpressionUUID->"50771220-ad5a-46b2-af0b-e35413724385"],
+Cell[5314, 111, 209, 4, 70, "Input",ExpressionUUID->"27c0cdfe-64bb-4b0e-b1ed-744bfc6d19db"],
+Cell[5526, 117, 119, 0, 70, "Input",ExpressionUUID->"a5d032d7-91e5-4b79-83f9-41ccf961bcc4"],
+Cell[5648, 119, 166, 3, 70, "Input",ExpressionUUID->"ef3be5ab-2a10-44e5-957c-0469b8bde481"],
+Cell[5817, 124, 96, 0, 70, "Input",ExpressionUUID->"3bf3f9c3-61d1-442a-bc40-62f38485f40c"],
+Cell[5916, 126, 112, 0, 70, "Section",ExpressionUUID->"22771a7c-24be-415c-b064-a78e3aa94ff9"],
+Cell[6031, 128, 477, 7, 70, "Text",ExpressionUUID->"a2e0cc27-0f51-4c0e-a842-fc54d74d0e36"],
+Cell[6511, 137, 430, 7, 70, "Input",ExpressionUUID->"1a5de54a-10ab-4f7f-ac87-5be4a4f3f67d"],
+Cell[6944, 146, 295, 4, 70, "Input",ExpressionUUID->"8a8eff40-fd7b-415f-8ded-2da13f6cbc94"],
+Cell[7242, 152, 273, 5, 70, "Input",ExpressionUUID->"5105802c-cdbe-4791-a1f9-374f57d5c221"],
+Cell[7518, 159, 95, 0, 70, "Section",ExpressionUUID->"6040ed58-0a14-48df-8321-df79fd445ec2"],
+Cell[7616, 161, 455, 6, 70, "Text",ExpressionUUID->"c0f62262-be73-4b54-aae1-b7c518db78e5"],
+Cell[8074, 169, 197, 3, 70, "Input",ExpressionUUID->"01eacb58-af72-4105-a7c5-6a25dc8ae893"]
+}
+]
+*)
+
+(* End of internal cache information *)

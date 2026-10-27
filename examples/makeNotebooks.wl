@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-(* makeNotebooks.wl -- writes examples/ShallowWaterDE4plus.nb and examples/KPZ.nb from the cell lists below.
+(* makeNotebooks.wl -- writes examples/ShallowWaterDE4plus.nb, examples/KPZ.nb and examples/KPZLO.nb from the cell lists below.
    Run:  math -script ~/Physics/Sources/FRGscalarMSR/examples/makeNotebooks.wl
    Check that they run headless:  math -script ~/Physics/Sources/FRGscalarMSR/examples/runNotebook.wl <notebook.nb>
    Edit the cells here, not in the .nb files, then regenerate. *)
@@ -108,6 +108,55 @@ output gives Canet's Eq. (20) exactly."],
    input["adim = AdimensionalEquations[equations, dims];\nShowBeta[adim, lamk]\nShowEtaSystem[adim]"],
    input["ExportJulia[adim, \"Dimension\" -> 2, \"File\" -> FileNameJoin[{$TemporaryDirectory, \"KPZ\", \"Equations2D.jl\"}]]"]};
 
+kpzlo = {
+   title["KPZ at LO: couplings that are functions of p^2"],
+   text["The second pipeline of the library (design/LOPIPELINE.md). The Gamma2 couplings of KPZ become functions of the momentum: \
+Gamma^(1,1) = i w + nu p^2 f_nu(p^2), Gamma^(0,2) = -2 D f_D(p^2), with f_nu(0) = f_D(0) = 1, the vertex lambda constant. \
+The library derives the flow of each function at generic p (one loop, two pole families: Delta at q and at Q = p + q), the \
+anomalous dimensions from f(0) = 1, the dimensionless form at fixed p/k, and writes a Python module for BMWflow. \
+The exact comparison with BMWflow's notes (LO_flow_equations.tex, kpz_notation.tex) is the benchmark benchmarks/KPZLO; this \
+notebook shows the workflow and checks f = 1 against Canet's Eq. (20)."],
+   load,
+   section["1. Ansatz with functions"],
+   text["fn[f, X] in the density is f(-Laplacian) acting on X: it multiplies the term by f(p^2), p the momentum of X's leg. \
+\"Functions\" -> {f -> reference} states f(0) = 1 and names the k-dependent amplitude; the ansatz infers \"Pipeline\" -> \"LO\" from \
+the fn. The symmetries take the same tags as in DE but no truncation orders: the Galilean Ward identity protects the 1 of i w, the \
+shift symmetry h -> h + c makes the p^0 order of Gamma^(1,1) vanish."],
+   input["theory = DefineTheory[\"Scalars\" -> {h}, \"Dimension\" -> Dim];\nansatz = DefineAnsatz[theory,\n  \"Density\" -> hbar (dt[h] - nuk fn[fnu, lap[h]] - lamk/2 grad[h].grad[h]) - Dk hbar fn[fD, hbar],\n  \"Couplings\" -> {nuk, lamk, Dk}, \"Functions\" -> {fD -> Dk, fnu -> nuk}];"],
+   input["symmetries = DeclareSymmetries[ansatz,\n  Protected[{hbar, h}, \"Frequency\" -> 1, \"Momentum\" -> 0, \"Reason\" -> \"Galilean Ward identity\"],\n  Protected[{h, hbar}, \"Frequency\" -> 0, \"Momentum\" -> 0, \"Reason\" -> \"h -> h + c (shift symmetry)\"],\n  NonRenormalised[lamk, \"Reason\" -> \"Galilean invariance\"]];"],
+   section["2. Vertices, regulator, propagator, loops"],
+   text["The same stages as in DE. The propagator atoms now contain fnu[s] and fD[s]; the regulator shapes are functions of q^2/k^2."],
+   input["vertices = BuildVertices[ansatz];\nregulator = DefineRegulator[ansatz, {hbar, h} -> nuk q^2 rn[q^2/k^2], {hbar, hbar} -> -2 Dk rd[q^2/k^2], \"Shapes\" -> {rn, rd}];\nprop = BuildPropagator[vertices, regulator];\nloops = BuildLoopIntegrands[vertices, prop, regulator];"],
+   section["3. Flows at generic p"],
+   text["BuildLOEquations replaces Projection ... Assemble. For each function it takes the loop at external momentum p and zero \
+external frequency, integrates the loop frequency by residues at the poles of both families, and divides by the ansatz prefactor \
+(nuk p^2 for fnu, -2 Dk for fD: P2Divided records the p^2). It checks that the entries outside the ansatz vanish at every p, the \
+Ward identity, that the p^0 order of the fnu row vanishes, and builds the eta rows as the exact p -> 0 limit. The integrand is \
+explicit in p, q, CosTheta = cos(p, q), f at q^2 and at Q^2 = p^2 + q^2 + 2 p q CosTheta, the shapes and dsCoupling."],
+   input["equations = BuildLOEquations[loops, symmetries];\nShowLOEquation[equations, fD]"],
+   input["oracle = RunOracle[equations, \"ZeroFlows\" -> True];"],
+   section["4. Dimensionless flows"],
+   text["F_k(p^2) = f(p^2/k^2), ap = p/k, aq = q/k. At fixed ap each function flows as d_s f = eta f + 2 ap^2 f'(ap^2) + Loop \
+(integrated with Measure[\"Loop\"] over aq and theta). f(0) = 1 fixes the etas: (1 + <EtaMatrix>) eta = -<EtaVector>, with \
+<.> = Integral daq Measure[\"Eta\"]. The constant coupling alamk = lamk Dk^(1/2) nuk^(-3/2) k^(d/2-1) has only a linear part."],
+   input["dims = DeriveDimensions[ansatz, \"References\" -> {nuk -> \"nu\", Dk -> \"D\"}];\nadim = AdimensionalEquations[equations, dims];"],
+   input["Thread[adim[\"Functions\"] -> adim[\"Linear\"]]"],
+   input["{adim[\"Etas\"], adim[\"Couplings\"] -> adim[\"BetaL\"], adim[\"Measure\"][\"Eta\"]}"],
+   input["Short[adim[\"Loop\"], 6]"],
+   section["5. Check: f = 1 gives Canet's Eq. (20)"],
+   text["At f_D = f_nu = 1 the eta system is the one of the DE KPZ flow (KPZ.nb). With the Litim cutoff r(y) = 1/y - 1 for y < 1 \
+in both sectors, the aq integral is elementary (y = aq^2). Measure[\"Eta\"] = v_d aq^(d-1) and Canet's g = v_d alamk^2, so v_d \
+drops out with alamk^2 = g/v_d: set the v_d of the measure to 1 and alamk^2 = g. The difference with Canet's d_s g/g is exactly 0 at every d."],
+   input["litim = {fD -> Function[x, 1], fnu -> Function[x, 1], rn -> Function[y, 1/y - 1], rd -> Function[y, 1/y - 1]};\nlitimAvg[f_] := Module[{e = Expand[Together[(f /. litim /. aq -> Sqrt[y] /. alamk -> Sqrt[g] /. Dim -> d)] y^(d/2 - 1)/2], terms},\n  terms = If[Head[e] === Plus, List @@ e, {e}];\n  Total[(# /. y -> 1)/(Exponent[#, y] + 1) & /@ terms]];"],
+   input["etas = Thread[adim[\"Etas\"] -> LinearSolve[IdentityMatrix[2] + Map[litimAvg, adim[\"EtaMatrix\"], {2}], -(litimAvg /@ adim[\"EtaVector\"])]];\nbracket = Together[2 First[adim[\"BetaL\"]]/alamk /. etas /. Dim -> d]"],
+   input["canet = (2 d^6 + 4 d^5 - d^4 (7 g + 8) - 2 d^3 (3 g + 8) + d^2 g (3 g + 20) - d (g - 8) g - 2 g^2)/\n   (2 d^5 + 8 d^4 + d^3 (8 - 3 g) - 2 d^2 g + d g (g + 8) - g^2);\nTogether[bracket - canet]"],
+   section["6. The BMWflow module"],
+   text["ExportPython writes the module of the contract docs/handoff/BMWflow_LO.md: FUNCTIONS, ETAS, COUPLINGS, P2_DIVIDED and the \
+functions linear, loop, eta_matrix, eta_vector, beta. The loop measure is not in the kernels (the adapter applies it); primes on f are \
+d/d|momentum|. \"Model\" -> \"KPZ\" picks the row of PythonModelTable that maps alamk to BMWflow's g = alamk^2."],
+   input["ExportPython[adim, \"Model\" -> \"KPZ\", \"File\" -> FileNameJoin[{$TemporaryDirectory, \"KPZLO\", \"KPZ_LO.py\"}]]"]};
+
 Export[FileNameJoin[{dir, "ShallowWaterDE4plus.nb"}], nb[shallowWater]];
 Export[FileNameJoin[{dir, "KPZ.nb"}], nb[kpz]];
-Print["wrote ShallowWaterDE4plus.nb (", Count[shallowWater, Cell[_, "Input"]], " inputs) and KPZ.nb (", Count[kpz, Cell[_, "Input"]], " inputs)"];
+Export[FileNameJoin[{dir, "KPZLO.nb"}], nb[kpzlo]];
+Print["wrote ShallowWaterDE4plus.nb (", Count[shallowWater, Cell[_, "Input"]], " inputs), KPZ.nb (", Count[kpz, Cell[_, "Input"]], " inputs) and KPZLO.nb (", Count[kpzlo, Cell[_, "Input"]], " inputs)"];

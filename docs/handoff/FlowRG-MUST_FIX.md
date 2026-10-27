@@ -60,3 +60,16 @@ aq = 1, i.e. an interface change). Do not choose silently.
   static sizes through `Val`.
 - Do not edit generated equations files or any Mathematica notebook.
 - Do not loosen test tolerances. Run the full test suite (`julia --project -e 'using Pkg; Pkg.test()'`) at the end.
+
+## Status (2026-10-27) — both tasks done in FlowRG
+
+- Task 2 (`D2<shape>`): FlowRG commit `ea06611`. Wetterich, Exponential, ForcingExponential have r″.
+  **Litim has none** (user's choice, option (a)): a file that calls `D2<shape>` with Litim throws when it is called.
+- Task 1 (`MUST_FIX`): `load_model` refuses a file whose `MUST_FIX` eta is missing from `fixed_etas`, or names an eta
+  not in `ETAS`. Contract: `FlowRG.jl/docs/equations-interface.md`, rule 6.
+
+Follow-ups on this side (not done by the FlowRG agent):
+- `Kernel/JuliaExport.wl`: the r″ WARN can go, or become "r″ needs a smooth regulator (not Litim)".
+- `tests/reference/JuliaRoundTrip.wl`: stop skipping the FlowRG `load_model` step for files that need r″ (use Wetterich).
+- Stale docs: `docs/MODULES.md` ("FlowRG supports only r′ today", §JuliaExport checks/tests), lesson 15 (r″ WARN),
+  `docs/FUTURE.md` if it lists r″ as missing.

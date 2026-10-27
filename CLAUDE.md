@@ -44,7 +44,9 @@ flows at generic p → BMWflow Python module (design/LOPIPELINE.md).
 - New check: `FRGAssert`/`assertCheck` named `Module.check` (shown on the card) + an `expectFail[…, "Module.check"]` test.
 - BMWflow module format (LO): `Kernel/PythonExport.wl` (`PythonModelTable` is data); the contract is `docs/handoff/BMWflow_LO.md`.
 - FlowRG file format: `Kernel/JuliaExport.wl`; the contract is `~/Physics/Sources/FlowRG.jl/docs/equations-interface.md`
-  (other repo: changes there go through a `docs/handoff/` spec).
+  (other repo: changes there go through a `docs/handoff/` spec). The two sides point to each other: a change to what
+  `JuliaExport.wl` writes must match that page (FlowRG's `CLAUDE.md`, golden rule 6, points back here), and FlowRG answers a
+  handoff with a Status section listing what this side must update.
 - A design change: record it in `design/` (decision + reason) and update `docs/MODULES.md` in the same change.
 - A module's behaviour or a quoted symbol: update its lesson `lessons/src/NN-Name.md` and rebuild (the build fails on a missing
   quoted symbol).
