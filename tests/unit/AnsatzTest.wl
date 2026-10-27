@@ -126,3 +126,30 @@ test["jac[H, lap[Psi]] = -jac[lap[Psi], H] (two dummies with eps)",
   Select[jTable[quiet[jAnsatz[lk Hbar jac[H, lap[Psi]] + lk Hbar jac[lap[Psi], H]]]], StringContainsQ[#[[2]], "jac"] &], {}];
 test["jac[lap[H], lap[H]] = 0", Select[jTable[quiet[jAnsatz[lk Hbar jac[lap[H], lap[H]]]]], StringContainsQ[#[[2]], "jac"] &], {}];
 test["jac[H, lap[Psi]] kept", Length[Select[jTable[quiet[jAnsatz[lk Hbar jac[H, lap[Psi]]]]], StringContainsQ[#[[2]], "jac"] &]], 1];
+
+(* LO: fn[f, X] and "Functions" (design/LOPIPELINE.md step 2) *)
+loTheory = quiet[DefineTheory["Scalars" -> {h}, "Dimension" -> Dim]];
+loKPZ = hbar (dt[h] - nuk fn[fnu, lap[h]] - lamk/2 grad[h].grad[h]) - Dk hbar fn[fD, hbar];
+loAn = quiet[DefineAnsatz[loTheory, "Density" -> loKPZ, "Couplings" -> {nuk, lamk, Dk}, "Functions" -> {fD -> Dk, fnu -> nuk}]];
+test["LO: pipeline inferred from fn", loAn["Pipeline"], "LO"];
+test["LO: functions and coupling kinds", {loAn["Functions"], loAn["CouplingKinds"]}, {{fD -> Dk, fnu -> nuk}, <|nuk -> "Function", lamk -> "Constant", Dk -> "Function"|>}];
+test["LO: monomial table", table[loAn], Sort[{{1, "hbar dt[h]"}, {-nuk, "hbar fn[fnu, lap[h]]"}, {-lamk/2, "hbar grad[h].grad[h]"}, {-Dk, "hbar fn[fD, hbar]"}}]];
+test["LO: fn[f, lap[h]] = lap[fn[f, h]] (f(-Laplacian) commutes with the Laplacian)",
+  quiet[DefineAnsatz[loTheory, "Density" -> hbar (dt[h] - nuk lap[fn[fnu, h]] - lamk/2 grad[h].grad[h]) - Dk fn[fD, hbar] hbar,
+     "Couplings" -> {nuk, lamk, Dk}, "Functions" -> {fD -> Dk, fnu -> nuk}]]["Monomials"] === loAn["Monomials"], True];
+test["LO: MonomialFunction", Sort[DeleteCases[MonomialFunction /@ loAn["Monomials"], None]], {fD, fnu}];
+test["DE: an ansatz without fn has no LO keys", {sw["Pipeline"], KeyExistsQ[sw, "Functions"], KeyExistsQ[sw, "CouplingKinds"]}, {"DerivativeExpansion", False, False}];
+expectFail["LO: explicit Pipeline must match the inferred one", DefineAnsatz[loTheory, "Density" -> loKPZ, "Couplings" -> {nuk, lamk, Dk},
+   "Functions" -> {fD -> Dk, fnu -> nuk}, "Pipeline" -> "DerivativeExpansion"], "Ansatz.pipeline"];
+expectFail["LO: Functions without fn", DefineAnsatz[loTheory, "Density" -> hbar dt[h], "Couplings" -> {}, "Functions" -> {fnu -> nuk}], "Ansatz.functionReference"];
+expectFail["LO: undeclared function", DefineAnsatz[loTheory, "Density" -> loKPZ, "Couplings" -> {nuk, lamk, Dk}, "Functions" -> {fnu -> nuk}], "Ansatz.functionReference"];
+expectFail["LO: coefficient is not number x reference", DefineAnsatz[loTheory, "Density" -> loKPZ, "Couplings" -> {nuk, lamk, Dk},
+   "Functions" -> {fD -> nuk, fnu -> Dk}], "Ansatz.functionReference"];
+expectFail["LO: fn on a product", DefineAnsatz[loTheory, "Density" -> loKPZ - nuk fn[fnu, h h] hbar, "Couplings" -> {nuk, lamk, Dk},
+   "Functions" -> {fD -> Dk, fnu -> nuk}], "Ansatz.fnOneField"];
+expectFail["LO: fn in a vertex", DefineAnsatz[loTheory, "Density" -> hbar (dt[h] - nuk fn[fnu, lap[h]] - lamk/2 fn[fl, h] h) - Dk hbar fn[fD, hbar],
+   "Couplings" -> {nuk, lamk, Dk}, "Functions" -> {fD -> Dk, fnu -> nuk, fl -> lamk}], "Ansatz.fnBilinear"];
+expectFail["LO: function times i w", DefineAnsatz[loTheory, "Density" -> hbar (dt[fn[fZ, h]] - nuk fn[fnu, lap[h]]) - Dk hbar fn[fD, hbar],
+   "Couplings" -> {nuk, Dk, Zk}, "Functions" -> {fD -> Dk, fnu -> nuk, fZ -> Zk}], "Ansatz.functionTimesOmega"];
+expectFail["LO: a DE monomial next to the functions (mixed ansatz)", DefineAnsatz[loTheory, "Density" -> loKPZ + tauk hbar lap[lap[h]],
+   "Couplings" -> {nuk, lamk, Dk, tauk}, "Functions" -> {fD -> Dk, fnu -> nuk}], "Ansatz.mixedNotYet"];

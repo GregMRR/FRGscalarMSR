@@ -2,10 +2,24 @@
 
 These are extensions the v1 design keeps room for. None of them is implemented yet.
 
-- **Pipeline 2: couplings that depend on ω and p.**
-  - Selected with the Ansatz `"Pipeline"` option. It replaces `ProjectOnMonomials`, and the external ν, p stay generic.
-  - The input contract of `IntegrateFrequencies` is "rational in ω with listed pole factors", so shifted poles Δ(ω+ν, p+q) plug
-    in without changes.
+- **Pipeline 2: couplings that depend on ω and p.** The LO pipeline (functions of p² at ν = 0, design/LOPIPELINE.md) is
+  implemented. Shifted poles do **not** plug into `IntegrateFrequencies` without changes: its dispatch maps every Δ(ω, ·) to the
+  same pole factor (it now aborts with `FrequencyIntegration.singleMomentum`); a loop with Δ at q and at Q = p + q needs
+  `FrequencyIntegralFamilies`. Δ(ω + ν, ·) with ν ≠ 0 (functions of ω) needs a further family shift.
+- **LO pipeline extensions** (design/LOPIPELINE.md):
+  - p = 0 rows: the exact limit or a small-p series instead of BMWflow's 'const'/'quad' extrapolation (L6).
+  - Causal-pole conditions for functions exported (today a residue assumption on the card, L8).
+  - Relations between functions (d = 1 time reversal, f_ν = f_D) declared and checked (L7).
+  - Function × iω: the ∂/∂(iν) flows at ν = 0 (L2; `Ansatz.functionTimesOmega`).
+  - f″ / r″ in η rows (models beyond KPZ-like, `ExternalMomentum.firstDerivativesOnly`): needs r″ in BMWflow or an integration by
+    parts that does not bring r″ through ∂sR (L5).
+  - Rows divided by p⁴ or more (`PythonExport.p2DividedAtMostOne`): BMWflow's θ quadrature error divided by p₁⁴ breaks its tolerance.
+  - More than one exported coupling (`PythonExport.singleCoupling`): BMWflow's state has one scalar g.
+  - `FixedDimension`/`jac` in LO (`ExternalMomentum.isotropicAngles`): the angle dependence beyond cos θ.
+  - Mixed ansätze, DE monomials next to functions (`Ansatz.mixedNotYet`): the generic-p flow is the seam (DE = its Taylor expansion).
+  - Speed of the two-family residues for N = 2: a two-field KPZ-like LO model (Δ of degree 2, four families of powers) does not
+    finish in 2 minutes; a partial-fraction or numeric-root route would be needed.
+  - Lessons for ExternalMomentum and PythonExport (L13).
 - **Δ of degree greater than 2 in ω** (N ≥ 3 scalars, or richer frequency structure).
   - Needs a general reduction by symmetric functions of the roots.
   - The validity condition becomes the Routh–Hurwitz criterion: an algebraic test on the coefficients of Δ that tells whether

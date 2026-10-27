@@ -91,6 +91,7 @@ project[e0_, m_, n_, {nu_, p_}, {w_, q_}, dim_, deg_, eps_ : False] := Module[{e
 
 ProjectOnMonomials[loops_, symmetries_] := Block[{$FRGModule = "Projection"},
   Module[{t0 = AbsoluteTime[], v, prop, dim, deg, targets, lhsBad, byPair, res, nmax, nExplicit, checks = {}, warns = {}, stage, wq, eps},
+   FRGAssert["Projection.pipeline", NoneTrue[{loops, symmetries}, AssociationQ[#] && Lookup[#, "Pipeline", None] === "LO" &], "LO", "this is a derivative-expansion stage; an LO ansatz (fn[...]) goes through BuildLOEquations (design/LOPIPELINE.md)"];
    validateStage[loops, "Loops"]; validateStage[symmetries, "Symmetries"];
    v = loops["Vertices"]; prop = loops["Propagator"];
    FRGAssert["Projection.sameAnsatz", v["Upstream"] === symmetries["Upstream"], {v["Upstream"], symmetries["Upstream"]},

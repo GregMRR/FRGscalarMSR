@@ -39,7 +39,7 @@ BuildLoopIntegrands[vertices_, prop_, regulator_] := Block[{$FRGModule = "Loops"
    If[g4, AppendTo[warns, infoCheck["WARN", "Loops.tadpole", "Gamma4 != 0: tadpole term -1/2 Tr[d_sR G Gamma4 G] included; hand-derived, untested"]]];
    AppendTo[warns, infoCheck["ASSUMPTION", "Loops.normalisation",
      "loop prefactor 1, tadpole -1/2 and 1/(2 Pi) hand-derived (docs/MODULES.md); bubble checked against Canet's KPZ flow (tests/acceptance/KPZ.wl), tadpole untested"]];
-   stage = stampStage[<|"Stage" -> "Loops", "Pipeline" -> "DerivativeExpansion",
+   stage = stampStage[<|"Stage" -> "Loops", "Pipeline" -> vertices["Pipeline"],
       "Upstream" -> {vertices["Fingerprint"], prop["Fingerprint"], regulator["Fingerprint"]},
       "Vertices" -> vertices, "Propagator" -> prop, "Regulator" -> regulator, "Fields" -> vertices["Fields"], "DsR" -> dsr, "HasGamma4" -> g4,
       "Formula" -> "d_s Gamma2_ab(nu,p) = Int dw/(2Pi) [Tr(dsR G Gamma3_a G(w+nu,p+q) Gamma3_b G) - 1/2 Tr(dsR G Gamma4_ab G)], Int d^dq/(2Pi)^d left to the numerics",

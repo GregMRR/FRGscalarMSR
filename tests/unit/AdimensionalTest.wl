@@ -53,3 +53,18 @@ Block[{FRGscalarMSR`Private`causalPolesStrip = Function[{r, x}, {-1, -Expand[r]}
 adAcausal = With[{q = kpzEquations["LoopMomentum"]}, FRGscalarMSR`Internal`stampStage[KeyDrop[Append[kpzEquations,
       "ValidityConditions" -> <|"Atoms" -> {-nuk q^2 > 0}, "Explicit" -> {-nuk q^2 > 0}|>], "Fingerprint"]]];
 expectFail["a causal-pole condition that reduces to a negative constant", AdimensionalEquations[adAcausal, adKPZDims], "Adimensional.causalPoles"];
+
+(* LO branch (design/LOPIPELINE.md step 7); the comparison with BMWflow's equations is in tests/acceptance/KPZLO.wl *)
+Get[FileNameJoin[{testRoot, "reference", "KPZLOSetup.wl"}]];
+test["LO: functions, etas in FUNCTIONS order, coupling", {kpzloAdim["Pipeline"], kpzloAdim["Functions"], kpzloAdim["Etas"], kpzloAdim["Couplings"], kpzloAdim["MustFix"]},
+  {"LO", {fD, fnu}, {etaD, etanu}, {alamk}, {}}];
+test["LO: linear part at fixed ap = p/k", Expand[kpzloAdim["Linear"]], Expand[{etaD fD[ap^2] + 2 ap^2 fD'[ap^2], etanu fnu[ap^2] + 2 ap^2 fnu'[ap^2]}]];
+test["LO: beta of alamk = DE KPZ linear part", Expand[kpzloAdim["BetaL"] - adKPZ["BetaL"]], {0}];
+test["LO: no unit in the loops and eta rows; f and r only at aq^2 and Qhat^2",
+  {FreeQ[kpzloAdim /@ {"Loop", "EtaMatrix", "EtaVector"}, k | nuk | Dk | q | p], Union[Cases[kpzloAdim["Loop"], (fD | fnu | rn | rd)[x_] :> x, {0, Infinity}]]},
+  {True, Sort[{aq^2, ap^2 + aq^2 + 2 ap aq CosTheta}]}];
+test["LO: eta system linear, rows of the eta integrands", {Dimensions[kpzloAdim["EtaMatrix"]], FreeQ[kpzloAdim /@ {"EtaMatrix", "EtaVector"}, etaD | etanu]}, {{2, 2}, True}];
+test["LO: measures", {Together[kpzloAdim["Measure"]["Eta"] - LoopMeasure[Dim, aq]], FreeQ[kpzloAdim["Measure"]["Loop"], Sin]}, {0, False}];
+adLOnoNR = quiet[loEquationsOf[kpzloTheory, kpzloDensity, {nuk, lamk, Dk}, {fD -> Dk, fnu -> nuk}, Take[kpzloTags, 2], kpzloRegs]];
+expectFail["LO: a constant coupling that is not NonRenormalised gets no flow",
+  AdimensionalEquations[adLOnoNR, quiet[DeriveDimensions[AnsatzOf[adLOnoNR], "References" -> {nuk -> "nu", Dk -> "D"}]]], "Adimensional.noBeta"];

@@ -1,15 +1,17 @@
 (* ::Package:: *)
 
 (* runTests.wl -- unit and acceptance tests.
-   Run:  math -script ~/Physics/Sources/FRGscalarMSR/tests/runTests.wl [--verbose] [--require-julia] [--only Name]
+   Run:  math -script ~/Physics/Sources/FRGscalarMSR/tests/runTests.wl [--verbose] [--require-julia] [--require-python] [--only Name]
    Exit code 0 iff every test passes. Without --verbose the cards and FAIL blocks printed by the library are hidden.
-   Tests that need julia or FlowRG are reported SKIP when those are missing; --require-julia turns a SKIP into a failure. *)
+   Tests that need julia or FlowRG (python3 with numpy) are reported SKIP when those are missing; --require-julia (--require-python)
+   turns those SKIPs into failures. *)
 
 $HistoryLength = 0;
 testRoot = DirectoryName[$InputFileName];
 Get[FileNameJoin[{ParentDirectory[testRoot], "FRGscalarMSR.wl"}]];
 verboseQ = MemberQ[$CommandLine, "--verbose"];
 requireJuliaQ = MemberQ[$CommandLine, "--require-julia"];
+requirePythonQ = MemberQ[$CommandLine, "--require-python"];
 $FRGExitOnFail = False;   (* failed checks abort (caught below) instead of exiting the kernel *)
 
 results = {}; skipped = {};
@@ -18,9 +20,11 @@ quiet[e_] := If[verboseQ, e, Block[{Print}, e]];
 record[name_, ok_, msg_] := (AppendTo[results, {name, TrueQ[ok]}];
    If[! TrueQ[ok] || verboseQ, Print[If[TrueQ[ok], "  ok    ", "  FAIL  "], name, If[TrueQ[ok], "", "   " <> msg]]]);
 
-(* skip[name, why]: a test that cannot run here (julia, FlowRG missing); a failure with --require-julia *)
-skip[name_String, why_String] := (AppendTo[skipped, name]; Print["  SKIP  ", name, "   ", why];
-   If[requireJuliaQ, record[name, False, "skipped with --require-julia: " <> why]]);
+(* skip[name, why, kind]: a test that cannot run here; kind "julia" (julia, FlowRG missing: a failure with --require-julia) or
+   "python" (python3 + numpy missing: a failure with --require-python) *)
+skip[name_String, why_String, kind_String : "julia"] := (AppendTo[skipped, name]; Print["  SKIP  ", name, "   ", why];
+   If[(kind === "julia" && requireJuliaQ) || (kind === "python" && requirePythonQ),
+    record[name, False, "skipped with --require-" <> kind <> ": " <> why]]);
 
 (* test[name, actual, expected]: actual must evaluate (without aborting) to expected *)
 SetAttributes[test, HoldRest];

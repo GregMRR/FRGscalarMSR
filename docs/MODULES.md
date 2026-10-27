@@ -8,6 +8,11 @@ assumptions, the manipulations it performs, its checks, and its `Show…` comman
 - **Stages.** Every stage is an immutable Association:
   `<|"Stage" -> name, "Pipeline" -> "DerivativeExpansion", "Fingerprint" -> hash, "Upstream" -> {upstream fingerprints}, data…,
   "Checks" -> {…}, "Warnings" -> {…}, "Timing" -> seconds|>`.
+- **Pipelines.** `"Pipeline"` is `"DerivativeExpansion"` or `"LO"` (couplings that are functions of p², design/LOPIPELINE.md). The
+  Ansatz infers it (`fn[f, X]` in the density means LO) and every later stage copies it from upstream (Theory keeps its literal).
+  DE-only constructors (`ProjectOnMonomials`, `CheckClosure`, `AssembleEquations`, `ExportJulia`) abort on an LO stage
+  (`Projection.pipeline`, `Closure.pipeline`, `Assemble.pipeline`, `JuliaExport.pipeline`); `ExportPython` aborts on a DE stage
+  (`PythonExport.pipeline`). DE stages keep exactly their former keys (guarded by `tests/acceptance/DEBaseline.wl`).
 - **Input validation.** Every constructor checks the `"Stage"` key of its input and recomputes its fingerprint. A stage edited by
   hand, or one whose fields or couplings got a value after it was built, aborts with `Stage.fingerprint`.
 - **Failed checks.** A failed check prints a red FAIL block (check name, module, short offending expression, hint) and then
@@ -128,6 +133,19 @@ Output: the `"Ansatz"` stage. Its key `"Monomials"` is a list of
 **Show.** `ShowMonomials[ansatz]` prints the table coefficient | fields | operators | order. It is printed automatically by
 `DefineAnsatz`. `MonomialString[m]` writes a monomial back in the DSL (the ε pair as `jac[a, b]`).
 
+
+**LO branch** (design/LOPIPELINE.md L1–L4).
+- `fn[f, X]` = f(−∇²) acting on X: X is one field, optionally under grad/lap. The parser tags the factors of X with f in a 4th slot,
+  `FieldFactor[φ, nt, ix, f]`, so `fn[fnu, lap[h]]` and `lap[fn[fnu, h]]` give the same monomial. `MonomialString` prints it back
+  as `fn[f, …]`; `MonomialFunction[m]` returns f or `None`.
+- `"Functions" -> {f -> reference, …}` ties each function to a coupling and states f(0) = 1; its order is the export order.
+  `"Pipeline" -> Automatic` (default) is inferred; an explicit value must match (`Ansatz.pipeline`).
+- Checks: `Ansatz.fnOneField` (one field inside, one fn per monomial), `Ansatz.functionReference` (declared, fresh, distinct
+  references; each function in one monomial with coefficient number × reference), `Ansatz.fnBilinear` (functions in Γ2 only),
+  `Ansatz.functionTimesOmega` (no function × iω), `Ansatz.mixedNotYet` (every ω⁰ bilinear term carries a function, every iω
+  term has a numeric coefficient).
+- LO-only keys: `"Functions"`, `"CouplingKinds"` (`"Function"` for a reference of a function, `"Constant"` otherwise).
+
 ---
 
 ## Vertices (`Kernel/Vertices.wl`) — `BuildVertices`
@@ -177,6 +195,12 @@ in field order, to Γ⁽ⁿ⁾ as a function of all n leg momenta, before the δ
 **Acceptance (milestone 2).** In `tests/acceptance/ShallowWaterVertices.wl`, the derived Γ2 (regulator off) and Γ3[1..4] equal the
 script's `Γ2 /. AnsatzBMW /. form*` and `Γ3[i] /. AnsatzBMW` exactly. The reference definitions are copied mechanically, with
 renamed heads, into `tests/reference/DE4plusReference.wl`.
+
+
+**LO branch.** A tagged factor gives f(q_l²) of its own leg l, so Γ2 contains `fnu[scal[q, q]]`. The plane-wave check
+multiplies each plane wave of the field inside `fn[f, X]` by f(k_l²): an independent route for the leg assignment.
+`Vertices.gamma2Polynomial` is replaced by `Vertices.gamma2Functions`: every (iω)^m coefficient of Γ2 is a number or
+number × reference × (q²)ⁿ × F(q²). The retarded-pole convention check takes F = 1.
 
 ---
 
@@ -317,6 +341,12 @@ lists one record per monomial: pair, m, n, class, Γ_k coefficient and reason.
 
 **Show.** `ShowClassification[sym]` is printed automatically.
 
+
+**LO branch** (L7). Declarations only: `Protected[pair, "Frequency" -> 0 | 1, "Momentum" -> n, "Reason" -> …]`,
+`Neglected[pairPattern, "Reason" -> …]` (whole Γ2 entries), `NonRenormalised[c, …]`; no `"TruncationOrders"`, no
+`"Classification"`. `BuildLOEquations` checks them: the iω tags at p = 0, the ω⁰ tags through `ExternalMomentum.dividedOrders`.
+Checks: `Symmetries.arguments`, `Symmetries.tagOptions`, `Symmetries.nonRenormalised`, card line `Symmetries.declarationsLO`.
+
 ---
 
 ## Loops (`Kernel/Loops.wl`) — `BuildLoopIntegrands`
@@ -455,6 +485,17 @@ the results with the script's I(0,1,1) = π/(2AC) and with `NIntegrate`, in the 
 - The three frequency terms of script §6b are generated.
 - The full suite runs in about 26 s.
 
+
+**Two pole families (LO).** `FrequencyIntegralFamilies[n, {{a1, b1, deg}, {a2, b2, deg}}]` = ∫ ω^n Π_j Δ_j(ω)^{−a_j} Δ_j(−ω)^{−b_j} dω
+for Δ_1 = Δ(·, q²) and Δ_2 = Δ(·, Q²) at external frequency 0: residues at the upper-half-plane roots of both families, each
+family's roots iα_j ± β_j eliminated separately (`evenInBeta`, `rational` per family), rational in `FrequencyIntegralC[j, m]`.
+`loIntegrate` dispatches over {ω, X_q, Y_q, X_Q, Y_Q} (a single family goes to `FrequencyIntegral`).
+`FrequencyIntegration.regularAtCoincidence`: single residues carry 1/(z_q − z_Q); the `Together`-ed sum must have no denominator
+that vanishes when the Q data equal the q data. Tests: 1/(Δ_q(ω)Δ_Q(−ω)) = 2π/(l_q + l_Q), NIntegrate (deg 1 and 2), and at
+coincidence the two-family integral equals `FrequencyIntegral` of the merged powers.
+The DE dispatch `integrate` now aborts with `FrequencyIntegration.singleMomentum` when Δ appears at two momenta (it would give
+every pole factor the same residue: π/l_q instead of 2π/(l_q + l_Q)).
+
 ---
 
 ## Closure (`Kernel/Closure.wl`) — `CheckClosure`
@@ -571,6 +612,45 @@ The old-notation map and the provenance are in `tests/reference/legacy/README.md
 
 ---
 
+## ExternalMomentum (`Kernel/ExternalMomentum.wl`) — `BuildLOEquations`
+
+**Objective.** The LO flow equations (design/LOPIPELINE.md step 5): the one-loop ∂sΓ2_ab(ν = 0, p) at generic external momentum,
+for an ansatz whose Γ2 couplings are reference × F(p²). Replaces `ProjectOnMonomials`, `IntegrateFrequencies`, `CheckClosure` and
+`AssembleEquations`. Input: Loops and Symmetries stages (LO). Output: the `"Equations"` stage with `"Pipeline" -> "LO"`.
+
+**Manipulations.**
+- For each pair a ≤ b: `LoopIntegrand[loops, {a, b}, ν, p]` (the DE loop formula), ν = 0, the ω integral by the two-family residues
+  (Δ at q² and at Q² = p² + q² + 2 p q c), the atoms explicit (F at q² and Q², shapes, dsCoupling), vectors → magnitudes
+  p, q and c = `CosTheta`.
+- Flowing entries: Γ2_ab(0, p) = norm × ref × (p²)ⁿ × F(p²); the integrand is divided by norm p^{2n} and n is recorded as
+  `P2Divided`. Each record: `Function`, `Reference`, `Pair`, `Normalisation`, `P2Divided`, `Prefactor`, `GammaK`, `Flowing`
+  (= ref F(p²)), `Integrand` (∫d^dq/(2π)^d integrand of ∂s(ref F(p²))), `EtaIntegrand` (its p → 0 limit: integrand of ∂s ref).
+- p → 0 and low orders use Projection's `project` (`directionalAverage`, Δ derivatives) and the single-momentum `integrate`.
+
+**Checks** (in this order).
+- `ExternalMomentum.isotropicAngles`: after vectors → magnitudes nothing depends on the angle except through c (rejects wedge/jac).
+- `FrequencyIntegration.regularAtCoincidence` (card line): every two-family integral used.
+- `ExternalMomentum.zeroEntries`: entries outside the ansatz (causal, structural) vanish exactly at every p; a `Neglected[pair]`
+  tag drops an entry instead (WARN `ExternalMomentum.neglected` with its value).
+- `ExternalMomentum.ward`: each Protected iω coefficient flows to exactly 0 at p = 0 (∂/∂(iν), then the p^{2n} average, then
+  ν → 0); INFO "Neglected (LO)" at p ≠ 0.
+- `ExternalMomentum.firstDerivativesOnly` (L5): the η rows contain only F, F′, r, r′ (BMWflow has no r″). Checked before
+  `dividedOrders` (user decision): with shift symmetry the h-leg vertex is O(p), so a p² row only gets G′(Q); a model that needs
+  G″ breaks shift symmetry and would otherwise always stop at `dividedOrders`.
+- `ExternalMomentum.dividedOrders`: for a row divided by p^{2n}, every order below vanishes exactly (also the Protected ω⁰ low-p
+  entries; a Protected order ≥ n aborts).
+- Internal: `ExternalMomentum.pipeline`, `.sameAnsatz`, `.prefactor`, `.functionsFlow`.
+- ASSUMPTION `ExternalMomentum.causalPoles`: the roots of Δ at q and at Q in the upper half plane (residue assumption; not
+  exported in LO, L8).
+
+**Tests.** `tests/unit/ExternalMomentumTest.wl`: KPZ LO records; the η rows equal the p → 0 limit and, at F = 1, the DE KPZ
+flows; expectFail: c4 tadpole (`dividedOrders`), constant vertex c3 h̄h² (`firstDerivativesOnly`), non-Galilean h̄ h ∇²h
+(`ward`), no noise function (`zeroEntries`), jac in d = 2 (`isotropicAngles`), a DE stage (`pipeline`), and the DE-only guards.
+
+**Show.** `ShowLOEquation[equations, f]`.
+
+---
+
 ## Oracle (`Kernel/Oracle.wl`) — `RunOracle`
 
 **Objective.** A numerical cross-check of the assembled equations, by a route independent of Propagator, Projection,
@@ -612,6 +692,11 @@ with Canet's flow instead (see Loops).
 - `jac` in d = 2 (`tests/acceptance/Jacobian2D.wl`): 5 equations, relative errors ≤ 10⁻⁹.
 - p⁴ (manual run, KPZ + κ lap[lap[h]], `"Momentum" -> 2`): the κ equation agrees to 10⁻²⁰ in d = 2, 3 (Oracle 26 s).
   The stencil itself is tested in `tests/unit/OracleTest.wl` on F((p+q)²) at n = 2 (error < 10⁻⁹).
+
+
+**LO branch** (step 6). At random rational couplings, d_s couplings, k, the concrete shapes and concrete positive test
+functions F, and explicit vectors p, q in d = 2 and 3 (causal point at q and at Q): numeric inverse of Γ2 + R, the loop at ν = 0
+integrated over ω with `NIntegrate`, against `Integrand × norm × p^{2n}`. `"ZeroFlows" -> True` adds the zero entries.
 
 ---
 
@@ -682,6 +767,11 @@ the field dimensions, [ω] and z (e.g. [ω] = k² nk, z = 2 − η_ν). `CheckDi
 **Tests.** `tests/unit/DimensionsTest.wl`: the old notebook's hand values for DE4plus (g, g2, D2φ, K, H, λ: H and λ fail if the
 measure entered with the wrong sign, review E1), the old `betal` linear parts, LPA (mk, Dmk), KPZ ([λ²D/ν³] = k^{2−d}), the 2D
 `jac` example, and every abort.
+
+
+**LO branch.** Functions are dimensionless (f(0) = 1): the exponent-vector engine sees only the reference in the coefficient,
+and the rescaling check evaluates `fn[f, X]` as X. `Dimensions.functionReferences`: each function's reference is a running
+reference. LO stages add `"Functions"`.
 
 ---
 
@@ -756,6 +846,18 @@ exactly with the Litim shape, equals Canet's Eq. (20) for symbolic d. Canet's v_
 also fixes the (2π)^{−d} of the measure. `tests/acceptance/ShallowWaterDE4Adimensional.wl`: DE4plus against the old hand-built
 export (below).
 
+
+**LO branch** (step 7, private `adimensionalLO`, dispatched on `"Pipeline"`).
+- F_k(p²) = f(p²/k²) = f(ap²): no unit inside a function argument (`homVec` would reject F(k² ap²)); q → k aq, p → k ap,
+  ∂s ref → −η ref; function and shape arguments are expanded so that k cancels term by term.
+- The flow of f at fixed ap = p/k: ∂s f = η_X f + 2 ap² f′(ap²) + loop/ref (`"Linear"`, `"Loop"`, f′ = d/d(ap²)).
+- η from f(0) = 1: η_X + ⟨EtaIntegrand_X⟩/ref = 0, written (1 + ⟨M⟩) η = −⟨b⟩ (`"EtaMatrix"` row X = function X, column Y
+  multiplies η_Y; `"EtaVector"`), ⟨·⟩ = ∫ daq `LoopMeasure`. ETAS in FUNCTIONS order.
+- Constant couplings: only NonRenormalised ones (`Adimensional.noBeta`); `"BetaL"` is their linear part.
+- Kept: `sameAnsatz`, `referencesFlow`, `regulatorReferences`, `regulatorDimension`, `lhsDimension`, `referenceEquation` (each
+  reference is a function's), `unusedEquation`, `unitInvariance`, `homogeneous`, `etaLinear`.
+- `"Measure"`: `<|"Loop" -> S_{d−1}/(2π)^d aq^{d−1} sin^{d−2}θ, "Eta" -> LoopMeasure|>` (documentation; the Python export excludes it).
+
 ---
 
 ## JuliaExport (`Kernel/JuliaExport.wl`) — `ExportJulia`
@@ -784,3 +886,30 @@ finite η's and β (skipped for files that need r″). The round trip includes `
 `runTests.wl --require-julia` turns a SKIP into a failure. DE4plus against the old `eqs/Equations2D.jl`
 (`tests/reference/legacy/DE4plusEquations2D.jl`): `betal` equal; `betanl`, `M·η` and `b` of the η system equal to the old ones
 times (2π)^{−2} (the old file lacks the (2π)^{−d}) at η_h = η_φ (the old file multiplies ∂sM_h by η_φ, a bug).
+
+---
+
+## PythonExport (`Kernel/PythonExport.wl`) — `ExportPython`
+
+**Objective.** Write an LO Adimensional stage as a Python module for BMWflow's generic adapter (`ModelGenerated`). The contract is
+`docs/handoff/BMWflow_LO.md` (= design/LOPIPELINE.md §6).
+
+**Output.** `ExportPython[adim, "Model" -> "KPZ", "File" -> ".../eqs/KPZ_LO.py"]`: constants `FUNCTIONS`, `ETAS`, `COUPLINGS`,
+`SHAPES`, `P2_DIVIDED`, `APPROXIMATION = "LO"`, `MODEL`; functions `linear(p, f, fprime, eta, couplings, d)`,
+`loop(p, q, c, fq, fQ, rq, rq_, rQ, eta, couplings, d)`, `eta_matrix(q, f, fprime, r, r_, couplings, d)`, `eta_vector(…)`,
+`beta(couplings, eta, d)`; each returns a tuple (nested for `eta_matrix`). Pure numpy + math, elementwise, no state, no
+value-dependent branching. Two header lines (date, fingerprint).
+
+**Manipulations.** Own printer (Power → `**`, numbers as float literals and quotients `(3.0/2.0)`, `math.pi`, `np.sqrt`; not
+`toJulia`: `^` is XOR in Python). Placeholders `PythonVariable[name, i]` (0-based): f at aq² → `fq[i]`, at Q̂² → `fQ[i]`; shapes
+r(aq²) → `rq[j]`, r′(aq²) → `rq_[j]` (d/d(q²)), r(Q̂²) → `rQ[j]`; in `linear` and the η functions F′(x²) → `fprime[i]/(2 x)`
+(f′ = d/d|momentum|). The measure is not included. `PythonParts[adim]` gives the expressions; `PythonModelTable` the model table.
+
+**Checks.** `PythonExport.pipeline`, `.etaPerFunction` (n_η = n_f, ETAS in FUNCTIONS order), `.singleCoupling` (n_c = 1),
+`.p2DividedAtMostOne`, `.noMeasure` (no Γ, sin, d-dependent powers of 2 or π), `.modelTable` (the row exists, its coupling is
+COUPLINGS[0], its shapes = SHAPES as a set), `.knownSymbols` (only contract arguments left: no unit, no F′ in `loop`, no r′ at Q,
+no r″), `.systemHeads`, `.printable`, `.options`, `.file`.
+
+**Tests.** `tests/unit/PythonExportTest.wl` with `tests/reference/PythonRoundTrip.wl`: the KPZ module imported by python3, every
+function at 4 points (d = 2, 3/2, 1, 5/2) = Mathematica to 1e-13, `loop` broadcasts over a numpy array; SKIP without numpy
+(a failure with `--require-python`); expectFail per check on forged stages and on KPZ with a renamed coupling.

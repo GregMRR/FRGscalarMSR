@@ -91,7 +91,7 @@ c2 u^2 + c1 u + c0 has both roots with Re u < 0 exactly when its three coefficie
      {{DeltaCoefficient[0][ss]/DeltaCoefficient[1][ss] > 0}, "the root of Delta(w) = c0 + c1 (I w) is w = I c0/c1: upper half plane iff c0/c1 > 0"}];
    AppendTo[warns, infoCheck["ASSUMPTION", "Propagator.validity", displayString[valid /. ss -> Symbol["FRGscalarMSR`Propagator`Private`s"]] <> " at every loop momentum q (not checked by the library: exported as causal_poles by ExportJulia)"]];
 
-   stage = stampStage[<|"Stage" -> "Propagator", "Pipeline" -> "DerivativeExpansion",
+   stage = stampStage[<|"Stage" -> "Propagator", "Pipeline" -> vertices["Pipeline"],
       "Upstream" -> {vertices["Fingerprint"], regulator["Fingerprint"]}, "Fields" -> fields, "Scale" -> regulator["Scale"],
       "Atoms" -> atoms, "AtomValues" -> atomVals,
       "M" -> Function[Evaluate[{ww, ss}], Evaluate[abs]], "G" -> Function[Evaluate[{ww, ss}], Evaluate[G]],

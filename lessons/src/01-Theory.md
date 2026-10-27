@@ -139,7 +139,7 @@ The flow equations are derived for arbitrary d, as rational functions of the sym
 
 ### The stage
 
-The stage is assembled with `stampStage` ([[Hash]]). `AssociationThread[phis -> bars]` builds the map `<|h -> hbar|>`. `"Pipeline" -> "DerivativeExpansion"` names the only pipeline v1 implements (`docs/FUTURE.md` lists others).
+The stage is assembled with `stampStage` ([[Hash]]). `AssociationThread[phis -> bars]` builds the map `<|h -> hbar|>`. `"Pipeline" -> "DerivativeExpansion"` is a literal here: the theory does not depend on the pipeline. The Ansatz infers the pipeline from the density (`"LO"` when it contains `fn[f, X]`, design/LOPIPELINE.md) and every later stage copies it.
 
 ## 3. ResponseField
 

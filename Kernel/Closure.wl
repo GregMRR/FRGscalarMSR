@@ -23,6 +23,7 @@ splitCoefficient[c_] := Module[{f = FactorTermsList[c]}, {Times @@ Most[f], Last
 
 CheckClosure[integrated_, symmetries_] := Block[{$FRGModule = "Closure"},
   Module[{t0 = AbsoluteTime[], flows, checks = {}, warns = {}, zeroCl, bad, eqs, neg, report, stage},
+   FRGAssert["Closure.pipeline", NoneTrue[{integrated, symmetries}, AssociationQ[#] && Lookup[#, "Pipeline", None] === "LO" &], "LO", "this is a derivative-expansion stage; an LO ansatz (fn[...]) goes through BuildLOEquations (design/LOPIPELINE.md)"];
    validateStage[integrated, "Integrated"]; validateStage[symmetries, "Symmetries"];
    FRGAssert["Closure.sameSymmetries", MemberQ[integrated["Projection"]["Upstream"], symmetries["Fingerprint"]],
     integrated["Projection"]["Upstream"], "the flows were projected with another Symmetries stage"];

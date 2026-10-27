@@ -40,3 +40,15 @@ test["jac: Gamma3_{Hbar H Psi} = -c wedge[q_H, q_Psi] (by hand)", VertexValue[jv
 test["jac: Gamma3 leg order", VertexValue[jv, {H, Psi, Hbar}, {{ω1, q1}, {ω2, q2}}], -c3 wedge[q1, q2]];
 test["jac: Gamma2 unaffected (wedge[q, -q] = 0)", Gamma2Matrix[jv, ω, q], {{0, I ω, 0, 0}, {-I ω, 0, 0, 0}, {0, 0, 0, I ω}, {0, 0, -I ω, 0}}];
 test["jac: 2D plane-wave check on the card", StringContainsQ[SelectFirst[jv["Checks"], #Check === "Vertices.planeWave" &]["Detail"], "d = 2 components"], True];
+
+(* LO: fn[f, X] gives f of the momentum of the leg of X; the plane-wave route sees the same (design/LOPIPELINE.md step 3) *)
+vLOTheory = quiet[DefineTheory["Scalars" -> {h}, "Dimension" -> Dim]];
+vLO = quiet[BuildVertices[DefineAnsatz[vLOTheory, "Density" -> hbar (dt[h] - nuk fn[fnu, lap[h]] - lamk/2 grad[h].grad[h]) - Dk hbar fn[fD, hbar],
+     "Couplings" -> {nuk, lamk, Dk}, "Functions" -> {fD -> Dk, fnu -> nuk}]]];
+test["LO: Gamma2 = {{0, I w + nuk q^2 fnu(q^2)}, {-I w + nuk q^2 fnu(q^2), -2 Dk fD(q^2)}}", Expand[Gamma2Matrix[vLO, ω, q] /. scal[q, q] -> qq2],
+  Expand[{{0, I ω + nuk qq2 fnu[qq2]}, {-I ω + nuk qq2 fnu[qq2], -2 Dk fD[qq2]}}]];
+test["LO: the Gamma3 vertex is unchanged (k-only constant)", VertexValue[vLO, {hbar, h, h}, {{0, p1}, {0, p2}}] === VertexValue[kpz, {hbar, h, h}, {{0, p1}, {0, p2}}], True];
+test["LO: card", Intersection[vLO["Checks"][[All, "Check"]], {"Vertices.planeWave", "Vertices.gamma2Functions", "Vertices.gamma2Polynomial"}],
+  {"Vertices.gamma2Functions", "Vertices.planeWave"}];
+expectFail["LO: a Gamma2 coefficient that is not reference x F (internal check, forged)",
+  FRGscalarMSR`Private`loGamma2Check[{{0, nuk fnu[scal[q, q]] + lamk fnu[scal[q, q]]}}, ω, q, {fnu -> nuk}], "Vertices.gamma2Functions"];

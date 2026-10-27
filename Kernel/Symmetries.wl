@@ -50,6 +50,7 @@ DeclareSymmetries[ansatz_, args___] := Block[{$FRGModule = "Symmetries"},
    pos[a_] := First[FirstPosition[fields, a]];
    opts = Cases[{args}, (Rule | RuleDelayed)[_String, _]];
    tags = Complement[{args}, opts];
+   If[ansatz["Pipeline"] === "LO", Return[declareSymmetriesLO[ansatz, tags, opts, t0], Module]];
    FRGAssert["Symmetries.arguments", AllTrue[tags, MatchQ[#, _Protected | _Neglected | _NonRenormalised] &] && MatchQ[opts, {"TruncationOrders" -> _}],
     Select[{args}, ! MatchQ[#, _Protected | _Neglected | _NonRenormalised | ("TruncationOrders" -> _)] &],
     "arguments: Protected[...], Neglected[...], NonRenormalised[...] and \"TruncationOrders\" -> <|\"Frequency\" -> mf, \"Momentum\" -> mp|> (required)"];
@@ -106,6 +107,31 @@ DeclareSymmetries[ansatz_, args___] := Block[{$FRGModule = "Symmetries"},
    ShowClassification[stage];
    PrintCard[stage];
    stage]];
+
+(* LO branch (design/LOPIPELINE.md L7): the declarations only. The flows are functions of p^2, so there is no classification by
+   p^2 coefficients; BuildLOEquations checks the Protected tags (i w at p = 0, low w^0 orders by ExternalMomentum.dividedOrders) *)
+declareSymmetriesLO[ansatz_, tags_, opts_, t0_] := Module[{theory = ansatz["Theory"], cps = ansatz["Couplings"], prot, negl, nonren, checks = {}, warns = {}, stage},
+   FRGAssert["Symmetries.arguments", AllTrue[tags, MatchQ[#, _Protected | _Neglected | _NonRenormalised] &] && opts === {}, Join[Select[tags, ! MatchQ[#, _Protected | _Neglected | _NonRenormalised] &], opts],
+    "LO arguments: Protected[...], Neglected[...], NonRenormalised[...] only (no \"TruncationOrders\": the couplings are functions of p^2)"];
+   prot = tagRecord[#, "Protected"] & /@ Cases[tags, _Protected];
+   negl = tagRecord[#, "Neglected"] & /@ Cases[tags, _Neglected];
+   nonren = Cases[tags, _NonRenormalised];
+   FRGAssert["Symmetries.tagOptions", AllTrue[prot, MatchQ[#Frequency, 0 | 1] && IntegerQ[#Momentum] && #Momentum >= 0 &], Select[prot, ! (MatchQ[#Frequency, 0 | 1] && IntegerQ[#Momentum] && #Momentum >= 0) &][[All, "Tag"]],
+    "LO: Protected[pair, \"Frequency\" -> 0 | 1, \"Momentum\" -> n, \"Reason\" -> ..] (one w order, one p^2 order)"];
+   FRGAssert["Symmetries.tagOptions", AllTrue[negl, #Frequency === All && #Momentum === All &], negl[[All, "Tag"]],
+    "LO: Neglected[pairPattern, \"Reason\" -> ..] drops whole Gamma2 entries (no \"Frequency\"/\"Momentum\")"];
+   FRGAssert["Symmetries.nonRenormalised", AllTrue[nonren, MatchQ[#, NonRenormalised[c_Symbol, "Reason" -> r_String] /; MemberQ[cps, c] && r =!= ""] &], nonren,
+    "NonRenormalised[coupling, \"Reason\" -> \"...\"] with a coupling of the ansatz"];
+   AppendTo[checks, assertCheck["Symmetries.declarationsLO", True, Null, "", ToString[Length[prot]] <> " Protected, " <> ToString[Length[negl]] <>
+      " Neglected, " <> ToString[Length[nonren]] <> " NonRenormalised (LO: declarations only, checked by BuildLOEquations)"]];
+   warns = Join[warns, infoCheck["ASSUMPTION", "NonRenormalised[" <> ToString[#[[1]]] <> "]", #[[2, 2]] <> " (not checkable: needs d_s Gamma3)"] & /@ nonren];
+   AppendTo[warns, infoCheck["ASSUMPTION", "Symmetries.wardIdentities", "Protected tags are user-declared Ward identities, not derived"]];
+   stage = stampStage[<|"Stage" -> "Symmetries", "Pipeline" -> "LO", "Upstream" -> {ansatz["Fingerprint"]},
+      "Fields" -> theory["Fields"], "Tags" -> Join[prot, negl], "NonRenormalised" -> nonren, "Dimension" -> theory["Dimension"],
+      "Checks" -> checks, "Warnings" -> warns, "Timing" -> AbsoluteTime[] - t0|>];
+   Print["Symmetries (LO): ", Length[prot], " Protected, ", Length[negl], " Neglected, ", Length[nonren], " NonRenormalised"];
+   PrintCard[stage];
+   stage];
 
 ShowClassification[s_Association] := Module[{rows},
    rows = {ToString[#Pair], "(I w)^" <> ToString[#Frequency] <> " (q^2)^" <> ToString[#Momentum], #Class,

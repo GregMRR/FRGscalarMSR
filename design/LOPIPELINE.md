@@ -217,3 +217,26 @@ over BMWflow's (p, w, q, θ) arrays).
 Seven rounds, details and probes in `design/reviews/LOPipeline-r1-r7.md`. Blockers: r1 (g vs alamk), r4 and r5 (DE
 baseline not reproducible); majors: r1 (p = 0 handling; f″/r″), r2 (contract out of sync; measure stated twice), r3
 (no check of low orders before dividing by p²). All resolved above. r6 and r7 found no blockers or majors.
+
+## 9. Implementation notes (branch `lo-pipeline`, from `bfe883a`)
+Decisions taken while implementing, with the user where marked.
+- **Baseline hash form.** `deBaselineHash` hashes the stripped Association itself (`Hash[strip[stage], "SHA256"]`), the form of
+  the r5/r6 probes: it reproduces their prefixes (KPZ Equations `2306608a`, KPZ Adimensional `597b779e`, ShallowWater Equations
+  `d3e8af22`, KS Equations `3a053cfb`). Hashing `Normal[…]` instead gives other, equally reproducible values. Recorded on the
+  untouched `bfe883a` checkout and on the modified tree in fresh kernels (one with a perturbed history): identical.
+- **Check order in `BuildLOEquations`** (user): isotropicAngles → zeroEntries → ward → η rows + `firstDerivativesOnly` →
+  `dividedOrders`. Reason: with shift symmetry (h → h + c) the vertex with the external h leg is O(p), so the p² order of a row
+  only expands G(Q) to first order; a model whose η row needs G″ (r″, F″) breaks shift symmetry and has p⁰ ≠ 0, so with
+  `dividedOrders` first the r″ check could never fire. The expectFail of `firstDerivativesOnly` is the constant vertex c3 h̄h².
+- **Entries outside the ansatz** (user): as in DE, they must vanish exactly at every p unless a `Neglected[pair]` tag drops them
+  (reported with their value). LO Symmetries accept `Protected` (one ω order 0 | 1, one p² order), `Neglected` (whole entries)
+  and `NonRenormalised`; no `"TruncationOrders"`.
+- **Symbols.** Dimensionful LO integrands use `Global`p`, the regulator's q and the library symbol `CosTheta`; dimensionless
+  `Global`ap`, `Global`aq`. Inside Mathematica F′ = d/d(argument); `ExportPython` converts to f′ = d/d|momentum|.
+- **What is reused.** The LO flows call `LoopIntegrand` unchanged; the η rows, the Ward check and the low orders call
+  Projection's `project` (`directionalAverage`) and the DE `integrate`; the flows call the new `FrequencyIntegralFamilies`.
+  The DE `FrequencyIntegral` and `integrate` results are untouched (`integrate` only gained the `singleMomentum` abort).
+- **Ward check name.** `ExternalMomentum.ward` (L7 did not name it). Internal invariants without a reachable expectFail:
+  `ExternalMomentum.prefactor`, `.functionsFlow` (guaranteed by the Ansatz and Vertices checks).
+- **Performance limit.** A two-field KPZ-like LO model (Δ of degree 2) does not finish in 2 minutes in the two-family residues
+  (docs/FUTURE.md). KPZ LO builds in under a second.

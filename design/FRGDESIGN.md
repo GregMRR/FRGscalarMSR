@@ -149,7 +149,8 @@ Every stage object: `<|"Stage" -> name, "Pipeline" -> "DerivativeExpansion", "Fi
    Assumptions: couplings depend on k only; at most quartic in fields. Asserts: every symbol is a declared coupling or field; every
    monomial contains ≥ 1 response field (MSR); no unknown operator, no System `Dt/Grad/Div/Laplacian` (E7); couplings carry no
    t, x dependence; no `dt[coupling]`; no monomial of order p⁴ or higher (E2). Echoes the parsed table
-   (coefficient | fields | operators). Seam: `"Pipeline"` option (only `"DerivativeExpansion"` accepted in v1).
+   (coefficient | fields | operators). Seam: `"Pipeline"` option (v1: only `"DerivativeExpansion"`; since design/LOPIPELINE.md
+   inferred, `"LO"` when the density has `fn[f, X]`).
 3. **Vertices.wl** `BuildVertices` — Fourier transform per monomial; Γ⁽ⁿ⁾ as symmetrised functional derivatives; Γ2 matrix
    (polynomials in iω, q²) and Γ3/Γ4 functions in the leg convention (replaces the script's hand-written `Γ3[i]`). Asserts:
    (a) plane-wave cross-check — substitute Σ plane waves into each monomial independently and compare the coefficient with the
@@ -189,8 +190,9 @@ Every stage object: `<|"Stage" -> name, "Pipeline" -> "DerivativeExpansion", "Fi
 
 ## 7. Future seams (`docs/FUTURE.md`)
 
-- **Pipeline 2** (couplings as functions of ω, p): Ansatz `"Pipeline"` option; replaces `ProjectOnMonomials` (external ν, p generic);
-  the `IntegrateFrequencies` input contract is "rational in ω with listed pole factors", so shifted poles Δ(ω+ν, p+q) plug in.
+- **Pipeline 2** (couplings as functions of ω, p): Ansatz `"Pipeline"` option; replaces `ProjectOnMonomials` (external ν, p generic).
+  Corrected by design/LOPIPELINE.md: shifted poles do not plug into `IntegrateFrequencies` (its dispatch gives every Δ the same
+  residue); the LO pipeline (functions of p², ν = 0) adds `FrequencyIntegralFamilies` and `BuildLOEquations`.
 - **deg Δ > 2**: general symmetric-function reduction; validity = Routh–Hurwitz conditions.
 - **p⁴ and higher projections** (E2): write p = |p|e, Taylor-expand in |p|, average over directions with
   ⟨(e·q)²ᵐ⟩ = q²ᵐ (2m−1)!!/[d(d+2)⋯(d+2m−2)]; replaces the Laplacian trick for all orders; validate with the oracle in d = 2, 3.

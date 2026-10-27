@@ -45,6 +45,59 @@ oracleLaplacianN[f_, d_, n_, h_] := If[n == 0, oracleLapStencil[f, d, n, h], (4 
 (* eps_ij in the numeric vertices: wedge[a, b] -> a1 b2 - a2 b1, evaluated once both vectors are explicit (p is numeric only in fLoop) *)
 wedgeN[a_?VectorQ, b_?VectorQ] /; Length[a] == Length[b] == 2 := a[[1]] b[[2]] - a[[2]] b[[1]];
 
+(* ---------- LO branch (design/LOPIPELINE.md step 6) ----------
+   At a random point (couplings, d_s couplings, k, concrete shapes and concrete positive test functions F) and explicit d-vectors p, q:
+   numeric inverse of Gamma2 + R, the loop at nu = 0 integrated over w with NIntegrate, against the symbolic residue result
+   (the equation's Integrand times norm p^(2n)). Independent of FrequencyIntegralFamilies and of the atom bookkeeping. *)
+oracleFunctions = {Function[x, (4 + 3 x)/(4 + x)], Function[x, (5 + x^2)/(5 + 2 x)], Function[x, 2/(2 + x) + x/(3 + x)]};
+
+oracleLO[eqs_, dims_, tol_, seed_, zeroQ_] := Module[{t0 = AbsoluteTime[], loops, v, reg, fields, hasG4, funcs, qU, pU, recs, results = {}, checks = {}, warns = {},
+    stage, prec = 40, pairs, negPats},
+   loops = eqs["Loops"]; v = loops["Vertices"]; reg = loops["Regulator"]; fields = v["Fields"]; hasG4 = loops["HasGamma4"];
+   funcs = eqs["Functions"][[All, 1]]; qU = eqs["LoopMomentum"]; pU = eqs["ExternalMomentum"];
+   pairs = Select[Tuples[fields, 2], OrderedQ[{First[FirstPosition[fields, #[[1]]]], First[FirstPosition[fields, #[[2]]]]}] &];
+   negPats = Select[eqs["Symmetries"]["Tags"], #Kind === "Neglected" &][[All, "Pattern"]];
+   recs = Join[Function[e, <|"Pair" -> e["Pair"], "Label" -> inputForm[e["Flowing"]], "Symbolic" -> e["Integrand"] e["Normalisation"] pU^(2 e["P2Divided"])|>] /@ eqs["Equations"],
+     If[TrueQ[zeroQ], <|"Pair" -> #, "Label" -> "zero entry " <> ToString[#], "Symbolic" -> 0|> & /@ Select[pairs,
+        ! MemberQ[eqs["Equations"][[All, "Pair"]], #] && NoneTrue[negPats, Function[pat, pairMatchQ[pat, #]]] &], {}]];
+   Do[Module[{pt, qVec, pVec, q2, Q2, c, valid, mat, gNum, g3, g4, dsr, num, sym, err, ok, t1},
+      qVec = Take[{3/10, -1/2, 2/5}, d]; pVec = Take[{2/7, 1/3, -1/5}, d];
+      q2 = qVec . qVec; Q2 = (pVec + qVec) . (pVec + qVec); c = pVec . qVec/Sqrt[(pVec . pVec) q2];
+      Do[pt = Join[oraclePoint[eqs, seed + 7919 j, d], MapIndexed[#1 -> oracleFunctions[[Mod[#2[[1]] - 1, Length[oracleFunctions]] + 1]] &, funcs]];
+       valid = TrueQ[And @@ (eqs["ValidityConditions"]["Explicit"] /. pt /. {qU -> Sqrt[q2], pU -> Sqrt[pVec . pVec], CosTheta -> c})];
+       If[valid, Break[]], {j, 0, 99}];
+      FRGAssert["Oracle.validPoint", valid, eqs["ValidityConditions"]["Explicit"], "no random point satisfies the validity conditions at q and Q"];
+      mat = N[(Gamma2Matrix[v, wO, xO] /. scal[xO, xO] -> x2O) + RegulatorMatrix[reg, x2O] /. pt, prec + 10];
+      gNum[w_, x2_] := Inverse[mat /. {wO -> w, x2O -> x2}];
+      g3[i_, {nu_, p_}, {w_, q_}] := N[Gamma3Matrix[v, i, {nu, p}, {w, q}] /. {scal[a_, b_] :> ((a /. {qO -> qVec, pO -> pVec}) . (b /. {qO -> qVec, pO -> pVec}))} /. pt, prec + 10];
+      g4[a_, b_] := N[Table[VertexValue[v, {a, b, cc, e}, {{0, pO}, {0, -pO}, {wO, qO}}], {cc, fields}, {e, fields}] /.
+          {scal[x_, y_] :> ((x /. {qO -> qVec, pO -> pVec}) . (y /. {qO -> qVec, pO -> pVec}))} /. pt, prec + 10];
+      dsr = N[DsRegulatorMatrix[reg, q2] /. pt, prec + 10];
+      Do[t1 = AbsoluteTime[];
+       num = Module[{g0 = gNum[wO, q2], gm = gNum[wO, Q2], tr},
+         tr = Tr[dsr . g0 . g3[r["Pair"][[1]], {0, pO}, {wO, qO}] . gm . g3[r["Pair"][[2]], {0, -pO}, {wO, pO + qO}] . g0];
+         If[hasG4, tr = tr - Tr[dsr . g0 . g4 @@ r["Pair"] . g0]/2];
+         tr = Together[tr/(2 Pi)];
+         If[Chop[tr, 10^-(prec - 5)] === 0, 0,
+          Quiet[NIntegrate[tr, {wO, -Infinity, -10, 0, 10, Infinity}, WorkingPrecision -> prec, PrecisionGoal -> 22, AccuracyGoal -> prec - 8, MaxRecursion -> 30],
+           {NIntegrate::izero, NIntegrate::precw}]]];
+       sym = N[r["Symbolic"] /. pt /. {qU -> Sqrt[q2], pU -> Sqrt[pVec . pVec], CosTheta -> c}, prec];
+       err = If[sym == 0, Abs[num], Abs[(num - sym)/sym]];
+       ok = err < tol;
+       AppendTo[results, <|"Dimension" -> d, "Label" -> r["Label"], "Numeric" -> num, "Symbolic" -> sym, "Error" -> err, "Seconds" -> AbsoluteTime[] - t1|>];
+       AppendTo[checks, assertCheck["Oracle." <> r["Label"] <> " (d = " <> ToString[d] <> ")", ok, {num, sym},
+         "the LO residue result and the numerical w integral of the loop disagree at the oracle point",
+         "numeric " <> sci[num, 10] <> ", symbolic " <> sci[sym, 10] <> If[sym == 0, ", |numeric| = ", ", rel. diff "] <> sci[err, 2]]], {r, recs}]],
+    {d, dims}];
+   AppendTo[warns, infoCheck["ASSUMPTION", "Oracle.scope",
+     "the oracle shares the vertices and the loop formula with the symbolic chain: it tests the two-family residues, the atoms and the explicit integrand"]];
+   AppendTo[warns, infoCheck["INFO", "Oracle.methodLO", "nu = 0, explicit p and q vectors, numeric inverse of Gamma2 + R with concrete shapes and test functions F, " <>
+      "NIntegrate over w (" <> ToString[prec] <> " digits), d in " <> ToString[dims]]];
+   stage = stampStage[<|"Stage" -> "Oracle", "Pipeline" -> "LO", "Upstream" -> {eqs["Fingerprint"]}, "Results" -> results,
+      "Checks" -> checks, "Warnings" -> warns, "Timing" -> AbsoluteTime[] - t0|>];
+   PrintCard[stage];
+   stage];
+
 Options[RunOracle] = {"Dimensions" -> Automatic, "Tolerance" -> 10^-8, "Seed" -> 1, "ZeroFlows" -> False};
 
 RunOracle[eqs_, OptionsPattern[]] := Block[{$FRGModule = "Oracle"},
@@ -55,6 +108,7 @@ RunOracle[eqs_, OptionsPattern[]] := Block[{$FRGModule = "Oracle"},
    FRGAssert["Oracle.declaredDimension", If[eqs["Dimension"] === 2, dims === {2}, ListQ[dims] && dims =!= {} && SubsetQ[{2, 3}, dims]], dims,
     If[eqs["Dimension"] === 2, "the dimension is declared: d = 2 only (\"Dimensions\" -> {2} or Automatic)",
      "\"Dimensions\" must be a non-empty subset of {2, 3}"]];
+   If[eqs["Pipeline"] === "LO", Return[oracleLO[eqs, dims, tol, OptionValue["Seed"], OptionValue["ZeroFlows"]], Module]];
    closure = eqs["Closure"]; loops = closure["Integrated"]["Projection"]["Loops"];
    v = loops["Vertices"]; reg = loops["Regulator"]; fields = v["Fields"]; hasG4 = loops["HasGamma4"];
    recs = Join[Function[e, <|"Pair" -> e["Pair"], "Frequency" -> e["Frequency"], "Momentum" -> e["Momentum"], "Label" -> inputForm[e["Flowing"]],
@@ -119,7 +173,7 @@ RunOracle[eqs_, OptionsPattern[]] := Block[{$FRGModule = "Oracle"},
    If[Max[0, recs[[All, "Momentum"]]] >= 1, AppendTo[warns, infoCheck["INFO", "Oracle.highMomentum",
       "(q^2)^(n >= 1): nested stencils / N_n with Richardson (h, h/2), " <> ToString[8 + 10 # + 6 + 18] <> " digits at n = " <> ToString[#] <>
        "; the oracle runs d = 2, 3 only: the d-dependence at n >= 2 is certified by Projection.explicitVectors"] &[Max[recs[[All, "Momentum"]]]]]];
-   stage = stampStage[<|"Stage" -> "Oracle", "Pipeline" -> "DerivativeExpansion", "Upstream" -> {eqs["Fingerprint"]}, "Results" -> results,
+   stage = stampStage[<|"Stage" -> "Oracle", "Pipeline" -> eqs["Pipeline"], "Upstream" -> {eqs["Fingerprint"]}, "Results" -> results,
       "Checks" -> checks, "Warnings" -> warns, "Timing" -> AbsoluteTime[] - t0|>];
    PrintCard[stage];
    stage]];

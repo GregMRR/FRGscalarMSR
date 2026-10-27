@@ -41,3 +41,15 @@ expectFail["truncation below the ansatz", DeclareSymmetries[sAnsatz, Neglected[_
   "Symmetries.truncationCoversAnsatz"];
 expectFail["NonRenormalised of a non-coupling", DeclareSymmetries[sAnsatz, Neglected[_, "Reason" -> "y"], NonRenormalised[zz, "Reason" -> "r"], trunc], "Symmetries.nonRenormalised"];
 expectFail["missing truncation orders", DeclareSymmetries[sAnsatz, Neglected[_, "Reason" -> "y"]], "Symmetries.arguments"];
+
+(* LO branch: declarations only (design/LOPIPELINE.md L7); BuildLOEquations checks them *)
+sLOAnsatz = quiet[DefineAnsatz[sTheory, "Density" -> hbar (dt[h] - nuk fn[fnu, lap[h]] - lamk/2 grad[h].grad[h]) - Dk hbar fn[fD, hbar],
+    "Couplings" -> {nuk, lamk, Dk}, "Functions" -> {fD -> Dk, fnu -> nuk}]];
+sLOProt = Sequence[Protected[{hbar, h}, "Frequency" -> 1, "Momentum" -> 0, "Reason" -> "Galilean Ward identity"],
+   Protected[{h, hbar}, "Frequency" -> 0, "Momentum" -> 0, "Reason" -> "shift symmetry"]];
+sLO = quiet[DeclareSymmetries[sLOAnsatz, sLOProt, NonRenormalised[lamk, "Reason" -> "Galilean invariance"]]];
+test["LO: stage without classification", {sLO["Pipeline"], KeyExistsQ[sLO, "Classification"], KeyExistsQ[sLO, "TruncationOrders"]}, {"LO", False, False}];
+test["LO: tags recorded", {sLO["Tags"][[All, "Kind"]], sLO["NonRenormalised"][[All, 1]]}, {{"Protected", "Protected"}, {lamk}}];
+expectFail["LO: no truncation orders", DeclareSymmetries[sLOAnsatz, sLOProt, trunc], "Symmetries.arguments"];
+expectFail["LO: a Protected tag names one w order and one p^2 order", DeclareSymmetries[sLOAnsatz, Protected[{hbar, h}, "Reason" -> "x"]], "Symmetries.tagOptions"];
+expectFail["LO: Neglected drops whole entries", DeclareSymmetries[sLOAnsatz, Neglected[{hbar, hbar}, "Momentum" -> 1, "Reason" -> "x"]], "Symmetries.tagOptions"];

@@ -25,6 +25,8 @@ Begin["`Private`"];
 
 (* leg l carries frequency wv[l] and momentum qv[l]; a factor dt^nt d_i.. phi at leg l gives (I wv[l])^nt (-I qv[l]_i)... *)
 factorSymbol[FieldFactor[_, nt_, ix_], l_] := {(I wv[l])^nt (-I)^Length[ix], Thread[ix -> qv[l]]};
+(* LO: fn[f, X] is f(-Laplacian) on X, so the factor gets f of the squared momentum of its own leg *)
+factorSymbol[FieldFactor[_, nt_, ix_, fnf_], l_] := {(I wv[l])^nt (-I)^Length[ix] fnf[scal[qv[l], qv[l]]], Thread[ix -> qv[l]]};
 
 (* a SpaceIndex pair gives scal[qa, qb]; the eps pair EpsIndex[1], EpsIndex[2] gives wedge[q(slot 1), q(slot 2)] *)
 monomialAt[m_Association, perm_List] := Module[{parts = MapThread[factorSymbol, {m["Factors"], perm}], g},
@@ -61,11 +63,13 @@ Gamma3Matrix[v_Association, i0_, {nu_, p_}, {w_, q_}] := Module[{i = If[IntegerQ
 
 (* phi_a(t, x) = sum over the legs l of field a of eps[l] Exp[I (ww[l] t - kq[l].X)]  (nc = 3 components, 2 for a declared d = 2);
    the coefficient of eps[1]...eps[n] Exp[I sum(ww t - kq.X)] in the density is Gamma^(n)(all legs) *)
-planeWaveCoefficient[dens_, fields_, ms_List, nc_] := Module[{n = Length[ms], X = Array[xx, nc], kq, phase, rules, e},
+planeWaveCoefficient[dens_, fields_, ms_List, nc_] := Module[{n = Length[ms], X = Array[xx, nc], kq, phase, rules, e, fnWaves},
    kq[l_] := Table[kc[l, c], {c, nc}];
    phase = I Sum[ww[l] tt - kq[l] . X, {l, n}];
    rules = Thread[fields -> (Sum[If[ms[[l]] === #, eps[l] Exp[I (ww[l] tt - kq[l] . X)], 0], {l, n}] & /@ fields)];
-   e = (dens /. rules) /. {dt -> (D[#, tt] &), grad -> (Grad[#, X] &), div -> (If[# === 0, 0, Div[#, X]] &), lap -> (Laplacian[#, X] &),
+   (* fn[f, X] (LO): f(-Laplacian) multiplies each plane wave of the field inside X by f(k^2) *)
+   fnWaves = fnWave[f_, a_] :> Sum[If[ms[[l]] === a, eps[l] f[kq[l] . kq[l]] Exp[I (ww[l] tt - kq[l] . X)], 0], {l, n}];
+   e = ((dens /. fn[f_, x_] :> (x /. a : (Alternatives @@ fields) :> fnWave[f, a])) /. fnWaves /. rules) /. {dt -> (D[#, tt] &), grad -> (Grad[#, X] &), div -> (If[# === 0, 0, Div[#, X]] &), lap -> (Laplacian[#, X] &),
       jac -> (D[#1, xx[1]] D[#2, xx[2]] - D[#1, xx[2]] D[#2, xx[1]] &)};
    e = D[e, Sequence @@ Table[eps[l], {l, n}]] /. eps[_] -> 0;
    e = Expand[e] /. Power[E, z_] :> Exp[Expand[z - phase]];
@@ -104,6 +108,20 @@ ShowVertexTable[v_Association] := (
    Scan[If[Length[#] > 2, ShowVertex[v, #]] &, Keys[v["VertexTable"]]];
    Print["---- end of vertex table ----"]);
 
+(* LO: every (I w)^m coefficient of a Gamma2 entry is a number, or (number) x reference x (q^2)^n x F(q^2) of the function tied to
+   that reference (design/LOPIPELINE.md step 3) *)
+loGamma2Check[g2_, w_, q_, funcs_] := Module[{fs = funcs[[All, 1]], coefs, okQ, bad},
+   coefs = Flatten[Function[e, With[{x = Expand[e /. scal[q, q] -> ss]}, Table[Expand[Coefficient[x, w, m]], {m, 0, Max[0, Exponent[x, w]]}]]] /@ Flatten[g2]];
+   okQ[c_] := Which[NumericQ[c], True,
+     FreeQ[c, Alternatives @@ fs], False,
+     True, With[{f = FirstCase[c, (h : Alternatives @@ fs)[_] :> h, None, {0, Infinity}]},
+       With[{r = Together[c/((f /. funcs) f[ss])]}, NumericQ[r /. ss -> 1] && PolynomialQ[r, ss] && Length[CoefficientList[r, ss] /. 0 -> Nothing] == 1 &&
+         FreeQ[c /. f[ss] -> 1, Alternatives @@ fs]]]];
+   bad = Select[coefs, ! okQ[#] &];
+   assertCheck["Vertices.gamma2Functions", bad === {}, bad,
+    "LO: each (I w)^m coefficient of Gamma2 must be a number or number x reference x (q^2)^n x F(q^2), F the function of that reference",
+    "Gamma2 coefficients: numbers or reference x (q^2)^n x F(q^2)"]];
+
 (* ---------- BuildVertices ---------- *)
 
 BuildVertices[ansatz_] := Block[{$FRGModule = "Vertices"},
@@ -132,12 +150,16 @@ BuildVertices[ansatz_] := Block[{$FRGModule = "Vertices"},
    AppendTo[checks, assertCheck["Vertices.causality", AllTrue[Tuples[phis, 2], VertexValue[stage, #, {{w, q}}] === 0 &],
      Select[Tuples[phis, 2], VertexValue[stage, #, {{w, q}}] =!= 0 &], "a term quadratic in physical fields without response field (MSR)",
      "(implementation check) Gamma2_{phi phi} = 0 for physical fields"]];
-   AppendTo[checks, assertCheck["Vertices.gamma2Polynomial", AllTrue[Flatten[g2], PolynomialQ[# /. scal[q, q] -> ss, {w, ss}] && FreeQ[# /. scal[q, q] -> ss, q] &],
-     g2, "Gamma2 entries must be polynomials in I w and q^2", "(implementation check) Gamma2 entries polynomial in I w and q^2"]];
+   If[ansatz["Pipeline"] === "LO",
+    AppendTo[checks, loGamma2Check[g2, w, q, ansatz["Functions"]]],
+    AppendTo[checks, assertCheck["Vertices.gamma2Polynomial", AllTrue[Flatten[g2], PolynomialQ[# /. scal[q, q] -> ss, {w, ss}] && FreeQ[# /. scal[q, q] -> ss, q] &],
+      g2, "Gamma2 entries must be polynomials in I w and q^2", "(implementation check) Gamma2 entries polynomial in I w and q^2"]]];
 
    (* convention check (E1): the free response G_{phibar phi}(w) = 1 / Gamma2_{phi phibar}(w) has its pole in the upper half plane
       (with the couplings at random positive values, q^2 = 1/2) *)
    conv = Table[Module[{e = VertexValue[stage, {phis[[a]], bars[[a]]}, {{w, q}}], cs, roots},
+       (* LO: a function of q^2 is taken at its normalisation value 1 *)
+       e = e /. (f : Alternatives @@ Lookup[ansatz, "Functions", {}][[All, 1]])[_] -> 1;
        cs = Complement[Cases[e, s_Symbol /; Context[s] =!= "System`", Infinity], {w}];
        e = e /. scal[q, q] -> 1/2 /. RandomRationalPoint[cs, 1];
        roots = If[Exponent[e, w] >= 1, w /. Solve[e == 0, w], {}];
@@ -153,7 +175,7 @@ BuildVertices[ansatz_] := Block[{$FRGModule = "Vertices"},
    checks = Join[checks, Select[conv, #Status === "PASS" &]]; warns = Join[warns, Select[conv, #Status =!= "PASS" &]];
    If[AnyTrue[Keys[table], Length[#] == 4 &], AppendTo[warns, infoCheck["WARN", "Vertices.gamma4", "Gamma(4) != 0: the tadpole term of the flow is hand-derived, untested"]]];
 
-   stage = stampStage[<|"Stage" -> "Vertices", "Pipeline" -> "DerivativeExpansion", "Upstream" -> {ansatz["Fingerprint"]},
+   stage = stampStage[<|"Stage" -> "Vertices", "Pipeline" -> ansatz["Pipeline"], "Upstream" -> {ansatz["Fingerprint"]},
       "Ansatz" -> ansatz, "Fields" -> fields, "VertexTable" -> table, "Checks" -> checks, "Warnings" -> warns, "Timing" -> AbsoluteTime[] - t0|>];
    ShowVertexTable[stage];
    PrintCard[stage];

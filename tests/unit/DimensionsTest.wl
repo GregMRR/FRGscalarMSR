@@ -70,3 +70,18 @@ test["Names override resolves the collision",
 expectFail["dimensionless reference", DeriveDimensions[dimKPZ, "References" -> {nuk -> "nu", Dk -> "D"}, "Dimensionless" -> {Dk}],
   "Dimensions.referenceDimensionless"];
 test["AnsatzOf finds the embedded ansatz", AnsatzOf[<|"Stage" -> "X", "Inner" -> <|"Stage" -> "Y", "A" -> dimKPZ|>|>] === dimKPZ, True];
+
+(* LO: functions are dimensionless, so the KPZ LO couplings have the KPZ dimensions (design/LOPIPELINE.md step 7) *)
+dimLOTheory = quiet[DefineTheory["Scalars" -> {h}, "Dimension" -> Dim]];
+dimLOAnsatz = quiet[DefineAnsatz[dimLOTheory, "Density" -> hbar (dt[h] - nuk fn[fnu, lap[h]] - lamk/2 grad[h].grad[h]) - Dk hbar fn[fD, hbar],
+    "Couplings" -> {nuk, lamk, Dk}, "Functions" -> {fD -> Dk, fnu -> nuk}]];
+dimLO = quiet[DeriveDimensions[dimLOAnsatz, "References" -> {nuk -> "nu", Dk -> "D"}]];
+dimKPZDE = quiet[DeriveDimensions[quiet[DefineAnsatz[dimLOTheory, "Density" -> hbar (dt[h] - nuk lap[h] - lamk/2 grad[h].grad[h]) - Dk hbar^2,
+      "Couplings" -> {nuk, lamk, Dk}]], "References" -> {nuk -> "nu", Dk -> "D"}]];
+test["LO: dimensions = those of the DE KPZ ansatz", {dimLO["Vectors"], dimLO["Time"]}, {dimKPZDE["Vectors"], dimKPZDE["Time"]}];
+test["LO: rescaling check (fn[f, X] scales as X) and functionReferences on the card",
+  SubsetQ[dimLO["Checks"][[All, "Check"]], {"Dimensions.rescaling", "Dimensions.functionReferences"}], True];
+test["LO: Pipeline and Functions keys", {dimLO["Pipeline"], dimLO["Functions"]}, {"LO", {fD -> Dk, fnu -> nuk}}];
+test["DE: no Functions key", KeyExistsQ[dimKPZDE, "Functions"], False];
+expectFail["LO: a function's reference must be a running reference", DeriveDimensions[dimLOAnsatz, "References" -> {nuk -> "nu", Dk -> {"D", "Mode" -> "Fixed"}}],
+  "Dimensions.functionReferences"];

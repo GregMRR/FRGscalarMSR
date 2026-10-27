@@ -90,7 +90,7 @@ DefineRegulator[ansatz_, args___] := Block[{$FRGModule = "Regulator"},
      dsmat, "internal: the two computations of d_s R differ",
      "d_s R = sum_c dR/dc dsCoupling[c] + k dR/dk  (k d/dk r(q^2/k^2) = -2 y r'(y)); checked by a second route"]];
 
-   stage = stampStage[<|"Stage" -> "Regulator", "Pipeline" -> "DerivativeExpansion", "Upstream" -> {ansatz["Fingerprint"]},
+   stage = stampStage[<|"Stage" -> "Regulator", "Pipeline" -> ansatz["Pipeline"], "Upstream" -> {ansatz["Fingerprint"]},
       "Fields" -> fields, "Scale" -> kk, "LoopMomentum" -> If[qs === {}, None, First[qs]], "Shapes" -> shapes, "Couplings" -> cps,
       "Entries" -> entries, "RMatrix" -> Function[Evaluate[{sq}], Evaluate[rmat]], "DsRMatrix" -> Function[Evaluate[{sq}], Evaluate[dsmat]],
       "DsRAbstract" -> dsAbs, "DsCouplings" -> Union[Cases[dsmat, _dsCoupling, Infinity]],

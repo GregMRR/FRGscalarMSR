@@ -6,13 +6,13 @@ pTheory = quiet[DefineTheory["Scalars" -> {h}, "Dimension" -> Dim]];
 pAnsatz = quiet[DefineAnsatz[pTheory, "Density" -> hbar (dt[h] - nuk lap[h] - lamk/2 grad[h].grad[h]) - Dk hbar^2, "Couplings" -> {nuk, lamk, Dk}]];
 pReg = quiet[DefineRegulator[pAnsatz, {hbar, h} -> nuk q^2 rn[q^2/k^2], {hbar, hbar} -> -2 Dk rd[q^2/k^2], "Shapes" -> {rn, rd}]];
 kp = quiet[BuildPropagator[quiet[BuildVertices[pAnsatz]], pReg]];
-fA = GammaAtom[h, hbar, 0][s0]; fD = GammaAtom[hbar, hbar, 0][s0];
+fA = GammaAtom[h, hbar, 0][s0]; fDhh = GammaAtom[hbar, hbar, 0][s0];
 
 test["KPZ atoms", Sort[kp["Atoms"]], Sort[{GammaAtom[h, hbar, 0], GammaAtom[hbar, hbar, 0]}]];
 test["KPZ atom value", Expand[GammaAtom[h, hbar, 0][s0] /. AtomRules[kp]], Expand[nuk s0 + nuk s0 rn[s0/k^2]]];
 test["KPZ Delta(w) = I w + f", kp["Delta"][ω, s0], I ω + fA];
 test["KPZ G (response function and correlation)", PropagatorMatrix[kp, ω, s0],
-  {{-fD/(\[CapitalDelta][-ω, s0] \[CapitalDelta][ω, s0]), 1/\[CapitalDelta][-ω, s0]}, {1/\[CapitalDelta][ω, s0], 0}}];
+  {{-fDhh/(\[CapitalDelta][-ω, s0] \[CapitalDelta][ω, s0]), 1/\[CapitalDelta][-ω, s0]}, {1/\[CapitalDelta][ω, s0], 0}}];
 test["KPZ validity c0/c1 > 0", kp["ValidityConditions"][s0], {DeltaCoefficient[0][s0]/DeltaCoefficient[1][s0] > 0}];
 test["KPZ Delta coefficients", kp["DeltaCoefficients"][s0], {fA, 1, 0}];
 

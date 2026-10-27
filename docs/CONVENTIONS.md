@@ -70,6 +70,20 @@ This header is printed above every vertex table (from milestone 2 on). Every mod
   A repeated `SpaceIndex[1]` is summed over. The two indices of ε are `EpsIndex[1]` (on the factor of a) and `EpsIndex[2]` (on
   the factor of b).
 
+## LO pipeline (functions of p², design/LOPIPELINE.md)
+
+- `fn[f, X]` in the density is f(−∇²) acting on X (one field, optionally under grad/lap). In Fourier space f takes the squared
+  momentum of the leg of X; in a bilinear term that is p², so `nuk fn[fnu, lap[h]]` gives Γ⁽¹¹⁾ ∋ nuk p² fnu(p²). The factor
+  is `FieldFactor[φ, n_t, {indices}, f]`.
+- `"Functions" -> {f -> reference}` (DefineAnsatz) states f(0) = 1: the reference is the k-dependent amplitude, f the shape in p².
+  Function symbols are fresh user symbols; their order is the export order (`FUNCTIONS`).
+- Dimensionful LO integrands use p (`Global`p`), the regulator's q and `CosTheta` = cos(p, q), with Q² = p² + q² + 2 p q c.
+  Dimensionless: F_k(p²) = f(p²/k²) = f(ap²), ap = p/k, aq = q/k (`Global`ap`, `Global`aq`). Inside Mathematica f′ = d/d(argument).
+- The dimensionless flow of f is taken at fixed ap: ∂s f = η f + 2 ap² f′(ap²) + loop/ref.
+- Python export (BMWflow): primes on f are d/d|momentum| (`fprime`, so 2 ap² f′(ap²) = p·fprime); `r_` = dr/d(q²); the loop measure
+  (v_d, v_{d−1}, Γ functions of d, the (2π)^d) is **not** in the exported kernels: the adapter applies it,
+  I_X(p) = v_{d−1}/(2π) ∫dq q^{d−1} ∫dθ sin^{d−2}θ loop_X and ⟨·⟩ = v_d ∫dq q^{d−1} (·) for the η system.
+
 ## Reserved names
 
 Fields and couplings may not be named `k q p y t x ω ν`. These names have a fixed meaning in library input and output: RG

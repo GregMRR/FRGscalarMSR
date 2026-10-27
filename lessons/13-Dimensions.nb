@@ -10,15 +10,15 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       154,          7]
-NotebookDataLength[     44509,       1142]
-NotebookOptionsPosition[     37851,       1057]
-NotebookOutlinePosition[     38188,       1072]
-CellTagsIndexPosition[     38145,       1069]
+NotebookDataLength[     45393,       1158]
+NotebookOptionsPosition[     38732,       1073]
+NotebookOutlinePosition[     39069,       1088]
+CellTagsIndexPosition[     39026,       1085]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
-Cell["Lesson 13 - Dimensions", "Title",ExpressionUUID->"d15e408e-fc73-4f54-a3b2-470d0e41bb8c"],
+Cell["Lesson 13 - Dimensions", "Title",ExpressionUUID->"9773e533-35dd-4182-ad43-8be58cf997da"],
 
 Cell[TextData[{
  StyleBox["Physics step.",
@@ -49,7 +49,7 @@ you choose: the RG scale k and N + 1 ",
   FontFamily->"Noto Sans"],
  " ref. This module needs only the ansatz, so it can run right after lesson \
 02, before any loop."
-}], "Text",ExpressionUUID->"9961d01d-e3a6-4659-b507-691a7caabaa5"],
+}], "Text",ExpressionUUID->"ec40c260-4eef-4968-8e67-67b2c1d867bf"],
 
 Cell[TextData[{
  StyleBox["Stage.",
@@ -65,27 +65,27 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " stage, used by Adimensional (lesson 14)."
-}], "Text",ExpressionUUID->"4acfe83d-f2b4-4189-9d61-f4bb9342d8f3"],
+}], "Text",ExpressionUUID->"c73a9be2-3ce6-4f21-b27c-960f0ea0ddcf"],
 
 Cell["\<\
 Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
 Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
 ansatz = lessonUpTo[\"Ansatz\"];\
-\>", "Input",ExpressionUUID->"1f89b8dc-308f-49d1-af59-84780a1376dd"],
+\>", "Input",ExpressionUUID->"caca861e-fb8d-43bc-b445-c78f30580ed5"],
 
-Cell["1. Using it", "Section",ExpressionUUID->"7ae4417d-5e53-40d8-864c-940f4493d137"],
+Cell["1. Using it", "Section",ExpressionUUID->"aea300fe-0389-4006-a10f-5727377c3787"],
 
 Cell[TextData[{
  "KPZ has one scalar, so two references: ",
  StyleBox["\[Nu]",
   FontFamily->"Noto Sans"],
  " and D."
-}], "Text",ExpressionUUID->"f704b6dc-623d-480d-a8ee-bbd0b6f73432"],
+}], "Text",ExpressionUUID->"281c4d64-3700-4ecf-aac6-993b345d61bd"],
 
 Cell["\<\
 dims = DeriveDimensions[ansatz, \"References\" -> {nuk -> \"nu\", Dk -> \
 \"D\"}, \"Scale\" -> k];\
-\>", "Input",ExpressionUUID->"fb6b1c36-2529-4225-ba71-205fad6757e9"],
+\>", "Input",ExpressionUUID->"667b8e16-19f5-49f0-8476-668df4afe95b"],
 
 Cell[TextData[{
  "The table gives each coupling's dimension, its dimensionless name and the \
@@ -149,12 +149,12 @@ linear part of its flow. ",
  StyleBox["\[Nu]",
   FontFamily->"Noto Sans"],
  "."
-}], "Text",ExpressionUUID->"7675a171-b257-4d9f-b3c5-117977eb3544"],
+}], "Text",ExpressionUUID->"cf70355c-83ff-4aa9-ab93-9ee7bb008e1a"],
 
 Cell["\<\
 {DimensionOf[dims, lamk], DimensionOf[dims, h], DimensionOf[dims, \"Frequency\
 \"], LinearPart[dims, lamk]}\
-\>", "Input",ExpressionUUID->"ce656070-c43a-4b02-9566-f45f7c0600c7"],
+\>", "Input",ExpressionUUID->"01257302-c265-4fee-83cd-d21809f4f09b"],
 
 Cell[TextData[{
  StyleBox["Why it's built this way: Why \"Scale\" -> k is passed explicitly \
@@ -237,15 +237,15 @@ dimensionless loop momentum ",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->GrayLevel[0.55],
  Background->RGBColor[
-  0.93, 0.93, 0.93],ExpressionUUID->"2cc071f2-1542-4f3a-87cd-d7983b9e97c0"],
+  0.93, 0.93, 0.93],ExpressionUUID->"5f07940d-857a-4830-93a4-5e423d1fd753"],
 
-Cell["2. One linear equation per monomial term", "Section",ExpressionUUID->"9540c367-2ee7-4b81-adbd-df389d18d0df"],
+Cell["2. One linear equation per monomial term", "Section",ExpressionUUID->"10acf8a7-aace-410b-807a-5437b071616c"],
 
 Cell["\<\
 (* Kernel/Dimensions.wl:37-38 *)
 basisForm[v_List, basis_List] := Times @@ MapThread[Power, {basis, v}];
 linearPart[v_List, etas_List] := -First[v] + Rest[v].etas;\
-\>", "Program",ExpressionUUID->"756917ab-5a31-4f29-8daf-9e2c3c4db71c"],
+\>", "Program",ExpressionUUID->"4e6b1585-46c5-4f9e-bf8d-a1e63d210911"],
 
 Cell["\<\
 (* Kernel/Dimensions.wl:40-45 *)
@@ -258,7 +258,7 @@ couplingPowers[term_, cps_List] := Module[{n = Together[# D[term, #]/term] & \
 of couplings\"];
    n];
 termsOf[c_] := With[{e = Expand[c]}, If[Head[e] === Plus, List @@ e, {e}]];\
-\>", "Program",ExpressionUUID->"68e56007-f994-4891-a823-8233c8a6ae8f"],
+\>", "Program",ExpressionUUID->"e2d25257-3029-44dd-9b25-366d03fe9310"],
 
 Cell["\<\
 (* Kernel/Dimensions.wl:47-51 *)
@@ -271,7 +271,7 @@ monomialEquations[mons_, cps_, fields_] := Flatten[Function[m, Function[t,
 \"TimeOrder\" -> m[\"TimeOrder\"], \"MomentumOrder\" -> \
 m[\"MomentumOrder\"]|>] /@
      termsOf[m[\"Coefficient\"]]] /@ mons, 1];\
-\>", "Program",ExpressionUUID->"28542fa5-9a23-4548-8f60-02028d5acc8b"],
+\>", "Program",ExpressionUUID->"68466a2f-db7a-4b2d-876a-85a52e0b109c"],
 
 Cell["\<\
 (* Kernel/Dimensions.wl:53-54 *)
@@ -279,7 +279,7 @@ Cell["\<\
 const = 0, one copy per basis component *)
 equationRow[eq_, cols_, cps_, fields_] := Join[{1 - eq[\"TimeOrder\"]}, \
 eq[\"FieldCounts\"], eq[\"CouplingPowers\"]][[cols]];\
-\>", "Program",ExpressionUUID->"081b5552-09e2-4a55-8cc1-babb3a32d9a1"],
+\>", "Program",ExpressionUUID->"87e4d840-ade2-4966-ab9e-0a9645f167de"],
 
 Cell[TextData[{
  "A dimension is an ",
@@ -313,7 +313,7 @@ Cell[TextData[{
  StyleBox["\[CapitalGamma]",
   FontFamily->"Noto Sans"],
  " dimensionless\" is the linear equation"
-}], "Text",ExpressionUUID->"1fdcdeef-ca5f-4fe8-84da-04bfaae2d18a"],
+}], "Text",ExpressionUUID->"cc45ab96-4400-41f9-97b0-0cde92503e85"],
 
 Cell[TextData[{
  "[c] + ",
@@ -338,7 +338,7 @@ Cell[TextData[{
  StyleBox["\[CenterDot]",
   FontFamily->"Noto Sans"],
  "e_k = 0,"
-}], "Text",ExpressionUUID->"11be1866-32f2-47f2-9b0c-55292ad24978"],
+}], "Text",ExpressionUUID->"a886e9e0-f123-469e-8358-956c732caaf5"],
 
 Cell[TextData[{
  "where the last two terms are the measure dt d",
@@ -356,14 +356,14 @@ Cell[TextData[{
  StyleBox["\[PartialD]",
   FontFamily->"Noto Sans"],
  "c / term, a number for a monomial."
-}], "Text",ExpressionUUID->"95e18bf7-acf4-4fa5-b394-a33009af28e5"],
+}], "Text",ExpressionUUID->"598a3bd9-2edd-4bf3-8ffb-97c3b181dca9"],
 
-Cell["dims[\"Equations\"][[1]]", "Input",ExpressionUUID->"e6f846b5-85f2-4906-b651-8d705bdd786d"],
+Cell["dims[\"Equations\"][[1]]", "Input",ExpressionUUID->"7490e343-6034-4fc2-8f45-2333341b41d8"],
 
-Cell["3. Solving the system", "Section",ExpressionUUID->"309baf33-b097-4f7b-8e5d-8711f19c2d07"],
+Cell["3. Solving the system", "Section",ExpressionUUID->"033352d8-f072-4514-be5b-7e8c752d4b8f"],
 
 Cell["\<\
-(* Kernel/Dimensions.wl:126-149 *)
+(* Kernel/Dimensions.wl:127-150 *)
    basis = Prepend[refs, kk]; nb = Length[basis];
    eqs = monomialEquations[mons, cps, fields];
    unknownCps = Complement[cps, refs, dl];
@@ -402,7 +402,7 @@ MatrixRank[refRows] == nS + 1, refs,
      \"the references are not independent: their dimensions are related by \
 the ansatz, choose another set (e.g. one per field pair and one for time)\",
      \"references independent\"]];\
-\>", "Program",ExpressionUUID->"b6d7e0a0-f0ed-4d2d-bd31-d9493cd36507"],
+\>", "Program",ExpressionUUID->"1cdf2856-2a8b-49ff-9cb3-aee253c9dfca"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Linear algebra",
@@ -443,7 +443,7 @@ leave ",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"4545eaca-5851-43d4-b066-38e106c23131"],
+  0.91, 0.95, 1.],ExpressionUUID->"ea6b0feb-7b3d-422f-a16f-7c4b9904fcb6"],
 
 Cell["\<\
 {NullSpace[{{1, 1, 0}, {0, 1, 1}}], MatrixRank[{{1, 2}, {2, 4}}], \
@@ -452,7 +452,7 @@ LinearSolve[{{2, 0}, {0, 4}}, {2, 8}]}\
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"eeb7c065-8ede-4719-b790-4a0e6dd3db26"],
+  0.91, 0.95, 1.],ExpressionUUID->"196f16b5-1d36-4bf2-bf50-dd59e52f1dc8"],
 
 Cell[TextData[{
  "An amplitude written as a product, ",
@@ -461,14 +461,14 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ", leaves one unit free too many:"
-}], "Text",ExpressionUUID->"568a7c65-a0f4-465a-8005-bacb287e240f"],
+}], "Text",ExpressionUUID->"3f518328-4ae9-4789-a41b-c3e0e061b50f"],
 
 Cell["\<\
 ansatzA = Block[{Print}, DefineAnsatz[kpzTheory, \"Density\" -> hbar (dt[h] - \
 nuk Ak lap[h]) - Dk hbar^2, \"Couplings\" -> {nuk, Ak, Dk}]];
 showFailure[DeriveDimensions[ansatzA, \"References\" -> {nuk -> \"nu\", Dk -> \
 \"D\"}, \"Scale\" -> k]]\
-\>", "Input",ExpressionUUID->"372d7674-8e01-415e-ad05-32deacfac8dd"],
+\>", "Input",ExpressionUUID->"c47b7fbd-636e-4d61-8cc0-4829336dfd96"],
 
 Cell[TextData[{
  "The hint suggests the fix: ",
@@ -477,10 +477,10 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  "."
-}], "Text",ExpressionUUID->"469abcd6-b5a0-4992-92c3-f1ab4e079367"],
+}], "Text",ExpressionUUID->"f9f526ee-9ad3-4a90-900d-7e8a4a35ded7"],
 
 Cell["\<\
-(* Kernel/Dimensions.wl:151-160 *)
+(* Kernel/Dimensions.wl:152-161 *)
    (* solve each basis component: M u = -(const), const = (n_x - Dim, powers \
 of the references); M has full column rank here
       (N+1 freedoms, all fixed by the references), so the normal equations \
@@ -500,7 +500,7 @@ ansatz\"]];
    AppendTo[checks, assertCheck[\"Dimensions.consistent\", True, Null, \"\", \
 ToString[Length[eqs]] <> \" monomial equations solved exactly (overdetermined \
 system consistent)\"]];\
-\>", "Program",ExpressionUUID->"9739fe2b-0ed6-40d4-bdac-3f1aeb659413"],
+\>", "Program",ExpressionUUID->"baf45a67-49a6-4494-a7c3-27f54ef58e94"],
 
 Cell[TextData[{
  "The system is overdetermined (a coupling may appear in several monomials), \
@@ -525,9 +525,9 @@ lists the monomials that disagree; ",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " keeps only the conflicts."
-}], "Text",ExpressionUUID->"ac6bd3d1-999c-4015-b966-7584f5a6bcbc"],
+}], "Text",ExpressionUUID->"a83adb7f-cc96-4d5a-a25b-278655c8bb75"],
 
-Cell["{{1, Nothing, 2}, UnitVector[3, 2]}", "Input",ExpressionUUID->"1b4b9659-c1de-4128-af70-afade14d31bb"],
+Cell["{{1, Nothing, 2}, UnitVector[3, 2]}", "Input",ExpressionUUID->"c9b510e4-0aaa-430d-84b5-b513e18b64e6"],
 
 Cell[TextData[{
  StyleBox["UnitVector[n, i]",
@@ -535,12 +535,12 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " is the dimension of the i-th basis element, used for the references."
-}], "Text",ExpressionUUID->"3fe70694-6352-42a0-b316-71c7d89a62e6"],
+}], "Text",ExpressionUUID->"4dbefb3f-bb9d-422b-ab95-2a0cd6a5f8f6"],
 
-Cell["4. An independent check: rescale the action", "Section",ExpressionUUID->"7496be07-11a8-4ac4-bc2e-594dd924c827"],
+Cell["4. An independent check: rescale the action", "Section",ExpressionUUID->"540f72ea-5969-41c1-8a3f-e78a930b54e6"],
 
 Cell["\<\
-(* Kernel/Dimensions.wl:56-73 *)
+(* Kernel/Dimensions.wl:56-74 *)
 (* ---------- independent check: rescale the raw density ----------
    New units: every quantity of dimension v is multiplied by s(v) = Prod_j \
 lambda_j^v_j. With t_new = s([t]) t, x_new = x/lambda_k,
@@ -553,6 +553,8 @@ Integral dt d^dx L is unchanged. Evaluated on explicit
 evalDensity[e_, fieldVals_, tt_, xs_] := Module[{ev},
    ev[s_Symbol] := Lookup[fieldVals, s, s];
    ev[dt[a_]] := D[ev[a], tt];
+   ev[fn[f_, a_]] := ev[a];   (* LO: f is dimensionless with f(0) = 1, so \
+fn[f, X] scales as X *)
    ev[grad[a_]] := D[ev[a], #] & /@ xs;
    ev[div[a_]] := Total[MapThread[D, {ev[a], xs}]];
    ev[lap[a_]] := Total[D[ev[a], {#, 2}] & /@ xs];
@@ -564,10 +566,10 @@ xs[[2]]] - D[A, xs[[2]]] D[B, xs[[1]]]];
    ev[Power[a_, n_]] := ev[a]^n;
    ev[x_] := x;
    ev[e]];\
-\>", "Program",ExpressionUUID->"192496f5-6f06-4ecb-bbae-7745f1fd9400"],
+\>", "Program",ExpressionUUID->"b9419918-43e1-40ed-9bff-3f39e9f4704e"],
 
 Cell["\<\
-(* Kernel/Dimensions.wl:75-90 *)
+(* Kernel/Dimensions.wl:76-91 *)
 rescalingCheckQ[dens_, fields_, cps_, dimOf_, timeDim_, dimSym_, d_, seed_] \
 := Module[{tt, xs, vec, den, lam, s, cv, fv, fvNew, cvNew, pt, lhs, rhs, deg \
 = 3},
@@ -594,7 +596,7 @@ Prepend[Thread[xs -> First[lam] xs], tt -> tt/s[timeDim]]) & /@ fields)];
 /. Normal[cv], fv, tt, xs] /. Prepend[Thread[xs -> First[lam] xs], tt -> \
 tt/s[timeDim]] /. pt);
    Together[lhs - rhs] === 0];\
-\>", "Program",ExpressionUUID->"028a95b6-efff-49b7-8a65-1d0c66775cb1"],
+\>", "Program",ExpressionUUID->"a7736c09-b09e-43e5-8e81-6897862d07b6"],
 
 Cell[TextData[{
  "The derived dimensions say how every quantity changes when the units \
@@ -633,7 +635,7 @@ fields are put into the ",
  StyleBox["\[PartialD]",
   FontFamily->"Noto Sans"],
  "_i, ...), before and after the rescaling."
-}], "Text",ExpressionUUID->"f8c5404a-3667-441c-a3f3-6f90a440a610"],
+}], "Text",ExpressionUUID->"63dea335-e77b-489a-8293-38e3473a3a02"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Unique and LCM",
@@ -660,13 +662,13 @@ denominator of the exponents, so that fractional dimensions like k^{1",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"6d87396d-293b-49e4-acc0-379634bd31b4"],
+  0.91, 0.95, 1.],ExpressionUUID->"253369ae-9750-4eca-9c50-72a647e65136"],
 
 Cell["{Unique[\"x\"], Unique[\"x\"], LCM[4, 6]}", "Input",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"ceb09187-2c05-44a1-85ae-8a6277a9184f"],
+  0.91, 0.95, 1.],ExpressionUUID->"907b6f8e-e36f-4ba7-96e6-d414747f3cad"],
 
 Cell[TextData[{
  StyleBox["Why it's built this way: Linear algebra on the parse, and a check \
@@ -683,12 +685,12 @@ an accidental agreement negligible."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->GrayLevel[0.55],
  Background->RGBColor[
-  0.93, 0.93, 0.93],ExpressionUUID->"a8b63978-61b0-40e9-86c7-2d1e201d66f1"],
+  0.93, 0.93, 0.93],ExpressionUUID->"b95201e5-89b3-45e0-a7de-fa34c7c76003"],
 
-Cell["5. Names, \[Eta] symbols, the stage", "Section",ExpressionUUID->"508a9433-adf3-4db9-9f56-4d1f5990cc5c"],
+Cell["5. Names, \[Eta] symbols, the stage", "Section",ExpressionUUID->"968b03a7-0d88-4866-846f-cdaa8ea3997f"],
 
 Cell["\<\
-(* Kernel/Dimensions.wl:174-196 *)
+(* Kernel/Dimensions.wl:175-204 *)
    (* names of the dimensionless couplings and of the etas *)
    names = Association[# -> Lookup[nameOverride, #, If[AllTrue[dimOf[#], # \
 === 0 &], #, Symbol[Context[#] <> \"a\" <> SymbolName[#]]]] & /@
@@ -714,8 +716,22 @@ AllTrue[dimOf[#], # === 0 &] &]},
        \"dimensionless without being declared (name kept): \" <> \
 StringRiffle[ToString /@ undeclared, \", \"]]]]];
 
+   (* LO: each function's reference sets its eta through f(0) = 1, so it must \
+be a running reference *)
+   If[ansatz[\"Pipeline\"] === \"LO\",
+    bad = Select[ansatz[\"Functions\"], ! MemberQ[refs, #[[2]]] || \
+refModes[[First[FirstPosition[refs, #[[2]]]]]] === \"Fixed\" &];
+    AppendTo[checks, assertCheck[\"Dimensions.functionReferences\", bad === \
+{}, bad,
+      \"the reference of each function (DefineAnsatz \\\"Functions\\\") must \
+be a running reference of DeriveDimensions: f(0) = 1 fixes its eta\",
+      \"function references are running references: \" <> \
+StringRiffle[(ToString[#[[1]]] <> \" -> \" <> ToString[#[[2]]]) & /@ \
+ansatz[\"Functions\"], \", \"]]]];
    stage = stampStage[<|\"Stage\" -> \"Dimensions\", \"Pipeline\" -> \
-\"DerivativeExpansion\", \"Upstream\" -> {ansatz[\"Fingerprint\"]},
+ansatz[\"Pipeline\"], \"Upstream\" -> {ansatz[\"Fingerprint\"]},
+      Sequence @@ If[ansatz[\"Pipeline\"] === \"LO\", {\"Functions\" -> \
+ansatz[\"Functions\"]}, {}],
       \"Ansatz\" -> ansatz, \"Basis\" -> basis, \"Scale\" -> kk, \
 \"Dimension\" -> dimSym,
       \"References\" -> refs, \"EtaNames\" -> AssociationThread[refs -> \
@@ -729,7 +745,7 @@ refNames], \"Etas\" -> AssociationThread[refs -> etaSyms],
 AbsoluteTime[] - t0|>];
    ShowDimensions[stage];
    PrintCard[stage];\
-\>", "Program",ExpressionUUID->"b375319b-1327-42c6-9fd8-714ae0888ad3"],
+\>", "Program",ExpressionUUID->"ed9012f5-0dca-4929-81f5-00d67f741ca9"],
 
 Cell[TextData[{
  "A dimensionful coupling c gets the dimensionless name ",
@@ -775,12 +791,12 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ". Every generated name is checked against collisions."
-}], "Text",ExpressionUUID->"e4aa2cb4-19dd-46cb-b97e-d97c45c6cce2"],
+}], "Text",ExpressionUUID->"47b66987-46b4-40fd-ac2c-1c906e21197f"],
 
-Cell["6. Inspection", "Section",ExpressionUUID->"23246242-538f-4875-aaff-977487a1acad"],
+Cell["6. Inspection", "Section",ExpressionUUID->"ebec9ee2-5b7e-4836-bf1e-e3d3005a5c5b"],
 
 Cell["\<\
-(* Kernel/Dimensions.wl:205-213 *)
+(* Kernel/Dimensions.wl:213-221 *)
 DimensionOf[dims_Association, x_] := Block[{$FRGModule = \"Dimensions\"},
    validateStage[dims, \"Dimensions\"];
    Which[x === \"Frequency\" || x === \"Time\", dimForm[dims, dims[x]],
@@ -793,10 +809,10 @@ LinearPart[dims_Association, c_] := Block[{$FRGModule = \"Dimensions\"},
 MemberQ[dims[\"Ansatz\"][\"Couplings\"], c], c, \"not a coupling of this \
 ansatz\"];
    Expand[linearPart[dims[\"Vectors\"][c], Values[dims[\"Etas\"]]]]];\
-\>", "Program",ExpressionUUID->"67da8791-2463-4b82-a9ec-459c40d19fa8"],
+\>", "Program",ExpressionUUID->"81ce317e-9ea1-40bf-8920-b2fd0c060a5f"],
 
 Cell["\<\
-(* Kernel/Dimensions.wl:235-251 *)
+(* Kernel/Dimensions.wl:243-259 *)
 CheckDimensions[dims_Association, hand_Association] := Block[{$FRGModule = \
 \"Dimensions\"},
   Module[{basis, toVec, derived, keys, mism},
@@ -822,7 +838,7 @@ or field of this ansatz (or \\\"Frequency\\\", \\\"Time\\\")\"]];
    Print[\"CheckDimensions: \", Length[keys], \" hand values agree exactly: \
 \", StringRiffle[ToString /@ keys, \", \"]];
    keys]];\
-\>", "Program",ExpressionUUID->"92408f48-5e6a-4765-a5f5-3558c525e082"],
+\>", "Program",ExpressionUUID->"635b3a4b-20f9-4a54-887c-be0e9b7ac199"],
 
 Cell[TextData[{
  StyleBox["CheckDimensions",
@@ -841,7 +857,7 @@ of powers back into an exponent vector, it takes ",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  "."
-}], "Text",ExpressionUUID->"e12531ca-9038-4178-8ef0-a6be9b3c990d"],
+}], "Text",ExpressionUUID->"84695ec8-86c5-4ae7-9146-4d37a914914c"],
 
 Cell[TextData[{
  StyleBox["Mathematica: PowerExpand and Log",
@@ -886,17 +902,17 @@ positive scales."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"300ba55b-3c93-4e6e-8072-908267e764be"],
+  0.91, 0.95, 1.],ExpressionUUID->"5735e590-11b3-4bbc-9ac3-55e5bbce0465"],
 
 Cell["PowerExpand[Log[k^2 nuk^(1/2)]]", "Input",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"78065e57-2ce6-4ef0-980a-b493273323ca"],
+  0.91, 0.95, 1.],ExpressionUUID->"f31c5868-6f2d-4518-9d56-0bf9f4ac6eee"],
 
-Cell["CheckDimensions[dims, <|\"Frequency\" -> k^2 nuk|>]", "Input",ExpressionUUID->"8098882f-e278-4160-b2a2-901d3d0a1e98"],
+Cell["CheckDimensions[dims, <|\"Frequency\" -> k^2 nuk|>]", "Input",ExpressionUUID->"833d409a-5534-40b7-80c9-a0b08e451c26"],
 
-Cell["showFailure[CheckDimensions[dims, <|h -> k Dk|>]]", "Input",ExpressionUUID->"4ba32222-0ff6-4dca-9b52-fb00948debe3"],
+Cell["showFailure[CheckDimensions[dims, <|h -> k Dk|>]]", "Input",ExpressionUUID->"27a3ff1a-11ce-4dbc-aae6-1b20456cedca"],
 
 Cell[TextData[{
  StyleBox["EmbeddedStage",
@@ -910,7 +926,7 @@ Cell[TextData[{
   Background->GrayLevel[0.92]],
  " reach a stage embedded at any depth, for example the ansatz inside a \
 loaded Equations stage (lesson 12):"
-}], "Text",ExpressionUUID->"477fffb0-e1b1-461a-ba1a-1e74358d6bfd"],
+}], "Text",ExpressionUUID->"88ea1d35-e8e9-410c-8b1e-20cb378eceb6"],
 
 Cell["\<\
 (* Kernel/Dimensions.wl:28-31 *)
@@ -922,7 +938,7 @@ AnsatzOf[s_Association] := Block[{$FRGModule = \"Dimensions\"}, Module[{a = \
 EmbeddedStage[s, \"Ansatz\"]},
     FRGAssert[\"Dimensions.ansatzOf\", ! MissingQ[a], Lookup[s, \"Stage\", \
 s], \"this stage does not embed an Ansatz stage\"]; a]];\
-\>", "Program",ExpressionUUID->"d8754122-dd38-439b-a9fc-06a848a4ed7f"],
+\>", "Program",ExpressionUUID->"7a836836-4ae0-406a-ad9d-b1d53760ab98"],
 
 Cell[TextData[{
  StyleBox["FirstCase[list, patt, default]",
@@ -930,11 +946,11 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " returns the first element matching patt."
-}], "Text",ExpressionUUID->"66cfa127-9d85-48c0-802a-e4608e5595ea"],
+}], "Text",ExpressionUUID->"c87f23a2-5b6f-4eb3-b55c-caf941dad047"],
 
-Cell["Exercises", "Section",ExpressionUUID->"0ceb977e-2fe3-499f-9e2c-1c75fd1a1977"],
+Cell["Exercises", "Section",ExpressionUUID->"8d29438d-b05b-4ffd-befb-65f471c7596b"],
 
-Cell["Exercise: The KPZ coupling", "Subsection",ExpressionUUID->"3959b2be-3c20-47a5-b0eb-0e772a087c73"],
+Cell["Exercise: The KPZ coupling", "Subsection",ExpressionUUID->"eb2fff21-0d56-45c4-8fef-c22bd7287edb"],
 
 Cell[TextData[{
  "Canet's coupling is g = ",
@@ -952,25 +968,25 @@ Cell[TextData[{
  StyleBox["\[Minus]",
   FontFamily->"Noto Sans"],
  "d}."
-}], "Text",ExpressionUUID->"ffbaf8eb-4f60-4c9d-a84f-c472068c7777"],
+}], "Text",ExpressionUUID->"a092baf1-d35a-4d22-9116-766115493822"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"00048afa-cd76-4576-bc43-ebb5c5af4833"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"d3e33108-9ddb-467d-9578-56f42f4fc8fc"],
 
 Cell["\<\
 DimensionOf[dims, lamk]^2 DimensionOf[dims, Dk]/DimensionOf[dims, nuk]^3\
-\>", "Input",ExpressionUUID->"3c89b250-a5b7-491f-bd8e-173c61a3b866"],
+\>", "Input",ExpressionUUID->"ea559098-a564-44fd-8d56-dba3a8275985"],
 
 Cell[TextData[{
  "The dimensions multiply like the quantities. So k^{d",
  StyleBox["\[Minus]",
   FontFamily->"Noto Sans"],
  "2} g is dimensionless, the combination used in Canet's flow."
-}], "Text",ExpressionUUID->"f290d3a8-2cbb-404d-a735-b2ae3086f3e7"]
+}], "Text",ExpressionUUID->"a5d109e0-1d18-4cb3-868f-c0d10b4953da"]
 }, Closed]],
 
-Cell["Exercise: Other references", "Subsection",ExpressionUUID->"ea804aed-064e-49ab-b0f9-1c40424e75c0"],
+Cell["Exercise: Other references", "Subsection",ExpressionUUID->"b5919fdd-dd85-4323-aa71-c5258eac4beb"],
 
 Cell[TextData[{
  "Choose ",
@@ -983,17 +999,17 @@ Cell[TextData[{
  StyleBox["\[Nu]",
   FontFamily->"Noto Sans"],
  " and D. What is the dimension of D now, and what is its linear part?"
-}], "Text",ExpressionUUID->"3ebdaf86-eac4-419f-bbbb-548e7bd4ca7e"],
+}], "Text",ExpressionUUID->"85643ca9-5533-4e7b-992a-f12d13541787"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"84083f83-da87-4075-ac5a-2c09e6452c6c"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"3a07d42c-8cf0-42ce-9d6b-787822d130bf"],
 
 Cell["\<\
 dims2 = DeriveDimensions[ansatz, \"References\" -> {nuk -> \"nu\", lamk -> \
 \"l\"}, \"Scale\" -> k];
 {DimensionOf[dims2, Dk], LinearPart[dims2, Dk]}\
-\>", "Input",ExpressionUUID->"38042cb7-4d08-4b0d-b8f2-c7591996fd49"],
+\>", "Input",ExpressionUUID->"1ca77005-5675-4ec7-9025-27a72e554fed"],
 
 Cell[TextData[{
  "D ",
@@ -1024,23 +1040,23 @@ Cell[TextData[{
  StyleBox["\[Nu]",
   FontFamily->"Noto Sans"],
  ": the same physics in another basis."
-}], "Text",ExpressionUUID->"3a6d4945-ee93-4843-8aff-41c142136beb"]
+}], "Text",ExpressionUUID->"fd061b2e-002e-4b29-9bdf-e207ff96219d"]
 }, Closed]],
 
-Cell["Exercise: Too few references", "Subsection",ExpressionUUID->"81cb8a27-c053-481f-98eb-5c4eb579c06e"],
+Cell["Exercise: Too few references", "Subsection",ExpressionUUID->"734e4306-cfcc-4f75-be58-9d29be8c3bc6"],
 
 Cell["\<\
 Give only one reference. Which check fails, and why does KPZ need two?\
-\>", "Text",ExpressionUUID->"ebee62a4-9586-48be-ae25-ffaed813d408"],
+\>", "Text",ExpressionUUID->"21f36340-6ab4-469f-ae2f-ced458a97075"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"3a9b7ef7-be53-4020-87b3-d8cedab47aa3"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"2fb851df-9d59-46b1-95fe-b52fb9eba821"],
 
 Cell["\<\
 showFailure[DeriveDimensions[ansatz, \"References\" -> {nuk -> \"nu\"}, \
 \"Scale\" -> k]]\
-\>", "Input",ExpressionUUID->"9869a699-efc6-4895-b544-0feea3157b27"],
+\>", "Input",ExpressionUUID->"6bca9bcb-d9f0-4013-b701-76edd0b970be"],
 
 Cell[TextData[{
  StyleBox["Dimensions.referenceCount",
@@ -1052,13 +1068,13 @@ dimensions of h (and so ",
  StyleBox["h\:0304",
   FontFamily->"Noto Sans"],
  "), the other the dimension of time."
-}], "Text",ExpressionUUID->"f0082af9-1d39-4fd7-b3d5-9ee0b19d7d26"]
+}], "Text",ExpressionUUID->"cfce2d8a-e112-4aee-aaed-723a0f30a7ff"]
 }, Closed]]
 },
 CellContext->Notebook,
 FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
 StyleDefinitions->"Default.nb",
-ExpressionUUID->"68ca8ccf-8ceb-4f4a-8543-fab9318d86bc"
+ExpressionUUID->"9b870762-18b4-4809-a4e0-3c03aba93fd9"
 ]
 (* End of Notebook Content *)
 
@@ -1071,78 +1087,78 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[554, 20, 94, 0, 70, "Title",ExpressionUUID->"d15e408e-fc73-4f54-a3b2-470d0e41bb8c"],
-Cell[651, 22, 944, 29, 70, "Text",ExpressionUUID->"9961d01d-e3a6-4659-b507-691a7caabaa5"],
-Cell[1598, 53, 485, 14, 70, "Text",ExpressionUUID->"4acfe83d-f2b4-4189-9d61-f4bb9342d8f3"],
-Cell[2086, 69, 233, 4, 70, "Input",ExpressionUUID->"1f89b8dc-308f-49d1-af59-84780a1376dd"],
-Cell[2322, 75, 85, 0, 70, "Section",ExpressionUUID->"7ae4417d-5e53-40d8-864c-940f4493d137"],
-Cell[2410, 77, 184, 5, 70, "Text",ExpressionUUID->"f704b6dc-623d-480d-a8ee-bbd0b6f73432"],
-Cell[2597, 84, 178, 3, 70, "Input",ExpressionUUID->"fb6b1c36-2529-4225-ba71-205fad6757e9"],
-Cell[2778, 89, 1464, 62, 70, "Text",ExpressionUUID->"7675a171-b257-4d9f-b3c5-117977eb3544"],
-Cell[4245, 153, 187, 3, 70, "Input",ExpressionUUID->"ce656070-c43a-4b02-9566-f45f7c0600c7"],
-Cell[4435, 158, 2671, 81, 70, "Text",ExpressionUUID->"2cc071f2-1542-4f3a-87cd-d7983b9e97c0"],
-Cell[7109, 241, 114, 0, 70, "Section",ExpressionUUID->"9540c367-2ee7-4b81-adbd-df389d18d0df"],
-Cell[7226, 243, 245, 4, 70, "Program",ExpressionUUID->"756917ab-5a31-4f29-8daf-9e2c3c4db71c"],
-Cell[7474, 249, 570, 11, 70, "Program",ExpressionUUID->"68e56007-f994-4891-a823-8233c8a6ae8f"],
-Cell[8047, 262, 619, 11, 70, "Program",ExpressionUUID->"28542fa5-9a23-4548-8f60-02028d5acc8b"],
-Cell[8669, 275, 360, 6, 70, "Program",ExpressionUUID->"081b5552-09e2-4a55-8cc1-babb3a32d9a1"],
-Cell[9032, 283, 815, 32, 70, "Text",ExpressionUUID->"1fdcdeef-ca5f-4fe8-84da-04bfaae2d18a"],
-Cell[9850, 317, 575, 23, 70, "Text",ExpressionUUID->"11be1866-32f2-47f2-9b0c-55292ad24978"],
-Cell[10428, 342, 528, 16, 70, "Text",ExpressionUUID->"95e18bf7-acf4-4fa5-b394-a33009af28e5"],
-Cell[10959, 360, 96, 0, 70, "Input",ExpressionUUID->"e6f846b5-85f2-4906-b651-8d705bdd786d"],
-Cell[11058, 362, 95, 0, 70, "Section",ExpressionUUID->"309baf33-b097-4f7b-8e5d-8711f19c2d07"],
-Cell[11156, 364, 2175, 40, 70, "Program",ExpressionUUID->"b6d7e0a0-f0ed-4d2d-bd31-d9493cd36507"],
-Cell[13334, 406, 1366, 39, 70, "Text",ExpressionUUID->"4545eaca-5851-43d4-b066-38e106c23131"],
-Cell[14703, 447, 301, 7, 70, "Input",ExpressionUUID->"eeb7c065-8ede-4719-b790-4a0e6dd3db26"],
-Cell[15007, 456, 289, 7, 70, "Text",ExpressionUUID->"568a7c65-a0f4-465a-8005-bacb287e240f"],
-Cell[15299, 465, 326, 5, 70, "Input",ExpressionUUID->"372d7674-8e01-415e-ad05-32deacfac8dd"],
-Cell[15628, 472, 262, 7, 70, "Text",ExpressionUUID->"469abcd6-b5a0-4992-92c3-f1ab4e079367"],
-Cell[15893, 481, 1186, 21, 70, "Program",ExpressionUUID->"9739fe2b-0ed6-40d4-bdac-3f1aeb659413"],
-Cell[17082, 504, 841, 23, 70, "Text",ExpressionUUID->"ac6bd3d1-999c-4015-b966-7584f5a6bcbc"],
-Cell[17926, 529, 107, 0, 70, "Input",ExpressionUUID->"1b4b9659-c1de-4128-af70-afade14d31bb"],
-Cell[18036, 531, 289, 6, 70, "Text",ExpressionUUID->"3fe70694-6352-42a0-b316-71c7d89a62e6"],
-Cell[18328, 539, 117, 0, 70, "Section",ExpressionUUID->"7496be07-11a8-4ac4-bc2e-594dd924c827"],
-Cell[18448, 541, 1236, 25, 70, "Program",ExpressionUUID->"192496f5-6f06-4ecb-bbae-7745f1fd9400"],
-Cell[19687, 568, 1464, 28, 70, "Program",ExpressionUUID->"028a95b6-efff-49b7-8a65-1d0c66775cb1"],
-Cell[21154, 598, 1158, 37, 70, "Text",ExpressionUUID->"f8c5404a-3667-441c-a3f3-6f90a440a610"],
-Cell[22315, 637, 930, 25, 70, "Text",ExpressionUUID->"6d87396d-293b-49e4-acc0-379634bd31b4"],
-Cell[23248, 664, 228, 4, 70, "Input",ExpressionUUID->"ceb09187-2c05-44a1-85ae-8a6277a9184f"],
-Cell[23479, 670, 742, 15, 70, "Text",ExpressionUUID->"a8b63978-61b0-40e9-86c7-2d1e201d66f1"],
-Cell[24224, 687, 109, 0, 70, "Section",ExpressionUUID->"508a9433-adf3-4db9-9f56-4d1f5990cc5c"],
-Cell[24336, 689, 2237, 42, 70, "Program",ExpressionUUID->"b375319b-1327-42c6-9fd8-714ae0888ad3"],
-Cell[26576, 733, 1342, 44, 70, "Text",ExpressionUUID->"e4aa2cb4-19dd-46cb-b97e-d97c45c6cce2"],
-Cell[27921, 779, 87, 0, 70, "Section",ExpressionUUID->"23246242-538f-4875-aaff-977487a1acad"],
-Cell[28011, 781, 839, 14, 70, "Program",ExpressionUUID->"67da8791-2463-4b82-a9ec-459c40d19fa8"],
-Cell[28853, 797, 1459, 27, 70, "Program",ExpressionUUID->"92408f48-5e6a-4765-a5f5-3558c525e082"],
-Cell[30315, 826, 664, 17, 70, "Text",ExpressionUUID->"e12531ca-9038-4178-8ef0-a6be9b3c990d"],
-Cell[30982, 845, 1380, 43, 70, "Text",ExpressionUUID->"300ba55b-3c93-4e6e-8072-908267e764be"],
-Cell[32365, 890, 218, 4, 70, "Input",ExpressionUUID->"78065e57-2ce6-4ef0-980a-b493273323ca"],
-Cell[32586, 896, 123, 0, 70, "Input",ExpressionUUID->"8098882f-e278-4160-b2a2-901d3d0a1e98"],
-Cell[32712, 898, 121, 0, 70, "Input",ExpressionUUID->"4ba32222-0ff6-4dca-9b52-fb00948debe3"],
-Cell[32836, 900, 460, 12, 70, "Text",ExpressionUUID->"477fffb0-e1b1-461a-ba1a-1e74358d6bfd"],
-Cell[33299, 914, 604, 10, 70, "Program",ExpressionUUID->"d8754122-dd38-439b-a9fc-06a848a4ed7f"],
-Cell[33906, 926, 275, 6, 70, "Text",ExpressionUUID->"66cfa127-9d85-48c0-802a-e4608e5595ea"],
-Cell[34184, 934, 83, 0, 70, "Section",ExpressionUUID->"0ceb977e-2fe3-499f-9e2c-1c75fd1a1977"],
-Cell[34270, 936, 103, 0, 70, "Subsection",ExpressionUUID->"3959b2be-3c20-47a5-b0eb-0e772a087c73"],
-Cell[34376, 938, 475, 16, 70, "Text",ExpressionUUID->"ffbaf8eb-4f60-4c9d-a84f-c472068c7777"],
+Cell[554, 20, 94, 0, 70, "Title",ExpressionUUID->"9773e533-35dd-4182-ad43-8be58cf997da"],
+Cell[651, 22, 944, 29, 70, "Text",ExpressionUUID->"ec40c260-4eef-4968-8e67-67b2c1d867bf"],
+Cell[1598, 53, 485, 14, 70, "Text",ExpressionUUID->"c73a9be2-3ce6-4f21-b27c-960f0ea0ddcf"],
+Cell[2086, 69, 233, 4, 70, "Input",ExpressionUUID->"caca861e-fb8d-43bc-b445-c78f30580ed5"],
+Cell[2322, 75, 85, 0, 70, "Section",ExpressionUUID->"aea300fe-0389-4006-a10f-5727377c3787"],
+Cell[2410, 77, 184, 5, 70, "Text",ExpressionUUID->"281c4d64-3700-4ecf-aac6-993b345d61bd"],
+Cell[2597, 84, 178, 3, 70, "Input",ExpressionUUID->"667b8e16-19f5-49f0-8476-668df4afe95b"],
+Cell[2778, 89, 1464, 62, 70, "Text",ExpressionUUID->"cf70355c-83ff-4aa9-ab93-9ee7bb008e1a"],
+Cell[4245, 153, 187, 3, 70, "Input",ExpressionUUID->"01257302-c265-4fee-83cd-d21809f4f09b"],
+Cell[4435, 158, 2671, 81, 70, "Text",ExpressionUUID->"5f07940d-857a-4830-93a4-5e423d1fd753"],
+Cell[7109, 241, 114, 0, 70, "Section",ExpressionUUID->"10acf8a7-aace-410b-807a-5437b071616c"],
+Cell[7226, 243, 245, 4, 70, "Program",ExpressionUUID->"4e6b1585-46c5-4f9e-bf8d-a1e63d210911"],
+Cell[7474, 249, 570, 11, 70, "Program",ExpressionUUID->"e2d25257-3029-44dd-9b25-366d03fe9310"],
+Cell[8047, 262, 619, 11, 70, "Program",ExpressionUUID->"68466a2f-db7a-4b2d-876a-85a52e0b109c"],
+Cell[8669, 275, 360, 6, 70, "Program",ExpressionUUID->"87e4d840-ade2-4966-ab9e-0a9645f167de"],
+Cell[9032, 283, 815, 32, 70, "Text",ExpressionUUID->"cc45ab96-4400-41f9-97b0-0cde92503e85"],
+Cell[9850, 317, 575, 23, 70, "Text",ExpressionUUID->"a886e9e0-f123-469e-8358-956c732caaf5"],
+Cell[10428, 342, 528, 16, 70, "Text",ExpressionUUID->"598a3bd9-2edd-4bf3-8ffb-97c3b181dca9"],
+Cell[10959, 360, 96, 0, 70, "Input",ExpressionUUID->"7490e343-6034-4fc2-8f45-2333341b41d8"],
+Cell[11058, 362, 95, 0, 70, "Section",ExpressionUUID->"033352d8-f072-4514-be5b-7e8c752d4b8f"],
+Cell[11156, 364, 2175, 40, 70, "Program",ExpressionUUID->"1cdf2856-2a8b-49ff-9cb3-aee253c9dfca"],
+Cell[13334, 406, 1366, 39, 70, "Text",ExpressionUUID->"ea6b0feb-7b3d-422f-a16f-7c4b9904fcb6"],
+Cell[14703, 447, 301, 7, 70, "Input",ExpressionUUID->"196f16b5-1d36-4bf2-bf50-dd59e52f1dc8"],
+Cell[15007, 456, 289, 7, 70, "Text",ExpressionUUID->"3f518328-4ae9-4789-a41b-c3e0e061b50f"],
+Cell[15299, 465, 326, 5, 70, "Input",ExpressionUUID->"c47b7fbd-636e-4d61-8cc0-4829336dfd96"],
+Cell[15628, 472, 262, 7, 70, "Text",ExpressionUUID->"f9f526ee-9ad3-4a90-900d-7e8a4a35ded7"],
+Cell[15893, 481, 1186, 21, 70, "Program",ExpressionUUID->"baf45a67-49a6-4494-a7c3-27f54ef58e94"],
+Cell[17082, 504, 841, 23, 70, "Text",ExpressionUUID->"a83adb7f-cc96-4d5a-a25b-278655c8bb75"],
+Cell[17926, 529, 107, 0, 70, "Input",ExpressionUUID->"c9b510e4-0aaa-430d-84b5-b513e18b64e6"],
+Cell[18036, 531, 289, 6, 70, "Text",ExpressionUUID->"4dbefb3f-bb9d-422b-ab95-2a0cd6a5f8f6"],
+Cell[18328, 539, 117, 0, 70, "Section",ExpressionUUID->"540f72ea-5969-41c1-8a3f-e78a930b54e6"],
+Cell[18448, 541, 1336, 27, 70, "Program",ExpressionUUID->"b9419918-43e1-40ed-9bff-3f39e9f4704e"],
+Cell[19787, 570, 1464, 28, 70, "Program",ExpressionUUID->"a7736c09-b09e-43e5-8e81-6897862d07b6"],
+Cell[21254, 600, 1158, 37, 70, "Text",ExpressionUUID->"63dea335-e77b-489a-8293-38e3473a3a02"],
+Cell[22415, 639, 930, 25, 70, "Text",ExpressionUUID->"253369ae-9750-4eca-9c50-72a647e65136"],
+Cell[23348, 666, 228, 4, 70, "Input",ExpressionUUID->"907b6f8e-e36f-4ba7-96e6-d414747f3cad"],
+Cell[23579, 672, 742, 15, 70, "Text",ExpressionUUID->"b95201e5-89b3-45e0-a7de-fa34c7c76003"],
+Cell[24324, 689, 109, 0, 70, "Section",ExpressionUUID->"968b03a7-0d88-4866-846f-cdaa8ea3997f"],
+Cell[24436, 691, 3018, 56, 70, "Program",ExpressionUUID->"ed9012f5-0dca-4929-81f5-00d67f741ca9"],
+Cell[27457, 749, 1342, 44, 70, "Text",ExpressionUUID->"47b66987-46b4-40fd-ac2c-1c906e21197f"],
+Cell[28802, 795, 87, 0, 70, "Section",ExpressionUUID->"ebec9ee2-5b7e-4836-bf1e-e3d3005a5c5b"],
+Cell[28892, 797, 839, 14, 70, "Program",ExpressionUUID->"81ce317e-9ea1-40bf-8920-b2fd0c060a5f"],
+Cell[29734, 813, 1459, 27, 70, "Program",ExpressionUUID->"635b3a4b-20f9-4a54-887c-be0e9b7ac199"],
+Cell[31196, 842, 664, 17, 70, "Text",ExpressionUUID->"84695ec8-86c5-4ae7-9146-4d37a914914c"],
+Cell[31863, 861, 1380, 43, 70, "Text",ExpressionUUID->"5735e590-11b3-4bbc-9ac3-55e5bbce0465"],
+Cell[33246, 906, 218, 4, 70, "Input",ExpressionUUID->"f31c5868-6f2d-4518-9d56-0bf9f4ac6eee"],
+Cell[33467, 912, 123, 0, 70, "Input",ExpressionUUID->"833d409a-5534-40b7-80c9-a0b08e451c26"],
+Cell[33593, 914, 121, 0, 70, "Input",ExpressionUUID->"27a3ff1a-11ce-4dbc-aae6-1b20456cedca"],
+Cell[33717, 916, 460, 12, 70, "Text",ExpressionUUID->"88ea1d35-e8e9-410c-8b1e-20cb378eceb6"],
+Cell[34180, 930, 604, 10, 70, "Program",ExpressionUUID->"7a836836-4ae0-406a-ad9d-b1d53760ab98"],
+Cell[34787, 942, 275, 6, 70, "Text",ExpressionUUID->"c87f23a2-5b6f-4eb3-b55c-caf941dad047"],
+Cell[35065, 950, 83, 0, 70, "Section",ExpressionUUID->"8d29438d-b05b-4ffd-befb-65f471c7596b"],
+Cell[35151, 952, 103, 0, 70, "Subsection",ExpressionUUID->"eb2fff21-0d56-45c4-8fef-c22bd7287edb"],
+Cell[35257, 954, 475, 16, 70, "Text",ExpressionUUID->"a092baf1-d35a-4d22-9116-766115493822"],
 Cell[CellGroupData[{
-Cell[34876, 958, 88, 0, 70, "Subsubsection",ExpressionUUID->"00048afa-cd76-4576-bc43-ebb5c5af4833"],
-Cell[34967, 960, 152, 2, 70, "Input",ExpressionUUID->"3c89b250-a5b7-491f-bd8e-173c61a3b866"],
-Cell[35122, 964, 253, 5, 70, "Text",ExpressionUUID->"f290d3a8-2cbb-404d-a735-b2ae3086f3e7"]
+Cell[35757, 974, 88, 0, 70, "Subsubsection",ExpressionUUID->"d3e33108-9ddb-467d-9578-56f42f4fc8fc"],
+Cell[35848, 976, 152, 2, 70, "Input",ExpressionUUID->"ea559098-a564-44fd-8d56-dba3a8275985"],
+Cell[36003, 980, 253, 5, 70, "Text",ExpressionUUID->"a5d109e0-1d18-4cb3-868f-c0d10b4953da"]
 }, Closed]],
-Cell[35390, 972, 103, 0, 70, "Subsection",ExpressionUUID->"ea804aed-064e-49ab-b0f9-1c40424e75c0"],
-Cell[35496, 974, 352, 11, 70, "Text",ExpressionUUID->"3ebdaf86-eac4-419f-bbbb-548e7bd4ca7e"],
+Cell[36271, 988, 103, 0, 70, "Subsection",ExpressionUUID->"b5919fdd-dd85-4323-aa71-c5258eac4beb"],
+Cell[36377, 990, 352, 11, 70, "Text",ExpressionUUID->"85643ca9-5533-4e7b-992a-f12d13541787"],
 Cell[CellGroupData[{
-Cell[35873, 989, 88, 0, 70, "Subsubsection",ExpressionUUID->"84083f83-da87-4075-ac5a-2c09e6452c6c"],
-Cell[35964, 991, 229, 4, 70, "Input",ExpressionUUID->"38042cb7-4d08-4b0d-b8f2-c7591996fd49"],
-Cell[36196, 997, 668, 29, 70, "Text",ExpressionUUID->"3a6d4945-ee93-4843-8aff-41c142136beb"]
+Cell[36754, 1005, 88, 0, 70, "Subsubsection",ExpressionUUID->"3a07d42c-8cf0-42ce-9d6b-787822d130bf"],
+Cell[36845, 1007, 229, 4, 70, "Input",ExpressionUUID->"1ca77005-5675-4ec7-9025-27a72e554fed"],
+Cell[37077, 1013, 668, 29, 70, "Text",ExpressionUUID->"fd061b2e-002e-4b29-9bdf-e207ff96219d"]
 }, Closed]],
-Cell[36879, 1029, 105, 0, 70, "Subsection",ExpressionUUID->"81cb8a27-c053-481f-98eb-5c4eb579c06e"],
-Cell[36987, 1031, 149, 2, 70, "Text",ExpressionUUID->"ebee62a4-9586-48be-ae25-ffaed813d408"],
+Cell[37760, 1045, 105, 0, 70, "Subsection",ExpressionUUID->"734e4306-cfcc-4f75-be58-9d29be8c3bc6"],
+Cell[37868, 1047, 149, 2, 70, "Text",ExpressionUUID->"21f36340-6ab4-469f-ae2f-ced458a97075"],
 Cell[CellGroupData[{
-Cell[37161, 1037, 88, 0, 70, "Subsubsection",ExpressionUUID->"3a9b7ef7-be53-4020-87b3-d8cedab47aa3"],
-Cell[37252, 1039, 170, 3, 70, "Input",ExpressionUUID->"9869a699-efc6-4895-b544-0feea3157b27"],
-Cell[37425, 1044, 410, 10, 70, "Text",ExpressionUUID->"f0082af9-1d39-4fd7-b3d5-9ee0b19d7d26"]
+Cell[38042, 1053, 88, 0, 70, "Subsubsection",ExpressionUUID->"2fb851df-9d59-46b1-95fe-b52fb9eba821"],
+Cell[38133, 1055, 170, 3, 70, "Input",ExpressionUUID->"6bca9bcb-d9f0-4013-b701-76edd0b970be"],
+Cell[38306, 1060, 410, 10, 70, "Text",ExpressionUUID->"cfce2d8a-e112-4aee-aaed-723a0f30a7ff"]
 }, Closed]]
 }
 ]

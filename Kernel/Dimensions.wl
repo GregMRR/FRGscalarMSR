@@ -61,6 +61,7 @@ equationRow[eq_, cols_, cps_, fields_] := Join[{1 - eq["TimeOrder"]}, eq["FieldC
 evalDensity[e_, fieldVals_, tt_, xs_] := Module[{ev},
    ev[s_Symbol] := Lookup[fieldVals, s, s];
    ev[dt[a_]] := D[ev[a], tt];
+   ev[fn[f_, a_]] := ev[a];   (* LO: f is dimensionless with f(0) = 1, so fn[f, X] scales as X *)
    ev[grad[a_]] := D[ev[a], #] & /@ xs;
    ev[div[a_]] := Total[MapThread[D, {ev[a], xs}]];
    ev[lap[a_]] := Total[D[ev[a], {#, 2}] & /@ xs];
@@ -186,7 +187,14 @@ DeriveDimensions[ansatz_, opts : OptionsPattern[]] := Block[{$FRGModule = "Dimen
     If[undeclared =!= {}, AppendTo[warns, infoCheck["INFO", "Dimensions.derivedDimensionless",
        "dimensionless without being declared (name kept): " <> StringRiffle[ToString /@ undeclared, ", "]]]]];
 
-   stage = stampStage[<|"Stage" -> "Dimensions", "Pipeline" -> "DerivativeExpansion", "Upstream" -> {ansatz["Fingerprint"]},
+   (* LO: each function's reference sets its eta through f(0) = 1, so it must be a running reference *)
+   If[ansatz["Pipeline"] === "LO",
+    bad = Select[ansatz["Functions"], ! MemberQ[refs, #[[2]]] || refModes[[First[FirstPosition[refs, #[[2]]]]]] === "Fixed" &];
+    AppendTo[checks, assertCheck["Dimensions.functionReferences", bad === {}, bad,
+      "the reference of each function (DefineAnsatz \"Functions\") must be a running reference of DeriveDimensions: f(0) = 1 fixes its eta",
+      "function references are running references: " <> StringRiffle[(ToString[#[[1]]] <> " -> " <> ToString[#[[2]]]) & /@ ansatz["Functions"], ", "]]]];
+   stage = stampStage[<|"Stage" -> "Dimensions", "Pipeline" -> ansatz["Pipeline"], "Upstream" -> {ansatz["Fingerprint"]},
+      Sequence @@ If[ansatz["Pipeline"] === "LO", {"Functions" -> ansatz["Functions"]}, {}],
       "Ansatz" -> ansatz, "Basis" -> basis, "Scale" -> kk, "Dimension" -> dimSym,
       "References" -> refs, "EtaNames" -> AssociationThread[refs -> refNames], "Etas" -> AssociationThread[refs -> etaSyms],
       "ReferenceModes" -> AssociationThread[refs -> refModes], "ReferenceEquations" -> AssociationThread[refs -> refEqs], "Dimensionless" -> dl,

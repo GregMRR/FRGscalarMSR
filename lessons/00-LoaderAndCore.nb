@@ -10,21 +10,21 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       154,          7]
-NotebookDataLength[    119865,       3236]
-NotebookOptionsPosition[    105719,       3073]
-NotebookOutlinePosition[    106056,       3088]
-CellTagsIndexPosition[    106013,       3085]
+NotebookDataLength[    119907,       3237]
+NotebookOptionsPosition[    105761,       3074]
+NotebookOutlinePosition[    106098,       3089]
+CellTagsIndexPosition[    106055,       3086]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
-Cell["Lesson 00 - The loader and Core", "Title",ExpressionUUID->"36a7f9e2-90e6-4f3a-860b-ed84eb36910e"],
+Cell["Lesson 00 - The loader and Core", "Title",ExpressionUUID->"4c0639fc-3b31-46f7-8e9b-cb04239d0625"],
 
 Cell["\<\
 This is the first of a series of lessons, one per module, in the order the \
 library loads them. Each lesson explains how its module works inside: which \
 Mathematica tools it uses, how, and why the code is organised that way.\
-\>", "Text",ExpressionUUID->"142e3878-877b-4f91-9ca7-427e3090dc68"],
+\>", "Text",ExpressionUUID->"61bc53c3-028f-4d6b-9a7e-591aa91176f8"],
 
 Cell[TextData[{
  "Three kinds of boxes recur. A blue ",
@@ -45,7 +45,7 @@ rejected. ",
   FontWeight->Bold],
  " close each lesson; their solutions are folded (click the cell bracket of \
 \"Solution\" to open them)."
-}], "Text",ExpressionUUID->"f917f160-9326-4b6d-9a40-291dd5ffac21"],
+}], "Text",ExpressionUUID->"d5ead6fe-a7bc-41ff-aa0d-8c7b5ad0a1a1"],
 
 Cell[TextData[{
  "Core does no physics. It is the machinery every stage relies on: failing \
@@ -56,11 +56,11 @@ checks, and the scalar product ",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ". Every later lesson uses it, which is why it comes first."
-}], "Text",ExpressionUUID->"850c79f9-d347-415e-b783-cd9f5a939c43"],
+}], "Text",ExpressionUUID->"f96dbbe0-3a6e-4478-b18d-ca0b71a9cbf5"],
 
-Cell["1. Loading the library", "Section",ExpressionUUID->"a02747ec-274c-409c-9004-32651f7aba97"],
+Cell["1. Loading the library", "Section",ExpressionUUID->"9a6cd07f-c718-4446-ab7f-b24403e86e6c"],
 
-Cell["Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"]", "Input",ExpressionUUID->"5220956b-0864-4109-a716-1fb9c78368c3"],
+Cell["Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"]", "Input",ExpressionUUID->"26a7e118-74e0-40ea-a2c9-bf92ecef4c9b"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Get",
@@ -108,7 +108,7 @@ them into cells. Definitions made in the file stay defined afterwards. ",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"88c61206-b7ff-4036-b8bb-70d6e201e122"],
+  0.91, 0.95, 1.],ExpressionUUID->"3dbe5140-0c06-41f4-af2e-0c40e01a846e"],
 
 Cell[TextData[{
  "The lessons also need two small helpers of their own, ",
@@ -127,11 +127,11 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  "; we will read them when we use them."
-}], "Text",ExpressionUUID->"156ae1d3-333d-4db8-a1e8-c233fccf159b"],
+}], "Text",ExpressionUUID->"b09c65ab-9013-4904-9d94-238fdacf76fd"],
 
-Cell["Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]]", "Input",ExpressionUUID->"7441406c-08fc-4784-a408-616696b924a4"],
+Cell["Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]]", "Input",ExpressionUUID->"41d0d178-0d8e-4d07-bebc-0130e059fbd3"],
 
-Cell["Here is the loader in full:", "Text",ExpressionUUID->"b672eafa-8dd0-4bf2-977b-f27dbc6dddee"],
+Cell["Here is the loader in full:", "Text",ExpressionUUID->"acccddea-fc2f-4a73-b86f-9a1666bfade6"],
 
 Cell["\<\
 (* FRGscalarMSR.wl:1-22 *)
@@ -156,8 +156,9 @@ FRGscalarMSR`$FRGVersion = \"1.0.0\";
 (* load order matters: each module only uses the ones above it *)
 FRGscalarMSR`$FRGModules = {\"Core\", \"Theory\", \"Ansatz\", \"Vertices\", \
 \"Regulator\", \"Propagator\", \"Symmetries\", \"Loops\", \"Projection\", \
-\"FrequencyIntegration\", \"Closure\", \"Assemble\", \"Oracle\", \"Stages\", \
-\"Dimensions\", \"Adimensional\", \"JuliaExport\"};
+\"FrequencyIntegration\", \"Closure\", \"Assemble\", \"ExternalMomentum\", \
+\"Oracle\", \"Stages\", \"Dimensions\", \"Adimensional\", \"JuliaExport\", \
+\"PythonExport\"};
 
 Scan[Get[FileNameJoin[{FRGscalarMSR`$FRGRoot, \"Kernel\", # <> \".wl\"}]] &, \
 FRGscalarMSR`$FRGModules];
@@ -165,7 +166,7 @@ FRGscalarMSR`$FRGModules];
 Print[\"FRGscalarMSR \", FRGscalarMSR`$FRGVersion, \" -- modules: \", \
 StringRiffle[FRGscalarMSR`$FRGModules, \", \"]];
 Print[\"WARNING: Ward identities are assumed (user-declared), not derived.\"];\
-\>", "Program",ExpressionUUID->"f7873884-0290-4827-84dc-94087ac2a65e"],
+\>", "Program",ExpressionUUID->"6c6838fa-a35a-47dd-9330-856346c814ac"],
 
 Cell[TextData[{
  "The first line, ",
@@ -185,7 +186,7 @@ the file in its package editor rather than as a notebook. Everything between ",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " is a comment."
-}], "Text",ExpressionUUID->"18be2722-989c-4550-8c90-ba291c168de5"],
+}], "Text",ExpressionUUID->"d3509428-598d-4d63-9c3f-230a484ae379"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Symbols and contexts",
@@ -263,13 +264,13 @@ symbol called ",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"76559283-601a-4462-80d0-05dee0f8af3f"],
+  0.91, 0.95, 1.],ExpressionUUID->"b2625ccc-9c5a-4bf2-a17c-27fe46835d30"],
 
 Cell["{$Context, $ContextPath, Context[DefineTheory]}", "Input",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"f1ccc88e-37c7-48a1-96b6-af8bc6c95b9f"],
+  0.91, 0.95, 1.],ExpressionUUID->"69ca3f91-bd3a-449d-9b2f-4cc8f97bbefd"],
 
 Cell[TextData[{
  "In these lesson notebooks ",
@@ -300,7 +301,7 @@ as ",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  "."
-}], "Text",ExpressionUUID->"a05f321b-d36d-4cfd-bcb2-2ad3a7faf828"],
+}], "Text",ExpressionUUID->"0b40742a-8dc5-4ce6-9d5f-dcf69927582b"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Set and SetDelayed",
@@ -354,7 +355,7 @@ would create ",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"15934016-0024-42de-a024-025f8749af08"],
+  0.91, 0.95, 1.],ExpressionUUID->"15450d27-54ae-4183-9ad2-5307d079df1a"],
 
 Cell[TextData[{
  StyleBox["$InputFileName",
@@ -372,7 +373,7 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " folder wherever it is installed."
-}], "Text",ExpressionUUID->"d592f8dd-1db2-45dc-bc7b-d80fcd12c659"],
+}], "Text",ExpressionUUID->"1225d2a6-09e4-4100-9247-c079405fec52"],
 
 Cell[TextData[{
  "The reload guard at the top runs only if the library was loaded before. ",
@@ -391,7 +392,7 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " is in the list."
-}], "Text",ExpressionUUID->"f629e083-e8eb-40ca-8268-924dfdf97906"],
+}], "Text",ExpressionUUID->"0ea6a80f-106a-4213-ad81-733ba371e8a3"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Attributes and Protected",
@@ -450,7 +451,7 @@ whose full name matches the string pattern."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"57162e5f-2729-4f1d-8aeb-8197a56f34a7"],
+  0.91, 0.95, 1.],ExpressionUUID->"bb2080ec-d586-4e44-acb5-7ba5df799359"],
 
 Cell[TextData[{
  StyleBox["Why it's built this way: Reloading starts from a clean slate",
@@ -483,7 +484,7 @@ guarantees that what runs is exactly what is in the files. The ",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->GrayLevel[0.55],
  Background->RGBColor[
-  0.93, 0.93, 0.93],ExpressionUUID->"c2cc85a9-e3d5-4a03-83e4-e352e7ee017a"],
+  0.93, 0.93, 0.93],ExpressionUUID->"1ab85919-900f-4056-91b0-fe5983cca199"],
 
 Cell[TextData[{
  StyleBox["$FRGModules",
@@ -496,7 +497,7 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " reads them in that order."
-}], "Text",ExpressionUUID->"57060f09-bcb1-49c2-a5d7-25404cccff83"],
+}], "Text",ExpressionUUID->"e3ca65cf-3fd2-46e2-959b-2a234310949d"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Pure functions",
@@ -563,13 +564,13 @@ Cell[TextData[{
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"ec3dbc6d-4174-4aab-be9e-b796ba5b781a"],
+  0.91, 0.95, 1.],ExpressionUUID->"961f6000-dfb2-49b4-aac3-5c4baf3539c4"],
 
 Cell["(# <> \".wl\" &) /@ {\"Core\", \"Theory\"}", "Input",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"9bfffe40-324d-424d-82f6-f79bc1ed9a31"],
+  0.91, 0.95, 1.],ExpressionUUID->"49752a0d-3764-497c-940d-646a712d86f6"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Map and Scan",
@@ -616,7 +617,7 @@ Cell[TextData[{
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"ffb45bc8-5c96-4b75-84cf-7dd312c9a94d"],
+  0.91, 0.95, 1.],ExpressionUUID->"06f9c022-f9ab-4d7a-a292-b259ee12e56b"],
 
 Cell[TextData[{
  StyleBox["Why it's built this way: One file per stage, loaded in a fixed \
@@ -653,13 +654,13 @@ it (",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->GrayLevel[0.55],
  Background->RGBColor[
-  0.93, 0.93, 0.93],ExpressionUUID->"20416ebb-2402-40c8-889e-a69a76bad42f"],
+  0.93, 0.93, 0.93],ExpressionUUID->"e7f6b4b3-5471-4fb7-b159-e4456dc17bba"],
 
-Cell["2. Packages: public, internal and private names", "Section",ExpressionUUID->"a69f0476-bbd3-4e29-aa35-5a55698422b5"],
+Cell["2. Packages: public, internal and private names", "Section",ExpressionUUID->"1221946e-14c1-44f0-9f75-14c431ec47aa"],
 
 Cell["\<\
 Every module starts and ends the same way. This is the top of Core:\
-\>", "Text",ExpressionUUID->"f5837c68-f35c-4274-aeaa-ea1a0aacccd4"],
+\>", "Text",ExpressionUUID->"9dff0c5e-41cb-4394-bf09-1fc7155963d3"],
 
 Cell["\<\
 (* Kernel/Core.wl:7-38 *)
@@ -719,7 +720,7 @@ order, not Orderless), wedge[a, a] = 0; linear over sums and over explicit \
 numbers only.\";
 
 Begin[\"`Private`\"];\
-\>", "Program",ExpressionUUID->"c22a0acd-16b6-43ee-8ed9-4a7ca5862ffc"],
+\>", "Program",ExpressionUUID->"619f0fa6-fda2-4bdc-ac41-dada1cb61fad"],
 
 Cell[TextData[{
  StyleBox["Mathematica: BeginPackage, Begin, End, EndPackage",
@@ -795,7 +796,7 @@ first mentioned after it, such as helper functions, are created there. ",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"d5c24f07-91ef-4376-81ac-6d97ca0d0bbf"],
+  0.91, 0.95, 1.],ExpressionUUID->"b96a997e-f5b3-47ce-abd6-4d71afc7fec9"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Usage messages",
@@ -826,13 +827,13 @@ the symbol, so it creates the symbol in the public context, before ",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"d0101569-5cc9-4229-b815-0de5d6f2df8a"],
+  0.91, 0.95, 1.],ExpressionUUID->"d4fd48c5-b54a-40d6-a9f1-742976ef3404"],
 
 Cell["?FRGAssert", "Input",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"f5b0adaa-7019-478b-aabe-9e1ddf99b7c4"],
+  0.91, 0.95, 1.],ExpressionUUID->"502aea03-f956-4157-b4df-1ef9f0690f9d"],
 
 Cell[TextData[{
  "Core actually opens two packages. The first, ",
@@ -868,12 +869,12 @@ meant for you (",
   Background->GrayLevel[0.92]],
  " among the contexts they need, so they can use the internal helpers by \
 their short names."
-}], "Text",ExpressionUUID->"eb77b0e8-e5e7-4d45-b6ce-0f4717e76c45"],
+}], "Text",ExpressionUUID->"133d05e3-3081-4d49-ac39-5fa48c2e8cd6"],
 
 Cell["\<\
 {Context[FRGAssert], Context[assertCheck], MemberQ[$ContextPath, \
 \"FRGscalarMSR`Internal`\"]}\
-\>", "Input",ExpressionUUID->"5ee6779f-707a-44cb-b402-680efe5ae689"],
+\>", "Input",ExpressionUUID->"606826e4-3f0b-4fbf-99c4-2affc35199e2"],
 
 Cell[TextData[{
  "Note the last answer: ",
@@ -919,7 +920,7 @@ are, because the first ",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " would refer to the library's helper."
-}], "Text",ExpressionUUID->"940f100f-dff5-4f24-a391-86715b65ef61"],
+}], "Text",ExpressionUUID->"5f1ffb49-ec91-44bc-a9e6-9e16401ccafb"],
 
 Cell[TextData[{
  "The private parts of all modules share one context. Every module calls ",
@@ -938,9 +939,9 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ":"
-}], "Text",ExpressionUUID->"9ba8c6b9-ee33-49ef-87a4-dbc180cc17b8"],
+}], "Text",ExpressionUUID->"6a790a9d-80b8-44d4-9bd7-bd5775793de6"],
 
-Cell["Length[Names[\"FRGscalarMSR`Private`*\"]]", "Input",ExpressionUUID->"99e0e3ad-6b97-4874-8b91-a2e8175717c7"],
+Cell["Length[Names[\"FRGscalarMSR`Private`*\"]]", "Input",ExpressionUUID->"7c5c83a5-68f0-4be3-a4fd-9b69b023a659"],
 
 Cell[TextData[{
  StyleBox["Names[\"pattern\"]",
@@ -948,7 +949,7 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " returns the names of all symbols matching a string pattern."
-}], "Text",ExpressionUUID->"34087827-b7ef-4ae3-b8c8-cc75a016f87e"],
+}], "Text",ExpressionUUID->"15c34acc-9ed6-4d63-bea6-d56ced8504af"],
 
 Cell[TextData[{
  StyleBox["Why it's built this way: Three layers of names",
@@ -1017,11 +1018,11 @@ distinctive helper names (the Regulator's ",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->GrayLevel[0.55],
  Background->RGBColor[
-  0.93, 0.93, 0.93],ExpressionUUID->"dd73cf4c-f113-4116-9ffc-f20b203bd198"],
+  0.93, 0.93, 0.93],ExpressionUUID->"040d5583-2c3d-469c-936f-9d87b4222721"],
 
-Cell["3. Failing loudly: FRGAssert", "Section",ExpressionUUID->"b0e523aa-07e0-4acd-ace0-8357f62e3f0e"],
+Cell["3. Failing loudly: FRGAssert", "Section",ExpressionUUID->"e896ca44-c41e-4512-9eb3-c7ce54128843"],
 
-Cell["Every check in the library goes through one function:", "Text",ExpressionUUID->"c339a990-a8fa-4555-8fd5-15893bcad884"],
+Cell["Every check in the library goes through one function:", "Text",ExpressionUUID->"bb6b184c-8799-4903-9b6d-93a0a76532ac"],
 
 Cell["\<\
 (* Kernel/Core.wl:53-59 *)
@@ -1034,7 +1035,7 @@ ToString[$FRGModule],
     Scan[Print, lines],
     Print[Framed[Column[Style[#, Red, If[# === First[lines], Bold, Plain]] & \
 /@ lines], FrameStyle -> Red]]]];\
-\>", "Program",ExpressionUUID->"a19bdef0-0a23-4b4b-a179-05087d75691f"],
+\>", "Program",ExpressionUUID->"dbb02eed-a6d0-4b43-b3a6-0aa70060fc64"],
 
 Cell["\<\
 (* Kernel/Core.wl:61-66 *)
@@ -1044,7 +1045,7 @@ FRGAssert[name_, cond_, details_, hint_ : \"\"] :=
    failBlock[name, details, hint];
    $FRGLastFailure = name;
    If[TrueQ[$FRGExitOnFail], Exit[2], Abort[]]];\
-\>", "Program",ExpressionUUID->"0a3c9868-60b9-4b97-ace9-a624ddb12d2b"],
+\>", "Program",ExpressionUUID->"c612f277-e611-47fd-ba90-b97e662f899c"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Patterns",
@@ -1139,7 +1140,7 @@ automatically."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"41898f67-a1ff-4a44-baa5-4b179904f978"],
+  0.91, 0.95, 1.],ExpressionUUID->"47de9e8c-29c7-4f48-b9fa-18657b3c74bd"],
 
 Cell["\<\
 f[x_Integer] := \"integer\"; f[x_] := \"something else\"; {f[3], f[3.5], f[a \
@@ -1148,7 +1149,7 @@ f[x_Integer] := \"integer\"; f[x_] := \"something else\"; {f[3], f[3.5], f[a \
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"145d2d90-638e-4f82-b718-cde4ba30ba08"],
+  0.91, 0.95, 1.],ExpressionUUID->"f9ae6f03-e0a2-4135-ba64-558b57ee3cd8"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Hold attributes",
@@ -1207,7 +1208,7 @@ function. ",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"d493a49a-e86c-4bb0-8b84-cc5c90d32ad4"],
+  0.91, 0.95, 1.],ExpressionUUID->"ef1ec66d-77c4-4375-9d60-e03c59c50143"],
 
 Cell["\<\
 g[x_] := \"done\"; SetAttributes[g2, HoldAll]; g2[x_] := \"done\";
@@ -1216,7 +1217,7 @@ g[x_] := \"done\"; SetAttributes[g2, HoldAll]; g2[x_] := \"done\";
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"1201ef00-1d30-42b1-83fb-844153c8e074"],
+  0.91, 0.95, 1.],ExpressionUUID->"fbad8c7c-fa36-4c02-ba62-e8babd36f8bb"],
 
 Cell[TextData[{
  "The library uses ",
@@ -1235,7 +1236,7 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " over a large list, and on success it should cost nothing."
-}], "Text",ExpressionUUID->"b45d99d4-7793-41b2-85b2-76d6fd9f9ddb"],
+}], "Text",ExpressionUUID->"3deeea58-b70f-4e48-8448-c0ea88c2f03f"],
 
 Cell[TextData[{
  StyleBox["Mathematica: If and TrueQ",
@@ -1283,17 +1284,17 @@ decide is a failed check, not a passed one."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"a0018204-f2e7-4409-9939-add0ba981447"],
+  0.91, 0.95, 1.],ExpressionUUID->"1ac7c0f9-cbb6-410b-a9f2-e4c5195b1b78"],
 
 Cell["{If[nuk > 0, \"yes\", \"no\"], TrueQ[nuk > 0]}", "Input",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"e4502a98-59bd-4cfc-82c6-4aae5b63bd7e"],
+  0.91, 0.95, 1.],ExpressionUUID->"34dc46c4-c5fd-47d5-8ba0-1a1afa6fa258"],
 
-Cell["A check that holds returns its name:", "Text",ExpressionUUID->"10c02166-b0d0-4b5b-8914-24f1112222f1"],
+Cell["A check that holds returns its name:", "Text",ExpressionUUID->"17e2d283-ac3f-46d2-bbee-a36deabbb4b6"],
 
-Cell["FRGAssert[\"Demo.positive\", 3 > 0, \"never computed\"]", "Input",ExpressionUUID->"6d4843e3-ea41-4a61-a71c-fb72850e588a"],
+Cell["FRGAssert[\"Demo.positive\", 3 > 0, \"never computed\"]", "Input",ExpressionUUID->"92b15a18-7a45-4957-ba52-6327f7384347"],
 
 Cell[TextData[{
  "A failing check prints its FAIL block and aborts. In this notebook we wrap \
@@ -1304,12 +1305,12 @@ it in ",
   Background->GrayLevel[0.92]],
  ", which shows the block and returns the name of the check instead of \
 stopping:"
-}], "Text",ExpressionUUID->"6ab92bd8-9df2-426f-b378-da645d6f80e1"],
+}], "Text",ExpressionUUID->"f20122c8-c9ea-49f3-8bb7-d65e8cb559ec"],
 
 Cell["\<\
 showFailure[FRGAssert[\"Demo.positive\", -3 > 0, {-3}, \"the number must be \
 positive\"]]\
-\>", "Input",ExpressionUUID->"f5fc42a0-6cd6-4342-aea2-59173723fb89"],
+\>", "Input",ExpressionUUID->"80dcda3e-eb22-4383-8346-063188dc4ee2"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Abort, CheckAbort, Exit",
@@ -1376,7 +1377,7 @@ script (",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"261f0a9a-e82b-49b4-9f34-acda28bfa0ce"],
+  0.91, 0.95, 1.],ExpressionUUID->"68ad0052-f865-4462-8f75-756700e7247f"],
 
 Cell[TextData[{
  "Here is ",
@@ -1385,7 +1386,7 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ":"
-}], "Text",ExpressionUUID->"e7bdc5e7-e8a4-4036-ae72-92f41f872582"],
+}], "Text",ExpressionUUID->"dc02fecd-f437-4c14-a5cc-244dd0f831de"],
 
 Cell["\<\
 (* lessons/LessonSetup.wl:46-50 *)
@@ -1397,7 +1398,7 @@ SetAttributes[showFailure, HoldAll];
 showFailure[expr_] := Block[{$FRGExitOnFail = False}, $FRGLastFailure = None;
    CheckAbort[expr; Print[\"showFailure: no check failed\"]; None, \
 $FRGLastFailure]];\
-\>", "Program",ExpressionUUID->"05132dcf-f9c7-4b29-af51-28071eb3c031"],
+\>", "Program",ExpressionUUID->"e6c76ed5-240d-4499-8dba-0f827e96a2fb"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Block and Module",
@@ -1488,7 +1489,7 @@ constructor does the same with ",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"fee4c019-f2fa-4f20-8d93-938e04bea6b0"],
+  0.91, 0.95, 1.],ExpressionUUID->"5488ff18-2e0f-4ef1-b870-126ad1c1cc5d"],
 
 Cell["\<\
 yy = \"global\"; show[] := yy;
@@ -1497,7 +1498,7 @@ yy = \"global\"; show[] := yy;
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"4ddb8ac1-cf64-4c57-bed0-d071030c1d54"],
+  0.91, 0.95, 1.],ExpressionUUID->"cbddbb95-9de7-4c9b-9772-0ccb89efe351"],
 
 Cell[TextData[{
  StyleBox["failBlock",
@@ -1516,7 +1517,7 @@ Constructors do not call ",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ", which asserts and then returns a small record for the stage's card:"
-}], "Text",ExpressionUUID->"62f0bf2f-a8d1-42fb-a323-00a3e2f86120"],
+}], "Text",ExpressionUUID->"53994802-6519-4574-af03-03df1272715f"],
 
 Cell["\<\
 (* Kernel/Core.wl:68-71 *)
@@ -1526,7 +1527,7 @@ assertCheck[name_, cond_, details_, hint_, summary_ : \"\"] := \
    <|\"Status\" -> \"PASS\", \"Check\" -> name, \"Detail\" -> summary|>);
 infoCheck[status_String, name_, summary_ : \"\"] := <|\"Status\" -> status, \
 \"Check\" -> name, \"Detail\" -> summary|>;\
-\>", "Program",ExpressionUUID->"9d932aae-2dc8-4143-880b-5f0fca5adb46"],
+\>", "Program",ExpressionUUID->"a83e8600-b3f5-4bc6-ad53-0ff09870e70c"],
 
 Cell[TextData[{
  StyleBox["Why it's built this way: Named checks that abort",
@@ -1567,9 +1568,9 @@ the flow equations. Aborting stops at the first wrong step. ",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->GrayLevel[0.55],
  Background->RGBColor[
-  0.93, 0.93, 0.93],ExpressionUUID->"80161a91-f2f6-451e-94cb-9541baac40f8"],
+  0.93, 0.93, 0.93],ExpressionUUID->"1dc8074a-0508-4b71-a76f-444dab5b91eb"],
 
-Cell["4. Stages: immutable, fingerprinted Associations", "Section",ExpressionUUID->"499f540d-0774-4e59-9563-f28533c4a2f4"],
+Cell["4. Stages: immutable, fingerprinted Associations", "Section",ExpressionUUID->"d3c9af43-28bc-4394-9c9f-e65664797a87"],
 
 Cell[TextData[{
  "Every module returns a ",
@@ -1581,7 +1582,7 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " holding everything it computed, plus bookkeeping."
-}], "Text",ExpressionUUID->"c8119867-fdce-4573-9d03-b1aaabd88f9f"],
+}], "Text",ExpressionUUID->"de9fcd80-7948-43af-ba58-03ecabd2906a"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Association",
@@ -1657,7 +1658,7 @@ function, ",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"e6758705-ebf9-4745-8bdc-6c108a8fef38"],
+  0.91, 0.95, 1.],ExpressionUUID->"302ddf3a-7017-4a96-aefd-c1bddc77a254"],
 
 Cell["\<\
 toyA = <|\"Stage\" -> \"Toy\", \"Data\" -> {1, 2}|>;
@@ -1667,9 +1668,9 @@ toyA = <|\"Stage\" -> \"Toy\", \"Data\" -> {1, 2}|>;
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"0f5d9c6e-1bb8-440c-a52e-8c5807b4bff1"],
+  0.91, 0.95, 1.],ExpressionUUID->"a4f3dfc2-d25a-4019-8e36-ee6ed6d2bc65"],
 
-Cell["The bookkeeping code is short:", "Text",ExpressionUUID->"abdfe55b-6ede-447c-9f9f-5ec54a346770"],
+Cell["The bookkeeping code is short:", "Text",ExpressionUUID->"e52088b9-ad88-4000-bc52-d85785b1a7c5"],
 
 Cell["\<\
 (* Kernel/Core.wl:101-105 *)
@@ -1682,7 +1683,7 @@ contentHash[stage_Association] := Hash[Normal[KeyDrop[stage, volatileKeys], \
 Association], \"SHA256\", \"HexString\"];
 stampStage[stage_Association] := Append[stage, \"Fingerprint\" -> \
 contentHash[stage]];\
-\>", "Program",ExpressionUUID->"8ac9aef8-6215-4031-a38a-21e0bb9d9d17"],
+\>", "Program",ExpressionUUID->"fc10fe14-051c-45da-b884-8be70e0ffade"],
 
 Cell["\<\
 (* Kernel/Core.wl:107-112 *)
@@ -1695,7 +1696,7 @@ stage[\"Fingerprint\"], stage[\"Stage\"],
     \"the stage was modified after it was built, or one of its symbols got a \
 value since: rebuild it\"];
    stage);\
-\>", "Program",ExpressionUUID->"87cde05e-4799-4d50-bbd6-be2931fcc242"],
+\>", "Program",ExpressionUUID->"e96f1da7-c334-4e05-bd40-1dbc4077478b"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Hash",
@@ -1715,7 +1716,7 @@ that was built?\"."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"58219b2b-a586-4287-898a-3d4dec0c5af8"],
+  0.91, 0.95, 1.],ExpressionUUID->"4a662978-f268-4afe-908c-edac320d4f2e"],
 
 Cell[TextData[{
  "Let us build a toy stage. ",
@@ -1724,23 +1725,23 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " is an internal helper, but as we saw it is reachable from the notebook."
-}], "Text",ExpressionUUID->"da2bb4a7-1b96-446e-9d02-8532aed48a51"],
+}], "Text",ExpressionUUID->"8414571d-cb5e-4f20-ac72-1175c6f70b69"],
 
 Cell["\<\
 toy = stampStage[<|\"Stage\" -> \"Toy\", \"Data\" -> {a, b}, \"Checks\" -> \
 {}|>];
 validateStage[toy, \"Toy\"][\"Fingerprint\"]\
-\>", "Input",ExpressionUUID->"36aef856-8957-4cbf-8b7c-ab7f92e0b7a9"],
+\>", "Input",ExpressionUUID->"38a8992c-07b6-4a28-a2b1-18fd10ee3f17"],
 
 Cell["\<\
 A stage passed to the wrong constructor, or modified by hand, is refused:\
-\>", "Text",ExpressionUUID->"5e9d3933-9518-4326-9898-640ad47cdb20"],
+\>", "Text",ExpressionUUID->"fe51576b-a9cd-4718-acbb-dcb360273792"],
 
-Cell["showFailure[validateStage[toy, \"Theory\"]]", "Input",ExpressionUUID->"cb2c67b7-f51c-4bd2-a13d-99aa831eab3e"],
+Cell["showFailure[validateStage[toy, \"Theory\"]]", "Input",ExpressionUUID->"0db7ca22-1e12-4108-b49a-367c1b777c77"],
 
 Cell["\<\
 showFailure[validateStage[Append[toy, \"Data\" -> {a}], \"Toy\"]]\
-\>", "Input",ExpressionUUID->"b7bc4547-57f9-40c8-bbb7-7db61ed5731a"],
+\>", "Input",ExpressionUUID->"56440649-b35a-4032-8c70-0b79bbec4172"],
 
 Cell[TextData[{
  "The subtle case is a symbol of the stage that gets a value after the stage \
@@ -1750,15 +1751,15 @@ was built. ",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " is private, so we call it by its full name:"
-}], "Text",ExpressionUUID->"39a40468-8135-4a78-bb0b-108ce4b8691e"],
+}], "Text",ExpressionUUID->"cc79a13a-91b0-4f6f-aa36-fd263a29f4ae"],
 
-Cell["FRGscalarMSR`Private`contentHash[toy] === toy[\"Fingerprint\"]", "Input",ExpressionUUID->"fec84242-1fef-4d82-b0de-29702bcaa348"],
+Cell["FRGscalarMSR`Private`contentHash[toy] === toy[\"Fingerprint\"]", "Input",ExpressionUUID->"27a19fb7-821c-4865-b6e3-0953f6b54f7b"],
 
 Cell["\<\
 a = 5;
 {toy, toy[\"Data\"], FRGscalarMSR`Private`contentHash[toy] === \
 toy[\"Fingerprint\"]}\
-\>", "Input",ExpressionUUID->"6c96f90c-2129-4007-9df7-fbdcaa425717"],
+\>", "Input",ExpressionUUID->"92df84d9-c720-4187-9079-2f7b36ac9035"],
 
 Cell[TextData[{
  "The association still displays ",
@@ -1794,11 +1795,11 @@ re-evaluated; that is why ",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ", and why the fingerprint no longer matches:"
-}], "Text",ExpressionUUID->"e5a1d7e4-6236-4c1c-97b0-35c43cccc983"],
+}], "Text",ExpressionUUID->"0796a232-05e6-4c85-bc82-136c58069a74"],
 
-Cell["showFailure[validateStage[toy, \"Toy\"]]", "Input",ExpressionUUID->"0da8a183-aa66-416d-9104-a86bf6830141"],
+Cell["showFailure[validateStage[toy, \"Toy\"]]", "Input",ExpressionUUID->"a90ad496-7092-43c3-8595-fbf88519cb15"],
 
-Cell["Clear[a]", "Input",ExpressionUUID->"2815b314-2b5a-4aae-a071-7eb46ad48810"],
+Cell["Clear[a]", "Input",ExpressionUUID->"ab631c5f-b22e-4cbb-a6b9-4419a3c2b3f8"],
 
 Cell[TextData[{
  StyleBox["PrintCard",
@@ -1806,7 +1807,7 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " prints the summary card that every constructor shows:"
-}], "Text",ExpressionUUID->"ec3289ce-d3fb-421e-82f9-af6fed4c9e61"],
+}], "Text",ExpressionUUID->"8c3a90fb-c119-47ca-a003-8b578bb42531"],
 
 Cell["\<\
 (* Kernel/Core.wl:114-119 *)
@@ -1822,12 +1823,12 @@ Round[1000 Lookup[stage, \"Timing\", 0]], \" ms ====\"];
 \"   \" <> ToString[#Detail]]] &, Join[chk, extra]];
    Print[\"==== \", Count[chk, KeyValuePattern[\"Status\" -> \"PASS\"]], \" \
 PASS, \", Length[extra], \" warnings/assumptions ====\"];];\
-\>", "Program",ExpressionUUID->"b0292938-5bd5-4a6e-a8c6-b3bac9a52463"],
+\>", "Program",ExpressionUUID->"f8c31c1f-70c9-4965-a3b8-48104b4d653c"],
 
 Cell["\<\
 PrintCard[Append[toy, \"Checks\" -> {assertCheck[\"Demo.check\", True, Null, \
 \"\", \"a passing check\"]}]]\
-\>", "Input",ExpressionUUID->"fc1c4980-f390-4b91-90fe-eba033c59f4f"],
+\>", "Input",ExpressionUUID->"d44b5b2e-507b-4a43-996d-54beeba1f23a"],
 
 Cell[TextData[{
  StyleBox["Count[list, KeyValuePattern[\"Status\" -> \"PASS\"]]",
@@ -1850,7 +1851,7 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " pads a string to a fixed width."
-}], "Text",ExpressionUUID->"114cfe64-6696-4c33-90f1-380f747289fc"],
+}], "Text",ExpressionUUID->"dbc60005-02c6-46de-810b-71fe8aaea605"],
 
 Cell[TextData[{
  StyleBox["Why it's built this way: Immutable stages instead of global state",
@@ -1886,9 +1887,9 @@ lines), not what it contains."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->GrayLevel[0.55],
  Background->RGBColor[
-  0.93, 0.93, 0.93],ExpressionUUID->"224ce984-409b-4e35-b2c6-cb44e0751d3a"],
+  0.93, 0.93, 0.93],ExpressionUUID->"7f722405-a0db-4975-8a80-d186fc17b025"],
 
-Cell["5. Exact zero tests", "Section",ExpressionUUID->"9108923a-e118-4389-8720-4ca2fa65b522"],
+Cell["5. Exact zero tests", "Section",ExpressionUUID->"65acae1a-5dd2-4056-bb70-2ebd9bf214c9"],
 
 Cell[TextData[{
  "The library constantly has to decide whether a large expression is exactly \
@@ -1898,21 +1899,21 @@ zero: whether two forms of a vertex agree, whether a projection cancels. ",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " does it numerically, but exactly:"
-}], "Text",ExpressionUUID->"959daff4-6cfc-49cd-b7dd-d80e0091521b"],
+}], "Text",ExpressionUUID->"cd318a09-7b66-4fac-a2e7-8e6fbfc4d849"],
 
 Cell["\<\
 (* Kernel/Core.wl:75-76 *)
 RandomRationalPoint[syms_List, seed_Integer] := (SeedRandom[seed];
    Thread[syms -> RandomInteger[{2, 60}, Length[syms]]/RandomInteger[{61, \
 97}, Length[syms]]]);\
-\>", "Program",ExpressionUUID->"208cfd13-e127-452b-a2e0-2cca581180dc"],
+\>", "Program",ExpressionUUID->"6781d41b-91c0-4314-ad96-39fd65695497"],
 
 Cell["\<\
 (* Kernel/Core.wl:78-79 *)
 systemSymbolQ[s_Symbol] := Context[s] === \"System`\";
 userSymbols[e_] := Union[Cases[e, s_Symbol /; ! systemSymbolQ[s], {0, \
 Infinity}, Heads -> False]];\
-\>", "Program",ExpressionUUID->"f16ecca9-aaa8-4eb2-a529-e228be2b94c7"],
+\>", "Program",ExpressionUUID->"b7f844c2-7164-44f5-97b5-b672ada33053"],
 
 Cell["\<\
 (* Kernel/Core.wl:81-88 *)
@@ -1928,7 +1929,7 @@ each get their own value; matching inside
 systemSymbolQ[h])[___]) :> memo[x];
    Quiet[Check[Together[(e /. pt) /. atomRule], $Failed], {Power::infy, \
 Infinity::indet}]];\
-\>", "Program",ExpressionUUID->"b1672727-9abf-414c-88ed-e48a413c9b4a"],
+\>", "Program",ExpressionUUID->"c2ddaf59-7faf-459d-ac91-ccab0e49c7b2"],
 
 Cell["\<\
 (* Kernel/Core.wl:90-97 *)
@@ -1944,9 +1945,9 @@ Precision[#] === Infinity &], Select[vals, ! NumericQ[#] &],
      \"after substituting random rationals the expression is not an exact \
 number: an unknown head or a pattern is left\"]];
    AllTrue[vals, PossibleZeroQ]];\
-\>", "Program",ExpressionUUID->"57be9cf6-1392-483e-8737-b7869bb59e69"],
+\>", "Program",ExpressionUUID->"c3bc3a2b-8e55-4345-92b2-4c80370edfa2"],
 
-Cell["Several new tools appear in these few lines.", "Text",ExpressionUUID->"3023c33a-0564-4049-8934-09a6e22e4df9"],
+Cell["Several new tools appear in these few lines.", "Text",ExpressionUUID->"faebec05-3b0e-4fc7-bb07-daf72ef3d04b"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Options",
@@ -1983,7 +1984,7 @@ Cell[TextData[{
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"9a3421dd-dc0d-42bc-a92d-753dcf97a73a"],
+  0.91, 0.95, 1.],ExpressionUUID->"1f0faa9a-4d4b-459d-8381-3131a6f2cba5"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Cases and level specifications",
@@ -2060,7 +2061,7 @@ matches."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"3cb421d5-c7ab-4c41-b54e-ab07fbc1caca"],
+  0.91, 0.95, 1.],ExpressionUUID->"9c5ddefa-dd10-40d7-bf04-e1b21fd73654"],
 
 Cell["\<\
 Cases[nuk q^2 r[q^2/k^2] + Dim, s_Symbol, {0, Infinity}, Heads -> False] // \
@@ -2069,7 +2070,7 @@ Union\
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"f4c8e18c-7aa5-43b6-a852-a99c73e6a6e6"],
+  0.91, 0.95, 1.],ExpressionUUID->"21fcec0a-92e7-404c-9835-2192641cef14"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Rules and replacement",
@@ -2141,7 +2142,7 @@ it has just replaced."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"14b9a188-1a3f-4556-9aa6-211b8842717c"],
+  0.91, 0.95, 1.],ExpressionUUID->"0b073986-9601-40f4-85d2-2c4604381e54"],
 
 Cell["\<\
 {(x + x^2) /. x -> 2, {r[1], r[2]} /. r[n_] :> n^2, Thread[{a, b} -> {1, 2}]}\
@@ -2150,7 +2151,7 @@ Cell["\<\
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"2cf225f3-866c-4c70-8230-529841cb9380"],
+  0.91, 0.95, 1.],ExpressionUUID->"42f8990c-b397-4be6-87bf-6c55a79a20e1"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Alternatives and named patterns",
@@ -2207,7 +2208,7 @@ memo[x]",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"9a36ab92-03f3-45ae-b018-dacd4b1f34be"],
+  0.91, 0.95, 1.],ExpressionUUID->"6a9917bb-3ee0-400a-8b30-dd668cb88aab"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Memoization",
@@ -2241,7 +2242,7 @@ wherever it appears."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"12bb8bcb-6c85-40e6-ab49-a5a4b48cd6cb"],
+  0.91, 0.95, 1.],ExpressionUUID->"7f244acc-fd18-4439-9f2e-509e966ae5f4"],
 
 Cell[TextData[{
  "Why the atoms are replaced ",
@@ -2283,7 +2284,7 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ", step 0)."
-}], "Text",ExpressionUUID->"9510fc57-d4f6-4435-8ca5-8bdacbb8e18d"],
+}], "Text",ExpressionUUID->"e9675b89-e43d-4523-9fc0-3d4a8dad74cd"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Check and Quiet",
@@ -2325,7 +2326,7 @@ Cell[TextData[{
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"b67fb8f7-154f-43d6-ac6f-c22638bd783b"],
+  0.91, 0.95, 1.],ExpressionUUID->"bbaf7190-9eba-47b4-abc3-2f87d3ec8b7e"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Exact numbers",
@@ -2379,12 +2380,12 @@ survived the substitution, the test would be meaningless."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"9948ee04-fab7-4adc-9905-dbf6410a19b2"],
+  0.91, 0.95, 1.],ExpressionUUID->"1183c54e-e80f-4d6c-a770-e0057e1e18b9"],
 
 Cell["\<\
 {ExactlyZeroQ[(a + b)^2 - a^2 - 2 a b - b^2], ExactlyZeroQ[D[r[y]^2, y] - 2 \
 r[y] r'[y]], ExactlyZeroQ[r'[y] - r''[y]]}\
-\>", "Input",ExpressionUUID->"d9cf890e-c86e-4626-9d80-923fe879babf"],
+\>", "Input",ExpressionUUID->"83a40573-c61e-4f58-b106-3d34f3d8a3e6"],
 
 Cell[TextData[{
  StyleBox["Why it's built this way: Random rationals instead of Simplify",
@@ -2412,14 +2413,14 @@ one particular regulator."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->GrayLevel[0.55],
  Background->RGBColor[
-  0.93, 0.93, 0.93],ExpressionUUID->"588ba1e8-b1f4-4317-b3cf-4e908b6202b5"],
+  0.93, 0.93, 0.93],ExpressionUUID->"40da21a2-4cd2-4f87-8e76-555c185b0b09"],
 
-Cell["6. User symbols", "Section",ExpressionUUID->"b2c8528d-f6c1-40e0-9f11-6764e63c4ce1"],
+Cell["6. User symbols", "Section",ExpressionUUID->"a2dae4c5-f65c-45fe-ab8e-a3dc16c4b4ab"],
 
 Cell["\<\
 Fields and couplings are symbols that you choose. Before using them, the \
 library checks that they are usable:\
-\>", "Text",ExpressionUUID->"bc288190-f2c3-4985-ada5-e48140fd13ed"],
+\>", "Text",ExpressionUUID->"585ec0be-bc48-4a73-abdc-510654781984"],
 
 Cell["\<\
 (* Kernel/Core.wl:123-126 *)
@@ -2430,7 +2431,7 @@ names (A, CC, X, ...) live in private contexts.
    Dim is user-chosen and therefore not reserved. *)
 reservedNames = {\"k\", \"q\", \"p\", \"y\", \"t\", \"x\", \"\\[Omega]\", \
 \"\\[Nu]\"};\
-\>", "Program",ExpressionUUID->"7b5b34a3-eb02-4e3d-a7ac-f32fb19a0224"],
+\>", "Program",ExpressionUUID->"3d9a0047-b91a-46c4-9f4c-0a2f7a2869fb"],
 
 Cell["\<\
 (* Kernel/Core.wl:128-139 *)
@@ -2456,7 +2457,7 @@ DownValues[#] =!= {} || UpValues[#] =!= {}) &],
    FRGAssert[check <> \".duplicates\", DuplicateFreeQ[syms], syms, what <> \" \
 are listed twice\"];
    syms];\
-\>", "Program",ExpressionUUID->"ad936d7b-7ed0-446f-a697-8bca2a8aae6a"],
+\>", "Program",ExpressionUUID->"77ddd03f-b5ba-458d-9481-6ceabacddb34"],
 
 Cell[TextData[{
  StyleBox["Mathematica: OwnValues and DownValues",
@@ -2505,7 +2506,7 @@ say ",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"b86e4d70-18a5-4666-87b4-48eec8542be7"],
+  0.91, 0.95, 1.],ExpressionUUID->"37da7df1-4b6d-4658-998f-914ce0a533b7"],
 
 Cell["\<\
 v = 3; w[x_] := x^2; {OwnValues[v], DownValues[w], OwnValues[nuk]}\
@@ -2513,7 +2514,7 @@ v = 3; w[x_] := x^2; {OwnValues[v], DownValues[w], OwnValues[nuk]}\
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"37339a7c-6377-4c07-a029-a2e2131b98d3"],
+  0.91, 0.95, 1.],ExpressionUUID->"d0af7213-186d-4961-b86f-8bdcb795cae7"],
 
 Cell[TextData[{
  StyleBox["Select[list, test]",
@@ -2546,7 +2547,7 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " is the short name of a symbol, as a string."
-}], "Text",ExpressionUUID->"dad005e0-c553-4e81-ad16-eb031fa3d59b"],
+}], "Text",ExpressionUUID->"1cf4244c-8e40-4bcf-ab5c-aeb1847b2691"],
 
 Cell[TextData[{
  StyleBox["Why it's built this way: Reserved names",
@@ -2584,9 +2585,9 @@ debugging the confusion at the exit."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->GrayLevel[0.55],
  Background->RGBColor[
-  0.93, 0.93, 0.93],ExpressionUUID->"887faf34-65b2-4d8e-9fef-fe28eee39525"],
+  0.93, 0.93, 0.93],ExpressionUUID->"32331ee6-1e63-4fd3-bd55-e69402f4546a"],
 
-Cell["7. scal and wedge: algebra by rewriting rules", "Section",ExpressionUUID->"1b44eec7-9648-4f27-8c81-07060f9a6756"],
+Cell["7. scal and wedge: algebra by rewriting rules", "Section",ExpressionUUID->"bd99f1c1-d9c1-4ea6-bc2d-95c537a27473"],
 
 Cell[TextData[{
  "Vectors (momenta) are bare symbols, and their scalar product is ",
@@ -2595,7 +2596,7 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ". Its algebra is entirely defined by rewriting rules:"
-}], "Text",ExpressionUUID->"64612e53-d681-4f9b-a966-e3b768748b37"],
+}], "Text",ExpressionUUID->"c780e1f8-4328-4448-b901-d3de4c9ed3d9"],
 
 Cell["\<\
 (* Kernel/Core.wl:143-147 *)
@@ -2604,7 +2605,7 @@ scal[(a_) + (b_), c_] := scal[a, c] + scal[b, c];
 scal[(a_)*(b_), c_] /; NumberQ[a] := a*scal[b, c];
 scal[-(a_), b_] := -scal[a, b];
 scal[0, b_] := 0;\
-\>", "Program",ExpressionUUID->"9bfd2718-d031-4e63-b694-1b2b3c4a56c0"],
+\>", "Program",ExpressionUUID->"408b8a92-d21c-44ea-9be3-51027c6f65eb"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Orderless",
@@ -2659,7 +2660,7 @@ stored. ",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"3d97e10a-76bf-4b8d-9488-b7125ce1d99e"],
+  0.91, 0.95, 1.],ExpressionUUID->"d53fd3d7-c5c8-49f4-829f-22f055e333cd"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Evaluation as rewriting",
@@ -2693,13 +2694,13 @@ writing the expression is enough."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"58768faa-a07a-4577-928f-2cc67a7b2afe"],
+  0.91, 0.95, 1.],ExpressionUUID->"8494ffb1-7b1a-4cbe-a2a9-fc59d6b376dc"],
 
 Cell["{scal[a + 2 b, c], scal[b, a], scal[nuk a, b], scal[-a, b]}", "Input",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"2233e50b-7a9b-47e4-8ae5-43d8c0844cf5"],
+  0.91, 0.95, 1.],ExpressionUUID->"56b278bb-2535-4df9-89cb-0728efe9b155"],
 
 Cell[TextData[{
  "The third result, ",
@@ -2735,7 +2736,7 @@ modules that build ",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " terms keep couplings outside."
-}], "Text",ExpressionUUID->"e23d5477-b2aa-45d9-8021-bfa43d9bc222"],
+}], "Text",ExpressionUUID->"39f04720-1947-49b4-b062-5151c193fb8a"],
 
 Cell[TextData[{
  StyleBox["wedge[a, b]",
@@ -2759,18 +2760,18 @@ Cell[TextData[{
   Background->GrayLevel[0.92]],
  "; instead a conditional rule puts its arguments in canonical order and \
 flips the sign:"
-}], "Text",ExpressionUUID->"6661c6b2-4373-4d49-965f-8b3c73277390"],
+}], "Text",ExpressionUUID->"a0770f1e-0e00-4383-a533-d67620c76d0c"],
 
 Cell["\<\
 (* Kernel/Core.wl:16 *)
 wedge[a, b] -> wedge(a,b).\";\
-\>", "Program",ExpressionUUID->"9e9c0bb9-0883-4cde-9158-52330a26e66a"],
+\>", "Program",ExpressionUUID->"b40eb36a-30bb-496f-be87-dee1c5d8cce8"],
 
 Cell["\<\
 (* Kernel/Core.wl:18 *)
 wedge[a,b] wedge[c,d] = scal[a,c] scal[b,d] - scal[a,d] scal[b,c] until each \
 term of the expanded e has at most one wedge.\";\
-\>", "Program",ExpressionUUID->"4e065dfb-f8bd-4003-9fed-b9c69d4839c8"],
+\>", "Program",ExpressionUUID->"27d57030-992b-4542-b28b-16797a824712"],
 
 Cell["\<\
 (* Kernel/Core.wl:151-158 *)
@@ -2782,7 +2783,7 @@ wedge[a_, (b_) + (c_)] := wedge[a, b] + wedge[a, c];
 wedge[(a_)*(b_), c_] /; NumberQ[a] := a*wedge[b, c];
 wedge[a_, (b_)*(c_)] /; NumberQ[b] := b*wedge[a, c];
 wedge[b_, a_] /; ! OrderedQ[{b, a}] := -wedge[a, b];\
-\>", "Program",ExpressionUUID->"6aea84c6-ab56-4141-9d34-2d650b241d58"],
+\>", "Program",ExpressionUUID->"3153650f-93b4-48e6-acee-c78fa297baa0"],
 
 Cell["\<\
 (* Kernel/Core.wl:160-164 *)
@@ -2793,7 +2794,7 @@ c],
    Power[wedge[a_, b_], n_Integer /; n >= 2] :> (scal[a, a] scal[b, b] - \
 scal[a, b]^2) wedge[a, b]^(n - 2)};
 reduceWedge2D[e_] := FixedPoint[Expand[# /. wedgePairRules] &, Expand[e]];\
-\>", "Program",ExpressionUUID->"ae08eb16-f9e8-4d12-976c-bcddd0903f47"],
+\>", "Program",ExpressionUUID->"5126eba1-4fdd-4ffc-aa4e-e42850051bdb"],
 
 Cell[TextData[{
  StyleBox["Mathematica: FixedPoint",
@@ -2815,13 +2816,13 @@ until no product of wedges is left."
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"74edd36e-7af1-4733-9177-3ac29fef0cee"],
+  0.91, 0.95, 1.],ExpressionUUID->"24fdd751-6bf0-40ba-b145-f99ad4444854"],
 
 Cell["{wedge[b, a], wedge[a, a], reduceWedge2D[wedge[a, b]^2]}", "Input",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->RGBColor[0.3, 0.5, 0.85],
  Background->RGBColor[
-  0.91, 0.95, 1.],ExpressionUUID->"11aaac29-e806-4c7d-8aea-7ddb864d3f19"],
+  0.91, 0.95, 1.],ExpressionUUID->"28edb10c-381b-4470-81fb-985816179356"],
 
 Cell[TextData[{
  StyleBox["Why it's built this way: Let the evaluator do the algebra",
@@ -2865,11 +2866,11 @@ the number of components; here d stays the symbol ",
  CellFrame->{{4, 0}, {0, 0}},
  CellFrameColor->GrayLevel[0.55],
  Background->RGBColor[
-  0.93, 0.93, 0.93],ExpressionUUID->"502e3c78-99ce-48f3-8275-b99448ea00f5"],
+  0.93, 0.93, 0.93],ExpressionUUID->"640fc84b-dfda-4a60-b3cc-6dc6fc0d7f82"],
 
-Cell["Exercises", "Section",ExpressionUUID->"795f2e6b-d50e-468c-b1c7-8121c0d86356"],
+Cell["Exercises", "Section",ExpressionUUID->"900d3376-8776-46c4-b839-5f076fae9061"],
 
-Cell["Exercise: Read a FAIL block", "Subsection",ExpressionUUID->"74ebd065-1541-41e0-8df0-37400158d72b"],
+Cell["Exercise: Read a FAIL block", "Subsection",ExpressionUUID->"a278ab59-3ff3-4281-9ab6-eed663a396ba"],
 
 Cell[TextData[{
  "Write a check named ",
@@ -2913,17 +2914,17 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " here, not a module name?"
-}], "Text",ExpressionUUID->"8fe5b0a4-183f-463a-a223-f461b1f4552c"],
+}], "Text",ExpressionUUID->"91c28e04-6790-48c7-97c8-563e7010dcf3"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"5e2caab8-250e-40ed-a172-7744ac21a68b"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"53019ad5-ea9d-4903-9644-2d0ba4f98d12"],
 
 Cell["\<\
 showFailure[FRGAssert[\"Me.even\", EvenQ[7], 7, \"pass an even number\"]]\
-\>", "Input",ExpressionUUID->"4b517204-35e4-41c5-be8f-65242bdbb847"],
+\>", "Input",ExpressionUUID->"3ecd93a2-1062-46a2-bd1d-4d5ac164758e"],
 
-Cell["{$FRGLastFailure, $FRGModule}", "Input",ExpressionUUID->"fcbc108e-c9d7-4967-808e-4e1d86120145"],
+Cell["{$FRGLastFailure, $FRGModule}", "Input",ExpressionUUID->"aa86ace2-d053-43ba-85f6-b66f9ee1cc0a"],
 
 Cell[TextData[{
  "No constructor is running, so no ",
@@ -2937,10 +2938,10 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " is printed."
-}], "Text",ExpressionUUID->"6c61195d-f611-4f31-afa0-171224550f8b"]
+}], "Text",ExpressionUUID->"601943cf-b4c9-42fe-9b25-23f882e26b22"]
 }, Closed]],
 
-Cell["Exercise: HoldRest at work", "Subsection",ExpressionUUID->"17a087ea-9506-448a-a0ad-2ae62314c424"],
+Cell["Exercise: HoldRest at work", "Subsection",ExpressionUUID->"c70003fb-f24d-4303-a1ca-138c8dd4b02b"],
 
 Cell[TextData[{
  StyleBox["FRGAssert",
@@ -2959,17 +2960,17 @@ false one, passing ",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " as details. How many times is the message printed?"
-}], "Text",ExpressionUUID->"83d7a364-af31-453e-b2ca-eeacb38d8ea7"],
+}], "Text",ExpressionUUID->"d68d5466-6e41-4488-8d1c-b6f33997096f"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"4b35f125-82c8-4d72-9709-15f7dc8c06da"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"3ccce75b-7dfa-4f51-9af3-8c641affd891"],
 
-Cell["FRGAssert[\"Me.hold\", True, Print[\"details computed\"]]", "Input",ExpressionUUID->"8b6621db-3780-47ef-8b30-3e413da1cb8d"],
+Cell["FRGAssert[\"Me.hold\", True, Print[\"details computed\"]]", "Input",ExpressionUUID->"339b2f21-86c2-45c9-99d2-87347fbc3718"],
 
 Cell["\<\
 showFailure[FRGAssert[\"Me.hold\", False, Print[\"details computed\"]]]\
-\>", "Input",ExpressionUUID->"71464909-aa29-4c10-86e9-9c9bded0239f"],
+\>", "Input",ExpressionUUID->"acde543e-53fb-48af-b0cd-61d7ed069dd3"],
 
 Cell[TextData[{
  "Once: only the failing call evaluates ",
@@ -2993,10 +2994,10 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ")."
-}], "Text",ExpressionUUID->"5df92743-dcec-4b5b-9791-a95a60aedb24"]
+}], "Text",ExpressionUUID->"2bd582ee-19be-420a-a8fe-f0281a49325a"]
 }, Closed]],
 
-Cell["Exercise: An identity with a shape function", "Subsection",ExpressionUUID->"d9838e01-bda3-46c0-9805-557ed2f23bdd"],
+Cell["Exercise: An identity with a shape function", "Subsection",ExpressionUUID->"936beac6-0bc1-48d4-8e05-64b13778d8a9"],
 
 Cell[TextData[{
  "Use ",
@@ -3030,16 +3031,16 @@ Cell[TextData[{
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  " by a number before the atoms."
-}], "Text",ExpressionUUID->"ac198599-18e1-4cfe-89b9-605bd38120db"],
+}], "Text",ExpressionUUID->"72d3b721-0257-46c9-9311-1a4460954277"],
 
 Cell[CellGroupData[{
 
-Cell["Solution", "Subsubsection",ExpressionUUID->"ce836009-ef4f-4412-abc8-283bd1fc0491"],
+Cell["Solution", "Subsubsection",ExpressionUUID->"09a155c9-c7bf-4f92-9a91-e86ae247b0bf"],
 
 Cell["\<\
 {ExactlyZeroQ[D[y r[y], y] - (r[y] + y r'[y])], ExactlyZeroQ[D[y r[y], y] - \
 (r[y] + r'[y])]}\
-\>", "Input",ExpressionUUID->"f1334c31-bbd0-4245-b5d0-6f6bc9f70f1e"],
+\>", "Input",ExpressionUUID->"9bce73a2-0b3c-49af-af45-800d1b0d0f62"],
 
 Cell[TextData[{
  StyleBox["r'[y]",
@@ -3068,13 +3069,13 @@ identity is ",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
  ", so it would pass."
-}], "Text",ExpressionUUID->"0a3dfbc4-613c-4153-9e46-2f795694f981"]
+}], "Text",ExpressionUUID->"2ad9a0c4-4c48-4f66-b3a3-6edd4ef05234"]
 }, Closed]]
 },
 CellContext->Notebook,
 FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
 StyleDefinitions->"Default.nb",
-ExpressionUUID->"68ca8ccf-8ceb-4f4a-8543-fab9318d86bc"
+ExpressionUUID->"9b870762-18b4-4809-a4e0-3c03aba93fd9"
 ]
 (* End of Notebook Content *)
 
@@ -3087,156 +3088,156 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[554, 20, 103, 0, 70, "Title",ExpressionUUID->"36a7f9e2-90e6-4f3a-860b-ed84eb36910e"],
-Cell[660, 22, 305, 4, 70, "Text",ExpressionUUID->"142e3878-877b-4f91-9ca7-427e3090dc68"],
-Cell[968, 28, 731, 19, 70, "Text",ExpressionUUID->"f917f160-9326-4b6d-9a40-291dd5ffac21"],
-Cell[1702, 49, 452, 9, 70, "Text",ExpressionUUID->"850c79f9-d347-415e-b783-cd9f5a939c43"],
-Cell[2157, 60, 96, 0, 70, "Section",ExpressionUUID->"a02747ec-274c-409c-9004-32651f7aba97"],
-Cell[2256, 62, 127, 0, 70, "Input",ExpressionUUID->"5220956b-0864-4109-a716-1fb9c78368c3"],
-Cell[2386, 64, 1509, 46, 70, "Text",ExpressionUUID->"88c61206-b7ff-4036-b8bb-70d6e201e122"],
-Cell[3898, 112, 609, 17, 70, "Text",ExpressionUUID->"156ae1d3-333d-4db8-a1e8-c233fccf159b"],
-Cell[4510, 131, 134, 0, 70, "Input",ExpressionUUID->"7441406c-08fc-4784-a408-616696b924a4"],
-Cell[4647, 133, 98, 0, 70, "Text",ExpressionUUID->"b672eafa-8dd0-4bf2-977b-f27dbc6dddee"],
-Cell[4748, 135, 1417, 32, 70, "Program",ExpressionUUID->"f7873884-0290-4827-84dc-94087ac2a65e"],
-Cell[6168, 169, 666, 18, 70, "Text",ExpressionUUID->"18be2722-989c-4550-8c90-ba291c168de5"],
-Cell[6837, 189, 2434, 76, 70, "Text",ExpressionUUID->"76559283-601a-4462-80d0-05dee0f8af3f"],
-Cell[9274, 267, 234, 4, 70, "Input",ExpressionUUID->"f1ccc88e-37c7-48a1-96b6-af8bc6c95b9f"],
-Cell[9511, 273, 983, 29, 70, "Text",ExpressionUUID->"a05f321b-d36d-4cfd-bcb2-2ad3a7faf828"],
-Cell[10497, 304, 1836, 52, 70, "Text",ExpressionUUID->"15934016-0024-42de-a024-025f8749af08"],
-Cell[12336, 358, 594, 16, 70, "Text",ExpressionUUID->"d592f8dd-1db2-45dc-bc7b-d80fcd12c659"],
-Cell[12933, 376, 623, 17, 70, "Text",ExpressionUUID->"f629e083-e8eb-40ca-8268-924dfdf97906"],
-Cell[13559, 395, 1925, 57, 70, "Text",ExpressionUUID->"57162e5f-2729-4f1d-8aeb-8197a56f34a7"],
-Cell[15487, 454, 1205, 31, 70, "Text",ExpressionUUID->"c2cc85a9-e3d5-4a03-83e4-e352e7ee017a"],
-Cell[16695, 487, 393, 11, 70, "Text",ExpressionUUID->"57060f09-bcb1-49c2-a5d7-25404cccff83"],
-Cell[17091, 500, 1944, 65, 70, "Text",ExpressionUUID->"ec3dbc6d-4174-4aab-be9e-b796ba5b781a"],
-Cell[19038, 567, 229, 4, 70, "Input",ExpressionUUID->"9bfffe40-324d-424d-82f6-f79bc1ed9a31"],
-Cell[19270, 573, 1393, 45, 70, "Text",ExpressionUUID->"ffb45bc8-5c96-4b75-84cf-7dd312c9a94d"],
-Cell[20666, 620, 1427, 35, 70, "Text",ExpressionUUID->"20416ebb-2402-40c8-889e-a69a76bad42f"],
-Cell[22096, 657, 121, 0, 70, "Section",ExpressionUUID->"a69f0476-bbd3-4e29-aa35-5a55698422b5"],
-Cell[22220, 659, 146, 2, 70, "Text",ExpressionUUID->"f5837c68-f35c-4274-aeaa-ea1a0aacccd4"],
-Cell[22369, 663, 3213, 58, 70, "Program",ExpressionUUID->"c22a0acd-16b6-43ee-8ed9-4a7ca5862ffc"],
-Cell[25585, 723, 2557, 74, 70, "Text",ExpressionUUID->"d5c24f07-91ef-4376-81ac-6d97ca0d0bbf"],
-Cell[28145, 799, 988, 29, 70, "Text",ExpressionUUID->"d0101569-5cc9-4229-b815-0de5d6f2df8a"],
-Cell[29136, 830, 197, 4, 70, "Input",ExpressionUUID->"f5b0adaa-7019-478b-aabe-9e1ddf99b7c4"],
-Cell[29336, 836, 1209, 34, 70, "Text",ExpressionUUID->"eb77b0e8-e5e7-4d45-b6ce-0f4717e76c45"],
-Cell[30548, 872, 175, 3, 70, "Input",ExpressionUUID->"5ee6779f-707a-44cb-b402-680efe5ae689"],
-Cell[30726, 877, 1488, 44, 70, "Text",ExpressionUUID->"940f100f-dff5-4f24-a391-86715b65ef61"],
-Cell[32217, 923, 632, 17, 70, "Text",ExpressionUUID->"9ba8c6b9-ee33-49ef-87a4-dbc180cc17b8"],
-Cell[32852, 942, 113, 0, 70, "Input",ExpressionUUID->"99e0e3ad-6b97-4874-8b91-a2e8175717c7"],
-Cell[32968, 944, 282, 6, 70, "Text",ExpressionUUID->"34087827-b7ef-4ae3-b8c8-cc75a016f87e"],
-Cell[33253, 952, 2227, 67, 70, "Text",ExpressionUUID->"dd73cf4c-f113-4116-9ffc-f20b203bd198"],
-Cell[35483, 1021, 102, 0, 70, "Section",ExpressionUUID->"b0e523aa-07e0-4acd-ace0-8357f62e3f0e"],
-Cell[35588, 1023, 124, 0, 70, "Text",ExpressionUUID->"c339a990-a8fa-4555-8fd5-15893bcad884"],
-Cell[35715, 1025, 513, 11, 70, "Program",ExpressionUUID->"a19bdef0-0a23-4b4b-a179-05087d75691f"],
-Cell[36231, 1038, 330, 8, 70, "Program",ExpressionUUID->"0a3c9868-60b9-4b97-ace9-a624ddb12d2b"],
-Cell[36564, 1048, 2891, 93, 70, "Text",ExpressionUUID->"41898f67-a1ff-4a44-baa5-4b179904f978"],
-Cell[39458, 1143, 279, 7, 70, "Input",ExpressionUUID->"145d2d90-638e-4f82-b718-cde4ba30ba08"],
-Cell[39740, 1152, 1822, 57, 70, "Text",ExpressionUUID->"d493a49a-e86c-4bb0-8b84-cc5c90d32ad4"],
-Cell[41565, 1211, 317, 7, 70, "Input",ExpressionUUID->"1201ef00-1d30-42b1-83fb-844153c8e074"],
-Cell[41885, 1220, 604, 17, 70, "Text",ExpressionUUID->"b45d99d4-7793-41b2-85b2-76d6fd9f9ddb"],
-Cell[42492, 1239, 1577, 46, 70, "Text",ExpressionUUID->"a0018204-f2e7-4409-9939-add0ba981447"],
-Cell[44072, 1287, 233, 4, 70, "Input",ExpressionUUID->"e4502a98-59bd-4cfc-82c6-4aae5b63bd7e"],
-Cell[44308, 1293, 107, 0, 70, "Text",ExpressionUUID->"10c02166-b0d0-4b5b-8914-24f1112222f1"],
-Cell[44418, 1295, 127, 0, 70, "Input",ExpressionUUID->"6d4843e3-ea41-4a61-a71c-fb72850e588a"],
-Cell[44548, 1297, 383, 9, 70, "Text",ExpressionUUID->"6ab92bd8-9df2-426f-b378-da645d6f80e1"],
-Cell[44934, 1308, 170, 3, 70, "Input",ExpressionUUID->"f5fc42a0-6cd6-4342-aea2-59173723fb89"],
-Cell[45107, 1313, 2223, 65, 70, "Text",ExpressionUUID->"261f0a9a-e82b-49b4-9f34-acda28bfa0ce"],
-Cell[47333, 1380, 229, 7, 70, "Text",ExpressionUUID->"e7bdc5e7-e8a4-4036-ae72-92f41f872582"],
-Cell[47565, 1389, 561, 10, 70, "Program",ExpressionUUID->"05132dcf-f9c7-4b29-af51-28071eb3c031"],
-Cell[48129, 1401, 2840, 89, 70, "Text",ExpressionUUID->"fee4c019-f2fa-4f20-8d93-938e04bea6b0"],
-Cell[50972, 1492, 298, 7, 70, "Input",ExpressionUUID->"4ddb8ac1-cf64-4c57-bed0-d071030c1d54"],
-Cell[51273, 1501, 694, 17, 70, "Text",ExpressionUUID->"62f0bf2f-a8d1-42fb-a323-00a3e2f86120"],
-Cell[51970, 1520, 446, 8, 70, "Program",ExpressionUUID->"9d932aae-2dc8-4143-880b-5f0fca5adb46"],
-Cell[52419, 1530, 1595, 39, 70, "Text",ExpressionUUID->"80161a91-f2f6-451e-94cb-9541baac40f8"],
-Cell[54017, 1571, 122, 0, 70, "Section",ExpressionUUID->"499f540d-0774-4e59-9563-f28533c4a2f4"],
-Cell[54142, 1573, 343, 10, 70, "Text",ExpressionUUID->"c8119867-fdce-4573-9d03-b1aaabd88f9f"],
-Cell[54488, 1585, 2300, 74, 70, "Text",ExpressionUUID->"e6758705-ebf9-4745-8bdc-6c108a8fef38"],
-Cell[56791, 1661, 352, 8, 70, "Input",ExpressionUUID->"0f5d9c6e-1bb8-440c-a52e-8c5807b4bff1"],
-Cell[57146, 1671, 101, 0, 70, "Text",ExpressionUUID->"abdfe55b-6ede-447c-9f9f-5ec54a346770"],
-Cell[57250, 1673, 606, 11, 70, "Program",ExpressionUUID->"8ac9aef8-6215-4031-a38a-21e0bb9d9d17"],
-Cell[57859, 1686, 591, 11, 70, "Program",ExpressionUUID->"87cde05e-4799-4d50-bbd6-be2931fcc242"],
-Cell[58453, 1699, 752, 18, 70, "Text",ExpressionUUID->"58219b2b-a586-4287-898a-3d4dec0c5af8"],
-Cell[59208, 1719, 317, 7, 70, "Text",ExpressionUUID->"da2bb4a7-1b96-446e-9d02-8532aed48a51"],
-Cell[59528, 1728, 208, 4, 70, "Input",ExpressionUUID->"36aef856-8957-4cbf-8b7c-ab7f92e0b7a9"],
-Cell[59739, 1734, 152, 2, 70, "Text",ExpressionUUID->"5e9d3933-9518-4326-9898-640ad47cdb20"],
-Cell[59894, 1738, 115, 0, 70, "Input",ExpressionUUID->"cb2c67b7-f51c-4bd2-a13d-99aa831eab3e"],
-Cell[60012, 1740, 145, 2, 70, "Input",ExpressionUUID->"b7bc4547-57f9-40c8-bbb7-7db61ed5731a"],
-Cell[60160, 1744, 352, 8, 70, "Text",ExpressionUUID->"39a40468-8135-4a78-bb0b-108ce4b8691e"],
-Cell[60515, 1754, 134, 0, 70, "Input",ExpressionUUID->"fec84242-1fef-4d82-b0de-29702bcaa348"],
-Cell[60652, 1756, 173, 4, 70, "Input",ExpressionUUID->"6c96f90c-2129-4007-9df7-fbdcaa425717"],
-Cell[60828, 1762, 1160, 34, 70, "Text",ExpressionUUID->"e5a1d7e4-6236-4c1c-97b0-35c43cccc983"],
-Cell[61991, 1798, 112, 0, 70, "Input",ExpressionUUID->"0da8a183-aa66-416d-9104-a86bf6830141"],
-Cell[62106, 1800, 80, 0, 70, "Input",ExpressionUUID->"2815b314-2b5a-4aae-a071-7eb46ad48810"],
-Cell[62189, 1802, 267, 6, 70, "Text",ExpressionUUID->"ec3289ce-d3fb-421e-82f9-af6fed4c9e61"],
-Cell[62459, 1810, 821, 14, 70, "Program",ExpressionUUID->"b0292938-5bd5-4a6e-a8c6-b3bac9a52463"],
-Cell[63283, 1826, 188, 3, 70, "Input",ExpressionUUID->"fc1c4980-f390-4b91-90fe-eba033c59f4f"],
-Cell[63474, 1831, 725, 21, 70, "Text",ExpressionUUID->"114cfe64-6696-4c33-90f1-380f747289fc"],
-Cell[64202, 1854, 1574, 34, 70, "Text",ExpressionUUID->"224ce984-409b-4e35-b2c6-cb44e0751d3a"],
-Cell[65779, 1890, 93, 0, 70, "Section",ExpressionUUID->"9108923a-e118-4389-8720-4ca2fa65b522"],
-Cell[65875, 1892, 405, 8, 70, "Text",ExpressionUUID->"959daff4-6cfc-49cd-b7dd-d80e0091521b"],
-Cell[66283, 1902, 273, 5, 70, "Program",ExpressionUUID->"208cfd13-e127-452b-a2e0-2cca581180dc"],
-Cell[66559, 1909, 264, 5, 70, "Program",ExpressionUUID->"f16ecca9-aaa8-4eb2-a529-e228be2b94c7"],
-Cell[66826, 1916, 766, 14, 70, "Program",ExpressionUUID->"b1672727-9abf-414c-88ed-e48a413c9b4a"],
-Cell[67595, 1932, 758, 14, 70, "Program",ExpressionUUID->"57be9cf6-1392-483e-8737-b7869bb59e69"],
-Cell[68356, 1948, 115, 0, 70, "Text",ExpressionUUID->"3023c33a-0564-4049-8934-09a6e22e4df9"],
-Cell[68474, 1950, 1206, 35, 70, "Text",ExpressionUUID->"9a3421dd-dc0d-42bc-a92d-753dcf97a73a"],
-Cell[69683, 1987, 2382, 75, 70, "Text",ExpressionUUID->"3cb421d5-c7ab-4c41-b54e-ab07fbc1caca"],
-Cell[72068, 2064, 278, 7, 70, "Input",ExpressionUUID->"f4c8e18c-7aa5-43b6-a852-a99c73e6a6e6"],
-Cell[72349, 2073, 2185, 70, 70, "Text",ExpressionUUID->"14b9a188-1a3f-4556-9aa6-211b8842717c"],
-Cell[74537, 2145, 274, 7, 70, "Input",ExpressionUUID->"2cf225f3-866c-4c70-8230-529841cb9380"],
-Cell[74814, 2154, 1701, 55, 70, "Text",ExpressionUUID->"9a36ab92-03f3-45ae-b018-dacd4b1f34be"],
-Cell[76518, 2211, 1127, 32, 70, "Text",ExpressionUUID->"12bb8bcb-6c85-40e6-ab49-a5a4b48cd6cb"],
-Cell[77648, 2245, 1338, 40, 70, "Text",ExpressionUUID->"9510fc57-d4f6-4435-8ca5-8bdacbb8e18d"],
-Cell[78989, 2287, 1289, 40, 70, "Text",ExpressionUUID->"b67fb8f7-154f-43d6-ac6f-c22638bd783b"],
-Cell[80281, 2329, 1771, 52, 70, "Text",ExpressionUUID->"9948ee04-fab7-4adc-9905-dbf6410a19b2"],
-Cell[82055, 2383, 200, 3, 70, "Input",ExpressionUUID->"d9cf890e-c86e-4626-9d80-923fe879babf"],
-Cell[82258, 2388, 1252, 26, 70, "Text",ExpressionUUID->"588ba1e8-b1f4-4317-b3cf-4e908b6202b5"],
-Cell[83513, 2416, 89, 0, 70, "Section",ExpressionUUID->"b2c8528d-f6c1-40e0-9f11-6764e63c4ce1"],
-Cell[83605, 2418, 190, 3, 70, "Text",ExpressionUUID->"bc288190-f2c3-4985-ada5-e48140fd13ed"],
-Cell[83798, 2423, 507, 9, 70, "Program",ExpressionUUID->"7b5b34a3-eb02-4e3d-a7ac-f32fb19a0224"],
-Cell[84308, 2434, 1442, 24, 70, "Program",ExpressionUUID->"ad936d7b-7ed0-446f-a697-8bca2a8aae6a"],
-Cell[85753, 2460, 1498, 47, 70, "Text",ExpressionUUID->"b86e4d70-18a5-4666-87b4-48eec8542be7"],
-Cell[87254, 2509, 261, 6, 70, "Input",ExpressionUUID->"37339a7c-6377-4c07-a029-a2e2131b98d3"],
-Cell[87518, 2517, 986, 31, 70, "Text",ExpressionUUID->"dad005e0-c553-4e81-ad16-eb031fa3d59b"],
-Cell[88507, 2550, 1256, 36, 70, "Text",ExpressionUUID->"887faf34-65b2-4d8e-9fef-fe28eee39525"],
-Cell[89766, 2588, 119, 0, 70, "Section",ExpressionUUID->"1b44eec7-9648-4f27-8c81-07060f9a6756"],
-Cell[89888, 2590, 336, 7, 70, "Text",ExpressionUUID->"64612e53-d681-4f9b-a966-e3b768748b37"],
-Cell[90227, 2599, 293, 7, 70, "Program",ExpressionUUID->"9bfd2718-d031-4e63-b694-1b2b3c4a56c0"],
-Cell[90523, 2608, 1566, 53, 70, "Text",ExpressionUUID->"3d97e10a-76bf-4b8d-9488-b7125ce1d99e"],
-Cell[92092, 2663, 1126, 32, 70, "Text",ExpressionUUID->"58768faa-a07a-4577-928f-2cc67a7b2afe"],
-Cell[93221, 2697, 246, 4, 70, "Input",ExpressionUUID->"2233e50b-7a9b-47e4-8ae5-43d8c0844cf5"],
-Cell[93470, 2703, 1139, 34, 70, "Text",ExpressionUUID->"e23d5477-b2aa-45d9-8021-bfa43d9bc222"],
-Cell[94612, 2739, 806, 22, 70, "Text",ExpressionUUID->"6661c6b2-4373-4d49-965f-8b3c73277390"],
-Cell[95421, 2763, 135, 3, 70, "Program",ExpressionUUID->"9e9c0bb9-0883-4cde-9158-52330a26e66a"],
-Cell[95559, 2768, 233, 4, 70, "Program",ExpressionUUID->"4e065dfb-f8bd-4003-9fed-b9c69d4839c8"],
-Cell[95795, 2774, 431, 10, 70, "Program",ExpressionUUID->"6aea84c6-ab56-4141-9d34-2d650b241d58"],
-Cell[96229, 2786, 428, 9, 70, "Program",ExpressionUUID->"ae08eb16-f9e8-4d12-976c-bcddd0903f47"],
-Cell[96660, 2797, 728, 20, 70, "Text",ExpressionUUID->"74edd36e-7af1-4733-9177-3ac29fef0cee"],
-Cell[97391, 2819, 243, 4, 70, "Input",ExpressionUUID->"11aaac29-e806-4c7d-8aea-7ddb864d3f19"],
-Cell[97637, 2825, 1477, 42, 70, "Text",ExpressionUUID->"502e3c78-99ce-48f3-8275-b99448ea00f5"],
-Cell[99117, 2869, 83, 0, 70, "Section",ExpressionUUID->"795f2e6b-d50e-468c-b1c7-8121c0d86356"],
-Cell[99203, 2871, 104, 0, 70, "Subsection",ExpressionUUID->"74ebd065-1541-41e0-8df0-37400158d72b"],
-Cell[99310, 2873, 1314, 42, 70, "Text",ExpressionUUID->"8fe5b0a4-183f-463a-a223-f461b1f4552c"],
+Cell[554, 20, 103, 0, 70, "Title",ExpressionUUID->"4c0639fc-3b31-46f7-8e9b-cb04239d0625"],
+Cell[660, 22, 305, 4, 70, "Text",ExpressionUUID->"61bc53c3-028f-4d6b-9a7e-591aa91176f8"],
+Cell[968, 28, 731, 19, 70, "Text",ExpressionUUID->"d5ead6fe-a7bc-41ff-aa0d-8c7b5ad0a1a1"],
+Cell[1702, 49, 452, 9, 70, "Text",ExpressionUUID->"f96dbbe0-3a6e-4478-b18d-ca0b71a9cbf5"],
+Cell[2157, 60, 96, 0, 70, "Section",ExpressionUUID->"9a6cd07f-c718-4446-ab7f-b24403e86e6c"],
+Cell[2256, 62, 127, 0, 70, "Input",ExpressionUUID->"26a7e118-74e0-40ea-a2c9-bf92ecef4c9b"],
+Cell[2386, 64, 1509, 46, 70, "Text",ExpressionUUID->"3dbe5140-0c06-41f4-af2e-0c40e01a846e"],
+Cell[3898, 112, 609, 17, 70, "Text",ExpressionUUID->"b09c65ab-9013-4904-9d94-238fdacf76fd"],
+Cell[4510, 131, 134, 0, 70, "Input",ExpressionUUID->"41d0d178-0d8e-4d07-bebc-0130e059fbd3"],
+Cell[4647, 133, 98, 0, 70, "Text",ExpressionUUID->"acccddea-fc2f-4a73-b86f-9a1666bfade6"],
+Cell[4748, 135, 1459, 33, 70, "Program",ExpressionUUID->"6c6838fa-a35a-47dd-9330-856346c814ac"],
+Cell[6210, 170, 666, 18, 70, "Text",ExpressionUUID->"d3509428-598d-4d63-9c3f-230a484ae379"],
+Cell[6879, 190, 2434, 76, 70, "Text",ExpressionUUID->"b2625ccc-9c5a-4bf2-a17c-27fe46835d30"],
+Cell[9316, 268, 234, 4, 70, "Input",ExpressionUUID->"69ca3f91-bd3a-449d-9b2f-4cc8f97bbefd"],
+Cell[9553, 274, 983, 29, 70, "Text",ExpressionUUID->"0b40742a-8dc5-4ce6-9d5f-dcf69927582b"],
+Cell[10539, 305, 1836, 52, 70, "Text",ExpressionUUID->"15450d27-54ae-4183-9ad2-5307d079df1a"],
+Cell[12378, 359, 594, 16, 70, "Text",ExpressionUUID->"1225d2a6-09e4-4100-9247-c079405fec52"],
+Cell[12975, 377, 623, 17, 70, "Text",ExpressionUUID->"0ea6a80f-106a-4213-ad81-733ba371e8a3"],
+Cell[13601, 396, 1925, 57, 70, "Text",ExpressionUUID->"bb2080ec-d586-4e44-acb5-7ba5df799359"],
+Cell[15529, 455, 1205, 31, 70, "Text",ExpressionUUID->"1ab85919-900f-4056-91b0-fe5983cca199"],
+Cell[16737, 488, 393, 11, 70, "Text",ExpressionUUID->"e3ca65cf-3fd2-46e2-959b-2a234310949d"],
+Cell[17133, 501, 1944, 65, 70, "Text",ExpressionUUID->"961f6000-dfb2-49b4-aac3-5c4baf3539c4"],
+Cell[19080, 568, 229, 4, 70, "Input",ExpressionUUID->"49752a0d-3764-497c-940d-646a712d86f6"],
+Cell[19312, 574, 1393, 45, 70, "Text",ExpressionUUID->"06f9c022-f9ab-4d7a-a292-b259ee12e56b"],
+Cell[20708, 621, 1427, 35, 70, "Text",ExpressionUUID->"e7f6b4b3-5471-4fb7-b159-e4456dc17bba"],
+Cell[22138, 658, 121, 0, 70, "Section",ExpressionUUID->"1221946e-14c1-44f0-9f75-14c431ec47aa"],
+Cell[22262, 660, 146, 2, 70, "Text",ExpressionUUID->"9dff0c5e-41cb-4394-bf09-1fc7155963d3"],
+Cell[22411, 664, 3213, 58, 70, "Program",ExpressionUUID->"619f0fa6-fda2-4bdc-ac41-dada1cb61fad"],
+Cell[25627, 724, 2557, 74, 70, "Text",ExpressionUUID->"b96a997e-f5b3-47ce-abd6-4d71afc7fec9"],
+Cell[28187, 800, 988, 29, 70, "Text",ExpressionUUID->"d4fd48c5-b54a-40d6-a9f1-742976ef3404"],
+Cell[29178, 831, 197, 4, 70, "Input",ExpressionUUID->"502aea03-f956-4157-b4df-1ef9f0690f9d"],
+Cell[29378, 837, 1209, 34, 70, "Text",ExpressionUUID->"133d05e3-3081-4d49-ac39-5fa48c2e8cd6"],
+Cell[30590, 873, 175, 3, 70, "Input",ExpressionUUID->"606826e4-3f0b-4fbf-99c4-2affc35199e2"],
+Cell[30768, 878, 1488, 44, 70, "Text",ExpressionUUID->"5f1ffb49-ec91-44bc-a9e6-9e16401ccafb"],
+Cell[32259, 924, 632, 17, 70, "Text",ExpressionUUID->"6a790a9d-80b8-44d4-9bd7-bd5775793de6"],
+Cell[32894, 943, 113, 0, 70, "Input",ExpressionUUID->"7c5c83a5-68f0-4be3-a4fd-9b69b023a659"],
+Cell[33010, 945, 282, 6, 70, "Text",ExpressionUUID->"15c34acc-9ed6-4d63-bea6-d56ced8504af"],
+Cell[33295, 953, 2227, 67, 70, "Text",ExpressionUUID->"040d5583-2c3d-469c-936f-9d87b4222721"],
+Cell[35525, 1022, 102, 0, 70, "Section",ExpressionUUID->"e896ca44-c41e-4512-9eb3-c7ce54128843"],
+Cell[35630, 1024, 124, 0, 70, "Text",ExpressionUUID->"bb6b184c-8799-4903-9b6d-93a0a76532ac"],
+Cell[35757, 1026, 513, 11, 70, "Program",ExpressionUUID->"dbb02eed-a6d0-4b43-b3a6-0aa70060fc64"],
+Cell[36273, 1039, 330, 8, 70, "Program",ExpressionUUID->"c612f277-e611-47fd-ba90-b97e662f899c"],
+Cell[36606, 1049, 2891, 93, 70, "Text",ExpressionUUID->"47de9e8c-29c7-4f48-b9fa-18657b3c74bd"],
+Cell[39500, 1144, 279, 7, 70, "Input",ExpressionUUID->"f9ae6f03-e0a2-4135-ba64-558b57ee3cd8"],
+Cell[39782, 1153, 1822, 57, 70, "Text",ExpressionUUID->"ef1ec66d-77c4-4375-9d60-e03c59c50143"],
+Cell[41607, 1212, 317, 7, 70, "Input",ExpressionUUID->"fbad8c7c-fa36-4c02-ba62-e8babd36f8bb"],
+Cell[41927, 1221, 604, 17, 70, "Text",ExpressionUUID->"3deeea58-b70f-4e48-8448-c0ea88c2f03f"],
+Cell[42534, 1240, 1577, 46, 70, "Text",ExpressionUUID->"1ac7c0f9-cbb6-410b-a9f2-e4c5195b1b78"],
+Cell[44114, 1288, 233, 4, 70, "Input",ExpressionUUID->"34dc46c4-c5fd-47d5-8ba0-1a1afa6fa258"],
+Cell[44350, 1294, 107, 0, 70, "Text",ExpressionUUID->"17e2d283-ac3f-46d2-bbee-a36deabbb4b6"],
+Cell[44460, 1296, 127, 0, 70, "Input",ExpressionUUID->"92b15a18-7a45-4957-ba52-6327f7384347"],
+Cell[44590, 1298, 383, 9, 70, "Text",ExpressionUUID->"f20122c8-c9ea-49f3-8bb7-d65e8cb559ec"],
+Cell[44976, 1309, 170, 3, 70, "Input",ExpressionUUID->"80dcda3e-eb22-4383-8346-063188dc4ee2"],
+Cell[45149, 1314, 2223, 65, 70, "Text",ExpressionUUID->"68ad0052-f865-4462-8f75-756700e7247f"],
+Cell[47375, 1381, 229, 7, 70, "Text",ExpressionUUID->"dc02fecd-f437-4c14-a5cc-244dd0f831de"],
+Cell[47607, 1390, 561, 10, 70, "Program",ExpressionUUID->"e6c76ed5-240d-4499-8dba-0f827e96a2fb"],
+Cell[48171, 1402, 2840, 89, 70, "Text",ExpressionUUID->"5488ff18-2e0f-4ef1-b870-126ad1c1cc5d"],
+Cell[51014, 1493, 298, 7, 70, "Input",ExpressionUUID->"cbddbb95-9de7-4c9b-9772-0ccb89efe351"],
+Cell[51315, 1502, 694, 17, 70, "Text",ExpressionUUID->"53994802-6519-4574-af03-03df1272715f"],
+Cell[52012, 1521, 446, 8, 70, "Program",ExpressionUUID->"a83e8600-b3f5-4bc6-ad53-0ff09870e70c"],
+Cell[52461, 1531, 1595, 39, 70, "Text",ExpressionUUID->"1dc8074a-0508-4b71-a76f-444dab5b91eb"],
+Cell[54059, 1572, 122, 0, 70, "Section",ExpressionUUID->"d3c9af43-28bc-4394-9c9f-e65664797a87"],
+Cell[54184, 1574, 343, 10, 70, "Text",ExpressionUUID->"de9fcd80-7948-43af-ba58-03ecabd2906a"],
+Cell[54530, 1586, 2300, 74, 70, "Text",ExpressionUUID->"302ddf3a-7017-4a96-aefd-c1bddc77a254"],
+Cell[56833, 1662, 352, 8, 70, "Input",ExpressionUUID->"a4f3dfc2-d25a-4019-8e36-ee6ed6d2bc65"],
+Cell[57188, 1672, 101, 0, 70, "Text",ExpressionUUID->"e52088b9-ad88-4000-bc52-d85785b1a7c5"],
+Cell[57292, 1674, 606, 11, 70, "Program",ExpressionUUID->"fc10fe14-051c-45da-b884-8be70e0ffade"],
+Cell[57901, 1687, 591, 11, 70, "Program",ExpressionUUID->"e96f1da7-c334-4e05-bd40-1dbc4077478b"],
+Cell[58495, 1700, 752, 18, 70, "Text",ExpressionUUID->"4a662978-f268-4afe-908c-edac320d4f2e"],
+Cell[59250, 1720, 317, 7, 70, "Text",ExpressionUUID->"8414571d-cb5e-4f20-ac72-1175c6f70b69"],
+Cell[59570, 1729, 208, 4, 70, "Input",ExpressionUUID->"38a8992c-07b6-4a28-a2b1-18fd10ee3f17"],
+Cell[59781, 1735, 152, 2, 70, "Text",ExpressionUUID->"fe51576b-a9cd-4718-acbb-dcb360273792"],
+Cell[59936, 1739, 115, 0, 70, "Input",ExpressionUUID->"0db7ca22-1e12-4108-b49a-367c1b777c77"],
+Cell[60054, 1741, 145, 2, 70, "Input",ExpressionUUID->"56440649-b35a-4032-8c70-0b79bbec4172"],
+Cell[60202, 1745, 352, 8, 70, "Text",ExpressionUUID->"cc79a13a-91b0-4f6f-aa36-fd263a29f4ae"],
+Cell[60557, 1755, 134, 0, 70, "Input",ExpressionUUID->"27a19fb7-821c-4865-b6e3-0953f6b54f7b"],
+Cell[60694, 1757, 173, 4, 70, "Input",ExpressionUUID->"92df84d9-c720-4187-9079-2f7b36ac9035"],
+Cell[60870, 1763, 1160, 34, 70, "Text",ExpressionUUID->"0796a232-05e6-4c85-bc82-136c58069a74"],
+Cell[62033, 1799, 112, 0, 70, "Input",ExpressionUUID->"a90ad496-7092-43c3-8595-fbf88519cb15"],
+Cell[62148, 1801, 80, 0, 70, "Input",ExpressionUUID->"ab631c5f-b22e-4cbb-a6b9-4419a3c2b3f8"],
+Cell[62231, 1803, 267, 6, 70, "Text",ExpressionUUID->"8c3a90fb-c119-47ca-a003-8b578bb42531"],
+Cell[62501, 1811, 821, 14, 70, "Program",ExpressionUUID->"f8c31c1f-70c9-4965-a3b8-48104b4d653c"],
+Cell[63325, 1827, 188, 3, 70, "Input",ExpressionUUID->"d44b5b2e-507b-4a43-996d-54beeba1f23a"],
+Cell[63516, 1832, 725, 21, 70, "Text",ExpressionUUID->"dbc60005-02c6-46de-810b-71fe8aaea605"],
+Cell[64244, 1855, 1574, 34, 70, "Text",ExpressionUUID->"7f722405-a0db-4975-8a80-d186fc17b025"],
+Cell[65821, 1891, 93, 0, 70, "Section",ExpressionUUID->"65acae1a-5dd2-4056-bb70-2ebd9bf214c9"],
+Cell[65917, 1893, 405, 8, 70, "Text",ExpressionUUID->"cd318a09-7b66-4fac-a2e7-8e6fbfc4d849"],
+Cell[66325, 1903, 273, 5, 70, "Program",ExpressionUUID->"6781d41b-91c0-4314-ad96-39fd65695497"],
+Cell[66601, 1910, 264, 5, 70, "Program",ExpressionUUID->"b7f844c2-7164-44f5-97b5-b672ada33053"],
+Cell[66868, 1917, 766, 14, 70, "Program",ExpressionUUID->"c2ddaf59-7faf-459d-ac91-ccab0e49c7b2"],
+Cell[67637, 1933, 758, 14, 70, "Program",ExpressionUUID->"c3bc3a2b-8e55-4345-92b2-4c80370edfa2"],
+Cell[68398, 1949, 115, 0, 70, "Text",ExpressionUUID->"faebec05-3b0e-4fc7-bb07-daf72ef3d04b"],
+Cell[68516, 1951, 1206, 35, 70, "Text",ExpressionUUID->"1f0faa9a-4d4b-459d-8381-3131a6f2cba5"],
+Cell[69725, 1988, 2382, 75, 70, "Text",ExpressionUUID->"9c5ddefa-dd10-40d7-bf04-e1b21fd73654"],
+Cell[72110, 2065, 278, 7, 70, "Input",ExpressionUUID->"21fcec0a-92e7-404c-9835-2192641cef14"],
+Cell[72391, 2074, 2185, 70, 70, "Text",ExpressionUUID->"0b073986-9601-40f4-85d2-2c4604381e54"],
+Cell[74579, 2146, 274, 7, 70, "Input",ExpressionUUID->"42f8990c-b397-4be6-87bf-6c55a79a20e1"],
+Cell[74856, 2155, 1701, 55, 70, "Text",ExpressionUUID->"6a9917bb-3ee0-400a-8b30-dd668cb88aab"],
+Cell[76560, 2212, 1127, 32, 70, "Text",ExpressionUUID->"7f244acc-fd18-4439-9f2e-509e966ae5f4"],
+Cell[77690, 2246, 1338, 40, 70, "Text",ExpressionUUID->"e9675b89-e43d-4523-9fc0-3d4a8dad74cd"],
+Cell[79031, 2288, 1289, 40, 70, "Text",ExpressionUUID->"bbaf7190-9eba-47b4-abc3-2f87d3ec8b7e"],
+Cell[80323, 2330, 1771, 52, 70, "Text",ExpressionUUID->"1183c54e-e80f-4d6c-a770-e0057e1e18b9"],
+Cell[82097, 2384, 200, 3, 70, "Input",ExpressionUUID->"83a40573-c61e-4f58-b106-3d34f3d8a3e6"],
+Cell[82300, 2389, 1252, 26, 70, "Text",ExpressionUUID->"40da21a2-4cd2-4f87-8e76-555c185b0b09"],
+Cell[83555, 2417, 89, 0, 70, "Section",ExpressionUUID->"a2dae4c5-f65c-45fe-ab8e-a3dc16c4b4ab"],
+Cell[83647, 2419, 190, 3, 70, "Text",ExpressionUUID->"585ec0be-bc48-4a73-abdc-510654781984"],
+Cell[83840, 2424, 507, 9, 70, "Program",ExpressionUUID->"3d9a0047-b91a-46c4-9f4c-0a2f7a2869fb"],
+Cell[84350, 2435, 1442, 24, 70, "Program",ExpressionUUID->"77ddd03f-b5ba-458d-9481-6ceabacddb34"],
+Cell[85795, 2461, 1498, 47, 70, "Text",ExpressionUUID->"37da7df1-4b6d-4658-998f-914ce0a533b7"],
+Cell[87296, 2510, 261, 6, 70, "Input",ExpressionUUID->"d0af7213-186d-4961-b86f-8bdcb795cae7"],
+Cell[87560, 2518, 986, 31, 70, "Text",ExpressionUUID->"1cf4244c-8e40-4bcf-ab5c-aeb1847b2691"],
+Cell[88549, 2551, 1256, 36, 70, "Text",ExpressionUUID->"32331ee6-1e63-4fd3-bd55-e69402f4546a"],
+Cell[89808, 2589, 119, 0, 70, "Section",ExpressionUUID->"bd99f1c1-d9c1-4ea6-bc2d-95c537a27473"],
+Cell[89930, 2591, 336, 7, 70, "Text",ExpressionUUID->"c780e1f8-4328-4448-b901-d3de4c9ed3d9"],
+Cell[90269, 2600, 293, 7, 70, "Program",ExpressionUUID->"408b8a92-d21c-44ea-9be3-51027c6f65eb"],
+Cell[90565, 2609, 1566, 53, 70, "Text",ExpressionUUID->"d53fd3d7-c5c8-49f4-829f-22f055e333cd"],
+Cell[92134, 2664, 1126, 32, 70, "Text",ExpressionUUID->"8494ffb1-7b1a-4cbe-a2a9-fc59d6b376dc"],
+Cell[93263, 2698, 246, 4, 70, "Input",ExpressionUUID->"56b278bb-2535-4df9-89cb-0728efe9b155"],
+Cell[93512, 2704, 1139, 34, 70, "Text",ExpressionUUID->"39f04720-1947-49b4-b062-5151c193fb8a"],
+Cell[94654, 2740, 806, 22, 70, "Text",ExpressionUUID->"a0770f1e-0e00-4383-a533-d67620c76d0c"],
+Cell[95463, 2764, 135, 3, 70, "Program",ExpressionUUID->"b40eb36a-30bb-496f-be87-dee1c5d8cce8"],
+Cell[95601, 2769, 233, 4, 70, "Program",ExpressionUUID->"27d57030-992b-4542-b28b-16797a824712"],
+Cell[95837, 2775, 431, 10, 70, "Program",ExpressionUUID->"3153650f-93b4-48e6-acee-c78fa297baa0"],
+Cell[96271, 2787, 428, 9, 70, "Program",ExpressionUUID->"5126eba1-4fdd-4ffc-aa4e-e42850051bdb"],
+Cell[96702, 2798, 728, 20, 70, "Text",ExpressionUUID->"24fdd751-6bf0-40ba-b145-f99ad4444854"],
+Cell[97433, 2820, 243, 4, 70, "Input",ExpressionUUID->"28edb10c-381b-4470-81fb-985816179356"],
+Cell[97679, 2826, 1477, 42, 70, "Text",ExpressionUUID->"640fc84b-dfda-4a60-b3cc-6dc6fc0d7f82"],
+Cell[99159, 2870, 83, 0, 70, "Section",ExpressionUUID->"900d3376-8776-46c4-b839-5f076fae9061"],
+Cell[99245, 2872, 104, 0, 70, "Subsection",ExpressionUUID->"a278ab59-3ff3-4281-9ab6-eed663a396ba"],
+Cell[99352, 2874, 1314, 42, 70, "Text",ExpressionUUID->"91c28e04-6790-48c7-97c8-563e7010dcf3"],
 Cell[CellGroupData[{
-Cell[100649, 2919, 88, 0, 70, "Subsubsection",ExpressionUUID->"5e2caab8-250e-40ed-a172-7744ac21a68b"],
-Cell[100740, 2921, 153, 2, 70, "Input",ExpressionUUID->"4b517204-35e4-41c5-be8f-65242bdbb847"],
-Cell[100896, 2925, 101, 0, 70, "Input",ExpressionUUID->"fcbc108e-c9d7-4967-808e-4e1d86120145"],
-Cell[101000, 2927, 457, 12, 70, "Text",ExpressionUUID->"6c61195d-f611-4f31-afa0-171224550f8b"]
+Cell[100691, 2920, 88, 0, 70, "Subsubsection",ExpressionUUID->"53019ad5-ea9d-4903-9644-2d0ba4f98d12"],
+Cell[100782, 2922, 153, 2, 70, "Input",ExpressionUUID->"3ecd93a2-1062-46a2-bd1d-4d5ac164758e"],
+Cell[100938, 2926, 101, 0, 70, "Input",ExpressionUUID->"aa86ace2-d053-43ba-85f6-b66f9ee1cc0a"],
+Cell[101042, 2928, 457, 12, 70, "Text",ExpressionUUID->"601943cf-b4c9-42fe-9b25-23f882e26b22"]
 }, Closed]],
-Cell[101472, 2942, 103, 0, 70, "Subsection",ExpressionUUID->"17a087ea-9506-448a-a0ad-2ae62314c424"],
-Cell[101578, 2944, 649, 17, 70, "Text",ExpressionUUID->"83d7a364-af31-453e-b2ca-eeacb38d8ea7"],
+Cell[101514, 2943, 103, 0, 70, "Subsection",ExpressionUUID->"c70003fb-f24d-4303-a1ca-138c8dd4b02b"],
+Cell[101620, 2945, 649, 17, 70, "Text",ExpressionUUID->"d68d5466-6e41-4488-8d1c-b6f33997096f"],
 Cell[CellGroupData[{
-Cell[102252, 2965, 88, 0, 70, "Subsubsection",ExpressionUUID->"4b35f125-82c8-4d72-9709-15f7dc8c06da"],
-Cell[102343, 2967, 129, 0, 70, "Input",ExpressionUUID->"8b6621db-3780-47ef-8b30-3e413da1cb8d"],
-Cell[102475, 2969, 151, 2, 70, "Input",ExpressionUUID->"71464909-aa29-4c10-86e9-9c9bded0239f"],
-Cell[102629, 2973, 703, 22, 70, "Text",ExpressionUUID->"5df92743-dcec-4b5b-9791-a95a60aedb24"]
+Cell[102294, 2966, 88, 0, 70, "Subsubsection",ExpressionUUID->"3ccce75b-7dfa-4f51-9af3-8c641affd891"],
+Cell[102385, 2968, 129, 0, 70, "Input",ExpressionUUID->"339b2f21-86c2-45c9-99d2-87347fbc3718"],
+Cell[102517, 2970, 151, 2, 70, "Input",ExpressionUUID->"acde543e-53fb-48af-b0cd-61d7ed069dd3"],
+Cell[102671, 2974, 703, 22, 70, "Text",ExpressionUUID->"2bd582ee-19be-420a-a8fe-f0281a49325a"]
 }, Closed]],
-Cell[103347, 2998, 120, 0, 70, "Subsection",ExpressionUUID->"d9838e01-bda3-46c0-9805-557ed2f23bdd"],
-Cell[103470, 3000, 1032, 32, 70, "Text",ExpressionUUID->"ac198599-18e1-4cfe-89b9-605bd38120db"],
+Cell[103389, 2999, 120, 0, 70, "Subsection",ExpressionUUID->"936beac6-0bc1-48d4-8e05-64b13778d8a9"],
+Cell[103512, 3001, 1032, 32, 70, "Text",ExpressionUUID->"72d3b721-0257-46c9-9311-1a4460954277"],
 Cell[CellGroupData[{
-Cell[104527, 3036, 88, 0, 70, "Subsubsection",ExpressionUUID->"ce836009-ef4f-4412-abc8-283bd1fc0491"],
-Cell[104618, 3038, 174, 3, 70, "Input",ExpressionUUID->"f1334c31-bbd0-4245-b5d0-6f6bc9f70f1e"],
-Cell[104795, 3043, 908, 27, 70, "Text",ExpressionUUID->"0a3dfbc4-613c-4153-9e46-2f795694f981"]
+Cell[104569, 3037, 88, 0, 70, "Subsubsection",ExpressionUUID->"09a155c9-c7bf-4f92-9a91-e86ae247b0bf"],
+Cell[104660, 3039, 174, 3, 70, "Input",ExpressionUUID->"9bce73a2-0b3c-49af-af45-800d1b0d0f62"],
+Cell[104837, 3044, 908, 27, 70, "Text",ExpressionUUID->"2ad9a0c4-4c48-4f66-b3a3-6edd4ef05234"]
 }, Closed]]
 }
 ]

@@ -97,6 +97,7 @@ AdimensionalEquations[equations_, dims_, opts : OptionsPattern[]] := Block[{$FRG
     causalExpl, causalKeep},
    validateStage[equations, "Equations"]; validateStage[dims, "Dimensions"];
    FRGAssert["Adimensional.options", MatchQ[{opts}, {(Rule | RuleDelayed)["State", _] ...}], {opts}, "only the option \"State\" is accepted"];
+   If[equations["Pipeline"] === "LO", Return[adimensionalLO[equations, dims, opts], Module]];
    ansatz = AnsatzOf[equations];
    AppendTo[checks, assertCheck["Adimensional.sameAnsatz", ansatz["Fingerprint"] === dims["Ansatz"]["Fingerprint"],
      {ansatz["Fingerprint"], dims["Ansatz"]["Fingerprint"]}, "the dimensions were derived from another ansatz: DeriveDimensions[AnsatzOf[equations], ...]",
@@ -261,7 +262,7 @@ AdimensionalEquations[equations_, dims_, opts : OptionsPattern[]] := Block[{$FRG
    AppendTo[checks, assertCheck["Adimensional.compactExact", bad === {}, bad, "internal: the compact loop integrand differs from the explicit one",
      "compact (dimensionless atoms) = explicit loop integrands (betas and eta rows), exact at random points"]];
 
-   stage = stampStage[<|"Stage" -> "Adimensional", "Pipeline" -> "DerivativeExpansion", "Upstream" -> {equations["Fingerprint"], dims["Fingerprint"]},
+   stage = stampStage[<|"Stage" -> "Adimensional", "Pipeline" -> equations["Pipeline"], "Upstream" -> {equations["Fingerprint"], dims["Fingerprint"]},
       "Equations" -> equations, "Dimensions" -> dims, "State" -> state, "Couplings" -> (names /@ state),
       "References" -> refs, "ReferenceKinds" -> kind, "Etas" -> Values[etas], "EtaNames" -> (dims["EtaNames"] /@ refs), "MustFix" -> mustFix,
       "BetaL" -> (betaL /@ state), "BetaNL" -> (betaNL /@ state), "BetaNLExplicit" -> (betaNLExplicit /@ state),
@@ -271,6 +272,106 @@ AdimensionalEquations[equations_, dims_, opts : OptionsPattern[]] := Block[{$FRG
       "Checks" -> checks, "Warnings" -> warns, "Timing" -> AbsoluteTime[] - t0|>];
    PrintCard[stage];
    stage]];
+
+(* ---------- LO branch (design/LOPIPELINE.md step 7) ----------
+   F_k(p^2) = f(p^2/k^2) = f(ap^2): no unit inside a function argument. The flow of f is taken at fixed ap = p/k:
+   d_s f|ap = eta f + 2 ap^2 f'(ap^2) + (loop)/ref, f' = d/d(ap^2) (PythonExport writes it as ap df/d|ap|).
+   eta from f(0) = 1: eta_X + (loop at ap = 0)/ref = 0, written (1 + M) eta = -b row by row (row X = function X, column Y = eta_Y). *)
+
+(* function and shape arguments expanded, so that k cancels term by term (homVec rejects a unit inside an argument) *)
+loArgumentsExpanded[e_, heads_] := e /. {(h : Alternatives @@ heads)[x_] :> h[Expand[x]], Derivative[j_][h : Alternatives @@ heads][x_] :> Derivative[j][h][Expand[x]]};
+
+(* the angular loop measure: Integral d^dq/(2 Pi)^d F(q, c) = k^d Integral daq dtheta LOLoopMeasure F, c = cos theta *)
+loLoopMeasure[d_, aq_, th_] := 2 Pi^((d - 1)/2)/Gamma[(d - 1)/2] aq^(d - 1) Sin[th]^(d - 2)/(2 Pi)^d;
+
+adimensionalLO[equations_, dims_, opts___] := Module[{t0 = AbsoluteTime[], checks = {}, warns = {}, ansatz, cps, refs, etas, names, vecs, basis, nb, unitIndex,
+    kk, qU, pU, aq, ap, dimSym, nonren, regC, reg, form, toUnits, gamma2Dim, eqs, funcs, fs, shapes, fnRel, adim, bad, state, betaL, linear, loops,
+    etaRows, ca, mat, vec, etaOrder, testDims, stage},
+   ansatz = AnsatzOf[equations];
+   AppendTo[checks, assertCheck["Adimensional.sameAnsatz", ansatz["Fingerprint"] === dims["Ansatz"]["Fingerprint"],
+     {ansatz["Fingerprint"], dims["Ansatz"]["Fingerprint"]}, "the dimensions were derived from another ansatz: DeriveDimensions[AnsatzOf[equations], ...]",
+     "dimensions and equations from the same ansatz"]];
+   cps = ansatz["Couplings"]; refs = dims["References"]; etas = dims["Etas"]; names = dims["Names"]; vecs = dims["Vectors"];
+   basis = dims["Basis"]; nb = Length[basis]; kk = dims["Scale"]; dimSym = dims["Dimension"];
+   qU = equations["LoopMomentum"]; pU = equations["ExternalMomentum"]; aq = Symbol["Global`aq"]; ap = Symbol["Global`ap"];
+   FRGAssert["Adimensional.scale", equations["Scale"] === kk, {equations["Scale"], kk}, "the regulator scale and the \"Scale\" of DeriveDimensions differ"];
+   unitIndex = AssociationThread[basis -> Range[nb]];
+   nonren = First /@ EmbeddedStage[equations, "Symmetries"]["NonRenormalised"];
+   testDims = If[dimSym === 2, {2}, {2, 3}];
+   funcs = equations["Functions"]; fs = funcs[[All, 1]]; shapes = equations["Shapes"]; eqs = equations["Equations"];
+   eqs = SortBy[eqs, First[FirstPosition[fs, #Function]] &];   (* FUNCTIONS order *)
+
+   AppendTo[checks, assertCheck["Adimensional.referencesFlow", Intersection[refs, nonren] === {}, Intersection[refs, nonren],
+     "a NonRenormalised coupling cannot be a reference: choose another one", "no reference is NonRenormalised"]];
+   regC = Union[Cases[equations["DsRRules"][[All, 2]], dsCoupling[c_] :> c, {0, Infinity}]];
+   AppendTo[checks, assertCheck["Adimensional.regulatorReferences", SubsetQ[refs, regC], Complement[regC, refs],
+     "regulator prefactors may contain reference couplings only; lifting this is in docs/FUTURE.md",
+     "regulator prefactors contain references only: " <> StringRiffle[ToString /@ regC, ", "]]];
+   (* every reference is the reference of a function (its eta comes from f(0) = 1), every function's reference is a reference *)
+   bad = Join[Complement[refs, funcs[[All, 2]]], Complement[funcs[[All, 2]], refs]];
+   FRGAssert["Adimensional.referenceEquation", bad === {}, bad,
+    "LO: each reference must be the reference of one function (\"Functions\" -> {f -> reference}): f(0) = 1 is the equation of its eta"];
+   FRGAssert["Adimensional.unusedEquation", AllTrue[eqs, MemberQ[refs, #Reference] &], Select[eqs, ! MemberQ[refs, #Reference] &][[All, "Function"]],
+    "these functions determine no eta (their reference is not a reference of DeriveDimensions)"];
+
+   (* units: c -> chat [c] (non-references), q -> k aq, p -> k ap, d_s ref -> -eta ref, F(x) -> f(x/k^2) *)
+   form[c_] := basisForm[vecs[c], basis];
+   fnRel = Join[(#[x_] :> #[Expand[x/kk^2]]) & /@ fs, (Derivative[j_][#][x_] :> Derivative[j][#][Expand[x/kk^2]]/kk^(2 j)) & /@ fs];
+   toUnits = Join[(# -> names[#] form[#]) & /@ Complement[cps, refs], {qU -> kk aq, pU -> kk ap}, (dsCoupling[#] -> -etas[#] #) & /@ refs];
+   adim[e_] := loArgumentsExpanded[(e /. fnRel) /. toUnits, Join[fs, shapes]];
+   gamma2Dim[{a_, b_}] := Expand[dimSym UnitVector[nb, 1] - dims["Time"] - vecs[a] - vecs[b]];
+
+   reg = EmbeddedStage[equations, "Regulator"];
+   bad = Select[Normal[reg["Entries"]], ! AllTrue[Expand[dimensionVector["Adimensional.regulatorDimension",
+          (#[[2]] /. Symbol["FRGscalarMSR`Private`sq"] -> qU^2) /. toUnits, unitIndex, nb, #[[1]]][[1]] - gamma2Dim[#[[1]]]], # === 0 &] &];
+   AppendTo[checks, assertCheck["Adimensional.regulatorDimension", bad === {}, bad,
+     "a regulator entry R_ab does not have the dimension of Gamma2_ab (Dim e_k - [t] - [a] - [b]): its prefactor is wrong",
+     "every R_ab has the dimension of Gamma2_ab"]];
+   bad = Select[eqs, ! AllTrue[Expand[dimensionVector["Adimensional.lhsDimension", adim[#GammaK], unitIndex, nb, #Function][[1]] - gamma2Dim[#Pair]], # === 0 &] &];
+   AppendTo[checks, assertCheck["Adimensional.lhsDimension", bad === {}, bad[[All, "Function"]],
+     "a Gamma2 entry norm ref p^(2n) F(p^2) does not have the dimension of Gamma2_ab", "each Gamma2 entry ref p^(2n) F(p^2) has the dimension of Gamma2_ab"]];
+
+   (* constant couplings: only NonRenormalised ones can be in the state (no equation for a k-only constant in LO) *)
+   state = Replace[Lookup[{opts}, "State", Automatic], Automatic -> Select[cps, ! MemberQ[refs, #] &]];
+   FRGAssert["Adimensional.state", ListQ[state] && DuplicateFreeQ[state] && SubsetQ[Complement[cps, refs], state], state,
+    "\"State\" -> {couplings of the ansatz that are not references}"];
+   bad = Select[state, ! MemberQ[nonren, #] &];
+   FRGAssert["Adimensional.noBeta", bad === {}, bad, "these state couplings get no flow: in LO a constant coupling must be NonRenormalised"];
+   betaL = Expand[names[#] linearPart[vecs[#], Values[etas]]] & /@ state;
+
+   (* the loop part of each function's flow and its p -> 0 limit, dimensionless (structural + numerical routes) *)
+   loops = Function[r, Module[{x = adim[kk^dimSym r["Integrand"]/r["Reference"]]},
+       FRGAssert["Adimensional.unitInvariance", unitInvariantQ[x, basis, dimSym, testDims, 1], r["Function"],
+        "the loop integrand changes when the units are rescaled: it is not dimensionless (independent route)"];
+       homClean["Adimensional.homogeneous", x, ConstantArray[0, nb], unitIndex, nb, r["Function"]]]] /@ eqs;
+   etaRows = Function[r, Module[{x = adim[kk^dimSym r["EtaIntegrand"]/r["Reference"]]},
+       FRGAssert["Adimensional.unitInvariance", unitInvariantQ[x, basis, dimSym, testDims, 2], "eta row of " <> ToString[r["Function"]],
+        "the eta integrand changes when the units are rescaled: it is not dimensionless (independent route)"];
+       homClean["Adimensional.homogeneous", x, ConstantArray[0, nb], unitIndex, nb, r["Function"]]]] /@ eqs;
+   AppendTo[checks, assertCheck["Adimensional.homogeneous", True, Null, "",
+     "every loop and eta integrand free of k and the references: homogeneity of every sum (structural) and invariance under random unit rescaling (numerical, d = " <>
+      StringRiffle[ToString /@ testDims, ", "] <> ")"]];
+   linear = (etas[#Reference] #Function[ap^2] + 2 ap^2 Derivative[1][#Function][ap^2]) & /@ eqs;
+
+   (* eta system, etas in FUNCTIONS order *)
+   etaOrder = etas[#Reference] & /@ eqs;
+   ca = Normal[CoefficientArrays[Expand[etaRows], etaOrder]];
+   FRGAssert["Adimensional.etaLinear", Length[ca] == 2 && FreeQ[ca, Alternatives @@ etaOrder], etaRows, "the eta system is not linear in the etas"];
+   {vec, mat} = Together /@ # & /@ {ca[[1]], ca[[2]]};
+   mat = Map[Together, mat, {2}];
+   AppendTo[checks, assertCheck["Adimensional.etaSystem", True, Null, "",
+     "eta from f(0) = 1: (1 + <M>) eta = -<b>, " <> ToString[Length[eqs]] <> " rows (" <> StringRiffle[ToString /@ etaOrder, ", "] <> "), <.> = Integral daq LoopMeasure"]];
+   AppendTo[warns, infoCheck["INFO", "Adimensional.functionsLO", "F(p^2) = f(p^2/k^2); flow at fixed ap = p/k: d_s f = eta f + 2 ap^2 f'(ap^2) + loop/ref"]];
+
+   stage = stampStage[<|"Stage" -> "Adimensional", "Pipeline" -> "LO", "Upstream" -> {equations["Fingerprint"], dims["Fingerprint"]},
+      "Equations" -> equations, "Dimensions" -> dims, "State" -> state, "Couplings" -> (names /@ state), "References" -> refs,
+      "Functions" -> fs, "FunctionReferences" -> funcs, "Etas" -> etaOrder, "EtaNames" -> (dims["EtaNames"][#Reference] & /@ eqs), "MustFix" -> {},
+      "BetaL" -> betaL, "Linear" -> linear, "Loop" -> loops, "P2Divided" -> eqs[[All, "P2Divided"]], "EtaMatrix" -> mat, "EtaVector" -> vec,
+      "LoopMomentum" -> aq, "ExternalMomentum" -> ap, "Cosine" -> CosTheta, "Dimension" -> dimSym, "Shapes" -> shapes,
+      "Measure" -> <|"Loop" -> loLoopMeasure[dimSym, aq, Symbol["Global`theta"]], "Eta" -> LoopMeasure[dimSym, aq]|>,
+      "Checks" -> checks, "Warnings" -> warns, "Timing" -> AbsoluteTime[] - t0|>];
+   PrintCard[stage];
+   stage];
 
 (* ---------- inspection ---------- *)
 

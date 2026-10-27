@@ -70,6 +70,7 @@ compactify[a_, dsList_, orders_, explicit_] := Module[{tg, cands, best},
 AssembleEquations[closure_] := Block[{$FRGModule = "Assemble"},
   Module[{t0 = AbsoluteTime[], prop, reg, k, qU, cps, shapes, raw, deltaRules, jmax, rules, vals, forms, atomVals, toQ, d0, d1, orders,
     eqs, checks = {}, warns = {}, stage, explicitAtoms, validity, dsrRules, bad, private},
+   FRGAssert["Assemble.pipeline", NoneTrue[{closure}, AssociationQ[#] && Lookup[#, "Pipeline", None] === "LO" &], "LO", "this is a derivative-expansion stage; an LO ansatz (fn[...]) goes through BuildLOEquations (design/LOPIPELINE.md)"];
    validateStage[closure, "Closure"];
    prop = closure["Integrated"]["Projection"]["Loops"]["Propagator"];
    reg = closure["Integrated"]["Projection"]["Loops"]["Regulator"];

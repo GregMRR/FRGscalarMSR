@@ -32,3 +32,9 @@ Module[{F = Function[x, 1/(1 + x)], q = {3/10, -1/2, 2/5}, exact, num, f},
      test["oracle stencil n = 2, d = " <> ToString[d] <> ": rel. error < 10^-9", Abs[(num - exact)/exact] < 10^-9, True];
      test["oracle stencil n = 1, d = " <> ToString[d] <> ": N_1 = 2 d", Abs[FRGscalarMSR`Private`oracleLaplacianN[f, d, 1, 10^-5]/(2 d) - (F'[Q] + 2 Q F''[Q]/d)] < 10^-9, True]]],
    {d, 2, 3}]];
+
+(* LO branch (design/LOPIPELINE.md step 6): residue kernels at random p, q, c = numerical w integral of the loop, d = 2 and 3 *)
+Get[FileNameJoin[{testRoot, "reference", "KPZLOSetup.wl"}]];
+oLO = quiet[RunOracle[kpzloEquations, "ZeroFlows" -> True]];
+test["LO oracle: both functions and the zero entry, d = 2 and 3", {oLO["Pipeline"], Length[oLO["Results"]], Union[oLO["Results"][[All, "Dimension"]]]}, {"LO", 6, {2, 3}}];
+test["LO oracle: every result within 10^-8", AllTrue[oLO["Results"], #Error < 10^-8 &], True];

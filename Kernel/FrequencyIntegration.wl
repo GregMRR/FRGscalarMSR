@@ -13,7 +13,12 @@ Neglected) are evaluated exactly at random rational points of all atoms. Returns
 FrequencyIntegral::usage = "FrequencyIntegral[n, a, b, deg] = Integrate[w^n / (Delta(w)^a Delta(-w)^b), {w, -Infinity, Infinity}] with \
 Delta(w) = C0 + C1 (I w) + C2 (I w)^2 (deg = 2) or C0 + C1 (I w) (deg = 1), all roots of Delta(w) in the upper half plane; \
 rational in the coefficients FrequencyIntegralC[0..2].";
-FrequencyIntegralC::usage = "FrequencyIntegralC[m] is the coefficient c_m of Delta in FrequencyIntegral results.";
+FrequencyIntegralC::usage = "FrequencyIntegralC[m] is the coefficient c_m of Delta in FrequencyIntegral results; FrequencyIntegralC[j, m] \
+the coefficient c_m of the Delta of pole family j in FrequencyIntegralFamilies results.";
+FrequencyIntegralFamilies::usage = "FrequencyIntegralFamilies[n, {{a1, b1, deg}, {a2, b2, deg}}] = Integrate[w^n / Prod_j (Delta_j(w)^aj \
+Delta_j(-w)^bj), {w, -Infinity, Infinity}] for two pole families Delta_j(w) = sum_m FrequencyIntegralC[j, m] (I w)^m (the propagator \
+Delta at q and at Q = p + q, external frequency 0), all roots of each Delta_j(w) in the upper half plane; rational in the coefficients \
+(LO pipeline, design/LOPIPELINE.md step 4).";
 ShowFlow::usage = "ShowFlow[integrated, {a, b}, {m, n}] prints the integrated flow of a monomial (symbolic, or its sampled values).";
 
 Begin["`Private`"];
@@ -45,8 +50,67 @@ FrequencyIntegral[n_Integer, a_Integer, b_Integer, deg_Integer] := FrequencyInte
       r,
      True, FRGAssert["FrequencyIntegration.degree", False, deg, "deg Delta must be 1 or 2"]]]];
 
+(* ---------- two pole families (LO): Delta(w, q^2) and Delta(w, Q^2), external frequency 0 ---------- *)
+
+(* the roots of Delta_j(w) (upper half plane) and the leading coefficient: Delta_j(w) = lead (w - z_1)...; Delta_j(-w) = lead (-1)^deg (w + z_1)... *)
+loFamilyRoots[j_, 1] := {{I FrequencyIntegralC[j, 0]/FrequencyIntegralC[j, 1]}, I FrequencyIntegralC[j, 1]};
+loFamilyRoots[j_, 2] := {{I loAl[j] + loBe[j], I loAl[j] - loBe[j]}, -FrequencyIntegralC[j, 2]};
+
+(* r is even in loBe[j] separately for each family: make the denominator even, then beta^2 and alpha in the coefficients *)
+loEliminateBeta[r0_, j_] := Module[{be = loBe[j], num, den, x},
+   num = Expand[Numerator[r0] (Denominator[r0] /. be -> -be)]; den = Expand[Denominator[r0] (Denominator[r0] /. be -> -be)];
+   FRGAssert["FrequencyIntegration.evenInBeta", Expand[(num /. be -> -be) - num] === 0 && Expand[(den /. be -> -be) - den] === 0, j,
+    "internal: the residue sum is not symmetric in the two roots of one pole family"];
+   Together[((num /. be -> Sqrt[x]) /(den /. be -> Sqrt[x])) /. {x -> (4 FrequencyIntegralC[j, 0] FrequencyIntegralC[j, 2] - FrequencyIntegralC[j, 1]^2)/(4 FrequencyIntegralC[j, 2]^2),
+      loAl[j] -> FrequencyIntegralC[j, 1]/(2 FrequencyIntegralC[j, 2])}]];
+
+(* the residue sum is regular when the two families coincide (Q data -> q data): single residues carry 1/(z_q - z_Q) factors that
+   must cancel in the Together-simplified sum (design/LOPIPELINE.md step 4) *)
+loCheckRegularAtCoincidence[r_] := Module[{den = Denominator[Together[r]], co},
+   co = den /. FrequencyIntegralC[2, m_] :> FrequencyIntegralC[1, m];
+   FRGAssert["FrequencyIntegration.regularAtCoincidence", ! ExactlyZeroQ[co], den,
+    "internal: the two-family residue sum is singular when the Delta at Q equals the Delta at q (uncancelled 1/(z_q - z_Q))"];
+   r];
+
+FrequencyIntegralFamilies[n_Integer, fams : {{_Integer, _Integer, _Integer} ..}] := FrequencyIntegralFamilies[n, fams] = Block[{$FRGModule = "FrequencyIntegration"},
+   Module[{w, roots, leads, f, r = 0, nf = Length[fams]},
+    FRGAssert["FrequencyIntegration.convergence", n - Total[(#[[1]] + #[[2]]) #[[3]] & /@ fams] <= -2, {n, fams},
+     "divergent frequency integral: the integrand does not decay faster than 1/w^2"];
+    FRGAssert["FrequencyIntegration.degree", AllTrue[fams[[All, 3]], MemberQ[{1, 2}, #] &], fams, "deg Delta must be 1 or 2 per pole family"];
+    {roots, leads} = Transpose[Table[loFamilyRoots[j, fams[[j, 3]]], {j, nf}]];
+    f = w^n/Product[(leads[[j]]^fams[[j, 1]] Product[(w - z)^fams[[j, 1]], {z, roots[[j]]}]) *
+        ((leads[[j]] (-1)^fams[[j, 3]])^fams[[j, 2]] Product[(w + z)^fams[[j, 2]], {z, roots[[j]]}]), {j, nf}];
+    (* residues at the upper-half-plane roots of every Delta_j(w), pole order a_j *)
+    Do[With[{a = fams[[j, 1]]}, If[a > 0, Do[
+        r += (D[Together[f (w - z)^a], {w, a - 1}] /. w -> z)/(a - 1)!, {z, roots[[j]]}]]], {j, nf}];
+    r = Together[2 Pi I r];
+    Do[If[fams[[j, 3]] == 2, r = loEliminateBeta[r, j]], {j, nf}];
+    FRGAssert["FrequencyIntegration.rational", FreeQ[r, _loBe | _loAl | Power[_, _Rational]], r, "internal: square roots survived"];
+    loCheckRegularAtCoincidence[r]]];
+
+(* LO dispatch: monomials w^n X1^a1 Y1^b1 X2^a2 Y2^b2 with X_j = 1/Delta(w, s_j), Y_j = 1/Delta(-w, s_j); a single family goes to
+   FrequencyIntegral. cvals[j] are the rules FrequencyIntegralC[m] -> c_m of family j *)
+loIntegrate[e_, w_, {s1_, s2_}, deg_] := Module[{exy, res, cv},
+   exy = e /. {\[CapitalDelta][w, s1] -> 1/loX1, \[CapitalDelta][-w, s1] -> 1/loY1, \[CapitalDelta][w, s2] -> 1/loX2, \[CapitalDelta][-w, s2] -> 1/loY2};
+   FRGAssert["FrequencyIntegration.ready", FreeQ[exy, \[CapitalDelta] | Derivative[__][\[CapitalDelta]]], Cases[exy, _\[CapitalDelta], Infinity],
+    "integrand not ready: Delta with a momentum other than q and Q"];
+   cv[j_, s_] := Table[FrequencyIntegralC[j, m] -> DeltaCoefficient[m][s], {m, 0, 2}];
+   res = Total[Function[cr, Module[{n, a1, b1, a2, b2},
+        {n, a1, b1, a2, b2} = cr[[1]];
+        cr[[2]] Which[
+          a2 == 0 && b2 == 0, FrequencyIntegral[n, a1, b1, deg] /. FrequencyIntegralC[m_] :> DeltaCoefficient[m][s1],
+          a1 == 0 && b1 == 0, FrequencyIntegral[n, a2, b2, deg] /. FrequencyIntegralC[m_] :> DeltaCoefficient[m][s2],
+          True, FrequencyIntegralFamilies[n, {{a1, b1, deg}, {a2, b2, deg}}] /. Join[cv[1, s1], cv[2, s2]]]]] /@
+      CoefficientRules[exy, {w, loX1, loY1, loX2, loY2}]];
+   FRGAssert["FrequencyIntegration.complete", FreeQ[res, w | loX1 | loY1 | loX2 | loY2 | \[CapitalDelta] | Power[_, _Rational]], res, "leftover w, Delta or radicals"];
+   res];
+
 (* dispatch on monomials w^n X^a Y^b, X = 1/Delta(w), Y = 1/Delta(-w): no table, nothing skipped *)
 integrate[e_, w_, deg_, cvals_] := Module[{exy, res},
+   (* one momentum only: a loop with Delta(w, q^2) and Delta(w, Q^2) needs the two-family residues (review E4 of design/LOPIPELINE.md) *)
+   With[{moms = Union[Cases[e, \[CapitalDelta][w | -w, s_] :> s, {0, Infinity}]]},
+    FRGAssert["FrequencyIntegration.singleMomentum", Length[moms] <= 1, moms,
+     "Delta appears at several momenta: every pole factor would get the same residue (wrong); this needs FrequencyIntegralFamilies (LO pipeline)"]];
    exy = e /. {\[CapitalDelta][w, _] -> 1/xX, \[CapitalDelta][-w, _] -> 1/yY};
    FRGAssert["FrequencyIntegration.ready", FreeQ[exy, \[CapitalDelta] | Derivative[__][\[CapitalDelta]]], Cases[exy, _\[CapitalDelta], Infinity],
     "integrand not ready: Delta with another argument"];
