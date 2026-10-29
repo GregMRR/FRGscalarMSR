@@ -10,15 +10,15 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       154,          7]
-NotebookDataLength[     12252,        241]
-NotebookOptionsPosition[      8928,        196]
-NotebookOutlinePosition[      9242,        210]
-CellTagsIndexPosition[      9199,        207]
+NotebookDataLength[     12270,        241]
+NotebookOptionsPosition[      8946,        196]
+NotebookOutlinePosition[      9260,        210]
+CellTagsIndexPosition[      9217,        207]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
-Cell["Benchmark: KPZ at LO (functions of p^2)", "Title",ExpressionUUID->"2c94feb7-6abc-4c5b-9b00-32fc2a4659e0"],
+Cell["Benchmark: KPZ at LO (functions of p^2)", "Title",ExpressionUUID->"8e68cb27-ec32-4c53-980a-62b9caedeb5a"],
 
 Cell["\<\
 Reference: the KPZ LO flow of BMWflow, written in notes/LO_flow_equations.tex \
@@ -27,7 +27,7 @@ with f_lambda = 1 and the functions at zero frequency) and coded by hand in \
 flow/models/model_kpz.py. This notebook derives the same flow with \
 FRGscalarMSR from the ansatz alone and compares it with the notes, exactly, \
 at every external momentum p, loop momentum q, angle and dimension d.\
-\>", "Text",ExpressionUUID->"d836dcd6-eac3-4b36-a508-a03458cbb796"],
+\>", "Text",ExpressionUUID->"571f2899-ca43-4dce-a876-362a740a7a90"],
 
 Cell["\<\
 Why this benchmark: it is the first test of the LO pipeline \
@@ -35,15 +35,15 @@ Why this benchmark: it is the first test of the LO pipeline \
 generic external momentum whose frequency integral has two pole families (at \
 q and at Q = p + q), the anomalous dimensions from f(0) = 1 as the p -> 0 \
 limit of the same loop, and the dimensionless flow at fixed p/k.\
-\>", "Text",ExpressionUUID->"fc9e2dab-6b76-47d2-b995-9065ac1c9880"],
+\>", "Text",ExpressionUUID->"3490fd0e-64b9-425d-92c3-52ed2f8df588"],
 
 Cell["\<\
 Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
 kpzloDir = \
 ExpandFileName[\"~/Physics/Sources/FRGscalarMSR/benchmarks/KPZLO\"];\
-\>", "Input",ExpressionUUID->"8842fd58-e859-4d1b-bd5d-63f3d08f7ff3"],
+\>", "Input",ExpressionUUID->"86204148-bdc1-41a8-8be0-361445ad94ee"],
 
-Cell["1. Model and ansatz", "Section",ExpressionUUID->"6fd13437-4a40-4d0b-8043-f3193a4f4621"],
+Cell["1. Model and ansatz", "Section",ExpressionUUID->"c05a513b-b7e9-44eb-9234-3491dfff23db"],
 
 Cell["\<\
 Gamma_k = Int hbar { dt h - nu fnu(-Laplacian) lap h - lam/2 (grad h)^2 } - D \
@@ -51,11 +51,11 @@ hbar fD(-Laplacian) hbar, so Gamma(1,1) = i w + nu p^2 fnu(p^2) and \
 Gamma(0,2) = -2 D fD(p^2). fn[f, X] is f(-Laplacian) acting on X; \"Functions\
 \" ties each function to its reference coupling and states f(0) = 1. The fn \
 in the density selects the LO pipeline.\
-\>", "Text",ExpressionUUID->"14f4b859-0047-415f-9bfb-d33fc0a59923"],
+\>", "Text",ExpressionUUID->"471a0ac2-8959-48fc-9803-667acc4d60b4"],
 
 Cell["\<\
 kpzloTheory = DefineTheory[\"Scalars\" -> {h}, \"Dimension\" -> Dim];\
-\>", "Input",ExpressionUUID->"679c95d6-f4fb-480a-8641-ba36e801fb0f"],
+\>", "Input",ExpressionUUID->"864c0725-c83b-4789-b383-1bbd328aff33"],
 
 Cell["\<\
 kpzloAnsatz = DefineAnsatz[kpzloTheory,
@@ -63,9 +63,9 @@ kpzloAnsatz = DefineAnsatz[kpzloTheory,
 - Dk hbar fn[fD, hbar],
   \"Couplings\" -> {nuk, lamk, Dk}, \"Functions\" -> {fD -> Dk, fnu -> nuk}];\
 \
-\>", "Input",ExpressionUUID->"1a6d04e6-d9d4-4274-b4b6-bf4c48c163bd"],
+\>", "Input",ExpressionUUID->"9c417cfc-c244-4fbe-a1ce-ea54f1ec1340"],
 
-Cell["2. Symmetries, vertices, regulator, propagator, loops", "Section",ExpressionUUID->"65997b77-fd88-4753-8b08-4389761f7236"],
+Cell["2. Symmetries, vertices, regulator, propagator, loops", "Section",ExpressionUUID->"ff178d52-6a14-450d-a699-12336963cf8b"],
 
 Cell["\<\
 In LO the symmetries are declarations: the Galilean Ward identity (the 1 of i \
@@ -73,7 +73,7 @@ w) is checked at p = 0, the shift symmetry by the vanishing of the p^0 order \
 of Gamma(1,1) (so the fnu row can be divided by p^2). The regulators are \
 those of kpz_notation.tex with two independent shapes, R_nu = nu q^2 rn and \
 R_D = D rd; the notes use one shape r, substituted in the comparison.\
-\>", "Text",ExpressionUUID->"0062d8dc-572b-456d-8636-42a49024efb6"],
+\>", "Text",ExpressionUUID->"ed2ba42a-61f4-45bd-ae14-b6e4a94e7400"],
 
 Cell["\<\
 kpzloSymmetries = DeclareSymmetries[kpzloAnsatz,
@@ -82,25 +82,25 @@ kpzloSymmetries = DeclareSymmetries[kpzloAnsatz,
   Protected[{h, hbar}, \"Frequency\" -> 0, \"Momentum\" -> 0, \"Reason\" -> \
 \"h -> h + c (shift symmetry)\"],
   NonRenormalised[lamk, \"Reason\" -> \"Galilean invariance\"]];\
-\>", "Input",ExpressionUUID->"81d2eb22-1af5-4b61-9fe6-27ae94875f51"],
+\>", "Input",ExpressionUUID->"932733df-a7ac-41d1-9d1a-bb72b552baa5"],
 
-Cell["kpzloVertices = BuildVertices[kpzloAnsatz];", "Input",ExpressionUUID->"416aef2f-88a6-4f3a-8b32-b27bf889a055"],
+Cell["kpzloVertices = BuildVertices[kpzloAnsatz];", "Input",ExpressionUUID->"0adcef50-b062-488c-961b-4d0ab8a380d7"],
 
 Cell["\<\
 kpzloRegulator = DefineRegulator[kpzloAnsatz, {hbar, h} -> nuk q^2 \
 rn[q^2/k^2], {hbar, hbar} -> -2 Dk rd[q^2/k^2], \"Shapes\" -> {rn, rd}];\
-\>", "Input",ExpressionUUID->"e419a152-a812-4f16-abae-002be181e779"],
+\>", "Input",ExpressionUUID->"f1b356ad-cd59-416b-9b82-9555d0d877ba"],
 
 Cell["\<\
 kpzloPropagator = BuildPropagator[kpzloVertices, kpzloRegulator];\
-\>", "Input",ExpressionUUID->"ad88e1ef-64ec-4eeb-8a30-2bd9faa65e1c"],
+\>", "Input",ExpressionUUID->"d1e8968f-67ba-4945-919e-72a86570b6ee"],
 
 Cell["\<\
 kpzloLoops = BuildLoopIntegrands[kpzloVertices, kpzloPropagator, \
 kpzloRegulator];\
-\>", "Input",ExpressionUUID->"ed63f491-b9a2-44ac-b09b-71b94b07e2b9"],
+\>", "Input",ExpressionUUID->"d34b85e5-b365-4020-b9ba-766288bff481"],
 
-Cell["3. LO equations, oracle, dimensionless form", "Section",ExpressionUUID->"fd7624b6-4865-4dda-94a4-7d392d8c1105"],
+Cell["3. LO equations, oracle, dimensionless form", "Section",ExpressionUUID->"8fe46480-1c28-4f2b-9dc7-33ce247b7c79"],
 
 Cell["\<\
 BuildLOEquations integrates the loop over the frequency by residues at the \
@@ -109,41 +109,41 @@ prefactor (nuk p^2 for fnu, -2 Dk for fD) and takes the p -> 0 limit for eta. \
 RunOracle compares the residue result with a numerical frequency integral at \
 a random point. AdimensionalEquations writes F(p^2) = f(p^2/k^2) and the flow \
 at fixed p/k, which gives the linear part eta f + 2 p^2 f'(p^2).\
-\>", "Text",ExpressionUUID->"64ff33f3-7e16-4d1c-8300-9791a9a423ea"],
+\>", "Text",ExpressionUUID->"55e19b63-02c2-4341-8a7f-5bcb39f24a99"],
 
 Cell["\<\
 kpzloEquations = BuildLOEquations[kpzloLoops, kpzloSymmetries];\
-\>", "Input",ExpressionUUID->"32edb6a2-8a55-4dc1-9719-24438d6c002d"],
+\>", "Input",ExpressionUUID->"c740fa6e-acdb-46f5-b1b4-e969f93dfcc3"],
 
-Cell["RunOracle[kpzloEquations, \"ZeroFlows\" -> True];", "Input",ExpressionUUID->"16098024-3929-44ba-b894-d5803130480e"],
+Cell["RunOracle[kpzloEquations, \"ZeroFlows\" -> True];", "Input",ExpressionUUID->"f6289693-18ff-4c1e-8157-807b7f3ee73e"],
 
 Cell["\<\
 kpzloDims = DeriveDimensions[kpzloAnsatz, \"References\" -> {nuk -> \"nu\", \
 Dk -> \"D\"}];
 kpzloAdim = AdimensionalEquations[kpzloEquations, kpzloDims];\
-\>", "Input",ExpressionUUID->"45cb3591-8581-418c-a51c-2fdbc016af3e"],
+\>", "Input",ExpressionUUID->"6b68c6c8-f80a-4251-9e66-2b6aff65688d"],
 
 Cell["\<\
 {kpzloAdim[\"Functions\"], kpzloAdim[\"Etas\"], kpzloAdim[\"Linear\"], \
 kpzloAdim[\"BetaL\"], kpzloAdim[\"P2Divided\"]}\
-\>", "Input",ExpressionUUID->"a9b30e15-3030-486e-a6b5-a8c3465c0f93"],
+\>", "Input",ExpressionUUID->"98fd832d-6c32-471d-a8a3-5c68a446b5d9"],
 
-Cell["4. The reference (LO_flow_equations.tex, kpz_notation.tex)", "Section",ExpressionUUID->"0c3a3d71-ed86-401e-8152-2096ef7409a0"],
+Cell["4. The reference (LO_flow_equations.tex, kpz_notation.tex)", "Section",ExpressionUUID->"7f557ba7-42af-4972-9c39-9b21920616e0"],
 
 Cell["\<\
 Reference.wl transcribes the kernels A_a, A_c, A_d, the loop integrands of \
 I_D and I_nu (with I_nu's 1/p^2), the eta matrix and vector, and d_s g = g (d \
 - 2 - eta_D + 3 eta_nu), in the notes' variables ph, qh, ch = cos(theta), l_q \
 = q^2 (fnu + r), k_q = fD + r, g = lam^2 D/nu^3 k^(d-2).\
-\>", "Text",ExpressionUUID->"d8146047-28c2-4304-8224-bb311083c959"],
+\>", "Text",ExpressionUUID->"6cc7c45f-c5de-4f1d-88fd-cc42eeeaf9e7"],
 
 Cell["\<\
 Get[FileNameJoin[{kpzloDir, \"Reference.wl\"}]];
 Column[{\"D\" -> Short[kpzloRefLoop[\"D\"], 4], \"nu\" -> Short[kpzloRefLoop[\
 \"nu\"], 4]}, Spacings -> 2]\
-\>", "Input",ExpressionUUID->"53a593ea-b851-46be-97ad-92b31739761d"],
+\>", "Input",ExpressionUUID->"70e68c43-21f4-445c-b4b4-d571a0498332"],
 
-Cell["5. Comparison", "Section",ExpressionUUID->"c0357d6e-01a6-4591-ae8e-0e0837cc9c47"],
+Cell["5. Comparison", "Section",ExpressionUUID->"ce1b21f5-c12f-4a8f-bf49-26f4285b4448"],
 
 Cell["\<\
 Checks.wl writes the library's stage in the notes' variables (ap -> ph, aq -> \
@@ -151,20 +151,20 @@ qh, CosTheta -> ch, rn = rd = r, alamk^2 = g) and compares with ExactlyZeroQ: \
 random rationals for every symbol and every function atom f(x), f'(x), r(x), \
 r'(x), so the test is pointwise, not after integration, and holds at symbolic \
 d.\
-\>", "Text",ExpressionUUID->"597806a2-94be-4766-b926-1a3cc160d1ea"],
+\>", "Text",ExpressionUUID->"76c0b439-89b9-40b2-a549-73f3bfa44295"],
 
 Cell["\<\
 Get[FileNameJoin[{kpzloDir, \"Checks.wl\"}]];
 {ExactlyZeroQ[kpzloLibrary[\"Loop\"][[1]] - kpzloRefLoop[\"D\"]], \
 ExactlyZeroQ[kpzloLibrary[\"Loop\"][[2]] - kpzloRefLoop[\"nu\"]]}\
-\>", "Input",ExpressionUUID->"a4ee8b29-1079-4e88-8402-e81aab8b99ba"],
+\>", "Input",ExpressionUUID->"46a0c133-6e13-46d2-9e7e-392d19af88df"],
 
 Cell["\<\
 {ExactlyZeroQ[kpzloLibrary[\"EtaMatrix\"] - kpzloRefEta[\"Matrix\"]], \
 ExactlyZeroQ[kpzloLibrary[\"EtaVector\"] - kpzloRefEta[\"Vector\"]]}\
-\>", "Input",ExpressionUUID->"f470dd73-079d-4c99-b62d-d5137ca6274c"],
+\>", "Input",ExpressionUUID->"27e2f38b-5fe0-4ad4-9e79-c5a8e26d6e81"],
 
-Cell["6. Summary and the Python export", "Section",ExpressionUUID->"952028e6-fc7d-4521-94b4-46423ddcc9c6"],
+Cell["6. Summary and the Python export", "Section",ExpressionUUID->"19f0167a-09d4-44da-915f-780129267efc"],
 
 Cell["\<\
 The same checks as benchmarks/KPZLO/run.wl and the suite hook \
@@ -172,31 +172,31 @@ tests/acceptance/KPZLO.wl. The next cell rebuilds the stage from Pipeline.wl \
 (cards hidden) and checks that it gives the same loops, so that this notebook \
 and the scripted benchmark cannot drift apart. The last cell writes the \
 BMWflow module (docs/handoff/BMWflow_LO.md) to a temporary directory.\
-\>", "Text",ExpressionUUID->"2c1768a0-eca9-4df0-b246-8d3cea27a126"],
+\>", "Text",ExpressionUUID->"5636e23c-b273-41cb-a1ea-7ad308aaecbb"],
 
 Cell["\<\
 kpzloResults = kpzloChecks[];
 kpzloSummary[kpzloResults]\
-\>", "Input",ExpressionUUID->"6c6b0dae-fe2d-42ce-afc2-7bc12da04fc5"],
+\>", "Input",ExpressionUUID->"cc6401e8-6ee6-4a85-a4e8-53f9d6aa5b8d"],
 
 Cell["\<\
 If[AllTrue[kpzloResults, #Pass &], \"all checks pass\", Abort[]]\
-\>", "Input",ExpressionUUID->"ef061440-ce8c-4ad7-808f-c8c21a25ef9b"],
+\>", "Input",ExpressionUUID->"402fb3d5-b623-4460-b7e1-620b1e899314"],
 
 Cell["\<\
 nbLoops = kpzloAdim[\"Loop\"];
 Block[{kpzloAdim, Print}, Get[FileNameJoin[{kpzloDir, \"Pipeline.wl\"}]]; \
 If[kpzloAdim[\"Loop\"] === nbLoops, \"same stage as Pipeline.wl\", Abort[]]]\
-\>", "Input",ExpressionUUID->"8964191e-e3e3-42b5-9422-76d4e901e395"],
+\>", "Input",ExpressionUUID->"c5320ebf-2c00-4f0b-a8cc-ab872c2dc6a5"],
 
 Cell["\<\
-ExportPython[kpzloAdim, \"Model\" -> \"KPZ\", \"File\" -> \
+ExportPython[kpzloAdim, \"G\" -> alamk^2, \"Model\" -> \"KPZ\", \"File\" -> \
 FileNameJoin[{$TemporaryDirectory, \"KPZ_LO.py\"}]]\
-\>", "Input",ExpressionUUID->"7a577f3b-f20e-4368-a814-82cbd0b55c64"]
+\>", "Input",ExpressionUUID->"1c2b95f8-ab7a-421d-b86b-1adc009d5990"]
 },
 FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
 StyleDefinitions->"Default.nb",
-ExpressionUUID->"6bc41a2e-4335-4469-ab5e-e42d7adf42b1"
+ExpressionUUID->"2a12a001-242d-48f8-ac96-1aa350b0fea8"
 ]
 (* End of Notebook Content *)
 
@@ -209,40 +209,40 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[554, 20, 111, 0, 70, "Title",ExpressionUUID->"2c94feb7-6abc-4c5b-9b00-32fc2a4659e0"],
-Cell[668, 22, 530, 7, 70, "Text",ExpressionUUID->"d836dcd6-eac3-4b36-a508-a03458cbb796"],
-Cell[1201, 31, 433, 6, 70, "Text",ExpressionUUID->"fc9e2dab-6b76-47d2-b995-9065ac1c9880"],
-Cell[1637, 39, 218, 4, 70, "Input",ExpressionUUID->"8842fd58-e859-4d1b-bd5d-63f3d08f7ff3"],
-Cell[1858, 45, 93, 0, 70, "Section",ExpressionUUID->"6fd13437-4a40-4d0b-8043-f3193a4f4621"],
-Cell[1954, 47, 425, 6, 70, "Text",ExpressionUUID->"14f4b859-0047-415f-9bfb-d33fc0a59923"],
-Cell[2382, 55, 149, 2, 70, "Input",ExpressionUUID->"679c95d6-f4fb-480a-8641-ba36e801fb0f"],
-Cell[2534, 59, 302, 6, 70, "Input",ExpressionUUID->"1a6d04e6-d9d4-4274-b4b6-bf4c48c163bd"],
-Cell[2839, 67, 127, 0, 70, "Section",ExpressionUUID->"65997b77-fd88-4753-8b08-4389761f7236"],
-Cell[2969, 69, 460, 6, 70, "Text",ExpressionUUID->"0062d8dc-572b-456d-8636-42a49024efb6"],
-Cell[3432, 77, 437, 7, 70, "Input",ExpressionUUID->"81d2eb22-1af5-4b61-9fe6-27ae94875f51"],
-Cell[3872, 86, 115, 0, 70, "Input",ExpressionUUID->"416aef2f-88a6-4f3a-8b32-b27bf889a055"],
-Cell[3990, 88, 221, 3, 70, "Input",ExpressionUUID->"e419a152-a812-4f16-abae-002be181e779"],
-Cell[4214, 93, 145, 2, 70, "Input",ExpressionUUID->"ad88e1ef-64ec-4eeb-8a30-2bd9faa65e1c"],
-Cell[4362, 97, 163, 3, 70, "Input",ExpressionUUID->"ed63f491-b9a2-44ac-b09b-71b94b07e2b9"],
-Cell[4528, 102, 117, 0, 70, "Section",ExpressionUUID->"fd7624b6-4865-4dda-94a4-7d392d8c1105"],
-Cell[4648, 104, 536, 7, 70, "Text",ExpressionUUID->"64ff33f3-7e16-4d1c-8300-9791a9a423ea"],
-Cell[5187, 113, 143, 2, 70, "Input",ExpressionUUID->"32edb6a2-8a55-4dc1-9719-24438d6c002d"],
-Cell[5333, 117, 121, 0, 70, "Input",ExpressionUUID->"16098024-3929-44ba-b894-d5803130480e"],
-Cell[5457, 119, 234, 4, 70, "Input",ExpressionUUID->"45cb3591-8581-418c-a51c-2fdbc016af3e"],
-Cell[5694, 125, 200, 3, 70, "Input",ExpressionUUID->"a9b30e15-3030-486e-a6b5-a8c3465c0f93"],
-Cell[5897, 130, 132, 0, 70, "Section",ExpressionUUID->"0c3a3d71-ed86-401e-8152-2096ef7409a0"],
-Cell[6032, 132, 372, 5, 70, "Text",ExpressionUUID->"d8146047-28c2-4304-8224-bb311083c959"],
-Cell[6407, 139, 236, 4, 70, "Input",ExpressionUUID->"53a593ea-b851-46be-97ad-92b31739761d"],
-Cell[6646, 145, 87, 0, 70, "Section",ExpressionUUID->"c0357d6e-01a6-4591-ae8e-0e0837cc9c47"],
-Cell[6736, 147, 400, 6, 70, "Text",ExpressionUUID->"597806a2-94be-4766-b926-1a3cc160d1ea"],
-Cell[7139, 155, 259, 4, 70, "Input",ExpressionUUID->"a4ee8b29-1079-4e88-8402-e81aab8b99ba"],
-Cell[7401, 161, 220, 3, 70, "Input",ExpressionUUID->"f470dd73-079d-4c99-b62d-d5137ca6274c"],
-Cell[7624, 166, 106, 0, 70, "Section",ExpressionUUID->"952028e6-fc7d-4521-94b4-46423ddcc9c6"],
-Cell[7733, 168, 445, 6, 70, "Text",ExpressionUUID->"2c1768a0-eca9-4df0-b246-8d3cea27a126"],
-Cell[8181, 176, 136, 3, 70, "Input",ExpressionUUID->"6c6b0dae-fe2d-42ce-afc2-7bc12da04fc5"],
-Cell[8320, 181, 144, 2, 70, "Input",ExpressionUUID->"ef061440-ce8c-4ad7-808f-c8c21a25ef9b"],
-Cell[8467, 185, 263, 4, 70, "Input",ExpressionUUID->"8964191e-e3e3-42b5-9422-76d4e901e395"],
-Cell[8733, 191, 191, 3, 70, "Input",ExpressionUUID->"7a577f3b-f20e-4368-a814-82cbd0b55c64"]
+Cell[554, 20, 111, 0, 70, "Title",ExpressionUUID->"8e68cb27-ec32-4c53-980a-62b9caedeb5a"],
+Cell[668, 22, 530, 7, 70, "Text",ExpressionUUID->"571f2899-ca43-4dce-a876-362a740a7a90"],
+Cell[1201, 31, 433, 6, 70, "Text",ExpressionUUID->"3490fd0e-64b9-425d-92c3-52ed2f8df588"],
+Cell[1637, 39, 218, 4, 70, "Input",ExpressionUUID->"86204148-bdc1-41a8-8be0-361445ad94ee"],
+Cell[1858, 45, 93, 0, 70, "Section",ExpressionUUID->"c05a513b-b7e9-44eb-9234-3491dfff23db"],
+Cell[1954, 47, 425, 6, 70, "Text",ExpressionUUID->"471a0ac2-8959-48fc-9803-667acc4d60b4"],
+Cell[2382, 55, 149, 2, 70, "Input",ExpressionUUID->"864c0725-c83b-4789-b383-1bbd328aff33"],
+Cell[2534, 59, 302, 6, 70, "Input",ExpressionUUID->"9c417cfc-c244-4fbe-a1ce-ea54f1ec1340"],
+Cell[2839, 67, 127, 0, 70, "Section",ExpressionUUID->"ff178d52-6a14-450d-a699-12336963cf8b"],
+Cell[2969, 69, 460, 6, 70, "Text",ExpressionUUID->"ed2ba42a-61f4-45bd-ae14-b6e4a94e7400"],
+Cell[3432, 77, 437, 7, 70, "Input",ExpressionUUID->"932733df-a7ac-41d1-9d1a-bb72b552baa5"],
+Cell[3872, 86, 115, 0, 70, "Input",ExpressionUUID->"0adcef50-b062-488c-961b-4d0ab8a380d7"],
+Cell[3990, 88, 221, 3, 70, "Input",ExpressionUUID->"f1b356ad-cd59-416b-9b82-9555d0d877ba"],
+Cell[4214, 93, 145, 2, 70, "Input",ExpressionUUID->"d1e8968f-67ba-4945-919e-72a86570b6ee"],
+Cell[4362, 97, 163, 3, 70, "Input",ExpressionUUID->"d34b85e5-b365-4020-b9ba-766288bff481"],
+Cell[4528, 102, 117, 0, 70, "Section",ExpressionUUID->"8fe46480-1c28-4f2b-9dc7-33ce247b7c79"],
+Cell[4648, 104, 536, 7, 70, "Text",ExpressionUUID->"55e19b63-02c2-4341-8a7f-5bcb39f24a99"],
+Cell[5187, 113, 143, 2, 70, "Input",ExpressionUUID->"c740fa6e-acdb-46f5-b1b4-e969f93dfcc3"],
+Cell[5333, 117, 121, 0, 70, "Input",ExpressionUUID->"f6289693-18ff-4c1e-8157-807b7f3ee73e"],
+Cell[5457, 119, 234, 4, 70, "Input",ExpressionUUID->"6b68c6c8-f80a-4251-9e66-2b6aff65688d"],
+Cell[5694, 125, 200, 3, 70, "Input",ExpressionUUID->"98fd832d-6c32-471d-a8a3-5c68a446b5d9"],
+Cell[5897, 130, 132, 0, 70, "Section",ExpressionUUID->"7f557ba7-42af-4972-9c39-9b21920616e0"],
+Cell[6032, 132, 372, 5, 70, "Text",ExpressionUUID->"6cc7c45f-c5de-4f1d-88fd-cc42eeeaf9e7"],
+Cell[6407, 139, 236, 4, 70, "Input",ExpressionUUID->"70e68c43-21f4-445c-b4b4-d571a0498332"],
+Cell[6646, 145, 87, 0, 70, "Section",ExpressionUUID->"ce1b21f5-c12f-4a8f-bf49-26f4285b4448"],
+Cell[6736, 147, 400, 6, 70, "Text",ExpressionUUID->"76c0b439-89b9-40b2-a549-73f3bfa44295"],
+Cell[7139, 155, 259, 4, 70, "Input",ExpressionUUID->"46a0c133-6e13-46d2-9e7e-392d19af88df"],
+Cell[7401, 161, 220, 3, 70, "Input",ExpressionUUID->"27e2f38b-5fe0-4ad4-9e79-c5a8e26d6e81"],
+Cell[7624, 166, 106, 0, 70, "Section",ExpressionUUID->"19f0167a-09d4-44da-915f-780129267efc"],
+Cell[7733, 168, 445, 6, 70, "Text",ExpressionUUID->"5636e23c-b273-41cb-a1ea-7ad308aaecbb"],
+Cell[8181, 176, 136, 3, 70, "Input",ExpressionUUID->"cc6401e8-6ee6-4a85-a4e8-53f9d6aa5b8d"],
+Cell[8320, 181, 144, 2, 70, "Input",ExpressionUUID->"402fb3d5-b623-4460-b7e1-620b1e899314"],
+Cell[8467, 185, 263, 4, 70, "Input",ExpressionUUID->"c5320ebf-2c00-4f0b-a8cc-ab872c2dc6a5"],
+Cell[8733, 191, 209, 3, 70, "Input",ExpressionUUID->"1c2b95f8-ab7a-421d-b86b-1adc009d5990"]
 }
 ]
 *)

@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-(* Python round trip of an exported LO module (design/LOPIPELINE.md section 7). pythonRoundTrip[name, adim, model] exports adim,
+(* Python round trip of an exported LO module (design/LOPIPELINE.md section 7). pythonRoundTrip[name, adim, model, g] exports adim with "G" -> g,
    imports the module in python3 (numpy), evaluates every function (linear, loop, eta_matrix, eta_vector, beta) at a few points,
    including a non-integer d, and compares with the same parts evaluated exactly in Mathematica (relative 1e-13). The point
    values are dyadic rationals, exact in binary floating point. A second call passes numpy arrays: loop must broadcast
@@ -19,19 +19,19 @@ pythonPoint[adim_, seed_, d_] := Module[{nf = Length[adim["Functions"]], ns = Le
    SeedRandom[seed];
    dy[] := RandomInteger[{16, 127}]/128;
    tup[n_] := Table[dy[], n];
-   <|"p" -> dy[], "q" -> dy[], "c" -> RandomInteger[{-120, 120}]/128, "fq" -> tup[nf], "fQ" -> tup[nf], "rq" -> tup[ns], "rq_" -> -tup[ns], "rQ" -> tup[ns],
-    "f" -> tup[nf], "fprime" -> -tup[nf], "r" -> tup[ns], "r_" -> -tup[ns], "eta" -> tup[ne], "couplings" -> tup[nc], "d" -> d|>];
+   <|"p" -> dy[], "q" -> dy[], "c" -> RandomInteger[{-120, 120}]/128, "Q2" -> Null, "fq" -> tup[nf], "fQ" -> tup[nf], "rq" -> tup[ns], "rq_" -> -tup[ns], "rQ" -> tup[ns],
+    "f" -> tup[nf], "fprime" -> -tup[nf], "r" -> tup[ns], "r_" -> -tup[ns], "eta" -> tup[ne], "couplings" -> tup[nc], "d" -> d|> // (Append[#, "Q2" -> #p^2 + #q^2 + 2 #p #q #c] &)];
 
-pythonValue[e_, pt_] := N[e /. {PythonVariable[s_, i_] :> pt[s][[i + 1]], PythonVariable[s_] :> pt[s]}, 30];
+pythonValue[e_, pt_] := N[e /. {PythonAtom[a_, i_, b_, j_] :> pt[a][[i + 1]] + pt[b][[j + 1]], PythonVariable[s_, i_] :> pt[s][[i + 1]], PythonVariable[s_] :> pt[s]}, 30];
 
-pythonArgs = <|"linear" -> {"p", "f", "fprime", "eta", "couplings", "d"}, "loop" -> {"p", "q", "c", "fq", "fQ", "rq", "rq_", "rQ", "eta", "couplings", "d"},
+pythonArgs = <|"linear" -> {"p", "f", "fprime", "eta", "couplings", "d"}, "loop" -> {"p", "q", "c", "Q2", "fq", "fQ", "rq", "rq_", "rQ", "eta", "couplings", "d"},
    "eta_matrix" -> {"q", "f", "fprime", "r", "r_", "couplings", "d"}, "eta_vector" -> {"q", "f", "fprime", "r", "r_", "couplings", "d"},
    "beta" -> {"couplings", "eta", "d"}|>;
 
-pythonRoundTrip[name_String, adim_, model_String] := Module[{file, parts, pts, mma, script, out, py, rel, call, bro},
+pythonRoundTrip[name_String, adim_, model_String, gexpr_] := Module[{file, parts, pts, mma, script, out, py, rel, call, bro},
    If[$pythonExe === None, skip[name <> ": Python round trip", "python3 with numpy not found", "python"]; Return[Null]];
-   file = quiet[ExportPython[adim, "Model" -> model, "File" -> FileNameJoin[{$pythonDir, name, model <> "_LO.py"}]]];
-   parts = PythonParts[adim];
+   file = quiet[ExportPython[adim, "G" -> gexpr, "Model" -> model, "File" -> FileNameJoin[{$pythonDir, name, model <> "_LO.py"}]]];
+   parts = PythonParts[adim, gexpr];
    pts = {pythonPoint[adim, 1, 2], pythonPoint[adim, 2, 3/2], pythonPoint[adim, 3, 1], pythonPoint[adim, 4, 5/2]};
    mma = Flatten[Table[pythonValue[parts[fn], pt], {pt, pts}, {fn, Keys[pythonArgs]}]];
    call[fn_, pt_] := "M." <> fn <> "(" <> StringRiffle[If[ListQ[pt[#]], pyTupleOf[pt[#]], pyLiteral[pt[#]]] & /@ pythonArgs[fn], ", "] <> ")";

@@ -1,4 +1,4 @@
-<!-- verified: 6208fe0 2026-10-21 -->
+<!-- verified: 6208fe0 2026-10-21; BMWflow handoff v2 2026-10-27 -->
 # FRGscalarMSR
 Mathematica library: an MSR ansatz for Γ_k of N scalars → checked one-loop Wetterich flow equations (derivative expansion) →
 dimensionless β functions → FlowRG (Julia) equations file. Second pipeline (LO): couplings that are functions of p² (`fn[f, X]`) →
@@ -42,7 +42,9 @@ flows at generic p → BMWflow Python module (design/LOPIPELINE.md).
 - New benchmark: `benchmarks/<Name>/` (files as in `KuramotoSivashinsky/`), a line in `benchmarks/README.md`, a suite hook
   `tests/acceptance/<Name>.wl` that only wraps the checks in `test[…]`.
 - New check: `FRGAssert`/`assertCheck` named `Module.check` (shown on the card) + an `expectFail[…, "Module.check"]` test.
-- BMWflow module format (LO): `Kernel/PythonExport.wl` (`PythonModelTable` is data); the contract is `docs/handoff/BMWflow_LO.md`.
+- BMWflow module format (LO): `Kernel/PythonExport.wl`; the contract (versioned, `CONTRACT_VERSION`) is `docs/handoff/BMWflow_LO.md`,
+  the reader BMWflow's `flow/models/model_generated.py`. A format change updates both repos, bumps the version, and re-vendors
+  BMWflow's `tests/fixtures/KPZ_LO.py` (`tests/acceptance/BMWflowLO.wl` fails until then).
 - FlowRG file format: `Kernel/JuliaExport.wl`; the contract is `~/Physics/Sources/FlowRG.jl/docs/equations-interface.md`
   (other repo: changes there go through a `docs/handoff/` spec). The two sides point to each other: a change to what
   `JuliaExport.wl` writes must match that page (FlowRG's `CLAUDE.md`, golden rule 6, points back here), and FlowRG answers a
@@ -71,4 +73,5 @@ flows at generic p → BMWflow Python module (design/LOPIPELINE.md).
   `--compile=min -O0` (`$juliaFlags` in `tests/reference/JuliaRoundTrip.wl`).
 - Regulator prefactors may contain reference couplings only (`AdimensionalEquations` aborts otherwise); a model with independent
   diffusion constants in two sectors' regulators hits this (`design/ADIMENSIONAL.md` §4).
-- FlowRG path: `~/Physics/Sources/FlowRG.jl`, or `FLOWRG_PATH`.
+- FlowRG path: `~/Physics/Sources/FlowRG.jl`, or `FLOWRG_PATH`. BMWflow path: `~/Physics/Sources/BMWflow`, or `BMWFLOW_PATH`; its tests
+  need its `.venv` (scipy, numba, pytest; not installed for /usr/bin/python3).

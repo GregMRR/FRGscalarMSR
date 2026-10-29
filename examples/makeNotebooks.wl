@@ -153,8 +153,8 @@ drops out with alamk^2 = g/v_d: set the v_d of the measure to 1 and alamk^2 = g.
    section["6. The BMWflow module"],
    text["ExportPython writes the module of the contract docs/handoff/BMWflow_LO.md: FUNCTIONS, ETAS, COUPLINGS, P2_DIVIDED and the \
 functions linear, loop, eta_matrix, eta_vector, beta. The loop measure is not in the kernels (the adapter applies it); primes on f are \
-d/d|momentum|. \"Model\" -> \"KPZ\" picks the row of PythonModelTable that maps alamk to BMWflow's g = alamk^2."],
-   input["ExportPython[adim, \"Model\" -> \"KPZ\", \"File\" -> FileNameJoin[{$TemporaryDirectory, \"KPZLO\", \"KPZ_LO.py\"}]]"]};
+d/d|momentum|. \"G\" -> alamk^2 writes every kernel in BMWflow's coupling g = alamk^2 (COUPLINGS = (\"g\",)); \"Model\" is a label."],
+   input["ExportPython[adim, \"G\" -> alamk^2, \"Model\" -> \"KPZ\", \"File\" -> FileNameJoin[{$TemporaryDirectory, \"KPZLO\", \"KPZ_LO.py\"}]]"]};
 
 Export[FileNameJoin[{dir, "ShallowWaterDE4plus.nb"}], nb[shallowWater]];
 Export[FileNameJoin[{dir, "KPZ.nb"}], nb[kpz]];

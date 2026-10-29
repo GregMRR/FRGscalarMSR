@@ -145,7 +145,7 @@ steps 2–4.
    - Adimensional: relabel F_k(p²) = f(p²/k²) = f(ap²), so no unit sits inside a function argument (`homVec` rejects
      F(k² ap²)). The flow is taken at fixed p̂ = p/κ (∂s|p̂ = ∂s|p + p∂p), which gives the +p f′ term. Keep `homVec`,
      `unitInvariance`, `noBeta` (:184) and `unusedEquation` (:168) for the LO branch.
-8. **New `Kernel/PythonExport.wl`**, `ExportPython[adim, "Model" -> "KPZ", "File" -> …]`. Own printer (not `toJulia`,
+8. **New `Kernel/PythonExport.wl`**, `ExportPython[adim, "Model" -> "KPZ", "File" -> …]` (contract v1; v2 in §10). Own printer (not `toJulia`,
    JuliaExport.wl:27-31: `^` is XOR in Python): Power → `**`, rationals as float literals, `math.pi`; pure numpy,
    broadcasting, no value-dependent branching. Converts internal F′(s) = d/d(p²) to f′/(2q) (f′ = d/d|momentum|); r_ stays
    d/d(q²). Checks: `PythonExport.etaPerFunction` (n_η = n_f; ETAS in FUNCTIONS order), `PythonExport.singleCoupling`
@@ -168,42 +168,49 @@ steps 2–4.
     so each flag turns only its own SKIPs into failures (runTests.wl:12, 21-23).
 
 ## 6. Contract (`docs/handoff/BMWflow_LO.md`, for the agent implementing BMWflow's `ModelGenerated`)
-Generated file `eqs/<Model>_LO.py`: pure numpy + `math`, no state, no value-dependent branching (elementwise, broadcasts
-over BMWflow's (p, w, q, θ) arrays).
-- **Constants.** `FUNCTIONS` (order of every f tuple; KPZ `("fD", "fnu")`); `ETAS` (η_X ↔ FUNCTIONS[X]; KPZ
-  `("etaD", "etanu")`); `COUPLINGS` (KPZ `("alamk",)`); `SHAPES` (regulator shapes in the order declared in
-  `DefineRegulator`; KPZ `("rn", "rd")`); `P2_DIVIDED` (per function, the power of p² divided out of its loop, each ≤ 1;
-  KPZ `(0, 1)`); `APPROXIMATION = "LO"`; `MODEL` (key into the model table; KPZ `"KPZ"`).
+Generated file `<Model>_LO.py`: pure numpy + `math`, no state, no value-dependent branching (elementwise, broadcasts
+over BMWflow's (p, w, q, θ) arrays). The module describes itself: every model-specific step (the coupling map, the
+conditioning of the kernels) is done and checked here, so BMWflow's adapter has no per-model code.
+- **Constants.** `CONTRACT_VERSION = 2` (the adapter refuses any other); `FUNCTIONS` (order of every f tuple; KPZ
+  `("fD", "fnu")`); `ETAS` (η_X ↔ FUNCTIONS[X]; KPZ `("etaD", "etanu")`); `COUPLINGS = ("g",)` (always BMWflow's scalar
+  g); `SHAPES` (regulator shapes in the order declared in `DefineRegulator`; KPZ `("rn", "rd")`); `P2_DIVIDED` (per
+  function, the power of p² divided out of its loop, each ≤ 1; KPZ `(0, 1)`); `FIXED_DIMENSION` (`None` at symbolic d,
+  else the d of `FixedDimension`; the adapter refuses another `dim`); `APPROXIMATION = "LO"`; `MODEL` (a label; KPZ `"KPZ"`).
 - **Conventions.** Dimensionless as in `kpz_notation.tex`; p, q in units of κ; f_X(0) = 1; primes on f are d/d|momentum|
   (d/dp in `linear`, d/dq in the η functions); for each shape `r = r(q)`, `r_ = dr/d(q²)`; s = ln(κ/Λ); every exported
   rate is ∂s x (BMWflow steps x → x − δs ∂s x).
-- **Coupling state.** Exactly one exported coupling (n_c = 1). The map to BMWflow's scalar `g` is per model, chosen by
-  `MODEL`; the adapter applies it (unknown `MODEL` → error).
-
-  | MODEL | g ↔ coupling | β_g | shapes |
-  |-------|--------------|-----|--------|
-  | KPZ   | g = alamk²   | 2 alamk β_alamk | BMWflow's single `r` binds `rn` and `rd` |
+- **Coupling.** Exactly one coupling, BMWflow's g. `ExportPython[adim, "G" -> alamk^2, …]` gives g in terms of the stage's
+  single coupling; every kernel and β is rewritten in g and checked rational in g (`PythonExport.gEven`); `beta` returns
+  ∂s g = G′ β_coupling. KPZ: g = alamk², ∂s g = g(d − 2 − η_D + 3η_ν).
+- **Shapes.** The adapter binds a regulator (r, r_) to each name in `SHAPES`; default: BMWflow's single (r, r_) for all.
 - **Angles.** Every exported function depends on the angle only through c = cos θ.
 - **Measure.** Nothing exported contains v_d, v_{d−1}, the measure's 2π, or Γ functions of d. The adapter applies them:
   I_X(p) = v_{d−1}/(2π) ∫_0^{q_max} dq q^{d−1} ∫_0^π dθ sin^{d−2}θ F_X (= ∫dᵈq/(2π)ᵈ F_X); in d = 1 BMWflow's rule
   (v_{d−1} → 1, θ ∈ {0, π}, weights 1). η: ⟨·⟩ = v_d ∫_0^{q_max} dq q^{d−1} (·).
 - `linear(p, f, fprime, eta, couplings, d) -> tuple[n_f]`: linear part of ∂s f_X(p) (KPZ: η_X f_X + p f_X′).
-- `loop(p, q, c, fq, fQ, rq, rq_, rQ, eta, couplings, d) -> tuple[n_f]`: loop integrand F_X; fq/fQ are tuples of f at q
-  and at Q = sqrt(p² + q² + 2pqc) (spline at Q); rq, rq_, rQ are tuples over SHAPES. F_X is already divided by
-  p^(2·P2_DIVIDED[X]) (non-finite at p = 0 for those rows: NaN or ±inf). ∂s f_X(p) = linear + I_X.
+- `loop(p, q, c, Q2, fq, fQ, rq, rq_, rQ, eta, couplings, d) -> tuple[n_f]`: loop integrand F_X; fq/fQ are tuples of f
+  at q and at Q (spline at Q); rq, rq_, rQ are tuples over SHAPES; Q2 is BMWflow's Q² = p² + q² + 2pqc, the point where
+  fQ and rQ were evaluated. F_X is already divided by p^(2·P2_DIVIDED[X]) (non-finite at p = 0 for those rows: NaN or
+  ±inf). ∂s f_X(p) = linear + I_X. **Conditioning:** F_X is written in Q2 (p at most linear in each term) and in the
+  propagator atoms fq[i] + rq[j], fQ[i] + rQ[j] (i a function, j the shape of its Γ2 entry's regulator). Expanded in p,
+  q, c, f and r separately, terms of size r(Q)² cancel near Q → 0 (r ~ 1/Q²): on the acceptance grid (d = 1, Q ~ 1e-5)
+  that form was off by 9e-5, the atom form by 1e-8, like `ModelKPZ`. `PythonExport.conditionedLoop` checks the
+  identity exactly.
 - **p = 0.** For every X with P2_DIVIDED[X] > 0 the adapter fills the p = 0 row with 'const' (value at p₁) or 'quad'
-  (a + b p² through p₁, p₂), model-agnostic. Do not reuse `ModelKPZ`'s code (model_kpz.py:243-263): it is KPZ-only and
-  divides by p² itself.
+  (a + b p² through p₁, p₂), model-agnostic.
 - **η.** `eta_matrix(q, f, fprime, r, r_, couplings, d) -> n_f×n_f nested tuple`, `eta_vector(...) -> tuple[n_f]` (r, r_
   tuples over SHAPES); solve Σ_Y (δ_XY + ⟨M[X][Y]⟩) η_Y = −⟨b[X]⟩ (row X = equation of f_X, column Y multiplies η_Y; M is
   not symmetric).
-- `beta(couplings, eta, d) -> tuple[n_c]` (KPZ: alamk(d/2 − 1 + 3η_ν/2 − η_D/2)).
-- **Acceptance**, d = 1 and 2, LO, `evo1`, the p/q grids and regulator of `usage_examples/KPZ_1D_twogrids`
-  (`wett_alpha_beta`): `ModelGenerated` on the generated KPZ module vs `ModelKPZ` LO, comparing `self.Integral` after
-  `Integral_upd` (p = 0 row after extrapolation, both modes), `eta_calc`, `g_rhs_calc`, and an `Evolution` run of N = 2000
-  steps (ds = 1e-3). Norm: per function, max_grid |Δ| / max_grid |x| ≤ 1e-12 for single evaluations, ≤ 1e-11 after the
-  run; η and g relative ≤ 1e-11. BMWflow's NLO paths untouched. Environment: BMWflow needs scipy and numba (not installed
-  for /usr/bin/python3 on this machine; numpy is): set up a venv.
+- `beta(couplings, eta, d) -> (∂s g,)`.
+- **Constant rows** print as `… + 0.0*p` (`0.0*q` in the η functions) so that every entry has the arrays' shape; the
+  adapter also broadcasts.
+- **Acceptance**, LO, `evo1`, the p/q grids and regulator of `usage_examples/KPZ_1D_twogrids` (`wett_alpha_beta`):
+  `ModelGenerated` on the generated KPZ module vs `ModelKPZ` LO, comparing `Integral` after `Integral_upd` (p = 0 row
+  after extrapolation, both modes), `eta_calc`, `g_rhs_calc`, `f_rhs_calc`, and an `Evolution` run of 2000 steps
+  (ds = 1e-3). Norm: per function, max_grid |Δ| / max_grid |x|. d = 2: ≤ 1e-12 single, ≤ 1e-11 after the run. d = 1:
+  ≤ 2e-11 single, ≤ 1e-10 after the run: a p-grid point lies 1.1e-5 from a q node, so at θ = π the integrand is
+  ill-conditioned (ModelKPZ is itself 1e-8 from a long-double evaluation there; measured gaps 8e-12 and 2.2e-11). η
+  and β relative ≤ 1e-11. BMWflow's NLO paths untouched.
 
 ## 7. Verification
 - `math -script tests/runTests.wl` exit 0: DE + new unit tests; the step-0 baseline unchanged.
@@ -211,7 +218,8 @@ over BMWflow's (p, w, q, θ) arrays).
   benchmarks/KPZLO/KPZLO.nb`.
 - Python smoke test (numpy only; SKIP without numpy, failure with `--require-python`): import the exported KPZ module,
   evaluate every function at a few points including a float d, compare with Mathematica `N[]` values to 1e-13.
-- The numerical BMWflow acceptance (§6) belongs to the other agent.
+- The numerical BMWflow acceptance (§6): BMWflow's `tests/test_model_generated.py`, run on a fresh export by
+  `tests/acceptance/BMWflowLO.wl` (SKIP without BMWflow and its `.venv`).
 
 ## 8. Reviews
 Seven rounds, details and probes in `design/reviews/LOPipeline-r1-r7.md`. Blockers: r1 (g vs alamk), r4 and r5 (DE
@@ -240,3 +248,19 @@ Decisions taken while implementing, with the user where marked.
   `ExternalMomentum.prefactor`, `.functionsFlow` (guaranteed by the Ansatz and Vertices checks).
 - **Performance limit.** A two-field KPZ-like LO model (Δ of degree 2) does not finish in 2 minutes in the two-family residues
   (docs/FUTURE.md). KPZ LO builds in under a second.
+
+## 10. Contract version 2 (2026-10-27, with the BMWflow adapter)
+Decision: every model-specific step of the handoff happens here, where it is exact and checked; the module describes
+itself and BMWflow's `ModelGenerated` has no per-model code. Changes from v1, each with its reason:
+- **g on this side** (user): `"G" -> alamk^2` replaces `"Model"` + `PythonModelTable`; kernels and β are written in g
+  (`PythonExport.gMap`, `.gEven`). Reason: the v1 model table lived in both repos and could drift silently.
+- **`CONTRACT_VERSION`, `FIXED_DIMENSION`**: the adapter refuses a module of another version or dimension instead of
+  computing something wrong.
+- **Loop conditioned: atoms f + r and Q2** (`PythonExport.conditionedLoop`; Q2 a new `loop` argument). Found by the
+  acceptance run: the v1 kernel, expanded in p, q, c, f and r, cancels terms ~r(Q)² near Q → 0 and was off by 9e-5 at the
+  d = 1 grid point 1.1e-5 from a q node, where ModelKPZ's factored form is off by 1e-8. Passing BMWflow's own Q² keeps the
+  kernel consistent with the points where fQ and rQ were evaluated. The exported KPZ file shrank from 50 kB to 8 kB.
+- **Deterministic header** (content hash, no date, no stage fingerprint, which changes per kernel): BMWflow vendors the
+  module as a test fixture; `tests/acceptance/BMWflowLO.wl` checks the fresh export equals it.
+- **Constant rows** print with `+ 0.0*p` / `0.0*q`: an entry free of the arrays would not broadcast.
+- **Acceptance tolerance in d = 1** loosened to 2e-11 / 1e-10 (reason in §6); d = 2 keeps 1e-12 / 1e-11.

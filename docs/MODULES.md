@@ -891,25 +891,33 @@ times (2π)^{−2} (the old file lacks the (2π)^{−d}) at η_h = η_φ (the ol
 
 ## PythonExport (`Kernel/PythonExport.wl`) — `ExportPython`
 
-**Objective.** Write an LO Adimensional stage as a Python module for BMWflow's generic adapter (`ModelGenerated`). The contract is
-`docs/handoff/BMWflow_LO.md` (= design/LOPIPELINE.md §6).
+**Objective.** Write an LO Adimensional stage as a Python module for BMWflow's generic adapter (`ModelGenerated`). The contract
+(version 2) is `docs/handoff/BMWflow_LO.md` (= design/LOPIPELINE.md §6). Every model-specific step is done here, so the
+module describes itself.
 
-**Output.** `ExportPython[adim, "Model" -> "KPZ", "File" -> ".../eqs/KPZ_LO.py"]`: constants `FUNCTIONS`, `ETAS`, `COUPLINGS`,
-`SHAPES`, `P2_DIVIDED`, `APPROXIMATION = "LO"`, `MODEL`; functions `linear(p, f, fprime, eta, couplings, d)`,
-`loop(p, q, c, fq, fQ, rq, rq_, rQ, eta, couplings, d)`, `eta_matrix(q, f, fprime, r, r_, couplings, d)`, `eta_vector(…)`,
-`beta(couplings, eta, d)`; each returns a tuple (nested for `eta_matrix`). Pure numpy + math, elementwise, no state, no
-value-dependent branching. Two header lines (date, fingerprint).
+**Output.** `ExportPython[adim, "G" -> alamk^2, "Model" -> "KPZ", "File" -> ".../KPZ_LO.py"]`: constants `CONTRACT_VERSION`,
+`FUNCTIONS`, `ETAS`, `COUPLINGS = ("g",)`, `SHAPES`, `P2_DIVIDED`, `FIXED_DIMENSION`, `APPROXIMATION = "LO"`, `MODEL` (the label);
+functions `linear(p, f, fprime, eta, couplings, d)`, `loop(p, q, c, Q2, fq, fQ, rq, rq_, rQ, eta, couplings, d)`,
+`eta_matrix(q, f, fprime, r, r_, couplings, d)`, `eta_vector(…)`, `beta(couplings, eta, d)` (∂s g); each returns a tuple (nested
+for `eta_matrix`). Pure numpy + math, elementwise, no state, no value-dependent branching. The header carries a content hash
+(no date): exporting unchanged equations gives the same file.
 
 **Manipulations.** Own printer (Power → `**`, numbers as float literals and quotients `(3.0/2.0)`, `math.pi`, `np.sqrt`; not
 `toJulia`: `^` is XOR in Python). Placeholders `PythonVariable[name, i]` (0-based): f at aq² → `fq[i]`, at Q̂² → `fQ[i]`; shapes
 r(aq²) → `rq[j]`, r′(aq²) → `rq_[j]` (d/d(q²)), r(Q̂²) → `rQ[j]`; in `linear` and the η functions F′(x²) → `fprime[i]/(2 x)`
-(f′ = d/d|momentum|). The measure is not included. `PythonParts[adim]` gives the expressions; `PythonModelTable` the model table.
+(f′ = d/d|momentum|). The coupling: solve g = G for it, substitute, β_g = G′ β. The loop, conditioned for small Q: f → A − r with
+the atoms `PythonAtom["fq", i, "rq", j]` = fq[i] + rq[j] (and at Q), j the shape of the regulator of function i's Γ2 entry
+(`pyAtomPairs`); then p^(2n) → (Q2 − q² − 2pqc)^n with numerators re-expanded to a fixed point. Rows free of the arrays get
+`+ 0.0*p` (`0.0*q`). The measure is not included. `PythonParts[adim]`, `PythonParts[adim, G]` give the expressions.
 
-**Checks.** `PythonExport.pipeline`, `.etaPerFunction` (n_η = n_f, ETAS in FUNCTIONS order), `.singleCoupling` (n_c = 1),
-`.p2DividedAtMostOne`, `.noMeasure` (no Γ, sin, d-dependent powers of 2 or π), `.modelTable` (the row exists, its coupling is
-COUPLINGS[0], its shapes = SHAPES as a set), `.knownSymbols` (only contract arguments left: no unit, no F′ in `loop`, no r′ at Q,
-no r″), `.systemHeads`, `.printable`, `.options`, `.file`.
+**Checks.** `PythonExport.pipeline`, `.options`, `.model` (a label), `.file`, `.etaPerFunction` (n_η = n_f, ETAS in FUNCTIONS
+order), `.singleCoupling` (n_c = 1), `.p2DividedAtMostOne`, `.gMap` (G given, a function of the coupling alone, invertible),
+`.gEven` (every kernel and β rational in g), `.conditionedLoop` (internal: the atom/Q2 loop equals the plain loop exactly),
+`.noMeasure` (no Γ, sin, d-dependent powers of 2 or π), `.knownSymbols` (only contract arguments left: no unit, no F′ in `loop`,
+no r′ at Q, no r″), `.systemHeads`, `.printable`.
 
 **Tests.** `tests/unit/PythonExportTest.wl` with `tests/reference/PythonRoundTrip.wl`: the KPZ module imported by python3, every
 function at 4 points (d = 2, 3/2, 1, 5/2) = Mathematica to 1e-13, `loop` broadcasts over a numpy array; SKIP without numpy
-(a failure with `--require-python`); expectFail per check on forged stages and on KPZ with a renamed coupling.
+(a failure with `--require-python`); exporting twice gives the same file; β_g = g(d − 2 − η_D + 3η_ν); expectFail per check.
+`tests/acceptance/BMWflowLO.wl`: BMWflow's acceptance test (`ModelGenerated` = `ModelKPZ`) on a fresh export, and the export =
+BMWflow's vendored fixture; SKIP without BMWflow and its `.venv`.

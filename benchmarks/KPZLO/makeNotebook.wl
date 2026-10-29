@@ -70,6 +70,6 @@ The last cell writes the BMWflow module (docs/handoff/BMWflow_LO.md) to a tempor
    input["kpzloResults = kpzloChecks[];\nkpzloSummary[kpzloResults]"],
    input["If[AllTrue[kpzloResults, #Pass &], \"all checks pass\", Abort[]]"],
    input["nbLoops = kpzloAdim[\"Loop\"];\nBlock[{kpzloAdim, Print}, Get[FileNameJoin[{kpzloDir, \"Pipeline.wl\"}]]; If[kpzloAdim[\"Loop\"] === nbLoops, \"same stage as Pipeline.wl\", Abort[]]]"],
-   input["ExportPython[kpzloAdim, \"Model\" -> \"KPZ\", \"File\" -> FileNameJoin[{$TemporaryDirectory, \"KPZ_LO.py\"}]]"]};
+   input["ExportPython[kpzloAdim, \"G\" -> alamk^2, \"Model\" -> \"KPZ\", \"File\" -> FileNameJoin[{$TemporaryDirectory, \"KPZ_LO.py\"}]]"]};
 
 Export[FileNameJoin[{dir, "KPZLO.nb"}], Notebook[cells, StyleDefinitions -> "Default.nb"]];
