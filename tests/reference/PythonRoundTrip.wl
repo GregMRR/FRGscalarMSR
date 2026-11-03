@@ -20,15 +20,18 @@ pythonPoint[adim_, seed_, d_] := Module[{nf = Length[adim["Functions"]], ns = Le
    dy[] := RandomInteger[{16, 127}]/128;
    tup[n_] := Table[dy[], n];
    <|"p" -> dy[], "q" -> dy[], "c" -> RandomInteger[{-120, 120}]/128, "Q2" -> Null, "fq" -> tup[nf], "fQ" -> tup[nf], "rq" -> tup[ns], "rq_" -> -tup[ns], "rQ" -> tup[ns],
-    "f" -> tup[nf], "fprime" -> -tup[nf], "r" -> tup[ns], "r_" -> -tup[ns], "eta" -> tup[ne], "couplings" -> tup[nc], "d" -> d|> // (Append[#, "Q2" -> #p^2 + #q^2 + 2 #p #q #c] &)];
+    "f" -> tup[nf], "fprime" -> -tup[nf], "r" -> tup[ns], "r_" -> -tup[ns], "eta" -> tup[ne], "couplings" -> tup[nc], "d" -> d, "fp" -> tup[nf]|> // (Append[#, "Q2" -> #p^2 + #q^2 + 2 #p #q #c] &)];   (* fp drawn last: the v2 points stay *)
 
 pythonValue[e_, pt_] := N[e /. {PythonAtom[a_, i_, b_, j_] :> pt[a][[i + 1]] + pt[b][[j + 1]], PythonVariable[s_, i_] :> pt[s][[i + 1]], PythonVariable[s_] :> pt[s]}, 30];
 
-pythonArgs = <|"linear" -> {"p", "f", "fprime", "eta", "couplings", "d"}, "loop" -> {"p", "q", "c", "Q2", "fq", "fQ", "rq", "rq_", "rQ", "eta", "couplings", "d"},
+(* the same parts evaluated in machine precision: their error measures the conditioning of each value *)
+pythonMachineValue[e_, pt_] := e /. {PythonAtom[a_, i_, b_, j_] :> N[pt[a][[i + 1]]] + N[pt[b][[j + 1]]], PythonVariable[s_, i_] :> N[pt[s][[i + 1]]], PythonVariable[s_] :> N[pt[s]]};
+
+pythonArgs = <|"linear" -> {"p", "f", "fprime", "eta", "couplings", "d"}, "loop" -> {"p", "q", "c", "Q2", "fp", "fq", "fQ", "rq", "rq_", "rQ", "eta", "couplings", "d"},
    "eta_matrix" -> {"q", "f", "fprime", "r", "r_", "couplings", "d"}, "eta_vector" -> {"q", "f", "fprime", "r", "r_", "couplings", "d"},
    "beta" -> {"couplings", "eta", "d"}|>;
 
-pythonRoundTrip[name_String, adim_, model_String, gexpr_] := Module[{file, parts, pts, mma, script, out, py, rel, call, bro},
+pythonRoundTrip[name_String, adim_, model_String, gexpr_] := Module[{file, parts, pts, mma, mach, tol, script, out, py, rel, call, bro},
    If[$pythonExe === None, skip[name <> ": Python round trip", "python3 with numpy not found", "python"]; Return[Null]];
    file = quiet[ExportPython[adim, "G" -> gexpr, "Model" -> model, "File" -> FileNameJoin[{$pythonDir, name, model <> "_LO.py"}]]];
    parts = PythonParts[adim, gexpr];
@@ -53,6 +56,10 @@ pythonRoundTrip[name_String, adim_, model_String, gexpr_] := Module[{file, parts
    If[out["ExitCode"] =!= 0, Print["    python stderr: ", StringTake[out["StandardError"], UpTo[800]]]; Return[Null]];
    {py, bro} = StringSplit[StringTrim[out["StandardOutput"]], "\n"];
    py = fromPython[py];
-   rel = Max[MapThread[If[#2 == 0, Abs[#1], Abs[(#1 - #2)/#2]] &, {py, mma}]];
-   test[name <> ": Python = Mathematica for every function at 4 points, d in {2, 3/2, 1, 5/2} (rel. 1e-13)", Length[py] == Length[mma] && rel < 10^-13, True];
+   (* tolerance per value: 1e-13, or 10x Mathematica's own machine-precision error there when the value is a cancelling sum *)
+   mach = Flatten[Table[pythonMachineValue[parts[fn], pt], {pt, pts}, {fn, Keys[pythonArgs]}]];
+   tol = MapThread[Max[10^-13, 10 If[#2 == 0, Abs[#1], Abs[(#1 - #2)/#2]]] &, {mach, mma}];
+   rel = MapThread[If[#2 == 0, Abs[#1], Abs[(#1 - #2)/#2]] &, {py, mma}];
+   test[name <> ": Python = Mathematica for every function at 4 points, d in {2, 3/2, 1, 5/2} (rel. 1e-13, or 10x the machine-precision conditioning)",
+    Length[py] == Length[mma] && And @@ Thread[rel < tol], True];
    test[name <> ": loop broadcasts over a numpy array of p", bro, "True"]];

@@ -189,9 +189,10 @@ DeriveDimensions[ansatz_, opts : OptionsPattern[]] := Block[{$FRGModule = "Dimen
 
    (* LO: each function's reference sets its eta through f(0) = 1, so it must be a running reference *)
    If[ansatz["Pipeline"] === "LO",
-    bad = Select[ansatz["Functions"], ! MemberQ[refs, #[[2]]] || refModes[[First[FirstPosition[refs, #[[2]]]]]] === "Fixed" &];
+    bad = Select[DeleteCases[ansatz["Functions"], _ -> 1], ! MemberQ[refs, #[[2]]] || refModes[[First[FirstPosition[refs, #[[2]]]]]] === "Fixed" &];
     AppendTo[checks, assertCheck["Dimensions.functionReferences", bad === {}, bad,
-      "the reference of each function (DefineAnsatz \"Functions\") must be a running reference of DeriveDimensions: f(0) = 1 fixes its eta",
+      "the reference of each function (DefineAnsatz \"Functions\") must be a running reference of DeriveDimensions: f(0) = 1 fixes its eta \
+(reference 1: no eta, design/LOFLAMBDA.md F2)",
       "function references are running references: " <> StringRiffle[(ToString[#[[1]]] <> " -> " <> ToString[#[[2]]]) & /@ ansatz["Functions"], ", "]]]];
    stage = stampStage[<|"Stage" -> "Dimensions", "Pipeline" -> ansatz["Pipeline"], "Upstream" -> {ansatz["Fingerprint"]},
       Sequence @@ If[ansatz["Pipeline"] === "LO", {"Functions" -> ansatz["Functions"]}, {}],

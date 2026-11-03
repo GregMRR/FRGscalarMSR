@@ -3,6 +3,8 @@
 Decision record and implementation spec, written for the agent that implements it. Grilled with the user, then attacked
 seven times: `design/reviews/LOPipeline-r1-r7.md` (arch-enemy r1–r6, the-enemy r7; all blockers and majors resolved, §8).
 Line anchors refer to commit `21719c9` (FRGscalarMSR, branch BMW-LO) and `55108ad` (BMWflow).
+**Superseded in part (2026-11-03):** L1, L2 and, for an iω entry carrying a function, L7 — by `design/LOFLAMBDA.md` (functions in
+vertices and times iω, KPZ's f_λ); the contract of §6 is at version 3 there (F5) and in `docs/handoff/BMWflow_LO.md`.
 
 ## 0. For the implementing agent
 - **Read first:** `CLAUDE.md` (map, conventions, gotchas), `docs/MODULES.md`, `design/FRGDESIGN.md` §7,

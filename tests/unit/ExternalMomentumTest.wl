@@ -25,7 +25,8 @@ test["KPZ LO at F = 1: the eta rows are the DE flows of Dk and nuk (tests/refere
   ExactlyZeroQ[({emRec[fD]["EtaIntegrand"], emRec[fnu]["EtaIntegrand"]} /. {fD -> (1 &), fnu -> (1 &)}) -
     {EquationOf[kpzEquations, Dk]["Integrand"], EquationOf[kpzEquations, nuk]["Integrand"]}], True];
 test["KPZ LO: card", Sort[kpzloEquations["Checks"][[All, "Check"]]], Sort[{"ExternalMomentum.isotropicAngles", "FrequencyIntegration.regularAtCoincidence",
-    "ExternalMomentum.zeroEntries", "ExternalMomentum.ward", "ExternalMomentum.firstDerivativesOnly", "ExternalMomentum.dividedOrders"}]];
+    "ExternalMomentum.zeroEntries", "ExternalMomentum.ward", "ExternalMomentum.firstDerivativesOnly", "ExternalMomentum.dividedOrders",
+    "ExternalMomentum.unitReference", "ExternalMomentum.etaAtZero"}]];
 
 (* every check fires on a model that breaks it *)
 emTheory = quiet[DefineTheory["Scalars" -> {h}, "Dimension" -> Dim]];
@@ -46,6 +47,12 @@ test["no noise function + Neglected[{hbar, hbar}]: built, the dropped entry is r
 emTheory2D = quiet[DefineTheory["Scalars" -> {h}, "Dimension" -> FixedDimension[2]]];
 expectFail["a jac vertex (d = 2): the loop depends on wedge(p, q)",
   loEquationsOf[emTheory2D, kpzloDensity + c2 hbar jac[h, lap[h]], {nuk, lamk, Dk, c2}, {fD -> Dk, fnu -> nuk}, kpzloTags, kpzloRegs], "ExternalMomentum.isotropicAngles"];
+(* f_lambda (design/LOFLAMBDA.md): reference-1 functions and vertex functions at the external leg *)
+emLamDensity = fn[flam, hbar] (dt[h] - lamk/2 grad[h].grad[h]) - nuk hbar fn[fnu, lap[h]] - Dk hbar fn[fD, hbar];
+expectFail["a reference-1 function at i w without the Protected i w tag (nothing keeps f(0) = 1)",
+  loEquationsOf[emTheory, emLamDensity, {nuk, lamk, Dk}, {fD -> Dk, fnu -> nuk, flam -> 1}, Drop[kpzloTags, 1], kpzloRegs], "ExternalMomentum.unitReference"];
+(* ExternalMomentum.etaAtZero has no reachable expectFail: a vertex function at the external leg that survives p -> 0 also breaks the
+   Ward check, which runs first (design/LOFLAMBDA.md section 5) *)
 expectFail["a DE loop stage is refused", BuildLOEquations[kpzLoops, kpzSymmetries], "ExternalMomentum.pipeline"];
 
 (* the DE-only stage functions refuse LO stages *)

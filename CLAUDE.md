@@ -1,8 +1,8 @@
-<!-- verified: 6208fe0 2026-10-21; BMWflow handoff v2 2026-10-27 -->
+<!-- verified: 6df4a91 2026-11-03; BMWflow handoff v3 2026-11-03 -->
 # FRGscalarMSR
 Mathematica library: an MSR ansatz for Γ_k of N scalars → checked one-loop Wetterich flow equations (derivative expansion) →
 dimensionless β functions → FlowRG (Julia) equations file. Second pipeline (LO): couplings that are functions of p² (`fn[f, X]`) →
-flows at generic p → BMWflow Python module (design/LOPIPELINE.md).
+flows at generic p → BMWflow Python module (design/LOPIPELINE.md; functions times iω and in vertices, KPZ f_λ: design/LOFLAMBDA.md).
 
 ## Commands
 - Kernel: `math -script` (Wolfram 15; `wolframscript` is not installed).
@@ -26,13 +26,14 @@ flows at generic p → BMWflow Python module (design/LOPIPELINE.md).
   `docs/FUTURE.md`.
 - `design/` - decision records with their adversarial reviews: `FRGDESIGN.md` (v1), `LEVICIVITA.md` (`jac`), `ADIMENSIONAL.md`
   (dimensions, export), `MOMENTUMPROJECTION.md` (p^{2n} projection, any n), `CAUSALITY.md` (causal-pole conditions exported as
-  `causal_poles`), `LOPIPELINE.md` (functions of p², BMWflow export); `design/reviews/`.
+  `causal_poles`), `LOPIPELINE.md` (functions of p², BMWflow export), `LOFLAMBDA.md` (reference-1 functions at iω and in vertices, ∂/∂(iν)
+  flows, contract v3); `design/reviews/`.
 - `docs/handoff/` - specs for work in other repos (FlowRG: `MUST_FIX`, `D2<shape>`; BMWflow: `BMWflow_LO.md`, the LO contract).
 - `tests/reference/` - shared pipeline setups (`ShallowWaterSetup.wl`, `KPZSetup.wl`, `KPZLOSetup.wl`), `JuliaRoundTrip.wl`,
   `PythonRoundTrip.wl`, `DEBaseline.wl` (DE content hashes, checked by `tests/acceptance/DEBaseline.wl`), `OldProjection.wl`
   (the pre-p^{2n} Laplacian operator, test-only regression reference); `legacy/` holds the old
   notebooks' results used as references (`legacy/README.md` maps the old notation).
-- `benchmarks/` - literature benchmarks (`KuramotoSivashinsky`, `KPZLO`), one folder each (`README.md` is the index): `README.md`, `Reference.wl` (the paper's
+- `benchmarks/` - literature benchmarks (`KuramotoSivashinsky`, `KPZLO`, `KPZLOLambda`), one folder each (`README.md` is the index): `README.md`, `Reference.wl` (the paper's
   equations), `Pipeline.wl`, `Checks.wl` (`ksChecks[]`-style records, no harness dependency), `run.wl`, `makeNotebook.wl` → `.nb`.
 - `lessons/` - one teaching notebook per module (`README.md`: index, source format): sources `src/NN-Name.md` → `makeLessons.wl`
   → `NN-Name.nb` + `Glossary.nb`; `LessonSetup.wl` (`lessonUpTo[stage]` rebuilds KPZ, `showFailure[expr]`).
@@ -45,7 +46,7 @@ flows at generic p → BMWflow Python module (design/LOPIPELINE.md).
 - BMWflow module format (LO): `Kernel/PythonExport.wl`; the contract (versioned, `CONTRACT_VERSION`) is `docs/handoff/BMWflow_LO.md`,
   the reader BMWflow's `flow/models/model_generated.py`. A format change updates both repos, bumps the version, and re-vendors
   BMWflow's `tests/fixtures/KPZ_LO.py` (`tests/acceptance/BMWflowLO.wl` fails until then).
-- FlowRG file format: `Kernel/JuliaExport.wl`; the contract is `~/Physics/Sources/FlowRG.jl/docs/equations-interface.md`
+- FlowRG file format: `Kernel/JuliaExport.wl`; the contract is `~/sources/FlowRG/docs/equations-interface.md`
   (other repo: changes there go through a `docs/handoff/` spec). The two sides point to each other: a change to what
   `JuliaExport.wl` writes must match that page (FlowRG's `CLAUDE.md`, golden rule 6, points back here), and FlowRG answers a
   handoff with a Status section listing what this side must update.
@@ -73,5 +74,6 @@ flows at generic p → BMWflow Python module (design/LOPIPELINE.md).
   `--compile=min -O0` (`$juliaFlags` in `tests/reference/JuliaRoundTrip.wl`).
 - Regulator prefactors may contain reference couplings only (`AdimensionalEquations` aborts otherwise); a model with independent
   diffusion constants in two sectors' regulators hits this (`design/ADIMENSIONAL.md` §4).
-- FlowRG path: `~/Physics/Sources/FlowRG.jl`, or `FLOWRG_PATH`. BMWflow path: `~/Physics/Sources/BMWflow`, or `BMWFLOW_PATH`; its tests
+- The checkouts moved from `~/Physics/Sources/` to `~/sources/` (FRGscalarMSR, FlowRG, BMWflow); `tests/reference/JuliaRoundTrip.wl`
+  and the notebooks/run headers still default to `~/Physics/Sources/…`: set `FLOWRG_PATH`. BMWflow: `~/sources/BMWflow`, or `BMWFLOW_PATH`; its tests
   need its `.venv` (scipy, numba, pytest; not installed for /usr/bin/python3).

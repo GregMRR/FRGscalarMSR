@@ -1,0 +1,160 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 15.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[      7213,        151]
+NotebookOptionsPosition[      5286,        121]
+NotebookOutlinePosition[      5600,        135]
+CellTagsIndexPosition[      5557,        132]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["Benchmark: KPZ at LO with a flowing f_lambda", "Title",ExpressionUUID->"799448e8-3cf0-469d-b283-3e85be3eefe8"],
+
+Cell["\<\
+The Kloss-Canet-Wschebor LO ansatz with three functions of p^2: f_lambda \
+multiplies the Galilean-covariant combination dt h - lam/2 (grad h)^2, so it \
+sits at i w in Gamma(1,1) and in the cubic vertex, at the momentum of the \
+hbar leg. Its flow is the i nu coefficient of d_s Gamma(1,1)(nu, p): d/d(i \
+nu) before the frequency integral (design/LOFLAMBDA.md).\
+\>", "Text",ExpressionUUID->"b5df5acc-8bfc-46e7-8414-e0383f44570b"],
+
+Cell["\<\
+Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+kpzlamDir = ExpandFileName[\"~/sources/FRGscalarMSR/benchmarks/KPZLOLambda\"];\
+\>", "Input",ExpressionUUID->"a6e22122-a8bc-44f7-877f-9c688f521653"],
+
+Cell["1. Ansatz", "Section",ExpressionUUID->"a336d19e-052b-4183-958b-8158ad65311a"],
+
+Cell["\<\
+\"Functions\" -> {..., flam -> 1}: f_lambda has reference 1. Its f(0) = 1 is \
+the Galilean Ward identity (the Protected i w tag), so it has no eta; \
+BuildLOEquations checks that its flow vanishes exactly at p = 0.\
+\>", "Text",ExpressionUUID->"f5dacdad-55a8-486d-af50-eda38e9a36bb"],
+
+Cell["\<\
+kpzlamTheory = DefineTheory[\"Scalars\" -> {h}, \"Dimension\" -> Dim];
+kpzlamAnsatz = DefineAnsatz[kpzlamTheory,
+  \"Density\" -> fn[flam, hbar] (dt[h] - lamk/2 grad[h].grad[h]) - nuk hbar \
+fn[fnu, lap[h]] - Dk hbar fn[fD, hbar],
+  \"Couplings\" -> {nuk, lamk, Dk}, \"Functions\" -> {fD -> Dk, fnu -> nuk, \
+flam -> 1}];\
+\>", "Input",ExpressionUUID->"8fb6c8ea-9f8e-48b3-88cf-882a7b998519"],
+
+Cell["\<\
+kpzlamSymmetries = DeclareSymmetries[kpzlamAnsatz,
+  Protected[{hbar, h}, \"Frequency\" -> 1, \"Momentum\" -> 0, \"Reason\" -> \
+\"Galilean Ward identity: f_lambda(0) = 1\"],
+  Protected[{h, hbar}, \"Frequency\" -> 0, \"Momentum\" -> 0, \"Reason\" -> \
+\"h -> h + c (shift symmetry)\"],
+  NonRenormalised[lamk, \"Reason\" -> \"Galilean invariance\"]];\
+\>", "Input",ExpressionUUID->"3e0bd3ed-a3b3-4c14-a92e-08ea9c94690a"],
+
+Cell["2. Vertices, propagator, loops, LO equations", "Section",ExpressionUUID->"53ed2f03-aa00-4f94-a465-93f100fb422d"],
+
+Cell["\<\
+The propagator now has i w f_lambda(q^2): Delta(w) = c0 + c1 (i w) with c1 = \
+f_lambda (the causal-pole assumption is f_lambda > 0, on the ExternalMomentum \
+card). The f_lambda row has double poles at Q (d/d nu of 1/Delta(w + nu, Q)).\
+\
+\>", "Text",ExpressionUUID->"483dd331-041a-49ca-bab1-8963b20986b8"],
+
+Cell["\<\
+kpzlamVertices = BuildVertices[kpzlamAnsatz];
+kpzlamRegulator = DefineRegulator[kpzlamAnsatz, {hbar, h} -> nuk q^2 \
+rn[q^2/k^2], {hbar, hbar} -> -2 Dk rd[q^2/k^2], \"Shapes\" -> {rn, rd}];
+kpzlamPropagator = BuildPropagator[kpzlamVertices, kpzlamRegulator];\
+\>", "Input",ExpressionUUID->"db2054e3-c324-4a33-9f3c-d1553782cb2f"],
+
+Cell["\<\
+kpzlamLoops = BuildLoopIntegrands[kpzlamVertices, kpzlamPropagator, \
+kpzlamRegulator];
+kpzlamEquations = BuildLOEquations[kpzlamLoops, kpzlamSymmetries];\
+\>", "Input",ExpressionUUID->"8bac6a63-bcb8-4bf9-99db-d40eed3543e6"],
+
+Cell["RunOracle[kpzlamEquations];", "Input",ExpressionUUID->"5c7cb649-03e1-433c-a04c-e0835caa3870"],
+
+Cell["\<\
+kpzlamDims = DeriveDimensions[kpzlamAnsatz, \"References\" -> {nuk -> \"nu\", \
+Dk -> \"D\"}];
+kpzlamAdim = AdimensionalEquations[kpzlamEquations, kpzlamDims];
+{kpzlamAdim[\"Functions\"], kpzlamAdim[\"HasEta\"], kpzlamAdim[\"Etas\"], \
+kpzlamAdim[\"Linear\"]}\
+\>", "Input",ExpressionUUID->"ed84a1bb-203a-47b8-ba80-626cf341c4a0"],
+
+Cell["3. References and checks", "Section",ExpressionUUID->"a12fcd31-aa7c-4b9e-ad9e-c6493118837b"],
+
+Cell["\<\
+f_lambda = 1 against benchmarks/KPZLO; generic f_lambda against the Kloss et \
+al. kernels (Reference.wl); the derivative expansion at f_lambda = 1 + x p^2 \
+against the Taylor coefficients of the three rows (sign and normalisation of \
+the d/d(i nu) row).\
+\>", "Text",ExpressionUUID->"41f68327-103b-46d5-b519-58d23a82cbc5"],
+
+Cell["\<\
+Block[{Print}, Get[FileNameJoin[{ParentDirectory[kpzlamDir], \"KPZLO\", \
+\"Pipeline.wl\"}]]; Get[FileNameJoin[{kpzlamDir, \"Pipeline.wl\"}]]];
+Get[FileNameJoin[{kpzlamDir, #}]] & /@ {\"Reference.wl\", \"Checks.wl\"};
+kpzlamResults = kpzlamChecks[];
+kpzlamSummary[kpzlamResults]\
+\>", "Input",ExpressionUUID->"bbe95de0-8d94-4634-abbe-2cf527bd0096"],
+
+Cell["\<\
+If[AllTrue[kpzlamResults, #Pass &], \"all checks pass\", Abort[]]\
+\>", "Input",ExpressionUUID->"f5fbad67-bca7-4400-8a36-10b10a026957"],
+
+Cell["4. Export (contract v3)", "Section",ExpressionUUID->"c641ca1d-0132-4a3c-adc3-ea31f49b3077"],
+
+Cell["\<\
+ExportPython[kpzlamAdim, \"G\" -> alamk^2, \"Model\" -> \"KPZLambda\", \"File\
+\" -> FileNameJoin[{$TemporaryDirectory, \"KPZLambda_LO.py\"}]]\
+\>", "Input",ExpressionUUID->"01aaa9dc-6a3e-4cf8-967b-52181247198a"]
+},
+FrontEndVersion->"15.0 for Linux x86 (64-bit) (May 19, 2026)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"04fbe0e4-f2c3-4959-8406-030f1df259e2"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 116, 0, 70, "Title",ExpressionUUID->"799448e8-3cf0-469d-b283-3e85be3eefe8"],
+Cell[673, 22, 442, 6, 70, "Text",ExpressionUUID->"b5df5acc-8bfc-46e7-8414-e0383f44570b"],
+Cell[1118, 30, 207, 3, 70, "Input",ExpressionUUID->"a6e22122-a8bc-44f7-877f-9c688f521653"],
+Cell[1328, 35, 83, 0, 70, "Section",ExpressionUUID->"a336d19e-052b-4183-958b-8158ad65311a"],
+Cell[1414, 37, 294, 4, 70, "Text",ExpressionUUID->"f5dacdad-55a8-486d-af50-eda38e9a36bb"],
+Cell[1711, 43, 401, 7, 70, "Input",ExpressionUUID->"8fb6c8ea-9f8e-48b3-88cf-882a7b998519"],
+Cell[2115, 52, 431, 7, 70, "Input",ExpressionUUID->"3e0bd3ed-a3b3-4c14-a92e-08ea9c94690a"],
+Cell[2549, 61, 118, 0, 70, "Section",ExpressionUUID->"53ed2f03-aa00-4f94-a465-93f100fb422d"],
+Cell[2670, 63, 317, 5, 70, "Text",ExpressionUUID->"483dd331-041a-49ca-bab1-8963b20986b8"],
+Cell[2990, 70, 338, 5, 70, "Input",ExpressionUUID->"db2054e3-c324-4a33-9f3c-d1553782cb2f"],
+Cell[3331, 77, 234, 4, 70, "Input",ExpressionUUID->"8bac6a63-bcb8-4bf9-99db-d40eed3543e6"],
+Cell[3568, 83, 99, 0, 70, "Input",ExpressionUUID->"5c7cb649-03e1-433c-a04c-e0835caa3870"],
+Cell[3670, 85, 339, 6, 70, "Input",ExpressionUUID->"ed84a1bb-203a-47b8-ba80-626cf341c4a0"],
+Cell[4012, 93, 98, 0, 70, "Section",ExpressionUUID->"a12fcd31-aa7c-4b9e-ad9e-c6493118837b"],
+Cell[4113, 95, 335, 5, 70, "Text",ExpressionUUID->"41f68327-103b-46d5-b519-58d23a82cbc5"],
+Cell[4451, 102, 358, 6, 70, "Input",ExpressionUUID->"bbe95de0-8d94-4634-abbe-2cf527bd0096"],
+Cell[4812, 110, 145, 2, 70, "Input",ExpressionUUID->"f5fbad67-bca7-4400-8a36-10b10a026957"],
+Cell[4960, 114, 97, 0, 70, "Section",ExpressionUUID->"c641ca1d-0132-4a3c-adc3-ea31f49b3077"],
+Cell[5060, 116, 222, 3, 70, "Input",ExpressionUUID->"01aaa9dc-6a3e-4cf8-967b-52181247198a"]
+}
+]
+*)
+
+(* End of internal cache information *)

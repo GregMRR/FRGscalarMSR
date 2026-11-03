@@ -147,9 +147,16 @@ expectFail["LO: coefficient is not number x reference", DefineAnsatz[loTheory, "
    "Functions" -> {fD -> nuk, fnu -> Dk}], "Ansatz.functionReference"];
 expectFail["LO: fn on a product", DefineAnsatz[loTheory, "Density" -> loKPZ - nuk fn[fnu, h h] hbar, "Couplings" -> {nuk, lamk, Dk},
    "Functions" -> {fD -> Dk, fnu -> nuk}], "Ansatz.fnOneField"];
-expectFail["LO: fn in a vertex", DefineAnsatz[loTheory, "Density" -> hbar (dt[h] - nuk fn[fnu, lap[h]] - lamk/2 fn[fl, h] h) - Dk hbar fn[fD, hbar],
-   "Couplings" -> {nuk, lamk, Dk}, "Functions" -> {fD -> Dk, fnu -> nuk, fl -> lamk}], "Ansatz.fnBilinear"];
-expectFail["LO: function times i w", DefineAnsatz[loTheory, "Density" -> hbar (dt[fn[fZ, h]] - nuk fn[fnu, lap[h]]) - Dk hbar fn[fD, hbar],
-   "Couplings" -> {nuk, Dk, Zk}, "Functions" -> {fD -> Dk, fnu -> nuk, fZ -> Zk}], "Ansatz.functionTimesOmega"];
+expectFail["LO: a function only in a vertex", DefineAnsatz[loTheory, "Density" -> hbar (dt[h] - nuk fn[fnu, lap[h]] - lamk/2 fn[fl, h] h) - Dk hbar fn[fD, hbar],
+   "Couplings" -> {nuk, lamk, Dk}, "Functions" -> {fD -> Dk, fnu -> nuk, fl -> lamk}], "Ansatz.functionInGamma2"];
+expectFail["LO: a running function times i w (Z_k f(p^2) i w)", DefineAnsatz[loTheory, "Density" -> hbar (Zk dt[fn[fZ, h]] - nuk fn[fnu, lap[h]]) - Dk hbar fn[fD, hbar],
+   "Couplings" -> {nuk, Dk, Zk}, "Functions" -> {fD -> Dk, fnu -> nuk, fZ -> Zk}], "Ansatz.omegaFunctionReference"];
+expectFail["LO: two functions in one (I w)^m coefficient", DefineAnsatz[loTheory, "Density" -> hbar (dt[h] - nuk fn[fnu, lap[h]] - ck fn[fx, lap[h]]) - Dk hbar fn[fD, hbar],
+   "Couplings" -> {nuk, Dk, ck}, "Functions" -> {fD -> Dk, fnu -> nuk, fx -> ck}], "Ansatz.oneFunctionPerCoefficient"];
+loLamAn = quiet[DefineAnsatz[loTheory, "Density" -> fn[flam, hbar] (dt[h] - lamk/2 grad[h].grad[h]) - nuk hbar fn[fnu, lap[h]] - Dk hbar fn[fD, hbar],
+    "Couplings" -> {nuk, lamk, Dk}, "Functions" -> {fD -> Dk, fnu -> nuk, flam -> 1}]];
+test["LO f_lambda: monomial table (f_lambda at i w and in the cubic vertex, on the hbar leg)", table[loLamAn],
+  Sort[{{1, "fn[flam, hbar] dt[h]"}, {-nuk, "hbar fn[fnu, lap[h]]"}, {-lamk/2, "fn[flam, hbar] grad[h].grad[h]"}, {-Dk, "hbar fn[fD, hbar]"}}]];
+test["LO f_lambda: coupling kinds (the reference 1 is not a coupling)", loLamAn["CouplingKinds"], <|nuk -> "Function", lamk -> "Constant", Dk -> "Function"|>];
 expectFail["LO: a DE monomial next to the functions (mixed ansatz)", DefineAnsatz[loTheory, "Density" -> loKPZ + tauk hbar lap[lap[h]],
    "Couplings" -> {nuk, lamk, Dk, tauk}, "Functions" -> {fD -> Dk, fnu -> nuk}], "Ansatz.mixedNotYet"];

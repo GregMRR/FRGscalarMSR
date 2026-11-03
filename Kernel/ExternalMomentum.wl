@@ -60,63 +60,82 @@ BuildLOEquations[loops_, symmetries_] := Block[{$FRGModule = "ExternalMomentum"}
    prot = Select[symmetries["Tags"], #Kind === "Protected" &]; negl = Select[symmetries["Tags"], #Kind === "Neglected" &];
    pairs = Select[Tuples[fields, 2], OrderedQ[{First[FirstPosition[fields, #[[1]]]], First[FirstPosition[fields, #[[2]]]]}] &];
 
-   (* the flowing entries: Gamma2_ab(0, p) = norm ref (p^2)^n F(p^2) *)
-   flowRec = Association[Function[pr, Module[{g = Expand[VertexValue[v, pr, {{0, pV}}]], f, pre, n, ref, norm},
-        f = FirstCase[g, (h : Alternatives @@ fs)[_] :> h, None, {0, Infinity}];
-        If[f === None, Nothing,
-         pre = Together[g/f[scal[pV, pV]]]; ref = f /. funcs;
-         n = Exponent[pre, scal[pV, pV]]; norm = Together[pre/(ref scal[pV, pV]^n)];
-         FRGAssert["ExternalMomentum.prefactor", FreeQ[pre, Alternatives @@ fs] && NumericQ[norm], {pr, g},
-          "internal: Gamma2_ab(0, p) is not number x reference x (p^2)^n x F(p^2)"];
-         pr -> <|"Pair" -> pr, "Function" -> f, "Reference" -> ref, "Normalisation" -> norm, "P2Divided" -> n,
-           "Prefactor" -> norm ref pU^(2 n), "GammaK" -> norm ref pU^(2 n) f[pU^2]|>]]] /@ pairs];
-   FRGAssert["ExternalMomentum.functionsFlow", Sort[Values[flowRec][[All, "Function"]]] === Sort[fs], Values[flowRec][[All, "Function"]],
-    "internal: every function must sit in exactly one Gamma2 entry"];
+   (* the flowing coefficients: the (I nu)^m coefficient of Gamma2_ab(nu, p) is norm ref (p^2)^n F(p^2), m = 0 or 1 (design/LOFLAMBDA.md F1);
+      a reference-1 function (F(0) = 1 protected) has no eta *)
+   flowRec = Flatten[Function[pr, Module[{g = Expand[VertexValue[v, pr, {{nu, pV}}]]},
+        Table[Module[{c = Expand[Coefficient[g, nu, m]/I^m], f, pre, n, ref, norm},
+          f = FirstCase[c, (h : Alternatives @@ fs)[_] :> h, None, {0, Infinity}];
+          If[f === None, Nothing,
+           pre = Together[c/f[scal[pV, pV]]]; ref = f /. funcs;
+           n = Exponent[pre, scal[pV, pV]]; norm = Together[pre/(ref scal[pV, pV]^n)];
+           FRGAssert["ExternalMomentum.prefactor", FreeQ[pre, Alternatives @@ fs] && NumericQ[norm], {pr, m, c},
+            "internal: the (I nu)^m coefficient of Gamma2_ab(nu, p) is not number x reference x (p^2)^n x F(p^2)"];
+           <|"Pair" -> pr, "Frequency" -> m, "Function" -> f, "Reference" -> ref, "HasEta" -> ref =!= 1, "Normalisation" -> norm, "P2Divided" -> n,
+            "Prefactor" -> norm ref pU^(2 n), "GammaK" -> norm ref pU^(2 n) f[pU^2]|>]], {m, 0, 1}]]] /@ pairs];
+   FRGAssert["ExternalMomentum.functionsFlow", Sort[flowRec[[All, "Function"]]] === Sort[fs], flowRec[[All, "Function"]],
+    "internal: every function must sit in exactly one (I w)^m coefficient of a Gamma2 entry"];
+   (* a reference-1 function sits at i w with a Protected i w tag at p = 0 (its f(0) = 1 is the Ward identity) *)
+   bad = Select[flowRec, ! #HasEta && ! (#Frequency == 1 && AnyTrue[prot, Function[t, t["Frequency"] === 1 && t["Momentum"] === 0 && pairMatchQ[t["Pattern"], #Pair]]]) &];
+   AppendTo[checks, assertCheck["ExternalMomentum.unitReference", bad === {}, bad[[All, "Function"]],
+     "a function with reference 1 must multiply i w in an entry with a Protected[..., \"Frequency\" -> 1, \"Momentum\" -> 0] tag: \
+that Ward identity is what keeps f(0) = 1 (design/LOFLAMBDA.md F2)",
+     If[AllTrue[flowRec, #HasEta &], "every function has a running reference",
+      "reference-1 functions at Protected i w entries: " <> StringRiffle[ToString /@ Select[flowRec, ! #HasEta &][[All, "Function"]], ", "]]]];
+   (* every function normalised at 0: F(0) = 1; the eta rows may hold F(0) only (vertex at the external leg), no F'(0) *)
+   atZero = (#[0] -> 1) & /@ fs;
 
    (* the loop at nu = 0, generic p, integrated over w by residues (two pole families), atoms explicit, magnitudes *)
    loopOf[pr_] := loopOf[pr] = LoopIntegrand[loops, pr, nu, pV];
-   integratedOf[pr_] := integratedOf[pr] = Module[{e = loopOf[pr] /. nu -> 0, x},
+   integratedOf[pr_] := integratedOf[pr, 0];
+   integratedOf[pr_, m_] := integratedOf[pr, m] = Module[{e = If[m == 0, loopOf[pr] /. nu -> 0,
+         ((D[loopOf[pr], {nu, m}] /. nu -> 0) /. deltaCompletion[deg])/(I^m m!)], x},
       x = loIntegrate[e, wL, {sq, sQ}, deg];
       FRGAssert["ExternalMomentum.isotropicAngles", FreeQ[loMagnitudes[x, pV, qL, pU, qU], scal | wedge | pV | qL], pr,
        "the loop depends on the angle other than through p.q (wedge / jac terms): not in LO (FixedDimension LO is in docs/FUTURE.md)"];
       Together[loMagnitudes[loExplicit[x, prop, reg, sq], pV, qL, pU, qU]]];
 
-   AppendTo[checks, assertCheck["ExternalMomentum.isotropicAngles", AllTrue[pairs, (integratedOf[#]; True) &], Null, "",
+   AppendTo[checks, assertCheck["ExternalMomentum.isotropicAngles", AllTrue[pairs, (integratedOf[#]; True) &] && AllTrue[flowRec, (integratedOf[#Pair, #Frequency]; True) &], Null, "",
      "every entry depends on the angle only through c = cos(p, q)"]];
    nFam = Length[Select[DownValues[FrequencyIntegralFamilies], FreeQ[#, Pattern] &]];
    AppendTo[checks, assertCheck["FrequencyIntegration.regularAtCoincidence", True, Null, "",
-     ToString[nFam] <> " two-family residue integrals (Delta at q and at Q = p + q, nu = 0), each regular when the Q data equal the q data"]];
+     ToString[nFam] <> " two-family residue integrals (Delta at q and at Q = p + q, nu = 0; d/d(I nu) rows: double poles at Q), each regular when the Q data equal the q data"]];
 
    (* entries outside the ansatz: zero at every p (causality, structure), or dropped by a Neglected tag *)
-   Scan[Function[pr, If[! KeyExistsQ[flowRec, pr],
+   Scan[Function[pr, If[! MemberQ[Select[flowRec, #Frequency == 0 &][[All, "Pair"]], pr],
        Which[
         AnyTrue[negl, pairMatchQ[#Pattern, pr] &], AppendTo[neglected, pr],
         ! ExactlyZeroQ[integratedOf[pr]], AppendTo[zeroBad, pr]]]], pairs];
    AppendTo[checks, assertCheck["ExternalMomentum.zeroEntries", zeroBad === {}, zeroBad,
      "these Gamma2 entries are not in the ansatz (or vanish by causality) but their flow at nu = 0 is not zero: add a function, or a Neglected[pair] tag",
-     "entries outside the ansatz vanish exactly at every p: " <> StringRiffle[ToString /@ Complement[pairs, Keys[flowRec], neglected], ", "]]];
+     "entries outside the ansatz vanish exactly at every p (nu = 0): " <> StringRiffle[ToString /@ Complement[pairs, Select[flowRec, #Frequency == 0 &][[All, "Pair"]], neglected], ", "]]];
    If[neglected =!= {}, AppendTo[warns, infoCheck["WARN", "ExternalMomentum.neglected", "Neglected entries (flow computed, dropped): " <>
        StringRiffle[(ToString[#] <> " = " <> inputForm[integratedOf[#]]) & /@ neglected, "; "]]]];
 
    (* Protected i w coefficients: exactly at p = 0 (d/d(I nu), then the p^(2n) average, then nu -> 0); neglected at p != 0 (L7) *)
    Scan[Function[t, Scan[Function[pr, If[t["Frequency"] === 1 && pairMatchQ[t["Pattern"], pr],
         AppendTo[wardDone, {pr, t["Momentum"]}];
-        If[! ExactlyZeroQ[loProjectedAtZero[loopOf[pr], 1, t["Momentum"], {nu, pV}, wq, dim, prop, reg, qU]], AppendTo[wardBad, {pr, t["Reason"]}]]]], pairs]], prot];
+        If[! ExactlyZeroQ[loProjectedAtZero[loopOf[pr], 1, t["Momentum"], {nu, pV}, wq, dim, prop, reg, qU] /. atZero], AppendTo[wardBad, {pr, t["Reason"]}]]]], pairs]], prot];
    AppendTo[checks, assertCheck["ExternalMomentum.ward", wardBad === {}, wardBad,
      "a Protected i w coefficient flows at p = 0: the declared Ward identity does not hold for this ansatz",
      If[wardDone === {}, "no Protected i w coefficient", "Protected i w coefficients flow to exactly 0 at p = 0: " <> inputForm[wardDone]]]];
-   If[wardDone =!= {}, AppendTo[warns, infoCheck["INFO", "ExternalMomentum.wardNeglectedLO",
-      "Neglected (LO): the Protected i w coefficients at p != 0 (LO drops the frequency dependence of the functions)"]]];
+   (* at p != 0 a Protected i w coefficient either flows as a reference-1 function (design/LOFLAMBDA.md) or is neglected (L7) *)
+   With[{neglW = Select[wardDone, Function[wd, NoneTrue[flowRec, #Frequency == 1 && #Pair === wd[[1]] &]]]},
+    If[neglW =!= {}, AppendTo[warns, infoCheck["INFO", "ExternalMomentum.wardNeglectedLO",
+       "Neglected (LO): the Protected i w coefficients at p != 0 of " <> inputForm[neglW[[All, 1]]] <> " (LO drops the frequency dependence of the functions)"]]]];
 
    (* the flow of each function and its p -> 0 limit (eta) *)
    eqs = Function[r, Module[{pr = r["Pair"], n = r["P2Divided"], norm = r["Normalisation"], flow, eta},
-       flow = Together[integratedOf[pr]/(norm pU^(2 n))];
-       eta = Together[loProjectedAtZero[loopOf[pr], 0, n, {nu, pV}, wq, dim, prop, reg, qU]/norm];
+       flow = Together[integratedOf[pr, r["Frequency"]]/(norm pU^(2 n))];
+       eta = If[r["HasEta"], Together[(loProjectedAtZero[loopOf[pr], r["Frequency"], n, {nu, pV}, wq, dim, prop, reg, qU] /. atZero)/norm], None];
        Join[r, <|"Flowing" -> r["Reference"] r["Function"][pU^2], "Integrand" -> flow, "EtaIntegrand" -> eta,
-         "DsCouplings" -> Union[Cases[flow, _dsCoupling, {0, Infinity}]], "IdenticallyZero" -> ExactlyZeroQ[flow]|>]]] /@ Values[flowRec];
+         "DsCouplings" -> Union[Cases[flow, _dsCoupling, {0, Infinity}]], "IdenticallyZero" -> ExactlyZeroQ[flow]|>]]] /@ flowRec;
 
    (* L5: the eta rows contain only F, F', r, r' (BMWflow has no second derivatives; no integration by parts) *)
-   bad = Select[eqs, Max[0, loDerivativeOrders[#EtaIntegrand, Join[fs, shapes]][[All, 2]]] > 1 &];
+   bad = Select[Select[eqs, #HasEta &], ! FreeQ[#EtaIntegrand, Derivative[_][Alternatives @@ fs][0]] &];
+   AppendTo[checks, assertCheck["ExternalMomentum.etaAtZero", bad === {}, bad[[All, "Function"]],
+     "an eta row holds a derivative of a function at 0 (from a vertex function at the external leg): BMWflow's eta functions get f, f' at q only",
+     "eta rows: functions at the external leg only as F(0) = 1"]];
+   bad = Select[Select[eqs, #HasEta &], Max[0, loDerivativeOrders[#EtaIntegrand, Join[fs, shapes]][[All, 2]]] > 1 &];
    AppendTo[checks, assertCheck["ExternalMomentum.firstDerivativesOnly", bad === {},
      Thread[bad[[All, "Function"]] -> (loDerivativeOrders[#EtaIntegrand, Join[fs, shapes]] & /@ bad)],
      "the p -> 0 limit (eta row) needs a second derivative of a function or of a shape: outside the LO scope (KPZ-like models; docs/FUTURE.md)",
@@ -124,10 +143,10 @@ BuildLOEquations[loops_, symmetries_] := Block[{$FRGModule = "ExternalMomentum"}
 
    (* every order below p^(2n) of a divided entry vanishes (this also checks the Protected w^0 low-p entries) *)
    bad = {};
-   Scan[Function[r, Do[If[! ExactlyZeroQ[loProjectedAtZero[loopOf[r["Pair"]], 0, j, {nu, pV}, wq, dim, prop, reg, qU]], AppendTo[bad, {r["Pair"], "p^" <> ToString[2 j]}]],
+   Scan[Function[r, Do[If[! ExactlyZeroQ[loProjectedAtZero[loopOf[r["Pair"]], r["Frequency"], j, {nu, pV}, wq, dim, prop, reg, qU] /. atZero], AppendTo[bad, {r["Pair"], "p^" <> ToString[2 j]}]],
       {j, 0, r["P2Divided"] - 1}]], eqs];
    Scan[Function[t, Scan[Function[r, If[t["Frequency"] === 0 && pairMatchQ[t["Pattern"], r["Pair"]] && t["Momentum"] >= r["P2Divided"],
-        AppendTo[bad, {r["Pair"], "Protected p^" <> ToString[2 t["Momentum"]] <> " is not below the divided p^" <> ToString[2 r["P2Divided"]]}]]], eqs]], prot];
+        AppendTo[bad, {r["Pair"], "Protected p^" <> ToString[2 t["Momentum"]] <> " is not below the divided p^" <> ToString[2 r["P2Divided"]]}]]], Select[eqs, #Frequency == 0 &]]], prot];
    AppendTo[checks, assertCheck["ExternalMomentum.dividedOrders", bad === {}, bad,
      "a row divided by p^(2n) has a nonzero lower order (it would be exported as 1/p^2, ...): the ansatz breaks a symmetry it assumes, \
 or a Protected order is not below the function's prefactor",

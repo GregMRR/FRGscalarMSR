@@ -140,10 +140,14 @@ Output: the `"Ansatz"` stage. Its key `"Monomials"` is a list of
   as `fn[f, …]`; `MonomialFunction[m]` returns f or `None`.
 - `"Functions" -> {f -> reference, …}` ties each function to a coupling and states f(0) = 1; its order is the export order.
   `"Pipeline" -> Automatic` (default) is inferred; an explicit value must match (`Ansatz.pipeline`).
+- A reference may be `1` (design/LOFLAMBDA.md F2): f(0) = 1 is then a Ward identity, not an η equation (KPZ's f_λ, which
+  multiplies iω). A function may also sit in vertex monomials (on the named leg, any constant coefficient), as long as it sits
+  in one Γ2 monomial, whose flow it is (KPZ: `fn[flam, hbar] (dt[h] - lamk/2 grad[h].grad[h])`).
 - Checks: `Ansatz.fnOneField` (one field inside, one fn per monomial), `Ansatz.functionReference` (declared, fresh, distinct
-  references; each function in one monomial with coefficient number × reference), `Ansatz.fnBilinear` (functions in Γ2 only),
-  `Ansatz.functionTimesOmega` (no function × iω), `Ansatz.mixedNotYet` (every ω⁰ bilinear term carries a function, every iω
-  term has a numeric coefficient).
+  references, or 1; each function in exactly one bilinear monomial with coefficient number × reference),
+  `Ansatz.functionInGamma2` (a vertex function also sits in a Γ2 monomial), `Ansatz.oneFunctionPerCoefficient` (at most one
+  function per (Γ2 entry, ω order)), `Ansatz.omegaFunctionReference` (a function times iω has reference 1; no function × ω²),
+  `Ansatz.mixedNotYet` (every ω⁰ bilinear term carries a function, every iω term a number or a reference-1 function).
 - LO-only keys: `"Functions"`, `"CouplingKinds"` (`"Function"` for a reference of a function, `"Constant"` otherwise).
 
 ---
@@ -622,18 +626,26 @@ for an ansatz whose Γ2 couplings are reference × F(p²). Replaces `ProjectOnMo
 - For each pair a ≤ b: `LoopIntegrand[loops, {a, b}, ν, p]` (the DE loop formula), ν = 0, the ω integral by the two-family residues
   (Δ at q² and at Q² = p² + q² + 2 p q c), the atoms explicit (F at q² and Q², shapes, dsCoupling), vectors → magnitudes
   p, q and c = `CosTheta`.
-- Flowing entries: Γ2_ab(0, p) = norm × ref × (p²)ⁿ × F(p²); the integrand is divided by norm p^{2n} and n is recorded as
-  `P2Divided`. Each record: `Function`, `Reference`, `Pair`, `Normalisation`, `P2Divided`, `Prefactor`, `GammaK`, `Flowing`
-  (= ref F(p²)), `Integrand` (∫d^dq/(2π)^d integrand of ∂s(ref F(p²))), `EtaIntegrand` (its p → 0 limit: integrand of ∂s ref).
+- Flowing coefficients: the (iν)^m coefficient of Γ2_ab(ν, p), m = 0 or 1, is norm × ref × (p²)ⁿ × F(p²); the integrand is
+  divided by norm p^{2n} and n is recorded as `P2Divided`. For m = 1 (a function times iω, design/LOFLAMBDA.md F3) the loop is
+  differentiated in ν before the ω integral (`deltaCompletion`, then the two-family residues with a double pole at Q).
+  Each record: `Function`, `Reference`, `Pair`, `Frequency` (m), `HasEta` (reference ≠ 1), `Normalisation`, `P2Divided`,
+  `Prefactor`, `GammaK`, `Flowing` (= ref F(p²)), `Integrand` (∫d^dq/(2π)^d integrand of ∂s(ref F(p²))), `EtaIntegrand` (its
+  p → 0 limit: integrand of ∂s ref; `None` without η). In the η rows and the p = 0 checks every function at the external leg
+  is F(0) = 1.
 - p → 0 and low orders use Projection's `project` (`directionalAverage`, Δ derivatives) and the single-momentum `integrate`.
 
 **Checks** (in this order).
+- `ExternalMomentum.unitReference`: a reference-1 function multiplies iω in an entry with a Protected iω tag at p = 0 (the Ward
+  identity that keeps f(0) = 1).
 - `ExternalMomentum.isotropicAngles`: after vectors → magnitudes nothing depends on the angle except through c (rejects wedge/jac).
 - `FrequencyIntegration.regularAtCoincidence` (card line): every two-family integral used.
 - `ExternalMomentum.zeroEntries`: entries outside the ansatz (causal, structural) vanish exactly at every p; a `Neglected[pair]`
   tag drops an entry instead (WARN `ExternalMomentum.neglected` with its value).
 - `ExternalMomentum.ward`: each Protected iω coefficient flows to exactly 0 at p = 0 (∂/∂(iν), then the p^{2n} average, then
-  ν → 0); INFO "Neglected (LO)" at p ≠ 0.
+  ν → 0); INFO "Neglected (LO)" at p ≠ 0 for those without a function (with one, it flows: f_λ).
+- `ExternalMomentum.etaAtZero`: the η rows hold functions at the external leg only as F(0) = 1, no F′(0) (no reachable
+  expectFail: such a model breaks `ward` first).
 - `ExternalMomentum.firstDerivativesOnly` (L5): the η rows contain only F, F′, r, r′ (BMWflow has no r″). Checked before
   `dividedOrders` (user decision): with shift symmetry the h-leg vertex is O(p), so a p² row only gets G′(Q); a model that needs
   G″ breaks shift symmetry and would otherwise always stop at `dividedOrders`.
@@ -645,7 +657,9 @@ for an ansatz whose Γ2 couplings are reference × F(p²). Replaces `ProjectOnMo
 
 **Tests.** `tests/unit/ExternalMomentumTest.wl`: KPZ LO records; the η rows equal the p → 0 limit and, at F = 1, the DE KPZ
 flows; expectFail: c4 tadpole (`dividedOrders`), constant vertex c3 h̄h² (`firstDerivativesOnly`), non-Galilean h̄ h ∇²h
-(`ward`), no noise function (`zeroEntries`), jac in d = 2 (`isotropicAngles`), a DE stage (`pipeline`), and the DE-only guards.
+(`ward`), no noise function (`zeroEntries`), jac in d = 2 (`isotropicAngles`), a DE stage (`pipeline`), f_λ without its Protected
+iω tag (`unitReference`), and the DE-only guards. The f_λ model: `benchmarks/KPZLOLambda` (Kloss kernels at generic f_λ, the DE
+at f_λ = 1 + x p², f_λ = 1 → KPZLO).
 
 **Show.** `ShowLOEquation[equations, f]`.
 
@@ -696,7 +710,8 @@ with Canet's flow instead (see Loops).
 
 **LO branch** (step 6). At random rational couplings, d_s couplings, k, the concrete shapes and concrete positive test
 functions F, and explicit vectors p, q in d = 2 and 3 (causal point at q and at Q): numeric inverse of Γ2 + R, the loop at ν = 0
-integrated over ω with `NIntegrate`, against `Integrand × norm × p^{2n}`. `"ZeroFlows" -> True` adds the zero entries.
+integrated over ω with `NIntegrate`, against `Integrand × norm × p^{2n}`. `"ZeroFlows" -> True` adds the zero entries. A row
+of frequency order m = 1 (f_λ) takes the exact ∂ν of the numeric loop (ν symbolic in the numeric matrices), divided by i.
 
 ---
 
@@ -892,32 +907,33 @@ times (2π)^{−2} (the old file lacks the (2π)^{−d}) at η_h = η_φ (the ol
 ## PythonExport (`Kernel/PythonExport.wl`) — `ExportPython`
 
 **Objective.** Write an LO Adimensional stage as a Python module for BMWflow's generic adapter (`ModelGenerated`). The contract
-(version 2) is `docs/handoff/BMWflow_LO.md` (= design/LOPIPELINE.md §6). Every model-specific step is done here, so the
+(version 3, design/LOFLAMBDA.md F5) is `docs/handoff/BMWflow_LO.md` (= design/LOPIPELINE.md §6). Every model-specific step is done here, so the
 module describes itself.
 
 **Output.** `ExportPython[adim, "G" -> alamk^2, "Model" -> "KPZ", "File" -> ".../KPZ_LO.py"]`: constants `CONTRACT_VERSION`,
 `FUNCTIONS`, `ETAS`, `COUPLINGS = ("g",)`, `SHAPES`, `P2_DIVIDED`, `FIXED_DIMENSION`, `APPROXIMATION = "LO"`, `MODEL` (the label);
-functions `linear(p, f, fprime, eta, couplings, d)`, `loop(p, q, c, Q2, fq, fQ, rq, rq_, rQ, eta, couplings, d)`,
+functions `linear(p, f, fprime, eta, couplings, d)`, `loop(p, q, c, Q2, fp, fq, fQ, rq, rq_, rQ, eta, couplings, d)` (fp: f at p,
+for vertex functions at the external leg), `ETAS` with `None` for a reference-1 function, the η system n_η × n_η,
 `eta_matrix(q, f, fprime, r, r_, couplings, d)`, `eta_vector(…)`, `beta(couplings, eta, d)` (∂s g); each returns a tuple (nested
 for `eta_matrix`). Pure numpy + math, elementwise, no state, no value-dependent branching. The header carries a content hash
 (no date): exporting unchanged equations gives the same file.
 
 **Manipulations.** Own printer (Power → `**`, numbers as float literals and quotients `(3.0/2.0)`, `math.pi`, `np.sqrt`; not
-`toJulia`: `^` is XOR in Python). Placeholders `PythonVariable[name, i]` (0-based): f at aq² → `fq[i]`, at Q̂² → `fQ[i]`; shapes
+`toJulia`: `^` is XOR in Python). Placeholders `PythonVariable[name, i]` (0-based): f at ap² → `fp[i]`, at aq² → `fq[i]`, at Q̂² → `fQ[i]`; shapes
 r(aq²) → `rq[j]`, r′(aq²) → `rq_[j]` (d/d(q²)), r(Q̂²) → `rQ[j]`; in `linear` and the η functions F′(x²) → `fprime[i]/(2 x)`
 (f′ = d/d|momentum|). The coupling: solve g = G for it, substitute, β_g = G′ β. The loop, conditioned for small Q: f → A − r with
 the atoms `PythonAtom["fq", i, "rq", j]` = fq[i] + rq[j] (and at Q), j the shape of the regulator of function i's Γ2 entry
-(`pyAtomPairs`); then p^(2n) → (Q2 − q² − 2pqc)^n with numerators re-expanded to a fixed point. Rows free of the arrays get
+(`pyAtomPairs`, ω⁰ functions only: a function at iω is not paired with a regulator); then p^(2n) → (Q2 − q² − 2pqc)^n with numerators re-expanded to a fixed point. Rows free of the arrays get
 `+ 0.0*p` (`0.0*q`). The measure is not included. `PythonParts[adim]`, `PythonParts[adim, G]` give the expressions.
 
-**Checks.** `PythonExport.pipeline`, `.options`, `.model` (a label), `.file`, `.etaPerFunction` (n_η = n_f, ETAS in FUNCTIONS
-order), `.singleCoupling` (n_c = 1), `.p2DividedAtMostOne`, `.gMap` (G given, a function of the coupling alone, invertible),
+**Checks.** `PythonExport.pipeline`, `.options`, `.model` (a label), `.file`, `.etaPerFunction` (one η per function with a running reference, ETAS in FUNCTIONS
+order, None for reference 1), `.singleCoupling` (n_c = 1), `.p2DividedAtMostOne`, `.gMap` (G given, a function of the coupling alone, invertible),
 `.gEven` (every kernel and β rational in g), `.conditionedLoop` (internal: the atom/Q2 loop equals the plain loop exactly),
 `.noMeasure` (no Γ, sin, d-dependent powers of 2 or π), `.knownSymbols` (only contract arguments left: no unit, no F′ in `loop`,
 no r′ at Q, no r″), `.systemHeads`, `.printable`.
 
 **Tests.** `tests/unit/PythonExportTest.wl` with `tests/reference/PythonRoundTrip.wl`: the KPZ module imported by python3, every
-function at 4 points (d = 2, 3/2, 1, 5/2) = Mathematica to 1e-13, `loop` broadcasts over a numpy array; SKIP without numpy
+function at 4 points (d = 2, 3/2, 1, 5/2) = Mathematica to 1e-13 (or 10× Mathematica's machine-precision error at a cancelling value), `loop` broadcasts over a numpy array; SKIP without numpy
 (a failure with `--require-python`); exporting twice gives the same file; β_g = g(d − 2 − η_D + 3η_ν); expectFail per check.
 `tests/acceptance/BMWflowLO.wl`: BMWflow's acceptance test (`ModelGenerated` = `ModelKPZ`) on a fresh export, and the export =
 BMWflow's vendored fixture; SKIP without BMWflow and its `.venv`.

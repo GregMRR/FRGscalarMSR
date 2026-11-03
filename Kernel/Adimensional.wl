@@ -308,10 +308,10 @@ adimensionalLO[equations_, dims_, opts___] := Module[{t0 = AbsoluteTime[], check
      "regulator prefactors may contain reference couplings only; lifting this is in docs/FUTURE.md",
      "regulator prefactors contain references only: " <> StringRiffle[ToString /@ regC, ", "]]];
    (* every reference is the reference of a function (its eta comes from f(0) = 1), every function's reference is a reference *)
-   bad = Join[Complement[refs, funcs[[All, 2]]], Complement[funcs[[All, 2]], refs]];
+   bad = Join[Complement[refs, funcs[[All, 2]]], Complement[DeleteCases[funcs[[All, 2]], 1], refs]];
    FRGAssert["Adimensional.referenceEquation", bad === {}, bad,
     "LO: each reference must be the reference of one function (\"Functions\" -> {f -> reference}): f(0) = 1 is the equation of its eta"];
-   FRGAssert["Adimensional.unusedEquation", AllTrue[eqs, MemberQ[refs, #Reference] &], Select[eqs, ! MemberQ[refs, #Reference] &][[All, "Function"]],
+   FRGAssert["Adimensional.unusedEquation", AllTrue[Select[eqs, #HasEta &], MemberQ[refs, #Reference] &], Select[eqs, #HasEta && ! MemberQ[refs, #Reference] &][[All, "Function"]],
     "these functions determine no eta (their reference is not a reference of DeriveDimensions)"];
 
    (* units: c -> chat [c] (non-references), q -> k aq, p -> k ap, d_s ref -> -eta ref, F(x) -> f(x/k^2) *)
@@ -327,7 +327,9 @@ adimensionalLO[equations_, dims_, opts___] := Module[{t0 = AbsoluteTime[], check
    AppendTo[checks, assertCheck["Adimensional.regulatorDimension", bad === {}, bad,
      "a regulator entry R_ab does not have the dimension of Gamma2_ab (Dim e_k - [t] - [a] - [b]): its prefactor is wrong",
      "every R_ab has the dimension of Gamma2_ab"]];
-   bad = Select[eqs, ! AllTrue[Expand[dimensionVector["Adimensional.lhsDimension", adim[#GammaK], unitIndex, nb, #Function][[1]] - gamma2Dim[#Pair]], # === 0 &] &];
+   (* the (I nu)^m coefficient has the dimension of Gamma2_ab minus m frequencies *)
+   bad = Select[eqs, ! AllTrue[Expand[dimensionVector["Adimensional.lhsDimension", adim[#GammaK], unitIndex, nb, #Function][[1]] - gamma2Dim[#Pair] +
+        #Frequency dims["Frequency"]], # === 0 &] &];
    AppendTo[checks, assertCheck["Adimensional.lhsDimension", bad === {}, bad[[All, "Function"]],
      "a Gamma2 entry norm ref p^(2n) F(p^2) does not have the dimension of Gamma2_ab", "each Gamma2 entry ref p^(2n) F(p^2) has the dimension of Gamma2_ab"]];
 
@@ -344,28 +346,30 @@ adimensionalLO[equations_, dims_, opts___] := Module[{t0 = AbsoluteTime[], check
        FRGAssert["Adimensional.unitInvariance", unitInvariantQ[x, basis, dimSym, testDims, 1], r["Function"],
         "the loop integrand changes when the units are rescaled: it is not dimensionless (independent route)"];
        homClean["Adimensional.homogeneous", x, ConstantArray[0, nb], unitIndex, nb, r["Function"]]]] /@ eqs;
-   etaRows = Function[r, Module[{x = adim[kk^dimSym r["EtaIntegrand"]/r["Reference"]]},
+   etaRows = Function[r, Module[{x = adim[kk^dimSym r["EtaIntegrand"]/r["Reference"]]},   (* rows with an eta only (reference != 1) *)
        FRGAssert["Adimensional.unitInvariance", unitInvariantQ[x, basis, dimSym, testDims, 2], "eta row of " <> ToString[r["Function"]],
         "the eta integrand changes when the units are rescaled: it is not dimensionless (independent route)"];
-       homClean["Adimensional.homogeneous", x, ConstantArray[0, nb], unitIndex, nb, r["Function"]]]] /@ eqs;
+       homClean["Adimensional.homogeneous", x, ConstantArray[0, nb], unitIndex, nb, r["Function"]]]] /@ Select[eqs, #HasEta &];
    AppendTo[checks, assertCheck["Adimensional.homogeneous", True, Null, "",
      "every loop and eta integrand free of k and the references: homogeneity of every sum (structural) and invariance under random unit rescaling (numerical, d = " <>
       StringRiffle[ToString /@ testDims, ", "] <> ")"]];
-   linear = (etas[#Reference] #Function[ap^2] + 2 ap^2 Derivative[1][#Function][ap^2]) & /@ eqs;
+   (* a reference-1 function has no eta: its linear part is the scaling term alone (design/LOFLAMBDA.md F2) *)
+   linear = (If[#HasEta, etas[#Reference] #Function[ap^2], 0] + 2 ap^2 Derivative[1][#Function][ap^2]) & /@ eqs;
 
-   (* eta system, etas in FUNCTIONS order *)
-   etaOrder = etas[#Reference] & /@ eqs;
+   (* eta system, etas in FUNCTIONS order (functions with an eta only) *)
+   etaOrder = etas[#Reference] & /@ Select[eqs, #HasEta &];
    ca = Normal[CoefficientArrays[Expand[etaRows], etaOrder]];
    FRGAssert["Adimensional.etaLinear", Length[ca] == 2 && FreeQ[ca, Alternatives @@ etaOrder], etaRows, "the eta system is not linear in the etas"];
    {vec, mat} = Together /@ # & /@ {ca[[1]], ca[[2]]};
    mat = Map[Together, mat, {2}];
    AppendTo[checks, assertCheck["Adimensional.etaSystem", True, Null, "",
-     "eta from f(0) = 1: (1 + <M>) eta = -<b>, " <> ToString[Length[eqs]] <> " rows (" <> StringRiffle[ToString /@ etaOrder, ", "] <> "), <.> = Integral daq LoopMeasure"]];
+     "eta from f(0) = 1: (1 + <M>) eta = -<b>, " <> ToString[Length[etaOrder]] <> " rows (" <> StringRiffle[ToString /@ etaOrder, ", "] <> "), <.> = Integral daq LoopMeasure"]];
    AppendTo[warns, infoCheck["INFO", "Adimensional.functionsLO", "F(p^2) = f(p^2/k^2); flow at fixed ap = p/k: d_s f = eta f + 2 ap^2 f'(ap^2) + loop/ref"]];
 
    stage = stampStage[<|"Stage" -> "Adimensional", "Pipeline" -> "LO", "Upstream" -> {equations["Fingerprint"], dims["Fingerprint"]},
       "Equations" -> equations, "Dimensions" -> dims, "State" -> state, "Couplings" -> (names /@ state), "References" -> refs,
-      "Functions" -> fs, "FunctionReferences" -> funcs, "Etas" -> etaOrder, "EtaNames" -> (dims["EtaNames"][#Reference] & /@ eqs), "MustFix" -> {},
+      "Functions" -> fs, "FunctionReferences" -> funcs, "HasEta" -> eqs[[All, "HasEta"]], "Etas" -> etaOrder,
+      "EtaNames" -> (dims["EtaNames"][#Reference] & /@ Select[eqs, #HasEta &]), "MustFix" -> {},
       "BetaL" -> betaL, "Linear" -> linear, "Loop" -> loops, "P2Divided" -> eqs[[All, "P2Divided"]], "EtaMatrix" -> mat, "EtaVector" -> vec,
       "LoopMomentum" -> aq, "ExternalMomentum" -> ap, "Cosine" -> CosTheta, "Dimension" -> dimSym, "Shapes" -> shapes,
       "Measure" -> <|"Loop" -> loLoopMeasure[dimSym, aq, Symbol["Global`theta"]], "Eta" -> LoopMeasure[dimSym, aq]|>,

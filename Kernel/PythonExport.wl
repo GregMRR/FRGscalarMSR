@@ -24,7 +24,7 @@ Begin["`Private`"];
 SetAttributes[{PythonVariable, PythonAtom}, Protected];
 
 (* version of the contract docs/handoff/BMWflow_LO.md; BMWflow's ModelGenerated refuses any other *)
-pyContractVersion = 2;
+pyContractVersion = 3;
 pyHashPlaceholder = "@@HASH@@";
 
 (* ---------- printer: Power -> **, numbers as floats, math.pi; nothing but + - * / ** and np.sqrt ---------- *)
@@ -53,9 +53,11 @@ py[e_] := FRGAssert["PythonExport.printable", False, e, "internal: no Python tra
 
 (* ---------- the exported expressions with Python placeholders ---------- *)
 
-(* functions f at aq^2 / at Qhat^2, shapes at aq^2 (and r' = dr/d(q^2)) / at Qhat^2; F' = d/d(p^2) -> f'/(2 momentum), f' = d/d|momentum| *)
+(* functions f at ap^2 (vertex functions at the external leg, contract v3) / at aq^2 / at Qhat^2, shapes at aq^2 (and r' = dr/d(q^2)) /
+   at Qhat^2; F' = d/d(p^2) -> f'/(2 momentum), f' = d/d|momentum| *)
 pyLoopRules[fs_, shapes_, aq_, ap_, c_] := With[{q2 = aq^2, Q2 = Expand[ap^2 + aq^2 + 2 ap aq c]}, Join[
-    Flatten[MapIndexed[{#1[q2] -> PythonVariable["fq", #2[[1]] - 1], #1[Q2] -> PythonVariable["fQ", #2[[1]] - 1]} &, fs]],
+    Flatten[MapIndexed[{#1[ap^2] -> PythonVariable["fp", #2[[1]] - 1], #1[q2] -> PythonVariable["fq", #2[[1]] - 1],
+        #1[Q2] -> PythonVariable["fQ", #2[[1]] - 1]} &, fs]],
     Flatten[MapIndexed[{#1[q2] -> PythonVariable["rq", #2[[1]] - 1], Derivative[1][#1][q2] -> PythonVariable["rq_", #2[[1]] - 1],
         #1[Q2] -> PythonVariable["rQ", #2[[1]] - 1]} &, shapes]],
     {ap -> PythonVariable["p"], aq -> PythonVariable["q"], c -> PythonVariable["c"]}]];
@@ -78,7 +80,8 @@ pyGRule[c_, gexpr_] := Module[{sol = Quiet[Solve[pyG == gexpr, c]]}, If[MatchQ[s
 pyAtomPairs[adim_] := Module[{eqs = adim["Equations"]["Equations"], reg = EmbeddedStage[adim["Equations"], "Regulator"]["Entries"], fs = adim["Functions"],
     shapes = adim["Shapes"]},
    DeleteCases[Function[r, Module[{sh = Union[Cases[Lookup[reg, Key[r["Pair"]], 0], s_[_] /; MemberQ[shapes, s] :> s, {0, Infinity}]]},
-       If[Length[sh] == 1, {First[FirstPosition[fs, r["Function"]]] - 1, First[FirstPosition[shapes, First[sh]]] - 1}, Nothing]]] /@ eqs, Nothing]];
+       If[Length[sh] == 1, {First[FirstPosition[fs, r["Function"]]] - 1, First[FirstPosition[shapes, First[sh]]] - 1}, Nothing]]] /@
+     Select[eqs, Lookup[#, "Frequency", 0] == 0 &], Nothing]];   (* a function times i w is not added to the regulator *)
 pyConditioned[e_, pairs_] := Module[{P = PythonVariable["p"], q = PythonVariable["q"], c = PythonVariable["c"], Q2 = PythonVariable["Q2"], atoms, step},
    atoms = Flatten[{PythonVariable["fq", #1] -> PythonAtom["fq", #1, "rq", #2] - PythonVariable["rq", #2],
         PythonVariable["fQ", #1] -> PythonAtom["fQ", #1, "rQ", #2] - PythonVariable["rQ", #2]} & @@@ pairs];
@@ -118,7 +121,7 @@ Options[ExportPython] = {"G" -> None, "Model" -> None, "File" -> None};
 
 ExportPython[adim_, opts : OptionsPattern[]] := Block[{$FRGModule = "PythonExport"},
   Module[{model = OptionValue["Model"], file = OptionValue["File"], gexpr = OptionValue["G"], parts, checks = {}, warns = {}, all, fs, cps, shapes, etaNames,
-    bad, units, header, body, defs, gSyms, fixedDim},
+    bad, units, header, body, defs, gSyms, fixedDim, hasEta, etaTuple},
    FRGAssert["PythonExport.pipeline", AssociationQ[adim] && Lookup[adim, "Pipeline", None] === "LO", If[AssociationQ[adim], Lookup[adim, "Pipeline", None], adim],
     "ExportPython writes LO stages (functions of p^2) for BMWflow; a derivative-expansion stage goes to ExportJulia (FlowRG)"];
    validateStage[adim, "Adimensional"];
@@ -128,10 +131,12 @@ ExportPython[adim_, opts : OptionsPattern[]] := Block[{$FRGModule = "PythonExpor
    FRGAssert["PythonExport.file", StringQ[file] && StringEndsQ[file, ".py"], file, "\"File\" -> \".../eqs/<Model>_LO.py\""];
    fs = adim["Functions"]; cps = adim["Couplings"]; shapes = adim["Shapes"]; etaNames = adim["EtaNames"];
 
-   AppendTo[checks, assertCheck["PythonExport.etaPerFunction", Length[adim["Etas"]] == Length[fs] &&
-       adim["Etas"] === (adim["Dimensions"]["Etas"][#] & /@ (fs /. adim["FunctionReferences"])), {fs, adim["Etas"]},
-     "one eta per function, ETAS in FUNCTIONS order (eta_X belongs to the reference of FUNCTIONS[X])",
-     "ETAS " <> pyStrings["eta" <> # & /@ etaNames] <> " <-> FUNCTIONS " <> pyStrings[fs]]];
+   hasEta = Lookup[adim, "HasEta", ConstantArray[True, Length[fs]]];
+   etaTuple = pyTuple[Module[{i = 0}, If[#, "\"eta" <> etaNames[[++i]] <> "\"", "None"] & /@ hasEta]];
+   AppendTo[checks, assertCheck["PythonExport.etaPerFunction", Length[hasEta] == Length[fs] && Length[adim["Etas"]] == Count[hasEta, True] &&
+       adim["Etas"] === (adim["Dimensions"]["Etas"][#] & /@ (Pick[fs, hasEta] /. adim["FunctionReferences"])), {fs, adim["Etas"]},
+     "one eta per function with a running reference, ETAS in FUNCTIONS order (eta_X belongs to the reference of FUNCTIONS[X]; None for reference 1)",
+     "ETAS " <> etaTuple <> " <-> FUNCTIONS " <> pyStrings[fs]]];
    AppendTo[checks, assertCheck["PythonExport.singleCoupling", Length[cps] == 1, cps,
      "BMWflow's evolution state has one scalar g: exactly one exported coupling (n_c > 1 is in docs/FUTURE.md)", "one coupling: " <> ToString[cps]]];
    AppendTo[checks, assertCheck["PythonExport.p2DividedAtMostOne", Max[adim["P2Divided"]] <= 1, Thread[fs -> adim["P2Divided"]],
@@ -160,7 +165,7 @@ ExportPython[adim_, opts : OptionsPattern[]] := Block[{$FRGModule = "PythonExpor
    bad = Union[Cases[all /. (_PythonVariable | _PythonAtom) -> 1, s_Symbol /; Context[s] =!= "System`", {0, Infinity}, Heads -> True]];
    AppendTo[checks, assertCheck["PythonExport.knownSymbols", bad === {}, bad,
      "a symbol is left after the Python argument substitution: a unit, an unexpected function atom (F' in loop, r' at Q, r''), or a coupling outside COUPLINGS",
-     "only the contract arguments (p, q, c, Q2, fq, fQ, rq, rq_, rQ, f, fprime, r, r_, eta, couplings, d)"]];
+     "only the contract arguments (p, q, c, Q2, fp, fq, fQ, rq, rq_, rQ, f, fprime, r, r_, eta, couplings, d)"]];
    bad = Complement[Union[Cases[all /. (_PythonVariable | _PythonAtom) -> pyPlaceholder, h_Symbol[___] /; Context[h] === "System`" :> h, {0, Infinity}, Heads -> True]],
      {Plus, Times, Power, Rational, List}];
    AppendTo[checks, assertCheck["PythonExport.systemHeads", bad === {}, bad, "a System function without a Python translation is left", "only + * ** (np.sqrt)"]];
@@ -173,11 +178,12 @@ ExportPython[adim_, opts : OptionsPattern[]] := Block[{$FRGModule = "PythonExpor
       "# Dimensionless; p, q in units of the RG scale; f_X(0) = 1; fprime = d f/d|momentum|; r_ = dr/d(q^2); every rate is d_s x, s = ln(kappa/Lambda).",
       "# The loop measure is NOT included: I_X(p) = v_{d-1}/(2 pi) Int dq q^(d-1) Int dtheta sin^(d-2)(theta) loop_X; eta: <.> = v_d Int dq q^(d-1) (.).",
       "# loop_X is already divided by p^(2 P2_DIVIDED[X]) (non-finite at p = 0 for those rows: the adapter extrapolates).",
+      "# fp, fq, fQ: the functions at p, q, Q. ETAS[X] is None for a function whose f(0) = 1 is protected (no eta; the eta system has one row per eta).",
       "# loop takes Q2 = p^2 + q^2 + 2 p q c, the Q^2 at which fQ and rQ are evaluated; it is written in Q2 and in the atoms (f + r): well conditioned as Q -> 0.",
       "# The coupling is BMWflow's g = " <> ToString[gexpr, InputForm] <> "; beta is d_s g."}, "\n"];
    defs = {
      pyDef["linear", {"p", "f", "fprime", "eta", "couplings", "d"}, pyRows[parts["linear"], "p"]],
-     pyDef["loop", {"p", "q", "c", "Q2", "fq", "fQ", "rq", "rq_", "rQ", "eta", "couplings", "d"}, pyRows[parts["loop"], "p"]],
+     pyDef["loop", {"p", "q", "c", "Q2", "fp", "fq", "fQ", "rq", "rq_", "rQ", "eta", "couplings", "d"}, pyRows[parts["loop"], "p"]],
      pyDef["eta_matrix", {"q", "f", "fprime", "r", "r_", "couplings", "d"}, "(\n        " <> StringRiffle[pyRows[#, "q"] & /@ parts["eta_matrix"], ",\n        "] <>
        If[Length[parts["eta_matrix"]] == 1, ",", ""] <> ")"],
      pyDef["eta_vector", {"q", "f", "fprime", "r", "r_", "couplings", "d"}, pyRows[parts["eta_vector"], "q"]],
@@ -185,7 +191,7 @@ ExportPython[adim_, opts : OptionsPattern[]] := Block[{$FRGModule = "PythonExpor
    Quiet[CreateDirectory[DirectoryName[file]], CreateDirectory::eexist];
    body = StringRiffle[Join[{"import math", "", "import numpy as np", "",
        "CONTRACT_VERSION = " <> ToString[pyContractVersion],
-       "FUNCTIONS = " <> pyStrings[fs], "ETAS = " <> pyStrings["eta" <> # & /@ etaNames], "COUPLINGS = (\"g\",)", "SHAPES = " <> pyStrings[shapes],
+       "FUNCTIONS = " <> pyStrings[fs], "ETAS = " <> etaTuple, "COUPLINGS = (\"g\",)", "SHAPES = " <> pyStrings[shapes],
        "P2_DIVIDED = " <> pyTuple[ToString /@ adim["P2Divided"]], "FIXED_DIMENSION = " <> fixedDim, "APPROXIMATION = \"LO\"", "MODEL = \"" <> model <> "\"", "", ""},
       Riffle[defs, "\n"]], "\n"];
    Export[file, StringReplace[header, pyHashPlaceholder -> StringTake[IntegerString[Hash[body, "SHA256"], 16, 64], 12]] <> "\n\n" <> body, "Text"];

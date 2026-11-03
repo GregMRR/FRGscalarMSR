@@ -10,7 +10,9 @@ These are extensions the v1 design keeps room for. None of them is implemented y
   - p = 0 rows: the exact limit or a small-p series instead of BMWflow's 'const'/'quad' extrapolation (L6).
   - Causal-pole conditions for functions exported (today a residue assumption on the card, L8).
   - Relations between functions (d = 1 time reversal, f_ν = f_D) declared and checked (L7).
-  - Function × iω: the ∂/∂(iν) flows at ν = 0 (L2; `Ansatz.functionTimesOmega`).
+  - Function × iω with a running reference (Z_k f_Z(p²) iω: its η from ∂/∂(iν) at p = 0), or × ω² (`Ansatz.omegaFunctionReference`);
+    reference-1 functions at iω (KPZ's f_λ) are implemented (design/LOFLAMBDA.md).
+  - Causal-pole condition f_λ(q) > 0 for a function at iω checked at run time (design/LOFLAMBDA.md §4).
   - f″ / r″ in η rows (models beyond KPZ-like, `ExternalMomentum.firstDerivativesOnly`): needs r″ in BMWflow or an integration by
     parts that does not bring r″ through ∂sR (L5).
   - Rows divided by p⁴ or more (`PythonExport.p2DividedAtMostOne`): BMWflow's θ quadrature error divided by p₁⁴ breaks its tolerance.

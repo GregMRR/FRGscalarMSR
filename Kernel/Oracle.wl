@@ -57,9 +57,10 @@ oracleLO[eqs_, dims_, tol_, seed_, zeroQ_] := Module[{t0 = AbsoluteTime[], loops
    funcs = eqs["Functions"][[All, 1]]; qU = eqs["LoopMomentum"]; pU = eqs["ExternalMomentum"];
    pairs = Select[Tuples[fields, 2], OrderedQ[{First[FirstPosition[fields, #[[1]]]], First[FirstPosition[fields, #[[2]]]]}] &];
    negPats = Select[eqs["Symmetries"]["Tags"], #Kind === "Neglected" &][[All, "Pattern"]];
-   recs = Join[Function[e, <|"Pair" -> e["Pair"], "Label" -> inputForm[e["Flowing"]], "Symbolic" -> e["Integrand"] e["Normalisation"] pU^(2 e["P2Divided"])|>] /@ eqs["Equations"],
-     If[TrueQ[zeroQ], <|"Pair" -> #, "Label" -> "zero entry " <> ToString[#], "Symbolic" -> 0|> & /@ Select[pairs,
-        ! MemberQ[eqs["Equations"][[All, "Pair"]], #] && NoneTrue[negPats, Function[pat, pairMatchQ[pat, #]]] &], {}]];
+   recs = Join[Function[e, <|"Pair" -> e["Pair"], "Frequency" -> Lookup[e, "Frequency", 0], "Label" -> inputForm[e["Flowing"]],
+         "Symbolic" -> e["Integrand"] e["Normalisation"] pU^(2 e["P2Divided"])|>] /@ eqs["Equations"],
+     If[TrueQ[zeroQ], <|"Pair" -> #, "Frequency" -> 0, "Label" -> "zero entry " <> ToString[#], "Symbolic" -> 0|> & /@ Select[pairs,
+        ! MemberQ[Select[eqs["Equations"], Lookup[#, "Frequency", 0] == 0 &][[All, "Pair"]], #] && NoneTrue[negPats, Function[pat, pairMatchQ[pat, #]]] &], {}]];
    Do[Module[{pt, qVec, pVec, q2, Q2, c, valid, mat, gNum, g3, g4, dsr, num, sym, err, ok, t1},
       qVec = Take[{3/10, -1/2, 2/5}, d]; pVec = Take[{2/7, 1/3, -1/5}, d];
       q2 = qVec . qVec; Q2 = (pVec + qVec) . (pVec + qVec); c = pVec . qVec/Sqrt[(pVec . pVec) q2];
@@ -70,13 +71,15 @@ oracleLO[eqs_, dims_, tol_, seed_, zeroQ_] := Module[{t0 = AbsoluteTime[], loops
       mat = N[(Gamma2Matrix[v, wO, xO] /. scal[xO, xO] -> x2O) + RegulatorMatrix[reg, x2O] /. pt, prec + 10];
       gNum[w_, x2_] := Inverse[mat /. {wO -> w, x2O -> x2}];
       g3[i_, {nu_, p_}, {w_, q_}] := N[Gamma3Matrix[v, i, {nu, p}, {w, q}] /. {scal[a_, b_] :> ((a /. {qO -> qVec, pO -> pVec}) . (b /. {qO -> qVec, pO -> pVec}))} /. pt, prec + 10];
-      g4[a_, b_] := N[Table[VertexValue[v, {a, b, cc, e}, {{0, pO}, {0, -pO}, {wO, qO}}], {cc, fields}, {e, fields}] /.
+      g4[a_, b_] := N[Table[VertexValue[v, {a, b, cc, e}, {{nuO, pO}, {-nuO, -pO}, {wO, qO}}], {cc, fields}, {e, fields}] /.
           {scal[x_, y_] :> ((x /. {qO -> qVec, pO -> pVec}) . (y /. {qO -> qVec, pO -> pVec}))} /. pt, prec + 10];
       dsr = N[DsRegulatorMatrix[reg, q2] /. pt, prec + 10];
       Do[t1 = AbsoluteTime[];
-       num = Module[{g0 = gNum[wO, q2], gm = gNum[wO, Q2], tr},
-         tr = Tr[dsr . g0 . g3[r["Pair"][[1]], {0, pO}, {wO, qO}] . gm . g3[r["Pair"][[2]], {0, -pO}, {wO, pO + qO}] . g0];
+       (* the (I nu)^m coefficient: exact d^m/d nu^m of the numeric loop at nu = 0 (m = 1 for a function times i w, design/LOFLAMBDA.md F9) *)
+       num = Module[{g0 = gNum[wO, q2], gm = gNum[wO + nuO, Q2], tr, m = r["Frequency"]},
+         tr = Tr[dsr . g0 . g3[r["Pair"][[1]], {nuO, pO}, {wO, qO}] . gm . g3[r["Pair"][[2]], {-nuO, -pO}, {wO + nuO, pO + qO}] . g0];
          If[hasG4, tr = tr - Tr[dsr . g0 . g4 @@ r["Pair"] . g0]/2];
+         tr = If[m == 0, tr /. nuO -> 0, (D[tr, {nuO, m}] /. nuO -> 0)/(I^m m!)];
          tr = Together[tr/(2 Pi)];
          If[Chop[tr, 10^-(prec - 5)] === 0, 0,
           Quiet[NIntegrate[tr, {wO, -Infinity, -10, 0, 10, Infinity}, WorkingPrecision -> prec, PrecisionGoal -> 22, AccuracyGoal -> prec - 8, MaxRecursion -> 30],

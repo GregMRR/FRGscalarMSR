@@ -164,7 +164,7 @@ DefineAnsatz[theory_, opts : OptionsPattern[]] := Block[{$FRGModule = "Ansatz"},
    AppendTo[checks, assertCheck["Ansatz.pipeline", MemberQ[{Automatic, pipeline}, OptionValue["Pipeline"]], {OptionValue["Pipeline"], "inferred" -> pipeline},
      "\"Pipeline\" is inferred from the density (fn[...] present: \"LO\", otherwise \"DerivativeExpansion\"); an explicit value must match it", pipeline]];
    funcs = OptionValue["Functions"];
-   FRGAssert["Ansatz.functionReference", MatchQ[funcs, {(_Symbol -> _Symbol) ...}], funcs, "\"Functions\" -> {f1 -> reference1, ...}"];
+   FRGAssert["Ansatz.functionReference", MatchQ[funcs, {(_Symbol -> (_Symbol | 1)) ...}], funcs, "\"Functions\" -> {f1 -> reference1, ...} (reference a coupling, or 1)"];
    fsyms = funcs[[All, 1]]; frefs = funcs[[All, 2]];
    If[! loQ, FRGAssert["Ansatz.functionReference", funcs === {}, funcs, "\"Functions\" are declared but the density has no fn[f, X]"]];
    FRGAssert["Ansatz.density", dens =!= None && dens =!= 0, dens, "\"Density\" -> expression is required"];
@@ -182,11 +182,11 @@ DefineAnsatz[theory_, opts : OptionsPattern[]] := Block[{$FRGModule = "Ansatz"},
     assertFreshSymbols["Ansatz.functions", fsyms, "functions"];
     fnOps = Cases[dens, _fn, {0, Infinity}];
     AppendTo[checks, assertCheck["Ansatz.functionReference",
-      SubsetQ[cps, frefs] && DuplicateFreeQ[frefs] && Intersection[fsyms, Join[cps, fields, {theory["Dimension"]}]] === {} &&
+      SubsetQ[cps, DeleteCases[frefs, 1]] && DuplicateFreeQ[DeleteCases[frefs, 1]] && Intersection[fsyms, Join[cps, fields, {theory["Dimension"]}]] === {} &&
        SubsetQ[fsyms, Cases[fnOps, fn[f_, ___] :> f]],
       <|"functions" -> funcs, "undeclared" -> Complement[Cases[fnOps, fn[f_, ___] :> f], fsyms]|>,
       "each fn[f, X] needs f declared in \"Functions\" -> {f -> reference}, the reference a coupling of the ansatz, one reference per function \
-(f(0) = 1 fixes the eta of its reference)", "functions " <> StringRiffle[(ToString[#[[1]]] <> " -> " <> ToString[#[[2]]]) & /@ funcs, ", "]]];
+(f(0) = 1 fixes the eta of its reference), or 1 for a function whose f(0) = 1 is protected by a symmetry (design/LOFLAMBDA.md F2)", "functions " <> StringRiffle[(ToString[#[[1]]] <> " -> " <> ToString[#[[2]]]) & /@ funcs, ", "]]];
     AppendTo[checks, assertCheck["Ansatz.fnOneField", AllTrue[fnOps, MatchQ[#, fn[_Symbol, x_] /; fnArgumentQ[x, fld]] &],
       Select[fnOps, ! MatchQ[#, fn[_Symbol, x_] /; fnArgumentQ[x, fld]] &],
       "fn[f, X]: X is one field, optionally under grad/lap (e.g. fn[fnu, lap[h]]); no coupling, product or fn inside", "fn[f, X] acts on one field"]]];
@@ -253,25 +253,35 @@ DefineAnsatz[theory_, opts : OptionsPattern[]] := Block[{$FRGModule = "Ansatz"},
    PrintCard[stage];
    stage]];
 
-(* LO checks on the parsed monomials (design/LOPIPELINE.md L1-L4) *)
-loMonomialChecks[mons_, funcs_, cps_, fld_] := Module[{withF = Select[mons, MonomialFunction[#] =!= None &], bil, bad, out = {}, refOf = Association[funcs]},
-   AppendTo[out, assertCheck["Ansatz.fnBilinear", AllTrue[withF, #FieldCount == 2 &], MonomialString /@ Select[withF, #FieldCount =!= 2 &],
-     "functions of p^2 only in bilinear (Gamma2) terms: vertex couplings are k-only constants (L1)", "functions in bilinear terms only"]];
+(* LO checks on the parsed monomials (design/LOPIPELINE.md L3-L4, design/LOFLAMBDA.md F1-F2) *)
+loMonomialChecks[mons_, funcs_, cps_, fld_] := Module[{withF = Select[mons, MonomialFunction[#] =!= None &], bil, bilF, bad, out = {}, refOf = Association[funcs]},
+   bilF = Select[withF, #FieldCount == 2 &];
+   bad = Complement[DeleteDuplicates[MonomialFunction /@ withF], MonomialFunction /@ bilF];
+   AppendTo[out, assertCheck["Ansatz.functionInGamma2", bad === {}, bad,
+     "a function sits in a vertex but in no bilinear (Gamma2) term: its flow comes from its Gamma2 entry, so it needs one",
+     "every function sits in a Gamma2 entry" <> If[Length[withF] > Length[bilF], " (vertex functions: " <>
+       StringRiffle[MonomialString /@ Complement[withF, bilF], ", "] <> ")", ""]]];
    bad = Select[withF, Count[#Factors, FieldFactor[_, _, _, _]] > 1 &];
    AppendTo[out, assertCheck["Ansatz.fnOneField", bad === {}, MonomialString /@ bad, "at most one fn[...] per monomial", "one fn per monomial"]];
-   AppendTo[out, assertCheck["Ansatz.functionTimesOmega", AllTrue[withF, #TimeOrder == 0 &], MonomialString /@ Select[withF, #TimeOrder > 0 &],
-     "a function times i w (dt) is not in LO: only the w^0 coefficients are functions (L2; the d/d(i nu) extension is in docs/FUTURE.md)",
-     "no function times i w"]];
-   bad = Select[withF, ! (KeyExistsQ[refOf, MonomialFunction[#]] && NumericQ[Together[#Coefficient/refOf[MonomialFunction[#]]]]) &];
-   AppendTo[out, assertCheck["Ansatz.functionReference", bad === {} && DuplicateFreeQ[MonomialFunction /@ withF] && Sort[MonomialFunction /@ withF] === Sort[Keys[refOf]],
-     <|"coefficient not number x reference" -> (MonomialString /@ bad), "functions used" -> (MonomialFunction /@ withF)|>,
-     "each function appears in exactly one monomial, with coefficient (number) x its reference (\"Functions\" -> {f -> reference})",
-     "each function in one monomial, coefficient number x reference"]];
+   bad = Select[bilF, ! (KeyExistsQ[refOf, MonomialFunction[#]] && NumericQ[Together[#Coefficient/refOf[MonomialFunction[#]]]]) &];
+   AppendTo[out, assertCheck["Ansatz.functionReference", bad === {} && DuplicateFreeQ[MonomialFunction /@ bilF] && Sort[MonomialFunction /@ bilF] === Sort[Keys[refOf]],
+     <|"coefficient not number x reference" -> (MonomialString /@ bad), "functions in Gamma2 terms" -> (MonomialFunction /@ bilF)|>,
+     "each function appears in exactly one bilinear monomial, with coefficient (number) x its reference (\"Functions\" -> {f -> reference})",
+     "each function in one Gamma2 monomial, coefficient number x reference"]];
+   bad = Select[GatherBy[bilF, {Sort[#Fields], #TimeOrder} &], Length[DeleteDuplicates[MonomialFunction /@ #]] > 1 &];
+   AppendTo[out, assertCheck["Ansatz.oneFunctionPerCoefficient", bad === {}, Map[MonomialString, bad, {2}],
+     "two functions in the same (I w)^m coefficient of one Gamma2 entry: the flow of that coefficient cannot fix both",
+     "at most one function per (Gamma2 entry, w order)"]];
+   bad = Select[bilF, #TimeOrder > 0 && refOf[MonomialFunction[#]] =!= 1 &];
+   AppendTo[out, assertCheck["Ansatz.omegaFunctionReference", AllTrue[bilF, #TimeOrder <= 1 &] && bad === {},
+     MonomialString /@ Join[bad, Select[bilF, #TimeOrder > 1 &]],
+     "a function times i w needs reference 1 (f(0) = 1 protected by a Ward identity, design/LOFLAMBDA.md F2); a running Z_k f(p^2) i w, \
+or a function times w^2, is not implemented (docs/FUTURE.md)", "functions times i w have reference 1"]];
    bil = Select[mons, #FieldCount == 2 &];
-   bad = Select[bil, (#TimeOrder == 0 && MonomialFunction[#] === None) || (#TimeOrder > 0 && ! NumericQ[#Coefficient]) &];
+   bad = Select[bil, (#TimeOrder == 0 && MonomialFunction[#] === None) || (#TimeOrder > 0 && MonomialFunction[#] === None && ! NumericQ[#Coefficient]) &];
    AppendTo[out, assertCheck["Ansatz.mixedNotYet", bad === {}, MonomialString /@ bad,
-     "an LO ansatz writes every w^0 bilinear term with a function and every i w term with a numeric coefficient; mixed ansatze \
-(DE monomials + functions) are not implemented yet (docs/FUTURE.md)", "bilinear terms: functions at w^0, numbers at i w"]];
+     "an LO ansatz writes every w^0 bilinear term with a function and every i w term with a numeric coefficient or a reference-1 function; \
+mixed ansatze (DE monomials + functions) are not implemented yet (docs/FUTURE.md)", "bilinear terms: functions at w^0; numbers or reference-1 functions at i w"]];
    out];
 
 ShowMonomials[ansatz_Association] := Module[{mons = validateStage[ansatz, "Ansatz"]["Monomials"], fo = ansatz["Theory"]["Fields"], rows},

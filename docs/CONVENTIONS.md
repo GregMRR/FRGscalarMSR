@@ -76,7 +76,10 @@ This header is printed above every vertex table (from milestone 2 on). Every mod
   momentum of the leg of X; in a bilinear term that is p², so `nuk fn[fnu, lap[h]]` gives Γ⁽¹¹⁾ ∋ nuk p² fnu(p²). The factor
   is `FieldFactor[φ, n_t, {indices}, f]`.
 - `"Functions" -> {f -> reference}` (DefineAnsatz) states f(0) = 1: the reference is the k-dependent amplitude, f the shape in p².
-  Function symbols are fresh user symbols; their order is the export order (`FUNCTIONS`).
+  Function symbols are fresh user symbols; their order is the export order (`FUNCTIONS`). A reference `1` means f(0) = 1 by a
+  Ward identity: no η, its dimensionless flow is ∂s f = 2 ap² f′(ap²) + loop (KPZ's f_λ at iω, design/LOFLAMBDA.md).
+- A function in a vertex takes the momentum of its leg: `fn[flam, hbar] grad[h].grad[h]` puts f_λ at the h̄ momentum (p, q or Q
+  in the loop; `fp`, `fq`, `fQ` in the Python export).
 - Dimensionful LO integrands use p (`Global`p`), the regulator's q and `CosTheta` = cos(p, q), with Q² = p² + q² + 2 p q c.
   Dimensionless: F_k(p²) = f(p²/k²) = f(ap²), ap = p/k, aq = q/k (`Global`ap`, `Global`aq`). Inside Mathematica f′ = d/d(argument).
 - The dimensionless flow of f is taken at fixed ap: ∂s f = η f + 2 ap² f′(ap²) + loop/ref.

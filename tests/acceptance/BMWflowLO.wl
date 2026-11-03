@@ -2,13 +2,14 @@
 
 (* Cross-repo guard of the LO handoff (docs/handoff/BMWflow_LO.md, design/LOPIPELINE.md section 7): export the KPZ LO stage and run
    BMWflow's own acceptance test on that file (ModelGenerated on it vs the hand-written ModelKPZ: integrals, eta, beta, a 2000-step
-   run). BMWflow is at BMWFLOW_PATH or ~/Physics/Sources/BMWflow, with a venv in .venv (scipy, numba, pytest). Without them the test
+   run). BMWflow is at BMWFLOW_PATH, ~/sources/BMWflow or ~/Physics/Sources/BMWflow, with a venv in .venv (scipy, numba, pytest). Without them the test
    is SKIP (a failure with --require-python). *)
 
 Get[FileNameJoin[{testRoot, "reference", "KPZSetup.wl"}]];
 Get[FileNameJoin[{testRoot, "reference", "KPZLOSetup.wl"}]];
 
-bmwRoot = Replace[Environment["BMWFLOW_PATH"], $Failed -> FileNameJoin[{$HomeDirectory, "Physics", "Sources", "BMWflow"}]];
+bmwRoot = Replace[Environment["BMWFLOW_PATH"], $Failed -> SelectFirst[{FileNameJoin[{$HomeDirectory, "sources", "BMWflow"}],
+     FileNameJoin[{$HomeDirectory, "Physics", "Sources", "BMWflow"}]}, DirectoryQ, FileNameJoin[{$HomeDirectory, "sources", "BMWflow"}]]];
 bmwPython = FileNameJoin[{bmwRoot, ".venv", "bin", "python"}];
 bmwTest = FileNameJoin[{bmwRoot, "tests", "test_model_generated.py"}];
 
