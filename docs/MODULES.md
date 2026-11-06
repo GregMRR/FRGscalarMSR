@@ -550,7 +550,7 @@ monomial is caught there, before any flow is computed.
   declared d = 2 the integrand has the number 2 in place of `Dim`, and the card says "d = 2 (declared)".
 
 **Scale-stripped atoms.** These are generated automatically, replacing the script's hand-written `toAtoms`/`atomVals`.
-- Each propagator atom v(s) = GammaAtom[a,b,m](s), with s = q², is written v = c·sⁿ·X. Here c is the number and coupling
+- Each propagator atom v(s) = `GammaAtom[a,b,m](s)`, with s = q², is written v = c·sⁿ·X. Here c is the number and coupling
   factor common to every term of v, n is the smallest power of s among those terms, and X is what is left.
 - When X is a sum, it becomes the atom `ScaleAtom[a,b,m,0]`; when it is a single term, it stays explicit.
 - The j-th s-derivative is written c·X_j with X_j = dʲ(sⁿX)/dsʲ. It becomes `ScaleAtom[a,b,m,j]` when it is a sum.
@@ -584,7 +584,7 @@ The stage also carries:
 - `ValidityConditions`: `Atoms` and `Explicit`; they must hold at every q, which is checked at run time downstream;
 - `DsRRules`, `LoopMomentum`, `Scale`, `Shapes`, `Couplings`, `Dimension`.
 
-Shapes appear as r[q²/k²], r′ and r″. FlowRG supports only r′ today (docs/FUTURE.md).
+Shapes appear as r[q²/k²], r′ and r″. FlowRG binds r″ for its smooth regulators, not for Litim (docs/STATUS.md).
 
 **Show.** `ShowEquation[equations, comb]` prints the compact form, the atoms it uses, the ∂sR entries and the validity
 conditions. `EquationOf[equations, comb]` returns the equation record.
@@ -838,7 +838,7 @@ the η's: (EtaML + ∫daq LoopMeasure EtaMNL) η = EtaBL + ∫daq LoopMeasure Et
 **Checks.**
 - `Adimensional.sameAnsatz`: the dimensions were derived from the ansatz embedded in the equations (fingerprint).
 - `Adimensional.regulatorReferences` (plan D4): ∂sR contains ∂s of reference couplings only. A regulator such as
-  `nk (1 + Ak) q^2 arnh` aborts (FUTURE.md).
+  `nk (1 + Ak) q^2 arnh` aborts (docs/STATUS.md).
 - `Adimensional.regulatorDimension`: each R_ab has the dimension of Γ2_ab = Dim e_k − τ − [a] − [b].
 - `Adimensional.lhsDimension`: the Γ_k coefficient of each equation has the dimension of its monomial (iω)^m (p²)^n in Γ2_ab.
 - `Adimensional.state` / `noBeta` / `stateMissing`: every state coupling gets a flow, from an equation or as `NonRenormalised`
@@ -892,7 +892,7 @@ expressions.
 
 **Checks.** `JuliaExport.noUnits` (no k, references, q, symbolic `Dim`), `knownSymbols`, `systemHeads` (only + × ^ and
 sqrt/exp/log/abs), `linearNoMomentum`, `shapeDerivative` (only r, r′, r″: p⁴ flows need r‴/r⁗ and a FlowRG interface
-extension, docs/FUTURE.md). A file that uses r″ gets a warning: FlowRG must bind `D2<shape>` (handoff
+extension, docs/STATUS.md). A file that uses r″ gets a warning: FlowRG must bind `D2<shape>` (handoff
 `docs/handoff/FlowRG-MUST_FIX.md`, task 2).
 
 **Tests.** `tests/reference/JuliaRoundTrip.wl`, used by the acceptance tests: the file is evaluated in plain Julia with smooth

@@ -42,7 +42,7 @@ structure), ∂sΓ⁽³⁾ projections, symbolic Ward identities, Adimensional m
 | Q4 | Γ2 entries polynomial in iω and q²; deg_ω Δ ≤ 2 (asserted, abort beyond). Results rational in Δ's coefficients (Vieta), no radicals; pole-validity conditions emitted. |
 | Q5 | Regulator declared separately; ∂sR derived; shape functions stay **abstract** r(y), r′, r″ (y = q²/k²) through to the Julia export, so shapes are swapped at run time to test stability. Amplitude absorbed into r (Q5b, no α symbol). |
 | Q6/Q17 | Every (iω)^m (q²)^n monomial of every Γ2 entry up to explicit global `TruncationOrders` is classified: declared / `Protected` (flow must be exactly 0, else abort) / `Neglected` (flow computed, warning with its size). Untagged → abort. Rules (E5): monomials that vanish by structure (e.g. odd ω in a diagonal noise entry, Γ2_aa(ω)=Γ2_aa(−ω)) are detected and reported "vanishes by structure", no tag needed; a declared monomial with a **numeric** coefficient (e.g. the 1 in front of iω) must have zero flow (asserted); a monomial both declared-with-coupling and Protected → abort (contradiction). |
-| E2 | Momentum order ≤ 1 (p²) asserted in v1: the script's Laplacian trick is wrong for (∇²_p)ⁿ, n ≥ 2 (iterated, gives 8(d²+2) instead of 8d(d+2); MOMENTUMPROJECTION r1 E10). Directional-average method for any order → FUTURE.md. Loop momentum q may carry any power. |
+| E2 | Momentum order ≤ 1 (p²) asserted in v1: the script's Laplacian trick is wrong for (∇²_p)ⁿ, n ≥ 2 (iterated, gives 8(d²+2) instead of 8d(d+2); MOMENTUMPROJECTION r1 E10). Directional-average method for any order → docs/STATUS.md. Loop momentum q may carry any power. |
 | E3/E4 | Loop prefactor (factor, sign, 2π) and Γ⁽⁴⁾ tadpole (−½) are **hand-derived** in MODULES.md, cross-read against textbook one-loop KPZ; no automated independent check (user choice). `flowsFAST` agreement does **not** verify the normalisation (same trace formula) — say so in docs. Cards print "tadpole term hand-derived, untested" whenever Γ⁽⁴⁾ ≠ 0. |
 | Q7 / E1 | Fourier convention e^{−i(q·x−ωt)} (∂t → +iω, ∇ → −iq), leg a at (ω,q): reproduces `DE4plus_fast.wl` exactly (§3). Plane-wave cross-check of every vertex + an independent pole-placement check. |
 | Q8 | One `.wl` per module, private contexts, immutable stage Associations passed explicitly, no global state. |
@@ -188,7 +188,7 @@ Every stage object: `<|"Stage" -> name, "Pipeline" -> "DerivativeExpansion", "Fi
    loop formula (so it does not test E3).
 12. **Stages.wl** — `SaveStage`/`LoadStage` with fingerprint check; `Show…` dispatchers.
 
-## 7. Future seams (`docs/FUTURE.md`)
+## 7. Future seams (`docs/STATUS.md`)
 
 - **Pipeline 2** (couplings as functions of ω, p): Ansatz `"Pipeline"` option; replaces `ProjectOnMonomials` (external ν, p generic).
   Corrected by design/LOPIPELINE.md: shifted poles do not plug into `IntegrateFrequencies` (its dispatch gives every Δ the same
@@ -242,7 +242,7 @@ Three modules after `Equations` (docs/MODULES.md): `DeriveDimensions` → `Adime
 | D1 | Dimensions solved from Γ_k = ∫dt dᵈx 𝓛 dimensionless as exponent vectors over {k, ref₁…ref_{N+1}}; exponents linear in symbolic `Dim` (numbers for a declared d = 2). Exactly N+1 free units besides k, asserted. The measure enters with + (review E1). |
 | D2 | Dimensionless amplitudes (Ak, aDphik) are declared; an underdetermined split aborts naming the couplings. |
 | D3 | `"State"` gives COUPLINGS order (dimensionful names). Leibniz linear solve for ∂s of each coupling; NonRenormalised → linear part only; every state coupling needs a flow, every coupling with an equation must be in the state. |
-| D4 | Regulator prefactors contain reference couplings only (abort otherwise; lifting it: FUTURE.md). |
+| D4 | Regulator prefactors contain reference couplings only (abort otherwise; lifting it: docs/STATUS.md). |
 | D5 | One module per step; `Dim` symbolic until export; one file per d. |
 | D6 | `ShowDimensions`, `CheckDimensions` (exact hand values), `ShowBeta`, `ShowEtaSystem`. |
 | D7 | Checks: references independent; overdetermined system consistent; R_ab has the dimension of Γ2_ab; LHS coefficient dimension; homogeneity (HomVec generalised) and random unit rescaling before stripping (E8); action invariance under the derived rescaling on the raw density (E6); FreeQ of units at export. |

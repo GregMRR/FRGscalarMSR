@@ -24,7 +24,7 @@ DefineTheory[opts : OptionsPattern[]] := Block[{$FRGModule = "Theory"}, Module[{
     phis = OptionValue["Scalars"]; dim = OptionValue["Dimension"];
     FRGAssert["Theory.scalarList", ListQ[phis] && phis =!= {}, phis, "\"Scalars\" -> {H, Psi, ...} is required"];
     checks = {assertCheck["Theory.N", 1 <= Length[phis] <= 2, Length[phis],
-       "v1 supports N = 1 or 2 scalars: the propagator denominator must have degree <= 2 in w (see docs/FUTURE.md)",
+       "v1 supports N = 1 or 2 scalars: the propagator denominator must have degree <= 2 in w (see docs/STATUS.md)",
        "N = " <> ToString[Length[phis]] <> " (supported: 1, 2)"]};
     assertFreshSymbols["Theory.scalars", phis, "scalars"];
     bars = Symbol[Context[#] <> SymbolName[#] <> "bar"] & /@ phis;

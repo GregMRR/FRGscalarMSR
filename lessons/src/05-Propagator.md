@@ -72,7 +72,7 @@ mm = ConstantArray[0, {3, 3}]; mm[[{1, 3}, {1, 3}]] = {{1, 2}, {3, 4}}; {mm, mm[
 ```
 :::
 
-`Propagator.deltaDegree` requires 1 ≤ deg_ω Δ ≤ 2: degree 0 means there is no ∂t term and the frequency integrals diverge; degree 3 or more is beyond v1 (`docs/FUTURE.md`). With two scalars, deg Δ = 2 is the common case; KPZ has degree 1.
+`Propagator.deltaDegree` requires 1 ≤ deg_ω Δ ≤ 2: degree 0 means there is no ∂t term and the frequency integrals diverge; degree 3 or more is beyond v1 (`docs/STATUS.md`). With two scalars, deg Δ = 2 is the common case; KPZ has degree 1.
 
 ## 4. The inverse in closed form
 

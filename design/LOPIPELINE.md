@@ -66,9 +66,9 @@ monomials + functions) easier are preferred when they are as reliable as the alt
 | L3 | Syntax `fn[f, X]` = f(−∇²) acting on X (one field, optionally under grad/lap). `"Functions" -> {fD -> Dk, fnu -> nuk}` ties f to its reference and states f(0) = 1; the declared order is the export's `FUNCTIONS` order. | In Fourier space f takes the momentum of X; in a bilinear term that is ±p, so `fn[fnu, lap[h]]` ≡ `lap[fn[fnu, h]]`. For future vertex functions the leg matters, and the syntax already names it. |
 | L4 | Coupling kind (constant / function) is per coupling; the pipeline is inferred (`"Pipeline" -> Automatic`); an explicit value must match. A mixed ansatz aborts (`Ansatz.mixedNotYet`). | Mixed ansätze later only lift one check. |
 | L5 | η: each reference Running via f(0) = 1; the η system is derived automatically as the exact p→0 limit of the same loop with `directionalAverage`. Scope = KPZ-like models: η rows may contain only f, f′, r, r′, else abort `ExternalMomentum.firstDerivativesOnly`. No integration by parts. | Reuses the DE projection (the seam for mixed ansätze). Integrating f″ by parts brings r″ through ∂sR (r1 E3), and BMWflow has no r″; the user restricted scope instead. |
-| L6 | p = 0 grid point: BMWflow-style 'const'/'quad' extrapolation, generalised in the adapter (§6). Exact limit / small-p series → FUTURE.md. | User: stay with how BMWflow works. |
-| L7 | Symmetries: structural/causal zero entries checked at every p (ExactlyZeroQ after the ω integral); Protected iω coefficient checked at p = 0 (∂/∂(iν), Taylor; Oracle fallback), carded "Neglected (LO)" at p ≠ 0; Protected low-p entries checked by `dividedOrders` (§5 step 5); NonRenormalised = declaration; relations between functions (d = 1 time reversal) → FUTURE.md. | LO drops the frequency dependence of the functions, so the Galilean Ward identity holds only at p = 0. |
-| L8 | Causality: the causal-pole conditions are used only as residue assumptions, not exported (export → FUTURE.md). New check `FrequencyIntegration.regularAtCoincidence`. | User: the current system does not need the export. |
+| L6 | p = 0 grid point: BMWflow-style 'const'/'quad' extrapolation, generalised in the adapter (§6). Exact limit / small-p series → docs/STATUS.md. | User: stay with how BMWflow works. |
+| L7 | Symmetries: structural/causal zero entries checked at every p (ExactlyZeroQ after the ω integral); Protected iω coefficient checked at p = 0 (∂/∂(iν), Taylor; Oracle fallback), carded "Neglected (LO)" at p ≠ 0; Protected low-p entries checked by `dividedOrders` (§5 step 5); NonRenormalised = declaration; relations between functions (d = 1 time reversal) → docs/STATUS.md. | LO drops the frequency dependence of the functions, so the Galilean Ward identity holds only at p = 0. |
+| L8 | Causality: the causal-pole conditions are used only as residue assumptions, not exported (export → docs/STATUS.md). New check `FrequencyIntegration.regularAtCoincidence`. | User: the current system does not need the export. |
 | L9 | Export like DE: linear part (derived; KPZ η_X f + p f′) and loop part, η system linear in η, β of the dimensionless constants (KPZ: `alamk`). BMWflow's g = alamk² is mapped by the adapter. The adapter overrides `f_rhs_calc` with the exported linear part. | Same l/nl split as `betal`/`betanl`; a future ansatz with another scaling part needs no BMWflow change. User chose the adapter mapping. |
 | L10 | Numerical Oracle for the LO ω integral. | Independent check of the new two-family residue engine. |
 | L11 | Shared modules extended additively; new modules where the method differs; no DE refactor now. | DE stays byte-for-byte; the generic-p flow object is the future seam (DE = its Taylor expansion). |
@@ -134,7 +134,7 @@ steps 2–4.
      `ExactlyZeroQ`. This is also how the declared Protected ω⁰ low-p entries are checked (as Closure.wl:38 does for DE).
      expectFail: KPZ + a constant Γ4 term `c4 hbar h grad[h].grad[h]` (its tadpole gives p⁰ ∝ c4∫q²C(q) ≠ 0).
    - `ExternalMomentum.isotropicAngles`: after `scal` → p, q, c the integrand depends on the angle only through c (rejects
-     `jac`/wedge terms; `FixedDimension` LO → FUTURE.md).
+     `jac`/wedge terms; `FixedDimension` LO → docs/STATUS.md).
    - η system: p → 0 limit of each row with `directionalAverage`, linear in η (∂sR contains −η r).
      `ExternalMomentum.firstDerivativesOnly` (L5); expectFail: a constant-vertex bubble whose η row needs r″.
    - Output `"Stage" -> "Equations"`, `"Pipeline" -> "LO"`, so `AdimensionalEquations` and `RunOracle`
@@ -152,7 +152,7 @@ steps 2–4.
    broadcasting, no value-dependent branching. Converts internal F′(s) = d/d(p²) to f′/(2q) (f′ = d/d|momentum|); r_ stays
    d/d(q²). Checks: `PythonExport.etaPerFunction` (n_η = n_f; ETAS in FUNCTIONS order), `PythonExport.singleCoupling`
    (n_c = 1), `PythonExport.p2DividedAtMostOne` (for ≥ 2 the θ-quadrature error divided by p₁⁴ breaks the tolerance;
-   → FUTURE.md), `PythonExport.noMeasure` (no v_d, v_{d−1}, Γ(d) in the kernels), `PythonExport.modelTable` (the named row
+   → docs/STATUS.md), `PythonExport.noMeasure` (no v_d, v_{d−1}, Γ(d) in the kernels), `PythonExport.modelTable` (the named row
    exists, its coupling matches `COUPLINGS` and its shapes match `SHAPES` as a set; expectFail: KPZ with a renamed
    coupling). The model table of §6 is data in PythonExport.wl. Test with a float d.
 9. **Contract** `docs/handoff/BMWflow_LO.md` = §6 verbatim, plus the generated KPZ module as an example.
@@ -160,7 +160,7 @@ steps 2–4.
     A_d, I_D, I_ν, the η matrix and vector, β (alamk; g via g = alamk²); `Checks.wl` compares with `ExactlyZeroQ` at
     generic d; `run.wl`; notebook; a line in `benchmarks/README.md`; hook `tests/acceptance/KPZLO.wl`.
 11. **Docs.** `docs/MODULES.md` sections (ExternalMomentum, PythonExport, LO branches); `docs/CONVENTIONS.md` (fn, LO
-    names, measure excluded from Python kernels, f′ = d/d|momentum| in the export); `docs/FUTURE.md` (p = 0 exact limit /
+    names, measure excluded from Python kernels, f′ = d/d|momentum| in the export); `docs/STATUS.md` (p = 0 exact limit /
     small-p series, causality export for functions, function relations, function × iω, f″/r″ in η rows, P2Divided ≥ 2,
     n_c > 1, `FixedDimension`/`jac` in LO, mixed ansätze, lessons for the new modules); fix the stale "shifted poles plug
     in without changes" (FUTURE.md:6-8, FRGDESIGN.md:193) and "only DerivativeExpansion" (FRGDESIGN.md:152,
@@ -249,7 +249,7 @@ Decisions taken while implementing, with the user where marked.
 - **Ward check name.** `ExternalMomentum.ward` (L7 did not name it). Internal invariants without a reachable expectFail:
   `ExternalMomentum.prefactor`, `.functionsFlow` (guaranteed by the Ansatz and Vertices checks).
 - **Performance limit.** A two-field KPZ-like LO model (Δ of degree 2) does not finish in 2 minutes in the two-family residues
-  (docs/FUTURE.md). KPZ LO builds in under a second.
+  (docs/STATUS.md). KPZ LO builds in under a second.
 
 ## 10. Contract version 2 (2026-10-27, with the BMWflow adapter)
 Decision: every model-specific step of the handoff happens here, where it is exact and checked; the module describes

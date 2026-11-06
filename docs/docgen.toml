@@ -1,0 +1,16 @@
+# docgen config: python3 tools/docgen.py reference | check | html OUT
+
+[reference]
+# Page order = load order ($FRGModules in FRGscalarMSR.wl).
+sources = [
+  "Kernel/Core.wl", "Kernel/Theory.wl", "Kernel/Ansatz.wl", "Kernel/Vertices.wl", "Kernel/Regulator.wl",
+  "Kernel/Propagator.wl", "Kernel/Symmetries.wl", "Kernel/Loops.wl", "Kernel/Projection.wl",
+  "Kernel/FrequencyIntegration.wl", "Kernel/Closure.wl", "Kernel/Assemble.wl", "Kernel/ExternalMomentum.wl",
+  "Kernel/Oracle.wl", "Kernel/Stages.wl", "Kernel/Dimensions.wl", "Kernel/Adimensional.wl",
+  "Kernel/JuliaExport.wl", "Kernel/PythonExport.wl",
+]
+notes = "docs/MODULES.md"
+
+[site]
+title = "FRGscalarMSR"
+extra = ["design/*.md", "docs/handoff/*.md", "benchmarks/*/README.md", "benchmarks/README.md", "lessons/README.md", "lessons/src/*.md"]

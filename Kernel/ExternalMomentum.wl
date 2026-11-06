@@ -91,7 +91,7 @@ that Ward identity is what keeps f(0) = 1 (design/LOFLAMBDA.md F2)",
          ((D[loopOf[pr], {nu, m}] /. nu -> 0) /. deltaCompletion[deg])/(I^m m!)], x},
       x = loIntegrate[e, wL, {sq, sQ}, deg];
       FRGAssert["ExternalMomentum.isotropicAngles", FreeQ[loMagnitudes[x, pV, qL, pU, qU], scal | wedge | pV | qL], pr,
-       "the loop depends on the angle other than through p.q (wedge / jac terms): not in LO (FixedDimension LO is in docs/FUTURE.md)"];
+       "the loop depends on the angle other than through p.q (wedge / jac terms): not in LO (FixedDimension LO is in docs/STATUS.md)"];
       Together[loMagnitudes[loExplicit[x, prop, reg, sq], pV, qL, pU, qU]]];
 
    AppendTo[checks, assertCheck["ExternalMomentum.isotropicAngles", AllTrue[pairs, (integratedOf[#]; True) &] && AllTrue[flowRec, (integratedOf[#Pair, #Frequency]; True) &], Null, "",
@@ -138,7 +138,7 @@ that Ward identity is what keeps f(0) = 1 (design/LOFLAMBDA.md F2)",
    bad = Select[Select[eqs, #HasEta &], Max[0, loDerivativeOrders[#EtaIntegrand, Join[fs, shapes]][[All, 2]]] > 1 &];
    AppendTo[checks, assertCheck["ExternalMomentum.firstDerivativesOnly", bad === {},
      Thread[bad[[All, "Function"]] -> (loDerivativeOrders[#EtaIntegrand, Join[fs, shapes]] & /@ bad)],
-     "the p -> 0 limit (eta row) needs a second derivative of a function or of a shape: outside the LO scope (KPZ-like models; docs/FUTURE.md)",
+     "the p -> 0 limit (eta row) needs a second derivative of a function or of a shape: outside the LO scope (KPZ-like models; docs/STATUS.md)",
      "eta rows contain only F, F', r, r'"]];
 
    (* every order below p^(2n) of a divided entry vanishes (this also checks the Protected w^0 low-p entries) *)
@@ -155,7 +155,7 @@ or a Protected order is not below the function's prefactor",
    validity = Join[prop["ValidityConditions"][qU^2], prop["ValidityConditions"][pU^2 + qU^2 + 2 pU qU CosTheta]] /.
      {DeltaCoefficient[m_][s_] :> prop["DeltaCoefficients"][s][[m + 1]]} /. (h : GammaAtom[__])[s_] :> prop["AtomValues"][h][s];
    AppendTo[warns, infoCheck["ASSUMPTION", "ExternalMomentum.causalPoles", "every root of Delta(w) at q and at Q in the upper half plane " <>
-      "(residue assumption, not exported in LO: docs/FUTURE.md): " <> displayString[validity]]];
+      "(residue assumption, not exported in LO: docs/STATUS.md): " <> displayString[validity]]];
    AppendTo[warns, infoCheck["INFO", "ExternalMomentum.contract", "Integrand: d^dq/(2 Pi)^d integrand of d_s(ref F(p^2)) divided by norm p^(2n), in p, " <>
       ToString[qU] <> ", CosTheta, F at q^2 and Q^2, shapes r(q^2/k^2), dsCoupling[c]; EtaIntegrand: its p -> 0 limit (integrand of d_s ref)"]];
 

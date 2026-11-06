@@ -133,7 +133,7 @@ This document is a self-contained implementation plan for an agent with fresh co
 - `docs/CONVENTIONS.md`: `jac`, ε₁₂ = +1, `FixedDimension[2]`.
 - `docs/MODULES.md`: Theory, Core, Ansatz, Vertices, Projection, Oracle. Cover the new checks and F2/F4/F5.
 - `design/FRGDESIGN.md`: the exception to E12/Q16 (symbolic d, Oracle in d = 2 and 3) for a declared d = 2.
-- `docs/FUTURE.md`: the 3D ε_ijk (curl-type) operator.
+- `docs/STATUS.md`: the 3D ε_ijk (curl-type) operator.
 
 ## 4. Tests
 - **`tests/unit/TheoryTest.wl`:**

@@ -138,9 +138,9 @@ ExportPython[adim_, opts : OptionsPattern[]] := Block[{$FRGModule = "PythonExpor
      "one eta per function with a running reference, ETAS in FUNCTIONS order (eta_X belongs to the reference of FUNCTIONS[X]; None for reference 1)",
      "ETAS " <> etaTuple <> " <-> FUNCTIONS " <> pyStrings[fs]]];
    AppendTo[checks, assertCheck["PythonExport.singleCoupling", Length[cps] == 1, cps,
-     "BMWflow's evolution state has one scalar g: exactly one exported coupling (n_c > 1 is in docs/FUTURE.md)", "one coupling: " <> ToString[cps]]];
+     "BMWflow's evolution state has one scalar g: exactly one exported coupling (n_c > 1 is in docs/STATUS.md)", "one coupling: " <> ToString[cps]]];
    AppendTo[checks, assertCheck["PythonExport.p2DividedAtMostOne", Max[adim["P2Divided"]] <= 1, Thread[fs -> adim["P2Divided"]],
-     "a row divided by p^4 or more: the theta-quadrature error divided by p1^4 breaks BMWflow's tolerance (docs/FUTURE.md)",
+     "a row divided by p^4 or more: the theta-quadrature error divided by p1^4 breaks BMWflow's tolerance (docs/STATUS.md)",
      "P2_DIVIDED " <> ToString[adim["P2Divided"]] <> " <= 1"]];
    gSyms = Union[Cases[{gexpr}, s_Symbol /; Context @@ {s} =!= "System`", {0, Infinity}, Heads -> True]];
    AppendTo[checks, assertCheck["PythonExport.gMap", gexpr =!= None && gSyms === cps && ! ExactlyZeroQ[D[gexpr, First[cps]]] && ! MissingQ[pyGRule[First[cps], gexpr]],

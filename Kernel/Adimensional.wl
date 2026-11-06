@@ -116,7 +116,7 @@ AdimensionalEquations[equations_, dims_, opts : OptionsPattern[]] := Block[{$FRG
    (* D4: d_s R may contain d_s of reference couplings only *)
    regC = Union[Cases[equations["DsRRules"][[All, 2]], dsCoupling[c_] :> c, {0, Infinity}]];
    AppendTo[checks, assertCheck["Adimensional.regulatorReferences", SubsetQ[refs, regC], Complement[regC, refs],
-     "regulator prefactors may contain reference couplings only (e.g. nk q^2 arnh, not nk (1 + Ak) q^2 arnh); lifting this is in docs/FUTURE.md",
+     "regulator prefactors may contain reference couplings only (e.g. nk q^2 arnh, not nk (1 + Ak) q^2 arnh); lifting this is in docs/STATUS.md",
      "regulator prefactors contain references only: " <> StringRiffle[ToString /@ regC, ", "]]];
    (* units: c -> chat [c] for non-references, q -> k aq, d_s ref -> -eta ref *)
    form[c_] := basisForm[vecs[c], basis];
@@ -305,7 +305,7 @@ adimensionalLO[equations_, dims_, opts___] := Module[{t0 = AbsoluteTime[], check
      "a NonRenormalised coupling cannot be a reference: choose another one", "no reference is NonRenormalised"]];
    regC = Union[Cases[equations["DsRRules"][[All, 2]], dsCoupling[c_] :> c, {0, Infinity}]];
    AppendTo[checks, assertCheck["Adimensional.regulatorReferences", SubsetQ[refs, regC], Complement[regC, refs],
-     "regulator prefactors may contain reference couplings only; lifting this is in docs/FUTURE.md",
+     "regulator prefactors may contain reference couplings only; lifting this is in docs/STATUS.md",
      "regulator prefactors contain references only: " <> StringRiffle[ToString /@ regC, ", "]]];
    (* every reference is the reference of a function (its eta comes from f(0) = 1), every function's reference is a reference *)
    bad = Join[Complement[refs, funcs[[All, 2]]], Complement[DeleteCases[funcs[[All, 2]], 1], refs]];

@@ -72,4 +72,4 @@ Follow-ups on this side (not done by the FlowRG agent):
 - `Kernel/JuliaExport.wl`: the r″ WARN can go, or become "r″ needs a smooth regulator (not Litim)".
 - `tests/reference/JuliaRoundTrip.wl`: stop skipping the FlowRG `load_model` step for files that need r″ (use Wetterich).
 - Stale docs: `docs/MODULES.md` ("FlowRG supports only r′ today", §JuliaExport checks/tests), lesson 15 (r″ WARN),
-  `docs/FUTURE.md` if it lists r″ as missing.
+  `docs/STATUS.md` if it lists r″ as missing.

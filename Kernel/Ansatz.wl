@@ -276,12 +276,12 @@ loMonomialChecks[mons_, funcs_, cps_, fld_] := Module[{withF = Select[mons, Mono
    AppendTo[out, assertCheck["Ansatz.omegaFunctionReference", AllTrue[bilF, #TimeOrder <= 1 &] && bad === {},
      MonomialString /@ Join[bad, Select[bilF, #TimeOrder > 1 &]],
      "a function times i w needs reference 1 (f(0) = 1 protected by a Ward identity, design/LOFLAMBDA.md F2); a running Z_k f(p^2) i w, \
-or a function times w^2, is not implemented (docs/FUTURE.md)", "functions times i w have reference 1"]];
+or a function times w^2, is not implemented (docs/STATUS.md)", "functions times i w have reference 1"]];
    bil = Select[mons, #FieldCount == 2 &];
    bad = Select[bil, (#TimeOrder == 0 && MonomialFunction[#] === None) || (#TimeOrder > 0 && MonomialFunction[#] === None && ! NumericQ[#Coefficient]) &];
    AppendTo[out, assertCheck["Ansatz.mixedNotYet", bad === {}, MonomialString /@ bad,
      "an LO ansatz writes every w^0 bilinear term with a function and every i w term with a numeric coefficient or a reference-1 function; \
-mixed ansatze (DE monomials + functions) are not implemented yet (docs/FUTURE.md)", "bilinear terms: functions at w^0; numbers or reference-1 functions at i w"]];
+mixed ansatze (DE monomials + functions) are not implemented yet (docs/STATUS.md)", "bilinear terms: functions at w^0; numbers or reference-1 functions at i w"]];
    out];
 
 ShowMonomials[ansatz_Association] := Module[{mons = validateStage[ansatz, "Ansatz"]["Monomials"], fo = ansatz["Theory"]["Fields"], rows},

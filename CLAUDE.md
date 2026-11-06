@@ -15,6 +15,8 @@ flows at generic p → BMWflow Python module (design/LOPIPELINE.md; functions ti
   run it, check with `examples/runNotebook.wl benchmarks/<Name>/<Name>.nb`.
 - Lessons: edit `lessons/src/NN-Name.md`, then `math -script lessons/makeLessons.wl`; check one headless with
   `math -script examples/runNotebook.wl lessons/NN-Name.nb`.
+- Docs: `python3 tools/docgen.py reference` (regenerate `docs/reference/`; the pre-commit hook in `.githooks/` runs it),
+  `python3 tools/docgen.py check` (stale reference or broken relative link → exit 1; CI runs it). Site: `/project-docs publish`.
 
 ## Layout
 - `FRGscalarMSR.wl` - loader; `$FRGModules` lists `Kernel/*.wl` in load order (each module uses only those above it).
@@ -22,8 +24,11 @@ flows at generic p → BMWflow Python module (design/LOPIPELINE.md; functions ti
   FrequencyIntegration → Closure → Assemble (`Equations` stage) → Dimensions → Adimensional → JuliaExport; Core (asserts, stages,
   `ExactlyZeroQ`), Oracle (numerical cross-check), Stages (save/load). LO pipeline: Loops → ExternalMomentum (`BuildLOEquations`,
   replaces Projection…Assemble) → Dimensions → Adimensional (LO branches) → PythonExport; `"Pipeline"` is inferred by the Ansatz.
-- `docs/MODULES.md` - per module: objective, assumptions, manipulations, checks, Show commands. `docs/CONVENTIONS.md`,
-  `docs/FUTURE.md`.
+- `README.md` - landing page (install, quickstart, links). `docs/README.md` - docs index + `verified` stamp; `docs/STATUS.md` -
+  implemented, checks, limitations, future directions; `docs/guide/` - how-tos (DE parts 1–2, LO, stages, development).
+- `docs/reference/` - GENERATED from the `::usage` strings (`docs/docgen.toml` lists the sources in load order): edit the usage
+  string, never the page. `tools/docgen.py` - vendored copy of `~/.claude/skills/project-docs/docgen.py`.
+- `docs/MODULES.md` - per module: objective, assumptions, manipulations, checks, Show commands. `docs/CONVENTIONS.md`.
 - `design/` - decision records with their adversarial reviews: `FRGDESIGN.md` (v1), `LEVICIVITA.md` (`jac`), `ADIMENSIONAL.md`
   (dimensions, export), `MOMENTUMPROJECTION.md` (p^{2n} projection, any n), `CAUSALITY.md` (causal-pole conditions exported as
   `causal_poles`), `LOPIPELINE.md` (functions of p², BMWflow export), `LOFLAMBDA.md` (reference-1 functions at iω and in vertices, ∂/∂(iν)
@@ -50,7 +55,8 @@ flows at generic p → BMWflow Python module (design/LOPIPELINE.md; functions ti
   (other repo: changes there go through a `docs/handoff/` spec). The two sides point to each other: a change to what
   `JuliaExport.wl` writes must match that page (FlowRG's `CLAUDE.md`, golden rule 6, points back here), and FlowRG answers a
   handoff with a Status section listing what this side must update.
-- A design change: record it in `design/` (decision + reason) and update `docs/MODULES.md` in the same change.
+- A design change: record it in `design/` (decision + reason) and update `docs/MODULES.md` and `docs/STATUS.md` in the same change.
+- A public symbol: its `::usage` string is its reference entry; new limits or features go to `docs/STATUS.md`.
 - A module's behaviour or a quoted symbol: update its lesson `lessons/src/NN-Name.md` and rebuild (the build fails on a missing
   quoted symbol).
 

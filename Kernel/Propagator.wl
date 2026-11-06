@@ -63,7 +63,7 @@ BuildPropagator[vertices_, regulator_] := Block[{$FRGModule = "Propagator"},
    deg = Exponent[detB, ww];
    AppendTo[checks, assertCheck["Propagator.deltaDegree", 1 <= deg <= 2, deg,
      If[deg == 0, "Delta(w) does not depend on w: the frequency integrals diverge (is a dt term missing?)",
-      "deg_w Delta = " <> ToString[deg] <> " > 2: not supported in v1 (future extension, docs/FUTURE.md)"],
+      "deg_w Delta = " <> ToString[deg] <> " > 2: not supported in v1 (future extension, docs/STATUS.md)"],
      "deg_w Delta = " <> ToString[deg]]];
    cs = Table[Expand[Coefficient[detB, ww, m] / I^m], {m, 0, 2}];
    FRGAssert["Propagator.deltaCoefficients", Expand[Sum[cs[[m + 1]] (I ww)^m, {m, 0, 2}] - detB] === 0 && FreeQ[cs, ww], cs, "internal"];

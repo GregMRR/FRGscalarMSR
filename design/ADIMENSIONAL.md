@@ -38,7 +38,7 @@ use these modules. The goal: derive every dimension from the ansatz, keep every 
    variable with β = 0 (zero Jacobian row).
 6. **Regulator prefactors: references only.** `nk (1 + Ak) q^2 arnh` would put β_A itself into ∂sR. The exact treatment (one
    unknown vector X = (η…, ∂s Ak…), each β written once, FlowRG `SOLVED`) was judged confusing for now; the user chose to forbid it
-   and record the extension in `docs/FUTURE.md`. Symbolic pre-solving of the η system is impossible while the shapes stay abstract:
+   and record the extension in `docs/STATUS.md`. Symbolic pre-solving of the η system is impossible while the shapes stay abstract:
    its coefficients are aq-integrals that exist only numerically.
 7. **Measure** S_d aq^{d−1}/(2π)^d. The old exports lacked the (2π)^{−d} (review E7); Canet's v_d = S_d/(2π)^d settles it.
 8. **r″ is exported** as `D2<shape>(aq^2)` (DE4plus g2, D2φ need it, review E5); FlowRG binding is a handoff task. Open question
@@ -89,7 +89,7 @@ Acceptance (all passing):
 
 Found while building:
 - The `jac` test model's regulator `mk q^2 jrp` violates D4: [mk] = [nk], so mk cannot be a fourth reference. Any model where two
-  fields carry independent diffusion constants as regulator prefactors needs the FUTURE.md extension (decision 6).
+  fields carry independent diffusion constants as regulator prefactors needs the docs/STATUS.md extension (decision 6).
 - Julia compiles the huge generated functions slowly (DE4plus: ~15 min per file, the old file too). The tests run julia with
   `--compile=min -O0` (seconds). FlowRG's own load of a large file still pays the full compile.
 
@@ -98,4 +98,4 @@ Found while building:
 - FlowRG: `MUST_FIX` guard and `D2<shape>` binding (`docs/handoff/FlowRG-MUST_FIX.md`); Litim's r″ δ term is a user decision.
 - The user's notebooks: rerun `ShallowWaterLPA.nb` with `{Hbar, H} -> nk q^2 arnh`, resave `swLPAplusequations.wdx`, then in
   `AdimensionalLPAsw.nb`: `DeriveDimensions[AnsatzOf[equations], …]`, `AdimensionalEquations`, `ExportJulia` (README workflow).
-- `docs/FUTURE.md`: non-reference regulator couplings (`SOLVED`), η fixed by a linear relation or a scale-invariant quantity.
+- `docs/STATUS.md`: non-reference regulator couplings (`SOLVED`), η fixed by a linear relation or a scale-invariant quantity.

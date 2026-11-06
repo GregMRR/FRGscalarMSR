@@ -10,7 +10,7 @@ frequency integral assumes them. Until now they were only printed as an ASSUMPTI
 dimensionless form and written into the equations file as an extra function, so that whoever runs the flow can evaluate them.
 
 - **Export only.** FlowRG is not changed. An extra definition is allowed by rule 6 of
-  `FlowRG.jl/docs/equations-interface.md`. A FlowRG-side check is in `docs/FUTURE.md`.
+  `FlowRG.jl/docs/equations-interface.md`. A FlowRG-side check is in `docs/STATUS.md`.
 
 ## 2. Decisions
 | # | Decision | Reason |
@@ -48,6 +48,6 @@ tests replace it with `Block` (as `tests/unit/ProjectionTest.wl:60`) by a wrong 
 - E1 (blocker), E2: expected values above taken from a dimension count and the probe, each in the file whose ansatz produces it.
 - E3: the check is tested by mutating `causalPolesStrip` (§3).
 - E4: one wording everywhere: "> 0 at every aq" (the cards' "at every q"). How to check it (nodes, endpoints, sampling between
-  nodes) is not decided here: the function is only exported (`docs/FUTURE.md`).
+  nodes) is not decided here: the function is only exported (`docs/STATUS.md`).
 - E5: numeric content is the positive GCD; the aq power is taken separately, outside function arguments.
 - E6: C8. E7: §4 names both forms. E8: C7. E9: C6.

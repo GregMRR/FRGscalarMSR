@@ -93,7 +93,7 @@ conditioning of the kernels) is done and checked here, so BMWflow's adapter has 
 - Speed: one step (Integral, η, β, rhs) takes 4.1 ms vs 1.2 ms for `ModelKPZ` in d = 1, 7.1 ms vs 3.1 ms in d = 2.
   Common-subexpression elimination in `ExportPython` (each repeated sub-expression computed once into a local) is the
   next step if that matters.
-- Open: evo2 (`Evo2KPZ` is NLO-only; `create` refuses evo2 for generated models); n_c > 1 (docs/FUTURE.md).
+- Open: evo2 (`Evo2KPZ` is NLO-only; `create` refuses evo2 for generated models); n_c > 1 (docs/STATUS.md).
 
 ## Status (v3) (2026-11-03): implemented in BMWflow (uncommitted)
 

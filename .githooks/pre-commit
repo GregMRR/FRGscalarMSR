@@ -1,0 +1,7 @@
+#!/bin/sh
+# Regenerate docs/reference from the source doc comments and stage it (tools/docgen.py).
+# Enable once per clone: git config core.hooksPath .githooks
+root=$(git rev-parse --show-toplevel)
+[ -f "$root/tools/docgen.py" ] || exit 0
+python3 "$root/tools/docgen.py" reference >/dev/null || exit 1
+git -C "$root" add -A docs/reference

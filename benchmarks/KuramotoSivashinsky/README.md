@@ -50,7 +50,7 @@ The suite hook also checks that a 1 % change in one coefficient of Eq. (37) is d
   - D_Λ in Ĝ = λ²D_Λ/(κD²) is a unit, set to 1.
 - **The paper's notation.** Eqs. (36)–(37) are written with q̂² in place of x = q̂². The primes are d/dx.
 - **Normalisation not tested.** At d = 1 the n = 2 normalisation 8d(d+2) equals 8(d²+2) = 24, so a d-normalisation error would
-  pass this benchmark. It stays covered by `Projection.normalisation` and `Projection.explicitVectors` (docs/FUTURE.md,
+  pass this benchmark. It stays covered by `Projection.normalisation` and `Projection.explicitVectors` (docs/STATUS.md,
   "Generic-d p⁴ acceptance").
 - **Out of scope (symbolic only).**
   - The sharp-cutoff limits (Eqs. 40–41).
