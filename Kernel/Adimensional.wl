@@ -9,7 +9,9 @@ BeginPackage["FRGscalarMSR`", {"FRGscalarMSR`Internal`"}];
 
 AdimensionalEquations::usage = "AdimensionalEquations[equations, dims, \"State\" -> {gk, lk, ...}] returns the \"Adimensional\" stage: \
 for each state coupling c (dimensionless name chat) d_s chat = BetaL + Integral daq Measure[aq] BetaNL, and the eta system \
-(EtaML + Integral daq Measure EtaMNL) eta = EtaBL + Integral daq Measure EtaBNL. d_s ref_j = -eta_j ref_j.";
+(EtaML + Integral daq Measure EtaMNL) eta = EtaBL + Integral daq Measure EtaBNL. d_s ref_j = -eta_j ref_j. An LO-pipeline stage gives \
+Linear, Loop, EtaMatrix, EtaVector of functions f(ap^2); an NLO one (\"Approximation\" -> \"NLO\") functions f(ap^2, aw), aw the \
+dimensionless external frequency, with the term (2 - eta_nu) aw df/daw derived from the frequency dimension (design/NLOPIPELINE.md).";
 ShowBeta::usage = "ShowBeta[adim, c] prints the dimensionless flow of the state coupling c: linear part, loop integrand, atoms used.";
 ShowEtaSystem::usage = "ShowEtaSystem[adim] prints the eta system row by row (running references: eta from their equation; fixed references: \
 placeholder row eta = 0, to be fixed at run time with FlowRG fixed_etas).";
@@ -284,10 +286,17 @@ loArgumentsExpanded[e_, heads_] := e /. {(h : Alternatives @@ heads)[x_] :> h[Ex
 (* the angular loop measure: Integral d^dq/(2 Pi)^d F(q, c) = k^d Integral daq dtheta LOLoopMeasure F, c = cos theta *)
 loLoopMeasure[d_, aq_, th_] := 2 Pi^((d - 1)/2)/Gamma[(d - 1)/2] aq^(d - 1) Sin[th]^(d - 2)/(2 Pi)^d;
 
+(* NLO: the dimensionless rows at aw = 0 are the LO rows (separate so that its expectFail test can feed a wrong row) *)
+nloCheckSlice[fs_, loops_, loopsLO_, aw_, cw_] := Module[{bad = Pick[fs, MapThread[! ExactlyZeroQ[(#1 /. aw -> 0) - #2] &, {loops, loopsLO}]]},
+   assertCheck["Adimensional.nloSlice", bad === {}, bad, "internal: a dimensionless NLO row at aw = 0 differs from its LO row",
+    "NLO rows at aw = 0 equal the LO rows; linear part + (" <> displayString[cw] <> ") aw df/daw, from the dimension of the frequency"]];
+
 adimensionalLO[equations_, dims_, opts___] := Module[{t0 = AbsoluteTime[], checks = {}, warns = {}, ansatz, cps, refs, etas, names, vecs, basis, nb, unitIndex,
     kk, qU, pU, aq, ap, dimSym, nonren, regC, reg, form, toUnits, gamma2Dim, eqs, funcs, fs, shapes, fnRel, adim, bad, state, betaL, linear, loops,
-    etaRows, ca, mat, vec, etaOrder, testDims, stage},
+    etaRows, ca, mat, vec, etaOrder, testDims, stage, nlo, wE, aw, cw, nloKeys = <||>, loopsLO},
    ansatz = AnsatzOf[equations];
+   (* NLO stage (design/NLOPIPELINE.md N5): functions f(ap^2, aw), w = aw x frequency unit; every NLO change below is gated on nlo *)
+   nlo = Lookup[equations, "Approximation", "LO"] === "NLO";
    AppendTo[checks, assertCheck["Adimensional.sameAnsatz", ansatz["Fingerprint"] === dims["Ansatz"]["Fingerprint"],
      {ansatz["Fingerprint"], dims["Ansatz"]["Fingerprint"]}, "the dimensions were derived from another ansatz: DeriveDimensions[AnsatzOf[equations], ...]",
      "dimensions and equations from the same ansatz"]];
@@ -318,6 +327,10 @@ adimensionalLO[equations_, dims_, opts___] := Module[{t0 = AbsoluteTime[], check
    form[c_] := basisForm[vecs[c], basis];
    fnRel = Join[(#[x_] :> #[Expand[x/kk^2]]) & /@ fs, (Derivative[j_][#][x_] :> Derivative[j][#][Expand[x/kk^2]]/kk^(2 j)) & /@ fs];
    toUnits = Join[(# -> names[#] form[#]) & /@ Complement[cps, refs], {qU -> kk aq, pU -> kk ap}, (dsCoupling[#] -> -etas[#] #) & /@ refs];
+   If[nlo, wE = equations["ExternalFrequency"]; aw = Symbol["Global`aw"];
+    toUnits = Append[toUnits, wE -> basisForm[dims["Frequency"], basis] aw];
+    (* d_s f at fixed aw: + (d_s ln of the frequency unit) aw d_aw f = - linearPart of the frequency (2 - eta_nu for KPZ) *)
+    cw = Expand[-linearPart[dims["Frequency"], Values[etas]]]];
    adim[e_] := loArgumentsExpanded[(e /. fnRel) /. toUnits, Join[fs, shapes]];
    gamma2Dim[{a_, b_}] := Expand[dimSym UnitVector[nb, 1] - dims["Time"] - vecs[a] - vecs[b]];
 
@@ -354,7 +367,15 @@ adimensionalLO[equations_, dims_, opts___] := Module[{t0 = AbsoluteTime[], check
      "every loop and eta integrand free of k and the references: homogeneity of every sum (structural) and invariance under random unit rescaling (numerical, d = " <>
       StringRiffle[ToString /@ testDims, ", "] <> ")"]];
    (* a reference-1 function has no eta: its linear part is the scaling term alone (design/LOFLAMBDA.md F2) *)
-   linear = (If[#HasEta, etas[#Reference] #Function[ap^2], 0] + 2 ap^2 Derivative[1][#Function][ap^2]) & /@ eqs;
+   linear = If[! nlo, (If[#HasEta, etas[#Reference] #Function[ap^2], 0] + 2 ap^2 Derivative[1][#Function][ap^2]) & /@ eqs,
+     (If[#HasEta, etas[#Reference] #Function[ap^2, aw], 0] + 2 ap^2 Derivative[1, 0][#Function][ap^2, aw] + cw aw Derivative[0, 1][#Function][ap^2, aw]) & /@ eqs];
+   If[nlo,
+    (* nloSlice: the rows at aw = 0 are the LO rows (the w = 0 slice is closed) *)
+    loopsLO = Function[r, homClean["Adimensional.homogeneous", adim[kk^dimSym r["IntegrandLO"]/r["Reference"]], ConstantArray[0, nb], unitIndex, nb, r["Function"]]] /@ eqs;
+    AppendTo[checks, nloCheckSlice[fs, loops, loopsLO, aw, cw]];
+    AppendTo[warns, infoCheck["INFO", "Adimensional.functionsNLO", "F(p^2, w) = f(p^2/k^2, aw), w = aw " <> displayString[basisForm[dims["Frequency"], basis]] <>
+       "; in the loop every function at aw = 0 (one argument)"]];
+    nloKeys = <|"Approximation" -> "NLO", "ExternalFrequency" -> aw, "FrequencyScaling" -> cw|>];
 
    (* eta system, etas in FUNCTIONS order (functions with an eta only) *)
    etaOrder = etas[#Reference] & /@ Select[eqs, #HasEta &];
@@ -372,7 +393,7 @@ adimensionalLO[equations_, dims_, opts___] := Module[{t0 = AbsoluteTime[], check
       "EtaNames" -> (dims["EtaNames"][#Reference] & /@ Select[eqs, #HasEta &]), "MustFix" -> {},
       "BetaL" -> betaL, "Linear" -> linear, "Loop" -> loops, "P2Divided" -> eqs[[All, "P2Divided"]], "EtaMatrix" -> mat, "EtaVector" -> vec,
       "LoopMomentum" -> aq, "ExternalMomentum" -> ap, "Cosine" -> CosTheta, "Dimension" -> dimSym, "Shapes" -> shapes,
-      "Measure" -> <|"Loop" -> loLoopMeasure[dimSym, aq, Symbol["Global`theta"]], "Eta" -> LoopMeasure[dimSym, aq]|>,
+      "Measure" -> <|"Loop" -> loLoopMeasure[dimSym, aq, Symbol["Global`theta"]], "Eta" -> LoopMeasure[dimSym, aq]|>, nloKeys,
       "Checks" -> checks, "Warnings" -> warns, "Timing" -> AbsoluteTime[] - t0|>];
    PrintCard[stage];
    stage];

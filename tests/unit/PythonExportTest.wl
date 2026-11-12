@@ -10,7 +10,7 @@ Get[FileNameJoin[{testRoot, "reference", "PythonRoundTrip.wl"}]];
 pyDir = FileNameJoin[{$pythonDir, "unit"}];
 pyFile = quiet[ExportPython[kpzloAdim, "G" -> alamk^2, "Model" -> "KPZ", "File" -> FileNameJoin[{pyDir, "KPZ_LO.py"}]]];
 pyText = Import[pyFile, "Text"];
-test["KPZ module: contract constants", AllTrue[{"CONTRACT_VERSION = 3", "FUNCTIONS = (\"fD\", \"fnu\")", "ETAS = (\"etaD\", \"etanu\")", "COUPLINGS = (\"g\",)",
+test["KPZ module: contract constants", AllTrue[{"CONTRACT_VERSION = 4", "FUNCTIONS = (\"fD\", \"fnu\")", "ETAS = (\"etaD\", \"etanu\")", "COUPLINGS = (\"g\",)",
     "SHAPES = (\"rn\", \"rd\")", "P2_DIVIDED = (0, 1)", "FIXED_DIMENSION = None", "APPROXIMATION = \"LO\"", "MODEL = \"KPZ\""}, StringContainsQ[pyText, #] &], True];
 test["KPZ module: exporting twice gives the same file (no date in the header)",
   Import[quiet[ExportPython[kpzloAdim, "G" -> alamk^2, "Model" -> "KPZ", "File" -> FileNameJoin[{pyDir, "KPZ_LO_again.py"}]]], "Text"] === pyText, True];
@@ -54,3 +54,13 @@ expectFail["F' in the loop (not in the contract)", ExportPython[pyForge[<|"Loop"
   "PythonExport.knownSymbols"];
 expectFail["a System function without translation", ExportPython[pyForge[<|"Loop" -> kpzloAdim["Loop"] Log[aq]|>], "G" -> alamk^2, "Model" -> "KPZ", "File" -> pyOut],
   "PythonExport.systemHeads"];
+
+(* NLO module (contract v4, design/NLOPIPELINE.md N6); the round trips are in tests/acceptance/KPZNLO.wl *)
+Get[FileNameJoin[{testRoot, "reference", "KPZNLOSetup.wl"}]];
+pyNLOText = Import[quiet[ExportPython[kpznloAdim, "G" -> alamk^2, "Model" -> "KPZ", "File" -> FileNameJoin[{pyDir, "KPZ_NLO.py"}]]], "Text"];
+test["NLO module: constants and signatures", AllTrue[{"CONTRACT_VERSION = 4", "APPROXIMATION = \"NLO\"", "ETAS = (\"etaD\", \"etanu\")",
+    "def linear(p, w, f, fprime, fprime_w, eta, couplings, d):", "def loop(p, w, q, c, Q2, fp, fq, fQ, rq, rq_, rQ, eta, couplings, d):",
+    "def eta_matrix(q, f, fprime, r, r_, couplings, d):", "def beta(couplings, eta, d):"}, StringContainsQ[pyNLOText, #] &], True];
+test["NLO module: linear = eta f + p f' + (2 - eta_nu) w f_w", Expand[PythonParts[kpznloAdim]["linear"]],
+  Expand[Table[PythonVariable["eta", i] PythonVariable["f", i] + PythonVariable["p"] PythonVariable["fprime", i] +
+     (2 - PythonVariable["eta", 1]) PythonVariable["w"] PythonVariable["fprime_w", i], {i, 0, 1}]]];

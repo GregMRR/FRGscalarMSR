@@ -13,7 +13,11 @@ BuildLOEquations::usage = "BuildLOEquations[loops, symmetries] builds the LO flo
 (Gamma2_ab(0, p) = norm ref p^(2n) F(p^2)) the integrand of d_s(ref F(p^2)) = Integral d^dq/(2 Pi)^d Integrand(p, q, CosTheta), \
 already divided by norm p^(2n), and the p -> 0 limit (integrand of d_s ref, which fixes eta through F(0) = 1). Checks the zero \
 entries at every p, the Protected i w entries at p = 0, the low orders below p^(2n), the angles and the shape derivatives. \
-Returns the \"Equations\" stage with \"Pipeline\" -> \"LO\".";
+Returns the \"Equations\" stage with \"Pipeline\" -> \"LO\". Option \"ExternalFrequency\" -> True (NLO, design/NLOPIPELINE.md): the \
+functions depend on (w, p) with w = Global`w the external frequency; every function in the loop stays at zero frequency and w enters \
+through G(omega + w, Q). A (I w)^0 function's Integrand is then the even part in w of d_s Gamma2_ab(w, p), a (I w)^1 function's the odd \
+part divided by I w (exact, finite at w = 0); EtaIntegrand and every LO check stay at w = 0, and the stage gets \"Approximation\" -> \
+\"NLO\" and \"ExternalFrequency\" -> w.";
 CosTheta::usage = "CosTheta is the cosine of the angle between the external momentum p and the loop momentum q in LO integrands: \
 p.q = p q CosTheta, Q^2 = p^2 + q^2 + 2 p q CosTheta.";
 ShowLOEquation::usage = "ShowLOEquation[equations, f] prints the LO flow of the function f: prefactor, divided power of p^2, loop \
@@ -41,10 +45,13 @@ loProjectedAtZero[loop_, m_, n_, {nu_, pV_}, wq_, dim_, prop_, reg_, qU_] := Mod
 (* function atoms of the LO integrands: F[x], F'[x], ... and shapes r[x], r'[x], ... *)
 loDerivativeOrders[e_, heads_] := Union[Cases[e, Derivative[k_][h : Alternatives @@ heads][_] :> {h, k}, {0, Infinity}]];
 
-BuildLOEquations[loops_, symmetries_] := Block[{$FRGModule = "ExternalMomentum"},
+Options[BuildLOEquations] = {"ExternalFrequency" -> False};
+
+BuildLOEquations[loops_, symmetries_, opts : OptionsPattern[]] := Block[{$FRGModule = "ExternalMomentum"},
   Module[{t0 = AbsoluteTime[], v, prop, reg, ansatz, funcs, fields, dim, deg, wq, wL, qL, pV, nu, qU, pU, kk, shapes, fs, pairs, flowRec, prot,
     negl, checks = {}, warns = {}, zeroBad = {}, neglected = {}, wardBad = {}, wardDone = {}, eqs, nFam, bad, stage, sq, sQ, atZero, loopOf,
-    integratedOf, cps, validity},
+    integratedOf, cps, validity, nlo = OptionValue["ExternalFrequency"], wE = Symbol["Global`w"], nloKeys = <||>},
+   FRGAssert["ExternalMomentum.options", BooleanQ[nlo], nlo, "\"ExternalFrequency\" -> True | False"];
    validateStage[loops, "Loops"]; validateStage[symmetries, "Symmetries"];
    FRGAssert["ExternalMomentum.pipeline", loops["Pipeline"] === "LO" && symmetries["Pipeline"] === "LO", {loops["Pipeline"], symmetries["Pipeline"]},
     "BuildLOEquations needs an LO ansatz (fn[...]); a derivative-expansion ansatz goes through ProjectOnMonomials"];
@@ -152,6 +159,11 @@ that Ward identity is what keeps f(0) = 1 (design/LOFLAMBDA.md F2)",
 or a Protected order is not below the function's prefactor",
      "orders below p^(2n) vanish exactly: " <> StringRiffle[(ToString[#Function] <> " (n = " <> ToString[#P2Divided] <> ")") & /@ eqs, ", "]]];
 
+   (* NLO: the external frequency kept in the loop (design/NLOPIPELINE.md N2-N4, N7) *)
+   If[nlo, With[{r = nloEquations[eqs, flowRec, pairs, prot, negl, loopOf, {wL, qL, pV, nu, wE, pU, qU}, {sq, sQ}, deg, prop, reg]},
+     eqs = r["Equations"]; checks = Join[checks, r["Checks"]]; warns = Join[warns, r["Warnings"]];
+     nloKeys = <|"Approximation" -> "NLO", "ExternalFrequency" -> wE|>]];
+
    validity = Join[prop["ValidityConditions"][qU^2], prop["ValidityConditions"][pU^2 + qU^2 + 2 pU qU CosTheta]] /.
      {DeltaCoefficient[m_][s_] :> prop["DeltaCoefficients"][s][[m + 1]]} /. (h : GammaAtom[__])[s_] :> prop["AtomValues"][h][s];
    AppendTo[warns, infoCheck["ASSUMPTION", "ExternalMomentum.causalPoles", "every root of Delta(w) at q and at Q in the upper half plane " <>
@@ -163,10 +175,86 @@ or a Protected order is not below the function's prefactor",
       "Loops" -> loops, "Symmetries" -> symmetries, "Equations" -> eqs, "DsRRules" -> DsRRules[reg, qU^2],
       "ValidityConditions" -> <|"Explicit" -> validity|>,
       "LoopMomentum" -> qU, "ExternalMomentum" -> pU, "Cosine" -> CosTheta, "Scale" -> kk, "Shapes" -> shapes, "Functions" -> funcs,
-      "Couplings" -> cps, "Dimension" -> dim, "Checks" -> checks, "Warnings" -> warns, "Timing" -> AbsoluteTime[] - t0|>];
+      "Couplings" -> cps, "Dimension" -> dim, nloKeys, "Checks" -> checks, "Warnings" -> warns, "Timing" -> AbsoluteTime[] - t0|>];
    Scan[ShowLOEquation[stage, #] &, fs];
    PrintCard[stage];
    stage]];
+
+(* ---------- NLO (design/NLOPIPELINE.md) ----------
+   Each LO row r is replaced by its NLO row: integrated with the external frequency nu kept (loIntegrate parts "Even" / "Odd"), divided
+   by norm p^(2n), nu -> wE. The LO row stays as "IntegrandLO". Checks: nloLimit, nloNoiseEven, nloWardAllFrequencies, nloDividedOrders,
+   nloZeroEntries; the p = 0 checks take the integrated row at p = 0 with w symbolic (not project, which sets nu = 0). *)
+nloIntegrated[loopOf_, pr_, part_, {wL_, qL_, pV_, nu_, wE_, pU_, qU_}, {sq_, sQ_}, deg_, prop_, reg_] := Module[{x},
+   x = loIntegrate[loopOf[pr], wL, {sq, sQ}, deg, nu, part];
+   FRGAssert["ExternalMomentum.isotropicAngles", FreeQ[loMagnitudes[x, pV, qL, pU, qU], scal | wedge | pV | qL], pr,
+    "the loop depends on the angle other than through p.q (wedge / jac terms)"];
+   nloCheckReal[nloRealDenominator[Together[loMagnitudes[loExplicit[x, prop, reg, sq], pV, qL, pU, qU] /. nu -> wE]], pr, part]];
+
+(* Together keeps conjugate denominator factors (A + I B)^n (A - I B)^n apart: multiply each pair into (A^2 + B^2)^n *)
+nloRealDenominator[x_] := Module[{num = Numerator[x], fac = Replace[Denominator[x], {t_Times :> List @@ t, t_ :> {t}}], conj, out = {}, rest},
+   conj[e_] := e /. Complex[a_, b_] :> Complex[a, -b];
+   rest = fac;
+   While[rest =!= {}, Module[{f = First[rest], b, n, partner},
+      rest = Rest[rest];
+      {b, n} = Replace[f, {Power[bb_, nn_Integer] :> {bb, nn}, bb_ :> {bb, 1}}];
+      partner = If[FreeQ[b, Complex], Missing[], FirstPosition[rest, If[n == 1, conj[b], conj[b]^n], Missing[], {1}, Heads -> False]];
+      If[MissingQ[partner], AppendTo[out, f],
+       rest = Delete[rest, partner]; AppendTo[out, Expand[b conj[b]]^n]]]];
+   num/(Times @@ out)];
+
+(* the NLO checks, separate so that their expectFail tests can feed rows that break an identity only at w != 0 (design/NLOPIPELINE.md N7) *)
+nloCheckLimit[rows_, wE_] := Module[{bad = Select[rows, ! ExactlyZeroQ[(#Integrand /. wE -> 0) - #IntegrandLO] &]},
+   assertCheck["ExternalMomentum.nloLimit", bad === {}, bad[[All, "Function"]],
+    "an NLO row at w = 0 differs from its LO row (wrong even/odd part or normalisation)", "every NLO row at w = 0 equals its LO row exactly"]];
+(* rows (key "Undivided": the integrated row before the division by norm p^(2n)) at p = 0: Q^2 = q^2, no angle left, w symbolic *)
+nloCheckAtZero[name_, rows_, pU_, msg_, okMsg_] := Module[{bad = Select[rows, ! ExactlyZeroQ[Together[#Undivided /. pU -> 0]] &]},
+   assertCheck[name, bad === {}, bad[[All, "Function"]], msg, okMsg]];
+nloCheckZeroEntries[values_] := Module[{bad = Select[values, ! ExactlyZeroQ[Last[#]] &][[All, 1]]},
+   assertCheck["ExternalMomentum.nloZeroEntries", bad === {}, bad, "an entry outside the ansatz flows at w != 0",
+    "entries outside the ansatz vanish at every w" <> If[values === {}, " (none)", ": " <> StringRiffle[ToString /@ values[[All, 1]], ", "]]]];
+nloCheckP2Divided[rows_] := FRGAssert["ExternalMomentum.nloP2Divided", Max[rows[[All, "P2Divided"]]] <= 1, Thread[rows[[All, "Function"]] -> rows[[All, "P2Divided"]]],
+   "NLO: a row divided by p^4 or more is not supported (the lower-order check at every w handles p^0 only)"];
+nloCheckReal[x_, pr_, part_] := (FRGAssert["ExternalMomentum.nloReal", part === "Full" || FreeQ[x, Complex], {pr, part},
+    "an even part or odd part / (I w) is not real: the entry is not real for real w and real functions (Gamma(-w) = Gamma(w)*)"]; x);
+
+nloEquations[eqs_, flowRec_, pairs_, prot_, negl_, loopOf_, vars : {wL_, qL_, pV_, nu_, wE_, pU_, qU_}, sqs_, deg_, prop_, reg_] :=
+  Module[{checks = {}, warns = {}, integ, out, odd0, oddDropped = {}, oddBad = {}, wardRows},
+   integ[pr_, part_] := integ[pr, part] = nloIntegrated[loopOf, pr, part, vars, sqs, deg, prop, reg];
+   nloCheckP2Divided[eqs];
+   out = Function[r, Module[{x = integ[r["Pair"], If[r["Frequency"] == 0, "Even", "Odd"]]},
+       Join[r, <|"Integrand" -> Together[x/(r["Normalisation"] pU^(2 r["P2Divided"]))], "IntegrandLO" -> r["Integrand"], "Undivided" -> x|>]]] /@ eqs;
+
+   AppendTo[checks, nloCheckLimit[out, wE]];
+
+   (* nloNoiseEven: an entry with a (I w)^0 function and none at (I w)^1 has no odd part, unless a Protected i w tag drops it (KCW LO) *)
+   Scan[Function[r, If[r["Frequency"] == 0 && NoneTrue[out, #Frequency == 1 && #Pair === r["Pair"] &],
+       odd0 = integ[r["Pair"], "Odd"];
+       Which[ExactlyZeroQ[odd0], Null,
+        AnyTrue[prot, Function[t, t["Frequency"] === 1 && pairMatchQ[t["Pattern"], r["Pair"]]]], AppendTo[oddDropped, r["Pair"]],
+        True, AppendTo[oddBad, r["Pair"]]]]], out];
+   AppendTo[checks, assertCheck["ExternalMomentum.nloNoiseEven", oddBad === {}, oddBad,
+     "the odd part in w of this entry flows, but no function at (I w)^1 carries it and no Protected i w tag drops it",
+     "entries without an (I w)^1 function are even in w" <> If[oddDropped === {}, "", " (odd part dropped at Protected i w entries: " <> inputForm[oddDropped] <> ")"]]];
+   If[oddDropped =!= {}, AppendTo[warns, infoCheck["INFO", "ExternalMomentum.wardNeglectedNLO",
+       "Neglected (NLO): the odd part in w at p != 0 of " <> inputForm[oddDropped] <> " (no function at (I w)^1: its coefficient stays 1)"]]];
+
+   (* nloWardAllFrequencies: a (I w)^1 row with a Protected i w tag at p = 0 vanishes at p = 0 for every w (KCW Eq. 39) *)
+   wardRows = Select[out, Function[r, r["Frequency"] == 1 && AnyTrue[prot, Function[t, t["Frequency"] === 1 && t["Momentum"] === 0 && pairMatchQ[t["Pattern"], r["Pair"]]]]]];
+   AppendTo[checks, nloCheckAtZero["ExternalMomentum.nloWardAllFrequencies", wardRows, pU,
+     "a Protected i w coefficient flows at p = 0 for some w != 0: the Ward identity fails at nonzero frequency",
+     If[wardRows === {}, "no (I w)^1 function", "(I w)^1 rows vanish at p = 0 for every w: " <> StringRiffle[ToString /@ wardRows[[All, "Function"]], ", "]]]];
+
+   (* nloDividedOrders: the p^0 order of a row divided by p^2 vanishes at every w *)
+   AppendTo[checks, nloCheckAtZero["ExternalMomentum.nloDividedOrders", Select[out, #P2Divided >= 1 &], pU,
+     "a row divided by p^2 has a nonzero p^0 order at some w != 0 (it would be exported as 1/p^2)",
+     "p^0 order of the rows divided by p^2 vanishes at every w: " <> StringRiffle[ToString /@ Select[out, #P2Divided >= 1 &][[All, "Function"]], ", "]]];
+
+   (* nloZeroEntries: entries outside the ansatz (not Neglected) vanish at every w *)
+   AppendTo[checks, nloCheckZeroEntries[(# -> integ[#, "Full"]) & /@ Select[pairs,
+       Function[pr, ! MemberQ[out[[All, "Pair"]], pr] && NoneTrue[negl, pairMatchQ[#Pattern, pr] &]]]]];
+   AppendTo[warns, infoCheck["INFO", "ExternalMomentum.nlo", "NLO: functions of (w, p); in the loop every function at w = 0, w only in G(omega + w, Q) \
+(KCW Eq. 43); Integrand: even part in w (I w^0 functions) or odd part / (I w) (I w^1 functions); EtaIntegrand at w = 0"]];
+   <|"Equations" -> (KeyDrop[#, "Undivided"] & /@ out), "Checks" -> checks, "Warnings" -> warns|>];
 
 ShowLOEquation[e_Association, f_] := Module[{r = SelectFirst[e["Equations"], #Function === f &]},
    If[MissingQ[r], Print["no function ", f, "; functions: ", e["Equations"][[All, "Function"]]]; Return[Null]];

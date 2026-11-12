@@ -9,4 +9,4 @@ RunOracle: a numerical cross-check of the assembled equations (DE4plus\_fast.wl 
 
 ### `RunOracle`
 
-`RunOracle[equations, opts]` compares every equation (and, with "ZeroFlows" -> True, every flow that must vanish) with a numerical evaluation of the loop at one random point: numeric matrix inverse, NIntegrate over w, finite differences in nu and p. Options: "Dimensions" -> Automatic ({2, 3} for a symbolic d, {2} for a declared d = 2), "Tolerance" -> 10^-8 (relative; absolute for zero flows), "Seed" -> 1, "ZeroFlows" -> False. Returns the "Oracle" stage.
+`RunOracle[equations, opts]` (an NLO LO-pipeline stage: at w = 3/10, 7/5, 4, even and odd parts) compares every equation (and, with "ZeroFlows" -> True, every flow that must vanish) with a numerical evaluation of the loop at one random point: numeric matrix inverse, NIntegrate over w, finite differences in nu and p. Options: "Dimensions" -> Automatic ({2, 3} for a symbolic d, {2} for a declared d = 2), "Tolerance" -> 10^-8 (relative; absolute for zero flows), "Seed" -> 1, "ZeroFlows" -> False. Returns the "Oracle" stage.

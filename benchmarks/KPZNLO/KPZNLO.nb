@@ -1,0 +1,129 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[      5417,        120]
+NotebookOptionsPosition[      3862,         94]
+NotebookOutlinePosition[      4176,        108]
+CellTagsIndexPosition[      4133,        105]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["\<\
+Benchmark: KPZ at NLO (functions of p and of the external frequency w)\
+\>", "Title",ExpressionUUID->"8dd0ff0c-1953-49c5-9bbc-4dc66feb91db"],
+
+Cell["\<\
+Kloss, Canet, Wschebor, PRE 86, 051124 (2012), Eqs. 43, 44, 49: the functions \
+f_D, f_nu, f_lambda depend on (w, p) on the left-hand side; in the loop every \
+function is at zero frequency, and w enters only through G(omega + w, Q). The \
+f_D row is the even part in w of d_s Gamma(0,2), f_nu the even part of d_s \
+Gamma(1,1)/(nu p^2), f_lambda the odd part of d_s Gamma(1,1) divided by i w \
+(design/NLOPIPELINE.md). With f_lambda = 1 this is KCW's LO, which BMWflow \
+calls \"NLO\".\
+\>", "Text",ExpressionUUID->"771c7c88-d5cd-4577-98af-ccffba4035f0"],
+
+Cell["\<\
+Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+kpznloDir = ExpandFileName[\"~/Physics/Sources/FRGscalarMSR/benchmarks/KPZNLO\
+\"];
+Block[{Print}, Get[FileNameJoin[{ParentDirectory[kpznloDir], #, \"Pipeline.wl\
+\"}]] & /@ {\"KPZLO\", \"KPZLOLambda\"}];\
+\>", "Input",ExpressionUUID->"87083a81-236b-4eb2-81ee-8d1d13699620"],
+
+Cell["1. NLO equations", "Section",ExpressionUUID->"2429c718-2298-4d23-9724-8dd6f038f6ea"],
+
+Cell["\<\
+The LO loops of benchmarks/KPZLO and KPZLOLambda, with \"ExternalFrequency\" \
+-> True. The card shows the NLO checks: every row at w = 0 equals its LO row; \
+Gamma(hbar, hbar) is even in w; the f_lambda row vanishes at p = 0 and the \
+p^0 order of the f_nu row vanishes, for every w.\
+\>", "Text",ExpressionUUID->"09ed3775-8090-4214-b40c-0ca8be3c058c"],
+
+Cell["\<\
+kpzlamnloEquations = BuildLOEquations[kpzlamLoops, kpzlamSymmetries, \
+\"ExternalFrequency\" -> True];\
+\>", "Input",ExpressionUUID->"b62b6e30-6c4f-4261-980e-81aa7875a1d4"],
+
+Cell["RunOracle[kpzlamnloEquations];", "Input",ExpressionUUID->"3e2ff64f-225a-4dd0-92a6-925d96d170a8"],
+
+Cell["\<\
+kpzlamnloAdim = AdimensionalEquations[kpzlamnloEquations, kpzlamDims];
+kpzlamnloAdim[\"Linear\"]\
+\>", "Input",ExpressionUUID->"0e135c3f-dce3-471a-b458-479da3cf59d2"],
+
+Cell["\<\
+kpznloEquations = BuildLOEquations[kpzloLoops, kpzloSymmetries, \
+\"ExternalFrequency\" -> True];
+kpznloAdim = AdimensionalEquations[kpznloEquations, kpzloDims];\
+\>", "Input",ExpressionUUID->"3f43e197-b26b-4bf8-a6ce-5a1dbca32a3e"],
+
+Cell["2. References and checks", "Section",ExpressionUUID->"ebc87c42-d032-4412-b6c1-9aaf317351a8"],
+
+Cell["\<\
+Generic f_lambda and w against BMWflow's NLO kernels with f_lambda slots \
+(Reference.wl); the w = 0 slice against the LO benchmarks; the linear part \
+against KCW Eq. 56; the oracle at w != 0.\
+\>", "Text",ExpressionUUID->"68fcb649-8280-4c9a-ab21-333c3b3c0c62"],
+
+Cell["\<\
+Get[FileNameJoin[{kpznloDir, #}]] & /@ {\"Reference.wl\", \"Checks.wl\"};
+kpznloResults = kpznloChecks[];
+kpznloSummary[kpznloResults]\
+\>", "Input",ExpressionUUID->"08ba1e65-4796-452e-9ca7-9abceb6b6095"],
+
+Cell["\<\
+If[AllTrue[kpznloResults, #Pass &], \"all checks pass\", Abort[]]\
+\>", "Input",ExpressionUUID->"077cf373-1b7b-4b12-b147-843c550199d8"],
+
+Cell["3. Export (contract v4)", "Section",ExpressionUUID->"8fde1c38-437a-469a-8857-bb2e24743511"],
+
+Cell["\<\
+ExportPython[kpzlamnloAdim, \"G\" -> alamk^2, \"Model\" -> \"KPZLambda\", \
+\"File\" -> FileNameJoin[{$TemporaryDirectory, \"KPZLambda_NLO.py\"}]]\
+\>", "Input",ExpressionUUID->"9289ebef-5f0c-4914-981a-306025530263"]
+},
+FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"0675b444-b4ac-42da-b384-bc76edabd5c4"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 150, 2, 70, "Title",ExpressionUUID->"8dd0ff0c-1953-49c5-9bbc-4dc66feb91db"],
+Cell[707, 24, 565, 8, 70, "Text",ExpressionUUID->"771c7c88-d5cd-4577-98af-ccffba4035f0"],
+Cell[1275, 34, 341, 6, 70, "Input",ExpressionUUID->"87083a81-236b-4eb2-81ee-8d1d13699620"],
+Cell[1619, 42, 90, 0, 70, "Section",ExpressionUUID->"2429c718-2298-4d23-9724-8dd6f038f6ea"],
+Cell[1712, 44, 363, 5, 70, "Text",ExpressionUUID->"09ed3775-8090-4214-b40c-0ca8be3c058c"],
+Cell[2078, 51, 182, 3, 70, "Input",ExpressionUUID->"b62b6e30-6c4f-4261-980e-81aa7875a1d4"],
+Cell[2263, 56, 102, 0, 70, "Input",ExpressionUUID->"3e2ff64f-225a-4dd0-92a6-925d96d170a8"],
+Cell[2368, 58, 176, 3, 70, "Input",ExpressionUUID->"0e135c3f-dce3-471a-b458-479da3cf59d2"],
+Cell[2547, 63, 241, 4, 70, "Input",ExpressionUUID->"3f43e197-b26b-4bf8-a6ce-5a1dbca32a3e"],
+Cell[2791, 69, 98, 0, 70, "Section",ExpressionUUID->"ebc87c42-d032-4412-b6c1-9aaf317351a8"],
+Cell[2892, 71, 272, 4, 70, "Text",ExpressionUUID->"68fcb649-8280-4c9a-ab21-333c3b3c0c62"],
+Cell[3167, 77, 214, 4, 70, "Input",ExpressionUUID->"08ba1e65-4796-452e-9ca7-9abceb6b6095"],
+Cell[3384, 83, 145, 2, 70, "Input",ExpressionUUID->"077cf373-1b7b-4b12-b147-843c550199d8"],
+Cell[3532, 87, 97, 0, 70, "Section",ExpressionUUID->"8fde1c38-437a-469a-8857-bb2e24743511"],
+Cell[3632, 89, 226, 3, 70, "Input",ExpressionUUID->"9289ebef-5f0c-4914-981a-306025530263"]
+}
+]
+*)
+
+(* End of internal cache information *)

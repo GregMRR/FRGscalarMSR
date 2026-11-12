@@ -56,10 +56,10 @@ Usage: [flow equations](guide/flow-equations.md), [dimensionless flows and expor
 
 The v1 design keeps room for these extensions. None of them is implemented yet.
 
-- **Pipeline 2: couplings that depend on ω and p.** The LO pipeline (functions of p² at ν = 0) is implemented. Shifted poles do
-  **not** plug into `IntegrateFrequencies` without changes: its dispatch maps every Δ(ω, ·) to the same pole factor (it now
-  aborts with `FrequencyIntegration.singleMomentum`); a loop with Δ at q and at Q = p + q needs `FrequencyIntegralFamilies`.
-  Δ(ω + ν, ·) with ν ≠ 0 (functions of ω) needs a further family shift.
+- **Pipeline 2: couplings that depend on ω and p.** The LO pipeline (functions of p² at ν = 0) and its NLO option (functions of
+  (ϖ, p) on the left-hand side, every function in the loop at ϖ = 0, KCW Eq. 43; [NLOPIPELINE.md](../design/NLOPIPELINE.md),
+  `benchmarks/KPZNLO`) are implemented. Not implemented: functions of ω inside the loop (beyond KCW's NLO), and a check at run time
+  that f_λ(q, 0) > 0 (the residues assume it).
 - **LO pipeline extensions** ([LOPIPELINE.md](../design/LOPIPELINE.md)):
   - p = 0 rows: the exact limit or a small-p series instead of BMWflow's 'const'/'quad' extrapolation (L6).
   - Causal-pole conditions for functions exported (today a residue assumption on the card, L8).

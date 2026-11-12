@@ -1,8 +1,9 @@
-<!-- verified: 6df4a91 2026-11-03; BMWflow handoff v3 2026-11-03 -->
+<!-- verified: 33e790e + branch NLO 2026-11-12; BMWflow handoff v4 2026-11-12 -->
 # FRGscalarMSR
 Mathematica library: an MSR ansatz for Γ_k of N scalars → checked one-loop Wetterich flow equations (derivative expansion) →
 dimensionless β functions → FlowRG (Julia) equations file. Second pipeline (LO): couplings that are functions of p² (`fn[f, X]`) →
-flows at generic p → BMWflow Python module (design/LOPIPELINE.md; functions times iω and in vertices, KPZ f_λ: design/LOFLAMBDA.md).
+flows at generic p → BMWflow Python module (design/LOPIPELINE.md; functions times iω and in vertices, KPZ f_λ: design/LOFLAMBDA.md;
+NLO, functions of (ϖ, p) with `BuildLOEquations[…, "ExternalFrequency" -> True]`: design/NLOPIPELINE.md).
 
 ## Commands
 - Kernel: `math -script` (Wolfram 15; `wolframscript` is not installed).
@@ -32,13 +33,13 @@ flows at generic p → BMWflow Python module (design/LOPIPELINE.md; functions ti
 - `design/` - decision records with their adversarial reviews: `FRGDESIGN.md` (v1), `LEVICIVITA.md` (`jac`), `ADIMENSIONAL.md`
   (dimensions, export), `MOMENTUMPROJECTION.md` (p^{2n} projection, any n), `CAUSALITY.md` (causal-pole conditions exported as
   `causal_poles`), `LOPIPELINE.md` (functions of p², BMWflow export), `LOFLAMBDA.md` (reference-1 functions at iω and in vertices, ∂/∂(iν)
-  flows, contract v3); `design/reviews/`.
+  flows, contract v3), `NLOPIPELINE.md` (external frequency in the loop, shifted pole family, contract v4); `design/reviews/`.
 - `docs/handoff/` - specs for work in other repos (FlowRG: `MUST_FIX`, `D2<shape>`; BMWflow: `BMWflow_LO.md`, the LO contract).
-- `tests/reference/` - shared pipeline setups (`ShallowWaterSetup.wl`, `KPZSetup.wl`, `KPZLOSetup.wl`), `JuliaRoundTrip.wl`,
+- `tests/reference/` - shared pipeline setups (`ShallowWaterSetup.wl`, `KPZSetup.wl`, `KPZLOSetup.wl`, `KPZNLOSetup.wl`), `JuliaRoundTrip.wl`,
   `PythonRoundTrip.wl`, `DEBaseline.wl` (DE content hashes, checked by `tests/acceptance/DEBaseline.wl`), `OldProjection.wl`
   (the pre-p^{2n} Laplacian operator, test-only regression reference); `legacy/` holds the old
   notebooks' results used as references (`legacy/README.md` maps the old notation).
-- `benchmarks/` - literature benchmarks (`KuramotoSivashinsky`, `KPZLO`, `KPZLOLambda`), one folder each (`README.md` is the index): `README.md`, `Reference.wl` (the paper's
+- `benchmarks/` - literature benchmarks (`KuramotoSivashinsky`, `KPZLO`, `KPZLOLambda`, `KPZNLO`), one folder each (`README.md` is the index): `README.md`, `Reference.wl` (the paper's
   equations), `Pipeline.wl`, `Checks.wl` (`ksChecks[]`-style records, no harness dependency), `run.wl`, `makeNotebook.wl` → `.nb`.
 - `lessons/` - one teaching notebook per module (`README.md`: index, source format): sources `src/NN-Name.md` → `makeLessons.wl`
   → `NN-Name.nb` + `Glossary.nb`; `LessonSetup.wl` (`lessonUpTo[stage]` rebuilds KPZ, `showFailure[expr]`).
@@ -49,8 +50,9 @@ flows at generic p → BMWflow Python module (design/LOPIPELINE.md; functions ti
   `tests/acceptance/<Name>.wl` that only wraps the checks in `test[…]`.
 - New check: `FRGAssert`/`assertCheck` named `Module.check` (shown on the card) + an `expectFail[…, "Module.check"]` test.
 - BMWflow module format (LO): `Kernel/PythonExport.wl`; the contract (versioned, `CONTRACT_VERSION`) is `docs/handoff/BMWflow_LO.md`,
-  the reader BMWflow's `flow/models/model_generated.py`. A format change updates both repos, bumps the version, and re-vendors
-  BMWflow's `tests/fixtures/KPZ_LO.py` (`tests/acceptance/BMWflowLO.wl` fails until then).
+  the reader BMWflow's `flow/models/model_generated.py` (v4: LO and NLO kinds). A format change updates both repos, bumps the
+  version, and re-vendors BMWflow's `tests/fixtures/` (`KPZ_LO.py`, `KPZLambda_LO.py`, and the NLO files written by
+  `benchmarks/KPZNLO/export.wl`; `tests/acceptance/BMWflowLO.wl` fails until then).
 - FlowRG file format: `Kernel/JuliaExport.wl`; the contract is `~/sources/FlowRG/docs/equations-interface.md`
   (other repo: changes there go through a `docs/handoff/` spec). The two sides point to each other: a change to what
   `JuliaExport.wl` writes must match that page (FlowRG's `CLAUDE.md`, golden rule 6, points back here), and FlowRG answers a
@@ -80,6 +82,8 @@ flows at generic p → BMWflow Python module (design/LOPIPELINE.md; functions ti
   `--compile=min -O0` (`$juliaFlags` in `tests/reference/JuliaRoundTrip.wl`).
 - Regulator prefactors may contain reference couplings only (`AdimensionalEquations` aborts otherwise); a model with independent
   diffusion constants in two sectors' regulators hits this (`design/ADIMENSIONAL.md` §4).
-- The checkouts moved from `~/Physics/Sources/` to `~/sources/` (FRGscalarMSR, FlowRG, BMWflow); `tests/reference/JuliaRoundTrip.wl`
-  and the notebooks/run headers still default to `~/Physics/Sources/…`: set `FLOWRG_PATH`. BMWflow: `~/sources/BMWflow`, or `BMWFLOW_PATH`; its tests
-  need its `.venv` (scipy, numba, pytest; not installed for /usr/bin/python3).
+- The checkouts are in `~/Physics/Sources/` (FRGscalarMSR, FlowRG.jl, BMWflow); `~/sources/` does not exist, but some notebook
+  and run headers still name it. FlowRG: set `FLOWRG_PATH`. BMWflow: found at `~/Physics/Sources/BMWflow`, or `BMWFLOW_PATH`; its
+  tests need its `.venv` (scipy, numba, pytest; not installed for /usr/bin/python3).
+- Stage fingerprints are not reproducible between kernel sessions: compare stage contents (`===` on rows), not fingerprints,
+  across runs (design/NLOPIPELINE.md §6).

@@ -500,6 +500,17 @@ coincidence the two-family integral equals `FrequencyIntegral` of the merged pow
 The DE dispatch `integrate` now aborts with `FrequencyIntegration.singleMomentum` when Δ appears at two momenta (it would give
 every pole factor the same residue: π/l_q instead of 2π/(l_q + l_Q)).
 
+**Shifted family (NLO, design/NLOPIPELINE.md N1).** A family `{a, b, deg, "Shifted"}` stands for Δ_j(ω + s_j)^{−a} Δ_j(−ω − s_j)^{−b},
+s_j = `FrequencyIntegralShift[j]` real: the poles of the X factors move to z − s_j and stay in the upper half plane. The result is
+rational in the coefficients and in s_j. `regularAtCoincidence` maps the Q data to the q data and s_2 → 0 together (for s ≠ 0 the
+1/(z_q − z_Q + s) factors are finite). `FrequencyIntegration.shiftToZero` (internal): every shifted result at s = 0 equals the
+unshifted one. `loIntegrate[e, ω, {s1, s2}, deg, ν, part]` maps Δ(±(ω + ν), Q²) to the shifted family and returns the full
+result, its even part in ν or its odd part divided by iν ("Full", "Even", "Odd"). Each term t = c(ν) R(ν) (c the monomial's
+coefficient) gives E[t] = E[c]E[R] + O[c]O[R], O[t] = E[c]O[R] + O[c]E[R]; E[R] and O[R]/(iν) are memoised per exponent
+pattern, so ν cancels exactly and the odd part is finite at ν = 0. A Q-only term is shifted back (ω → ω − ν, binomial in ω^n)
+and integrated by `FrequencyIntegral`. Tests: shifted families = NIntegrate at s = 3/5, −11/7 (deg 1, deg 2, underdamped),
+s → 0 = unshifted, the E/O identities, expectFails `shiftToZero` (a factor 2) and `ready` (Δ(ω + 2ν, Q²)).
+
 ---
 
 ## Closure (`Kernel/Closure.wl`) — `CheckClosure`
@@ -661,6 +672,22 @@ flows; expectFail: c4 tadpole (`dividedOrders`), constant vertex c3 h̄h² (`fir
 iω tag (`unitReference`), and the DE-only guards. The f_λ model: `benchmarks/KPZLOLambda` (Kloss kernels at generic f_λ, the DE
 at f_λ = 1 + x p², f_λ = 1 → KPZLO).
 
+**NLO (`"ExternalFrequency" -> True`, design/NLOPIPELINE.md).** The functions depend on (ϖ, p), ϖ = `Global`w`; in the loop
+every function stays at zero frequency and ϖ enters through G(ω + ϖ, Q) (KCW Eq. 43). Every LO record and check is built first,
+unchanged; then each row is replaced by the ϖ-dependent row: a (iϖ)⁰ function's `Integrand` is the even part in ϖ, a (iϖ)¹
+function's the odd part divided by iϖ (`loIntegrate` parts), divided by norm p^{2n}. `Together` keeps conjugate denominator
+pairs (A ± iB)ⁿ apart; `nloRealDenominator` multiplies them into (A² + B²)ⁿ. Rows gain `IntegrandLO` (the LO row); the stage gains
+`"Approximation" -> "NLO"` and `"ExternalFrequency" -> w` (an LO stage has neither key, so it is unchanged). `EtaIntegrand` stays
+at ϖ = 0. Checks (each a helper, so that its expectFail feeds a row that breaks the identity only at ϖ ≠ 0):
+- `ExternalMomentum.nloLimit`: each row at ϖ = 0 equals its LO row.
+- `ExternalMomentum.nloNoiseEven`: an entry with a (iϖ)⁰ function and none at (iϖ)¹ has no odd part; at a Protected iω entry the
+  odd part is dropped (INFO `ExternalMomentum.wardNeglectedNLO`, KPZ with f_λ ≡ 1).
+- `ExternalMomentum.nloWardAllFrequencies`: a (iϖ)¹ row with a Protected iω tag vanishes at p = 0 for every ϖ (KCW Eq. 39).
+- `ExternalMomentum.nloDividedOrders`: the p⁰ order of a row divided by p² vanishes at every ϖ.
+- `ExternalMomentum.nloZeroEntries`: entries outside the ansatz vanish at every ϖ.
+- Internal: `ExternalMomentum.options`, `.nloReal` (even parts and odd parts/(iϖ) are real), `.nloP2Divided` (P2Divided ≤ 1).
+The p = 0 checks take the integrated row at p = 0 with ϖ symbolic, not `project` (which sets ν = 0).
+
 **Show.** `ShowLOEquation[equations, f]`.
 
 ---
@@ -712,6 +739,9 @@ with Canet's flow instead (see Loops).
 functions F, and explicit vectors p, q in d = 2 and 3 (causal point at q and at Q): numeric inverse of Γ2 + R, the loop at ν = 0
 integrated over ω with `NIntegrate`, against `Integrand × norm × p^{2n}`. `"ZeroFlows" -> True` adds the zero entries. A row
 of frequency order m = 1 (f_λ) takes the exact ∂ν of the numeric loop (ν symbolic in the numeric matrices), divided by i.
+An NLO stage (design/NLOPIPELINE.md N9) is compared at ϖ = 3/10, 7/5, 4 instead: the even part (F(ϖ) + F(−ϖ))/2 or the odd part
+(F(ϖ) − F(−ϖ))/(2iϖ) of the numeric loop, against `Integrand` at that ϖ (the ϖ = 0 rows are the LO rows, `nloLimit`).
+Acceptance: `benchmarks/KPZNLO` (`KPZNLO.oracle`, 24 comparisons in d = 2, 3).
 
 ---
 
@@ -873,6 +903,12 @@ export (below).
   reference is a function's), `unusedEquation`, `unitInvariance`, `homogeneous`, `etaLinear`.
 - `"Measure"`: `<|"Loop" -> S_{d−1}/(2π)^d aq^{d−1} sin^{d−2}θ, "Eta" -> LoopMeasure|>` (documentation; the Python export excludes it).
 
+
+**NLO branch** (gated on `"Approximation" -> "NLO"` of the Equations stage; design/NLOPIPELINE.md N5). w = aw × the frequency unit
+of `DeriveDimensions` (ν_k k² for KPZ); the left-hand-side functions are f(ap², aw); the loop keeps one-argument functions (ϖ = 0).
+Linear part: η f + 2ap² ∂f/∂(ap²) + c_w aw ∂f/∂aw with c_w = −`linearPart` of the frequency (2 − η_ν for KPZ, KCW Eq. 56). The
+η system and β are the LO ones. Stage keys `"Approximation"`, `"ExternalFrequency" -> aw`, `"FrequencyScaling" -> c_w`.
+Check `Adimensional.nloSlice`: the dimensionless rows at aw = 0 equal those of `IntegrandLO`.
 ---
 
 ## JuliaExport (`Kernel/JuliaExport.wl`) — `ExportJulia`
@@ -937,3 +973,9 @@ function at 4 points (d = 2, 3/2, 1, 5/2) = Mathematica to 1e-13 (or 10× Mathem
 (a failure with `--require-python`); exporting twice gives the same file; β_g = g(d − 2 − η_D + 3η_ν); expectFail per check.
 `tests/acceptance/BMWflowLO.wl`: BMWflow's acceptance test (`ModelGenerated` = `ModelKPZ`) on a fresh export, and the export =
 BMWflow's vendored fixture; SKIP without BMWflow and its `.venv`.
+
+
+**NLO (contract v4, design/NLOPIPELINE.md N6).** For an NLO Adimensional stage: `APPROXIMATION = "NLO"`,
+`loop(p, w, q, c, Q2, fp, fq, fQ, rq, rq_, rQ, eta, couplings, d)` (functions in the loop at w = 0) and
+`linear(p, w, f, fprime, fprime_w, eta, couplings, d)` (fprime_w = ∂f/∂aw); `eta_matrix`, `eta_vector`, `beta` as LO. Rows free of
+the arrays broadcast with `+ 0.0*p*w`. LO modules keep their v3 signatures and now say `CONTRACT_VERSION = 4`.

@@ -14,7 +14,7 @@ Generated from the doc comments in the source files. One page per file, in load 
 | [Symmetries](Symmetries.md) | DeclareSymmetries: classify every monomial (I w)^m (q^2)^n of every Gamma2 entry up to the truncation orders as declared / Protected / Neglected / vanishing by… | 5 |
 | [Loops](Loops.md) | BuildLoopIntegrands: the one-loop integrand of d\_s Gamma2\_ab(nu, p) at fixed loop frequency and momentum (w, q), d\_s Gamma2\_ab(nu, p) = Int dw/(2 Pi) d^dq/(2 P… | 3 |
 | [Projection](Projection.md) | ProjectOnMonomials: for every classified monomial (I nu)^m (p^2)^n of d\_s Gamma2\_ab(nu, p), apply (d/d(I nu))^m / m! | 3 |
-| [FrequencyIntegration](FrequencyIntegration.md) | IntegrateFrequencies: every projected integrand is a sum of monomials w^n Delta(w)^-a Delta(-w)^-b; each is integrated over the real w-axis exactly by residues… | 5 |
+| [FrequencyIntegration](FrequencyIntegration.md) | IntegrateFrequencies: every projected integrand is a sum of monomials w^n Delta(w)^-a Delta(-w)^-b; each is integrated over the real w-axis exactly by residues… | 6 |
 | [Closure](Closure.md) | CheckClosure: decide, monomial by monomial, whether the integrated flows close on the ansatz. | 2 |
 | [Assemble](Assemble.md) | AssembleEquations: the declared equations in compact form, written in scale-stripped atoms generated from the propagator atoms (replaces the hand-written toAto… | 4 |
 | [ExternalMomentum](ExternalMomentum.md) | BuildLOEquations: the LO pipeline (design/LOPIPELINE.md step 5). | 3 |
@@ -94,6 +94,7 @@ Generated from the doc comments in the source files. One page per file, in load 
 | [`FrequencyIntegral`](FrequencyIntegration.md#frequencyintegral) | FrequencyIntegration | `FrequencyIntegral[n, a, b, deg]` = `Integrate[w^n / (Delta(w)^a Delta(-w)^b), {w, -Infinity, Infinity}]` with Delta(w) = C0 + C1 (I w) + C2 (I w)^2 (deg = 2) or C… |
 | [`FrequencyIntegralC`](FrequencyIntegration.md#frequencyintegralc) | FrequencyIntegration | `FrequencyIntegralC[m]` is the coefficient c\_m of Delta in FrequencyIntegral results; `FrequencyIntegralC[j, m]` the coefficient c\_m of the Delta of pole family j… |
 | [`FrequencyIntegralFamilies`](FrequencyIntegration.md#frequencyintegralfamilies) | FrequencyIntegration | `FrequencyIntegralFamilies[n, {{a1, b1, deg}, {a2, b2, deg}}]` = `Integrate[w^n / Prod_j (Delta_j(w)^aj Delta_j(-w)^bj), {w, -Infinity, Infinity}]` for two pole fa… |
+| [`FrequencyIntegralShift`](FrequencyIntegration.md#frequencyintegralshift) | FrequencyIntegration | `FrequencyIntegralShift[j]` is the real frequency shift s\_j of a "Shifted" pole family j in FrequencyIntegralFamilies results: the family's factors are Delta\_j(w… |
 | [`ShowFlow`](FrequencyIntegration.md#showflow) | FrequencyIntegration | `ShowFlow[integrated, {a, b}, {m, n}]` prints the integrated flow of a monomial (symbolic, or its sampled values). |
 | [`CheckClosure`](Closure.md#checkclosure) | Closure | `CheckClosure[integrated, symmetries]` asserts that every Protected, DeclaredNumeric and Causality flow vanishes, warns about every Neglected flow with its value… |
 | [`ShowClosureReport`](Closure.md#showclosurereport) | Closure | `ShowClosureReport[closure]` prints, for every monomial, its class and the outcome of the closure check. |
@@ -104,7 +105,7 @@ Generated from the doc comments in the source files. One page per file, in load 
 | [`BuildLOEquations`](ExternalMomentum.md#buildloequations) | ExternalMomentum | `BuildLOEquations[loops, symmetries]` builds the LO flow equations: for each function F of the ansatz (Gamma2\_ab(0, p) = norm ref p^(2n) F(p^2)) the integrand of… |
 | [`CosTheta`](ExternalMomentum.md#costheta) | ExternalMomentum | CosTheta is the cosine of the angle between the external momentum p and the loop momentum q in LO integrands: p.q = p q CosTheta, Q^2 = p^2 + q^2 + 2 p q CosTh… |
 | [`ShowLOEquation`](ExternalMomentum.md#showloequation) | ExternalMomentum | `ShowLOEquation[equations, f]` prints the LO flow of the function f: prefactor, divided power of p^2, loop integrand and its p -> 0 limit. |
-| [`RunOracle`](Oracle.md#runoracle) | Oracle | `RunOracle[equations, opts]` compares every equation (and, with "ZeroFlows" -> True, every flow that must vanish) with a numerical evaluation of the loop at one… |
+| [`RunOracle`](Oracle.md#runoracle) | Oracle | `RunOracle[equations, opts]` (an NLO LO-pipeline stage: at w = 3/10, 7/5, 4, even and odd parts) compares every equation (and, with "ZeroFlows" -> True, every fl… |
 | [`SaveStage`](Stages.md#savestage) | Stages | `SaveStage[stage, file]` writes a stage (with every stage it embeds) to file (.wdx) and returns the file name. |
 | [`LoadStage`](Stages.md#loadstage) | Stages | `LoadStage[file, "Expect" -> {stage1, ...}]` reads a stage saved by SaveStage, checks its fingerprint and that it was built from every stage listed in "Expect" (… |
 | [`StageFingerprints`](Stages.md#stagefingerprints) | Stages | `StageFingerprints[stage]` lists the fingerprints of the stage, of every stage it embeds and of their upstream stages. |
@@ -123,7 +124,7 @@ Generated from the doc comments in the source files. One page per file, in load 
 | [`LoopMeasure`](Adimensional.md#loopmeasure) | Adimensional | `LoopMeasure[d, aq]` = 2 Pi^(d/2)/`Gamma[d/2]` aq^(d-1)/(2 Pi)^d: Integral d^dq/(2 Pi)^d f(q^2) = k^d Integral daq `LoopMeasure[d, aq]` f(k^2 aq^2). |
 | [`ExportJulia`](JuliaExport.md#exportjulia) | JuliaExport | `ExportJulia[adim, "Dimension" -> d, "File" -> path]` writes the FlowRG equations file for space dimension d and returns its path. |
 | [`JuliaParts`](JuliaExport.md#juliaparts) | JuliaExport | `JuliaParts[adim, d]` gives the parts of the equations file at dimension d (Mathematica expressions, shapes and atoms still symbolic): &lt;\\|"betal" -> ..., "betanl"… |
-| [`ExportPython`](PythonExport.md#exportpython) | PythonExport | `ExportPython[adim, "G" -> alamk^2, "Model" -> "KPZ", "File" -> ".../eqs/KPZ_LO.py"]` writes the LO Adimensional stage as a Python module (constants CONTRACT\_VER… |
+| [`ExportPython`](PythonExport.md#exportpython) | PythonExport | `ExportPython[adim, "G" -> alamk^2, "Model" -> "KPZ", "File" -> ".../eqs/KPZ_LO.py"]` writes the LO (or NLO: APPROXIMATION "NLO", loop and linear with the extern… |
 | [`PythonParts`](PythonExport.md#pythonparts) | PythonExport | `PythonParts[adim]` gives the exported expressions with the Python argument names as placeholders `PythonVariable["fq", i]` etc. |
 | [`PythonAtom`](PythonExport.md#pythonatom) | PythonExport | `PythonAtom["fQ", i, "rQ", j]` in PythonParts is the propagator atom `fQ[i]` + `rQ[j]` (printed as that sum): function i and the regulator shape j of its Gamma2 entr… |
 | [`PythonVariable`](PythonExport.md#pythonvariable) | PythonExport | `PythonVariable[name]` or `PythonVariable[name, i]` is the Python argument name (`name[i]`, 0-based) in PythonParts. |

@@ -60,3 +60,39 @@ expectFail["ProjectOnMonomials refuses LO stages", ProjectOnMonomials[kpzloLoops
 expectFail["CheckClosure refuses an LO symmetries stage", CheckClosure[kpzIntegrated, kpzloSymmetries], "Closure.pipeline"];
 expectFail["AssembleEquations refuses an LO stage", AssembleEquations[kpzloEquations], "Assemble.pipeline"];
 expectFail["ExportJulia refuses an LO stage", ExportJulia[kpzloAdim, "Dimension" -> 2, "File" -> FileNameJoin[{$TemporaryDirectory, "lo.jl"}]], "JuliaExport.pipeline"];
+
+(* NLO (design/NLOPIPELINE.md): "ExternalFrequency" -> True *)
+Get[FileNameJoin[{testRoot, "reference", "KPZNLOSetup.wl"}]];
+test["KPZ NLO: LO stages carry no NLO key (unchanged LO stage, design/NLOPIPELINE.md N2)",
+  {KeyExistsQ[kpzloEquations, "Approximation"], kpzlamnloEquations["Approximation"], kpzlamnloEquations["ExternalFrequency"]}, {False, "NLO", w}];
+test["KPZ NLO + f_lambda: card", Complement[kpzlamnloEquations["Checks"][[All, "Check"]], kpzlamEquations["Checks"][[All, "Check"]]],
+  Sort[{"ExternalMomentum.nloLimit", "ExternalMomentum.nloNoiseEven", "ExternalMomentum.nloWardAllFrequencies", "ExternalMomentum.nloDividedOrders",
+    "ExternalMomentum.nloZeroEntries"}]];
+test["KPZ NLO + f_lambda: rows depend on w, EtaIntegrand as LO, IntegrandLO = the LO row",
+  {AllTrue[kpzlamnloEquations["Equations"], ! FreeQ[#Integrand, w] &],
+   kpzlamnloEquations["Equations"][[All, "EtaIntegrand"]] === kpzlamEquations["Equations"][[All, "EtaIntegrand"]],
+   kpzlamnloEquations["Equations"][[All, "IntegrandLO"]] === kpzlamEquations["Equations"][[All, "Integrand"]], FreeQ[kpzlamnloEquations["Equations"][[All, "Integrand"]], Complex]},
+  {True, True, True, True}];
+test["KPZ NLO (f_lambda = 1): the odd part of Gamma(hbar, h) is dropped at the Protected i w entry (INFO)",
+  MemberQ[kpznloEquations["Warnings"][[All, "Check"]], "ExternalMomentum.wardNeglectedNLO"], True];
+expectFail["NLO: \"ExternalFrequency\" must be True or False", BuildLOEquations[kpzloLoops, kpzloSymmetries, "ExternalFrequency" -> 1], "ExternalMomentum.options"];
+(* every NLO check fires on input that breaks it; the all-w checks get rows that vanish at w = 0 (a w = 0-only test would pass them) *)
+nloEquationsOf[th_, dens_, cps_, funcs_, tags_List, regs_List] := Module[{an, sy, ve, re, pr, lo},
+   an = DefineAnsatz[th, "Density" -> dens, "Couplings" -> cps, "Functions" -> funcs]; sy = DeclareSymmetries[an, Sequence @@ tags];
+   ve = BuildVertices[an]; re = DefineRegulator[an, Sequence @@ regs, "Shapes" -> {rn, rd}];
+   pr = BuildPropagator[ve, re]; lo = BuildLoopIntegrands[ve, pr, re];
+   BuildLOEquations[lo, sy, "ExternalFrequency" -> True]];
+expectFail["NLO: KPZ without the Protected i w tag: the odd part of Gamma(hbar, h) flows and no function carries it (zero at w = 0)",
+  nloEquationsOf[emTheory, kpzloDensity, {nuk, lamk, Dk}, {fD -> Dk, fnu -> nuk}, Drop[kpzloTags, 1], kpzloRegs], "ExternalMomentum.nloNoiseEven"];
+expectFail["NLO: a row 2x its LO row (independent of w)", FRGscalarMSR`Private`nloCheckLimit[{<|"Function" -> fD, "Integrand" -> 2 q^2 w^0, "IntegrandLO" -> q^2|>}, w],
+  "ExternalMomentum.nloLimit"];
+expectFail["NLO: an (I w)^1 row w^2 q^2 at p = 0 (zero at w = 0)", FRGscalarMSR`Private`nloCheckAtZero["ExternalMomentum.nloWardAllFrequencies",
+   {<|"Function" -> flam, "Undivided" -> w^2 q^2|>}, p, "", ""], "ExternalMomentum.nloWardAllFrequencies"];
+expectFail["NLO: a row divided by p^2 with p^0 order w^2 q^2 (zero at w = 0)", FRGscalarMSR`Private`nloCheckAtZero["ExternalMomentum.nloDividedOrders",
+   {<|"Function" -> fnu, "Undivided" -> w^2 q^2 + p^2|>}, p, "", ""], "ExternalMomentum.nloDividedOrders"];
+expectFail["NLO: an entry outside the ansatz equal to w^2 (zero at w = 0)", FRGscalarMSR`Private`nloCheckZeroEntries[{{h, h} -> w^2 q^2}],
+  "ExternalMomentum.nloZeroEntries"];
+expectFail["NLO: an even part with I left", FRGscalarMSR`Private`nloCheckReal[I w q^2, {h, hbar}, "Even"], "ExternalMomentum.nloReal"];
+expectFail["NLO: a row divided by p^4", FRGscalarMSR`Private`nloCheckP2Divided[{<|"Function" -> fnu, "P2Divided" -> 2|>}], "ExternalMomentum.nloP2Divided"];
+test["NLO: conjugate denominator factors are multiplied into a real factor",
+  FRGscalarMSR`Private`nloRealDenominator[x/((a + I b)^2 (a - I b)^2 c)], x/((a^2 + b^2)^2 c)];

@@ -68,3 +68,16 @@ test["LO: measures", {Together[kpzloAdim["Measure"]["Eta"] - LoopMeasure[Dim, aq
 adLOnoNR = quiet[loEquationsOf[kpzloTheory, kpzloDensity, {nuk, lamk, Dk}, {fD -> Dk, fnu -> nuk}, Take[kpzloTags, 2], kpzloRegs]];
 expectFail["LO: a constant coupling that is not NonRenormalised gets no flow",
   AdimensionalEquations[adLOnoNR, quiet[DeriveDimensions[AnsatzOf[adLOnoNR], "References" -> {nuk -> "nu", Dk -> "D"}]]], "Adimensional.noBeta"];
+
+(* NLO branch (design/NLOPIPELINE.md N5): functions f(ap^2, aw), linear part + (2 - eta_nu) aw df/daw; the LO stage has no NLO key *)
+Get[FileNameJoin[{testRoot, "reference", "KPZNLOSetup.wl"}]];
+test["NLO: stage keys; LO stage without them", {kpznloAdim["Approximation"], kpznloAdim["ExternalFrequency"], kpznloAdim["FrequencyScaling"], KeyExistsQ[kpzloAdim, "Approximation"]},
+  {"NLO", aw, 2 - etanu, False}];
+test["NLO: linear part at fixed ap, aw (KCW Eq. 56)", Expand[kpznloAdim["Linear"]],
+  Expand[{etaD fD[ap^2, aw] + 2 ap^2 Derivative[1, 0][fD][ap^2, aw] + (2 - etanu) aw Derivative[0, 1][fD][ap^2, aw],
+    etanu fnu[ap^2, aw] + 2 ap^2 Derivative[1, 0][fnu][ap^2, aw] + (2 - etanu) aw Derivative[0, 1][fnu][ap^2, aw]}]];
+test["NLO: eta system and beta = LO", {kpznloAdim["EtaMatrix"] === kpzloAdim["EtaMatrix"], kpznloAdim["EtaVector"] === kpzloAdim["EtaVector"],
+   kpznloAdim["BetaL"] === kpzloAdim["BetaL"]}, {True, True, True}];
+test["NLO: loops free of units, functions in the loop at one argument", {FreeQ[kpznloAdim["Loop"], k | nuk | Dk | q | p | w],
+   FreeQ[kpznloAdim["Loop"], (fD | fnu)[_, _]]}, {True, True}];
+expectFail["NLO: a row at aw = 0 different from its LO row", FRGscalarMSR`Private`nloCheckSlice[{fD}, {x + aw}, {2 x}, aw, 2 - etanu], "Adimensional.nloSlice"];

@@ -9,7 +9,7 @@ BuildLOEquations: the LO pipeline (design/LOPIPELINE.md step 5). The Gamma2 coup
 
 ### `BuildLOEquations`
 
-`BuildLOEquations[loops, symmetries]` builds the LO flow equations: for each function F of the ansatz (Gamma2\_ab(0, p) = norm ref p^(2n) F(p^2)) the integrand of d\_s(ref F(p^2)) = Integral d^dq/(2 Pi)^d Integrand(p, q, CosTheta), already divided by norm p^(2n), and the p -> 0 limit (integrand of d\_s ref, which fixes eta through F(0) = 1). Checks the zero entries at every p, the Protected i w entries at p = 0, the low orders below p^(2n), the angles and the shape derivatives. Returns the "Equations" stage with "Pipeline" -> "LO".
+`BuildLOEquations[loops, symmetries]` builds the LO flow equations: for each function F of the ansatz (Gamma2\_ab(0, p) = norm ref p^(2n) F(p^2)) the integrand of d\_s(ref F(p^2)) = Integral d^dq/(2 Pi)^d Integrand(p, q, CosTheta), already divided by norm p^(2n), and the p -> 0 limit (integrand of d\_s ref, which fixes eta through F(0) = 1). Checks the zero entries at every p, the Protected i w entries at p = 0, the low orders below p^(2n), the angles and the shape derivatives. Returns the "Equations" stage with "Pipeline" -> "LO". Option "ExternalFrequency" -> True (NLO, design/NLOPIPELINE.md): the functions depend on (w, p) with w = Global\`w the external frequency; every function in the loop stays at zero frequency and w enters through G(omega + w, Q). A (I w)^0 function's Integrand is then the even part in w of d\_s Gamma2\_ab(w, p), a (I w)^1 function's the odd part divided by I w (exact, finite at w = 0); EtaIntegrand and every LO check stay at w = 0, and the stage gets "Approximation" -> "NLO" and "ExternalFrequency" -> w.
 
 ### `CosTheta`
 

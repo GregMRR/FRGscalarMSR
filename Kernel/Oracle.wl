@@ -9,7 +9,7 @@
 
 BeginPackage["FRGscalarMSR`", {"FRGscalarMSR`Internal`"}];
 
-RunOracle::usage = "RunOracle[equations, opts] compares every equation (and, with \"ZeroFlows\" -> True, every flow that must vanish) \
+RunOracle::usage = "RunOracle[equations, opts] (an NLO LO-pipeline stage: at w = 3/10, 7/5, 4, even and odd parts) compares every equation (and, with \"ZeroFlows\" -> True, every flow that must vanish) \
 with a numerical evaluation of the loop at one random point: numeric matrix inverse, NIntegrate over w, finite differences in nu \
 and p. Options: \"Dimensions\" -> Automatic ({2, 3} for a symbolic d, {2} for a declared d = 2), \"Tolerance\" -> 10^-8 (relative; absolute for zero flows), \"Seed\" -> 1, \
 \"ZeroFlows\" -> False. Returns the \"Oracle\" stage.";
@@ -52,7 +52,7 @@ wedgeN[a_?VectorQ, b_?VectorQ] /; Length[a] == Length[b] == 2 := a[[1]] b[[2]] -
 oracleFunctions = {Function[x, (4 + 3 x)/(4 + x)], Function[x, (5 + x^2)/(5 + 2 x)], Function[x, 2/(2 + x) + x/(3 + x)]};
 
 oracleLO[eqs_, dims_, tol_, seed_, zeroQ_] := Module[{t0 = AbsoluteTime[], loops, v, reg, fields, hasG4, funcs, qU, pU, recs, results = {}, checks = {}, warns = {},
-    stage, prec = 40, pairs, negPats},
+    stage, prec = 40, pairs, negPats, nlo, wE, nuList},
    loops = eqs["Loops"]; v = loops["Vertices"]; reg = loops["Regulator"]; fields = v["Fields"]; hasG4 = loops["HasGamma4"];
    funcs = eqs["Functions"][[All, 1]]; qU = eqs["LoopMomentum"]; pU = eqs["ExternalMomentum"];
    pairs = Select[Tuples[fields, 2], OrderedQ[{First[FirstPosition[fields, #[[1]]]], First[FirstPosition[fields, #[[2]]]]}] &];
@@ -61,7 +61,10 @@ oracleLO[eqs_, dims_, tol_, seed_, zeroQ_] := Module[{t0 = AbsoluteTime[], loops
          "Symbolic" -> e["Integrand"] e["Normalisation"] pU^(2 e["P2Divided"])|>] /@ eqs["Equations"],
      If[TrueQ[zeroQ], <|"Pair" -> #, "Frequency" -> 0, "Label" -> "zero entry " <> ToString[#], "Symbolic" -> 0|> & /@ Select[pairs,
         ! MemberQ[Select[eqs["Equations"], Lookup[#, "Frequency", 0] == 0 &][[All, "Pair"]], #] && NoneTrue[negPats, Function[pat, pairMatchQ[pat, #]]] &], {}]];
-   Do[Module[{pt, qVec, pVec, q2, Q2, c, valid, mat, gNum, g3, g4, dsr, num, sym, err, ok, t1},
+   (* NLO: three external frequencies != 0 (the w = 0 rows are the LO rows, checked by ExternalMomentum.nloLimit) *)
+   nlo = Lookup[eqs, "Approximation", "LO"] === "NLO"; wE = Lookup[eqs, "ExternalFrequency", None];
+   nuList = If[nlo, {3/10, 7/5, 4}, {None}];
+   Do[Module[{pt, qVec, pVec, q2, Q2, c, valid, mat, gNum, g3, g4, dsr, num, sym, err, ok, t1, nInt},
       qVec = Take[{3/10, -1/2, 2/5}, d]; pVec = Take[{2/7, 1/3, -1/5}, d];
       q2 = qVec . qVec; Q2 = (pVec + qVec) . (pVec + qVec); c = pVec . qVec/Sqrt[(pVec . pVec) q2];
       Do[pt = Join[oraclePoint[eqs, seed + 7919 j, d], MapIndexed[#1 -> oracleFunctions[[Mod[#2[[1]] - 1, Length[oracleFunctions]] + 1]] &, funcs]];
@@ -74,27 +77,30 @@ oracleLO[eqs_, dims_, tol_, seed_, zeroQ_] := Module[{t0 = AbsoluteTime[], loops
       g4[a_, b_] := N[Table[VertexValue[v, {a, b, cc, e}, {{nuO, pO}, {-nuO, -pO}, {wO, qO}}], {cc, fields}, {e, fields}] /.
           {scal[x_, y_] :> ((x /. {qO -> qVec, pO -> pVec}) . (y /. {qO -> qVec, pO -> pVec}))} /. pt, prec + 10];
       dsr = N[DsRegulatorMatrix[reg, q2] /. pt, prec + 10];
-      Do[t1 = AbsoluteTime[];
-       (* the (I nu)^m coefficient: exact d^m/d nu^m of the numeric loop at nu = 0 (m = 1 for a function times i w, design/LOFLAMBDA.md F9) *)
-       num = Module[{g0 = gNum[wO, q2], gm = gNum[wO + nuO, Q2], tr, m = r["Frequency"]},
-         tr = Tr[dsr . g0 . g3[r["Pair"][[1]], {nuO, pO}, {wO, qO}] . gm . g3[r["Pair"][[2]], {-nuO, -pO}, {wO + nuO, pO + qO}] . g0];
-         If[hasG4, tr = tr - Tr[dsr . g0 . g4 @@ r["Pair"] . g0]/2];
-         tr = If[m == 0, tr /. nuO -> 0, (D[tr, {nuO, m}] /. nuO -> 0)/(I^m m!)];
-         tr = Together[tr/(2 Pi)];
-         If[Chop[tr, 10^-(prec - 5)] === 0, 0,
+      (* the numeric loop integrated over w: LO the (I nu)^m coefficient at nu = 0 (exact d^m/d nu^m, design/LOFLAMBDA.md F9);
+         NLO (design/NLOPIPELINE.md N9) the even part (m = 0) or the odd part / (I nu) (m = 1) at a real nu != 0 *)
+      nInt[tr0_] := Module[{tr = Together[tr0/(2 Pi)]}, If[Chop[tr, 10^-(prec - 5)] === 0, 0,
           Quiet[NIntegrate[tr, {wO, -Infinity, -10, 0, 10, Infinity}, WorkingPrecision -> prec, PrecisionGoal -> 22, AccuracyGoal -> prec - 8, MaxRecursion -> 30],
            {NIntegrate::izero, NIntegrate::precw}]]];
-       sym = N[r["Symbolic"] /. pt /. {qU -> Sqrt[q2], pU -> Sqrt[pVec . pVec], CosTheta -> c}, prec];
-       err = If[sym == 0, Abs[num], Abs[(num - sym)/sym]];
-       ok = err < tol;
-       AppendTo[results, <|"Dimension" -> d, "Label" -> r["Label"], "Numeric" -> num, "Symbolic" -> sym, "Error" -> err, "Seconds" -> AbsoluteTime[] - t1|>];
-       AppendTo[checks, assertCheck["Oracle." <> r["Label"] <> " (d = " <> ToString[d] <> ")", ok, {num, sym},
-         "the LO residue result and the numerical w integral of the loop disagree at the oracle point",
-         "numeric " <> sci[num, 10] <> ", symbolic " <> sci[sym, 10] <> If[sym == 0, ", |numeric| = ", ", rel. diff "] <> sci[err, 2]]], {r, recs}]],
+      Do[Module[{g0 = gNum[wO, q2], gm = gNum[wO + nuO, Q2], tr, m = r["Frequency"]},
+        tr = Tr[dsr . g0 . g3[r["Pair"][[1]], {nuO, pO}, {wO, qO}] . gm . g3[r["Pair"][[2]], {-nuO, -pO}, {wO + nuO, pO + qO}] . g0];
+        If[hasG4, tr = tr - Tr[dsr . g0 . g4 @@ r["Pair"] . g0]/2];
+        Do[t1 = AbsoluteTime[];
+         num = If[nuV === None, nInt[If[m == 0, tr /. nuO -> 0, (D[tr, {nuO, m}] /. nuO -> 0)/(I^m m!)]],
+           If[m == 0, nInt[((tr /. nuO -> nuV) + (tr /. nuO -> -nuV))/2], nInt[((tr /. nuO -> nuV) - (tr /. nuO -> -nuV))/(2 I nuV)]]];
+         sym = N[r["Symbolic"] /. pt /. {qU -> Sqrt[q2], pU -> Sqrt[pVec . pVec], CosTheta -> c} /. If[nuV === None, {}, {wE -> nuV}], prec];
+         err = If[sym == 0, Abs[num], Abs[(num - sym)/sym]];
+         ok = err < tol;
+         With[{lab = r["Label"] <> If[nuV === None, "", " at w = " <> ToString[nuV, InputForm]]},
+          AppendTo[results, <|"Dimension" -> d, "Label" -> lab, "Numeric" -> num, "Symbolic" -> sym, "Error" -> err, "Seconds" -> AbsoluteTime[] - t1|>];
+          AppendTo[checks, assertCheck["Oracle." <> lab <> " (d = " <> ToString[d] <> ")", ok, {num, sym},
+            "the residue result and the numerical w integral of the loop disagree at the oracle point",
+            "numeric " <> sci[num, 10] <> ", symbolic " <> sci[sym, 10] <> If[sym == 0, ", |numeric| = ", ", rel. diff "] <> sci[err, 2]]]],
+         {nuV, nuList}]], {r, recs}]],
     {d, dims}];
    AppendTo[warns, infoCheck["ASSUMPTION", "Oracle.scope",
      "the oracle shares the vertices and the loop formula with the symbolic chain: it tests the two-family residues, the atoms and the explicit integrand"]];
-   AppendTo[warns, infoCheck["INFO", "Oracle.methodLO", "nu = 0, explicit p and q vectors, numeric inverse of Gamma2 + R with concrete shapes and test functions F, " <>
+   AppendTo[warns, infoCheck["INFO", "Oracle.methodLO", If[nlo, "NLO: even / odd parts at w = " <> inputForm[nuList] <> ", ", "nu = 0, "] <> "explicit p and q vectors, numeric inverse of Gamma2 + R with concrete shapes and test functions F, " <>
       "NIntegrate over w (" <> ToString[prec] <> " digits), d in " <> ToString[dims]]];
    stage = stampStage[<|"Stage" -> "Oracle", "Pipeline" -> "LO", "Upstream" -> {eqs["Fingerprint"]}, "Results" -> results,
       "Checks" -> checks, "Warnings" -> warns, "Timing" -> AbsoluteTime[] - t0|>];

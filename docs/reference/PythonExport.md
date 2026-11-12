@@ -9,7 +9,7 @@ ExportPython: write an LO Adimensional stage as a Python module for BMWflow's ge
 
 ### `ExportPython`
 
-`ExportPython[adim, "G" -> alamk^2, "Model" -> "KPZ", "File" -> ".../eqs/KPZ_LO.py"]` writes the LO Adimensional stage as a Python module (constants CONTRACT\_VERSION, FUNCTIONS, ETAS, COUPLINGS, SHAPES, P2\_DIVIDED, FIXED\_DIMENSION, APPROXIMATION, MODEL; functions linear, loop, eta\_matrix, eta\_vector, beta; docs/handoff/BMWflow\_LO.md) and returns its path. "G" is BMWflow's scalar coupling g in terms of the single exported coupling: every kernel is written in g (COUPLINGS = ("g",)) and beta is d\_s g. "Model" is a label (MODEL).
+`ExportPython[adim, "G" -> alamk^2, "Model" -> "KPZ", "File" -> ".../eqs/KPZ_LO.py"]` writes the LO (or NLO: APPROXIMATION "NLO", loop and linear with the external frequency w, contract v4) Adimensional stage as a Python module (constants CONTRACT\_VERSION, FUNCTIONS, ETAS, COUPLINGS, SHAPES, P2\_DIVIDED, FIXED\_DIMENSION, APPROXIMATION, MODEL; functions linear, loop, eta\_matrix, eta\_vector, beta; docs/handoff/BMWflow\_LO.md) and returns its path. "G" is BMWflow's scalar coupling g in terms of the single exported coupling: every kernel is written in g (COUPLINGS = ("g",)) and beta is d\_s g. "Model" is a label (MODEL).
 
 ### `PythonParts`
 

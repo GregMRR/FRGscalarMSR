@@ -27,7 +27,7 @@ If[$pythonExe === None, skip["KPZ LO + f_lambda: Python module at f_lambda = 1 =
    script = StringRiffle[{"import importlib.util, numpy as np",
       "def load(f):", "    s = importlib.util.spec_from_file_location('m' + str(abs(hash(f))), f); m = importlib.util.module_from_spec(s); s.loader.exec_module(m); return m",
       "K = load(" <> ToString[fK, InputForm] <> "); L = load(" <> ToString[fL, InputForm] <> ")",
-      "assert L.ETAS == ('etaD', 'etanu', None) and L.FUNCTIONS == ('fD', 'fnu', 'flam') and L.P2_DIVIDED == (0, 1, 0) and L.CONTRACT_VERSION == 3",
+      "assert L.ETAS == ('etaD', 'etanu', None) and L.FUNCTIONS == ('fD', 'fnu', 'flam') and L.P2_DIVIDED == (0, 1, 0) and L.CONTRACT_VERSION == 4",
       "rng = np.random.default_rng(7); worst = 0.0",
       "for d in (2.0, 1.5, 1.0):",
       "    for _ in range(20):",

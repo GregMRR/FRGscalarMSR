@@ -75,4 +75,18 @@ kernels (the BMWflow adapter applies it). `"G" -> alamk^2` writes every kernel i
 ExportPython[adim, "G" -> alamk^2, "Model" -> "KPZ", "File" -> FileNameJoin[{$TemporaryDirectory, "KPZLO", "KPZ_LO.py"}]]
 ```
 
+## 6. NLO: functions of (ϖ, p)
+
+The option `"ExternalFrequency" -> True` keeps the external frequency ϖ (`w`) in the loop: the functions on the left-hand side
+depend on (p, ϖ), every function inside the loop stays at ϖ = 0 (Kloss, Canet, Wschebor 2012, Eq. 43). A function at (iϖ)⁰ flows
+with the even part in ϖ of its Γ2 entry, a function at (iϖ)¹ (f_λ) with the odd part divided by iϖ. The η system and β do not
+change. `AdimensionalEquations` adds (2 − η_ν) aw ∂f/∂aw to the linear part, and `ExportPython` writes a contract-v4 NLO module
+for BMWflow's `ModelGenerated(..., "NLO", ...)` ([design/NLOPIPELINE.md](../../design/NLOPIPELINE.md), `benchmarks/KPZNLO`).
+
+```mathematica
+nloEquations = BuildLOEquations[loops, symmetries, "ExternalFrequency" -> True];
+nloAdim = AdimensionalEquations[nloEquations, dims];
+ExportPython[nloAdim, "G" -> alamk^2, "Model" -> "KPZ", "File" -> FileNameJoin[{$TemporaryDirectory, "KPZNLO", "KPZ_NLO.py"}]]
+```
+
 The limits of the LO pipeline are listed in [status](../STATUS.md#not-implemented-and-future-directions).

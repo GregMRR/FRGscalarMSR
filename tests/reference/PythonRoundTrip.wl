@@ -20,7 +20,8 @@ pythonPoint[adim_, seed_, d_] := Module[{nf = Length[adim["Functions"]], ns = Le
    dy[] := RandomInteger[{16, 127}]/128;
    tup[n_] := Table[dy[], n];
    <|"p" -> dy[], "q" -> dy[], "c" -> RandomInteger[{-120, 120}]/128, "Q2" -> Null, "fq" -> tup[nf], "fQ" -> tup[nf], "rq" -> tup[ns], "rq_" -> -tup[ns], "rQ" -> tup[ns],
-    "f" -> tup[nf], "fprime" -> -tup[nf], "r" -> tup[ns], "r_" -> -tup[ns], "eta" -> tup[ne], "couplings" -> tup[nc], "d" -> d, "fp" -> tup[nf]|> // (Append[#, "Q2" -> #p^2 + #q^2 + 2 #p #q #c] &)];   (* fp drawn last: the v2 points stay *)
+    "f" -> tup[nf], "fprime" -> -tup[nf], "r" -> tup[ns], "r_" -> -tup[ns], "eta" -> tup[ne], "couplings" -> tup[nc], "d" -> d, "fp" -> tup[nf]|> // (Append[#, "Q2" -> #p^2 + #q^2 + 2 #p #q #c] &) //
+    (Join[#, <|"w" -> 4 dy[], "fprime_w" -> -tup[nf]|>] &)];   (* fp, then w, fprime_w (NLO) drawn last: the earlier points stay *)
 
 pythonValue[e_, pt_] := N[e /. {PythonAtom[a_, i_, b_, j_] :> pt[a][[i + 1]] + pt[b][[j + 1]], PythonVariable[s_, i_] :> pt[s][[i + 1]], PythonVariable[s_] :> pt[s]}, 30];
 
@@ -31,11 +32,19 @@ pythonArgs = <|"linear" -> {"p", "f", "fprime", "eta", "couplings", "d"}, "loop"
    "eta_matrix" -> {"q", "f", "fprime", "r", "r_", "couplings", "d"}, "eta_vector" -> {"q", "f", "fprime", "r", "r_", "couplings", "d"},
    "beta" -> {"couplings", "eta", "d"}|>;
 
-pythonRoundTrip[name_String, adim_, model_String, gexpr_] := Module[{file, parts, pts, mma, mach, tol, script, out, py, rel, call, bro},
+(* NLO modules (contract v4): linear and loop take w (and linear fprime_w) after p *)
+pythonArgsOf[adim_] := If[Lookup[adim, "Approximation", "LO"] =!= "NLO", pythonArgs,
+   Join[pythonArgs, <|"linear" -> {"p", "w", "f", "fprime", "fprime_w", "eta", "couplings", "d"},
+     "loop" -> {"p", "w", "q", "c", "Q2", "fp", "fq", "fQ", "rq", "rq_", "rQ", "eta", "couplings", "d"}|>]];
+
+pythonRoundTrip[name_String, adim_, model_String, gexpr_] := Block[{pythonArgs = pythonArgsOf[adim]}, pythonRoundTrip0[name, adim, model, gexpr]];
+pythonRoundTrip0[name_String, adim_, model_String, gexpr_] := Module[{file, parts, pts, mma, mach, tol, script, out, py, rel, call, bro, nlo},
    If[$pythonExe === None, skip[name <> ": Python round trip", "python3 with numpy not found", "python"]; Return[Null]];
-   file = quiet[ExportPython[adim, "G" -> gexpr, "Model" -> model, "File" -> FileNameJoin[{$pythonDir, name, model <> "_LO.py"}]]];
+   nlo = Lookup[adim, "Approximation", "LO"] === "NLO";
+   file = quiet[ExportPython[adim, "G" -> gexpr, "Model" -> model, "File" -> FileNameJoin[{$pythonDir, name, model <> If[nlo, "_NLO.py", "_LO.py"]}]]];
    parts = PythonParts[adim, gexpr];
    pts = {pythonPoint[adim, 1, 2], pythonPoint[adim, 2, 3/2], pythonPoint[adim, 3, 1], pythonPoint[adim, 4, 5/2]};
+   If[nlo, pts = Append[pts, Append[pythonPoint[adim, 5, 1], "w" -> 0]]];   (* NLO: one point at w = 0 (the first grid column) *)
    mma = Flatten[Table[pythonValue[parts[fn], pt], {pt, pts}, {fn, Keys[pythonArgs]}]];
    call[fn_, pt_] := "M." <> fn <> "(" <> StringRiffle[If[ListQ[pt[#]], pyTupleOf[pt[#]], pyLiteral[pt[#]]] & /@ pythonArgs[fn], ", "] <> ")";
    (* broadcasting: loop with p an array of two values = the two scalar calls *)
@@ -60,6 +69,7 @@ pythonRoundTrip[name_String, adim_, model_String, gexpr_] := Module[{file, parts
    mach = Flatten[Table[pythonMachineValue[parts[fn], pt], {pt, pts}, {fn, Keys[pythonArgs]}]];
    tol = MapThread[Max[10^-13, 10 If[#2 == 0, Abs[#1], Abs[(#1 - #2)/#2]]] &, {mach, mma}];
    rel = MapThread[If[#2 == 0, Abs[#1], Abs[(#1 - #2)/#2]] &, {py, mma}];
-   test[name <> ": Python = Mathematica for every function at 4 points, d in {2, 3/2, 1, 5/2} (rel. 1e-13, or 10x the machine-precision conditioning)",
+   test[name <> ": Python = Mathematica for every function at " <> ToString[Length[pts]] <> " points, d in {2, 3/2, 1, 5/2}" <> If[nlo, ", one at w = 0", ""] <>
+     " (rel. 1e-13, or 10x the machine-precision conditioning)",
     Length[py] == Length[mma] && And @@ Thread[rel < tol], True];
    test[name <> ": loop broadcasts over a numpy array of p", bro, "True"]];

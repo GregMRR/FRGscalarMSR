@@ -9,7 +9,7 @@ AdimensionalEquations: from the dimensionful equations d\_s(comb) = Integral d^d
 
 ### `AdimensionalEquations`
 
-`AdimensionalEquations[equations, dims, "State" -> {gk, lk, ...}]` returns the "Adimensional" stage: for each state coupling c (dimensionless name chat) d\_s chat = BetaL + Integral daq `Measure[aq]` BetaNL, and the eta system (EtaML + Integral daq Measure EtaMNL) eta = EtaBL + Integral daq Measure EtaBNL. d\_s ref\_j = -eta\_j ref\_j.
+`AdimensionalEquations[equations, dims, "State" -> {gk, lk, ...}]` returns the "Adimensional" stage: for each state coupling c (dimensionless name chat) d\_s chat = BetaL + Integral daq `Measure[aq]` BetaNL, and the eta system (EtaML + Integral daq Measure EtaMNL) eta = EtaBL + Integral daq Measure EtaBNL. d\_s ref\_j = -eta\_j ref\_j. An LO-pipeline stage gives Linear, Loop, EtaMatrix, EtaVector of functions f(ap^2); an NLO one ("Approximation" -> "NLO") functions f(ap^2, aw), aw the dimensionless external frequency, with the term (2 - eta\_nu) aw df/daw derived from the frequency dimension (design/NLOPIPELINE.md).
 
 ### `ShowBeta`
 

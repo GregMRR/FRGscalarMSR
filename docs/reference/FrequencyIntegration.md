@@ -21,7 +21,11 @@ IntegrateFrequencies: every projected integrand is a sum of monomials w^n Delta(
 
 ### `FrequencyIntegralFamilies`
 
-`FrequencyIntegralFamilies[n, {{a1, b1, deg}, {a2, b2, deg}}]` = `Integrate[w^n / Prod_j (Delta_j(w)^aj Delta_j(-w)^bj), {w, -Infinity, Infinity}]` for two pole families Delta\_j(w) = sum\_m `FrequencyIntegralC[j, m]` (I w)^m (the propagator Delta at q and at Q = p + q, external frequency 0), all roots of each Delta\_j(w) in the upper half plane; rational in the coefficients (LO pipeline, design/LOPIPELINE.md step 4).
+`FrequencyIntegralFamilies[n, {{a1, b1, deg}, {a2, b2, deg}}]` = `Integrate[w^n / Prod_j (Delta_j(w)^aj Delta_j(-w)^bj), {w, -Infinity, Infinity}]` for two pole families Delta\_j(w) = sum\_m `FrequencyIntegralC[j, m]` (I w)^m (the propagator Delta at q and at Q = p + q, external frequency 0), all roots of each Delta\_j(w) in the upper half plane; rational in the coefficients (LO pipeline, design/LOPIPELINE.md step 4). A family {aj, bj, deg, "Shifted"} stands for Delta\_j(w + s\_j)^aj Delta\_j(-w - s\_j)^bj with the real shift s\_j = `FrequencyIntegralShift[j]` (the external frequency at Q, NLO pipeline, design/NLOPIPELINE.md N1); the result is rational in the coefficients and in s\_j.
+
+### `FrequencyIntegralShift`
+
+`FrequencyIntegralShift[j]` is the real frequency shift s\_j of a "Shifted" pole family j in FrequencyIntegralFamilies results: the family's factors are Delta\_j(w + s\_j) and Delta\_j(-w - s\_j) (design/NLOPIPELINE.md N1).
 
 ### `ShowFlow`
 

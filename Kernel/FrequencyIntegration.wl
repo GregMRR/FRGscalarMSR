@@ -18,7 +18,11 @@ the coefficient c_m of the Delta of pole family j in FrequencyIntegralFamilies r
 FrequencyIntegralFamilies::usage = "FrequencyIntegralFamilies[n, {{a1, b1, deg}, {a2, b2, deg}}] = Integrate[w^n / Prod_j (Delta_j(w)^aj \
 Delta_j(-w)^bj), {w, -Infinity, Infinity}] for two pole families Delta_j(w) = sum_m FrequencyIntegralC[j, m] (I w)^m (the propagator \
 Delta at q and at Q = p + q, external frequency 0), all roots of each Delta_j(w) in the upper half plane; rational in the coefficients \
-(LO pipeline, design/LOPIPELINE.md step 4).";
+(LO pipeline, design/LOPIPELINE.md step 4). A family {aj, bj, deg, \"Shifted\"} stands for Delta_j(w + s_j)^aj Delta_j(-w - s_j)^bj with the \
+real shift s_j = FrequencyIntegralShift[j] (the external frequency at Q, NLO pipeline, design/NLOPIPELINE.md N1); the result is rational \
+in the coefficients and in s_j.";
+FrequencyIntegralShift::usage = "FrequencyIntegralShift[j] is the real frequency shift s_j of a \"Shifted\" pole family j in \
+FrequencyIntegralFamilies results: the family's factors are Delta_j(w + s_j) and Delta_j(-w - s_j) (design/NLOPIPELINE.md N1).";
 ShowFlow::usage = "ShowFlow[integrated, {a, b}, {m, n}] prints the integrated flow of a monomial (symbolic, or its sampled values).";
 
 Begin["`Private`"];
@@ -66,43 +70,82 @@ loEliminateBeta[r0_, j_] := Module[{be = loBe[j], num, den, x},
 
 (* the residue sum is regular when the two families coincide (Q data -> q data): single residues carry 1/(z_q - z_Q) factors that
    must cancel in the Together-simplified sum (design/LOPIPELINE.md step 4) *)
+(* a shifted family 2 coincides with family 1 only at zero shift: 1/(z_q - z_Q + s) is finite for s != 0 (design/NLOPIPELINE.md N1) *)
 loCheckRegularAtCoincidence[r_] := Module[{den = Denominator[Together[r]], co},
-   co = den /. FrequencyIntegralC[2, m_] :> FrequencyIntegralC[1, m];
+   co = den /. {FrequencyIntegralC[2, m_] :> FrequencyIntegralC[1, m], FrequencyIntegralShift[2] -> 0};
    FRGAssert["FrequencyIntegration.regularAtCoincidence", ! ExactlyZeroQ[co], den,
     "internal: the two-family residue sum is singular when the Delta at Q equals the Delta at q (uncancelled 1/(z_q - z_Q))"];
    r];
 
-FrequencyIntegralFamilies[n_Integer, fams : {{_Integer, _Integer, _Integer} ..}] := FrequencyIntegralFamilies[n, fams] = Block[{$FRGModule = "FrequencyIntegration"},
-   Module[{w, roots, leads, f, r = 0, nf = Length[fams]},
+(* the shift of family j: FrequencyIntegralShift[j] for a "Shifted" family, else 0 *)
+loFamilyShift[fam_, j_] := If[Length[fam] == 4, FrequencyIntegralShift[j], 0];
+
+FrequencyIntegralFamilies[n_Integer, fams : {({_Integer, _Integer, _Integer} | {_Integer, _Integer, _Integer, "Shifted"}) ..}] :=
+  FrequencyIntegralFamilies[n, fams] = Block[{$FRGModule = "FrequencyIntegration"},
+   Module[{w, roots, leads, shifts, f, r = 0, nf = Length[fams]},
     FRGAssert["FrequencyIntegration.convergence", n - Total[(#[[1]] + #[[2]]) #[[3]] & /@ fams] <= -2, {n, fams},
      "divergent frequency integral: the integrand does not decay faster than 1/w^2"];
     FRGAssert["FrequencyIntegration.degree", AllTrue[fams[[All, 3]], MemberQ[{1, 2}, #] &], fams, "deg Delta must be 1 or 2 per pole family"];
     {roots, leads} = Transpose[Table[loFamilyRoots[j, fams[[j, 3]]], {j, nf}]];
-    f = w^n/Product[(leads[[j]]^fams[[j, 1]] Product[(w - z)^fams[[j, 1]], {z, roots[[j]]}]) *
-        ((leads[[j]] (-1)^fams[[j, 3]])^fams[[j, 2]] Product[(w + z)^fams[[j, 2]], {z, roots[[j]]}]), {j, nf}];
-    (* residues at the upper-half-plane roots of every Delta_j(w), pole order a_j *)
-    Do[With[{a = fams[[j, 1]]}, If[a > 0, Do[
-        r += (D[Together[f (w - z)^a], {w, a - 1}] /. w -> z)/(a - 1)!, {z, roots[[j]]}]]], {j, nf}];
+    shifts = Table[loFamilyShift[fams[[j]], j], {j, nf}];
+    (* Delta_j(w + s) = lead Prod (w + s - z), Delta_j(-w - s) = lead (-1)^deg Prod (w + s + z) *)
+    f = w^n/Product[(leads[[j]]^fams[[j, 1]] Product[(w + shifts[[j]] - z)^fams[[j, 1]], {z, roots[[j]]}]) *
+        ((leads[[j]] (-1)^fams[[j, 3]])^fams[[j, 2]] Product[(w + shifts[[j]] + z)^fams[[j, 2]], {z, roots[[j]]}]), {j, nf}];
+    (* residues at the upper-half-plane poles z - s_j of every Delta_j(w + s_j), pole order a_j (a real shift moves no pole across the axis) *)
+    Do[With[{a = fams[[j, 1]], s = shifts[[j]]}, If[a > 0, Do[
+        r += (D[Together[f (w + s - z)^a], {w, a - 1}] /. w -> z - s)/(a - 1)!, {z, roots[[j]]}]]], {j, nf}];
     r = Together[2 Pi I r];
     Do[If[fams[[j, 3]] == 2, r = loEliminateBeta[r, j]], {j, nf}];
     FRGAssert["FrequencyIntegration.rational", FreeQ[r, _loBe | _loAl | Power[_, _Rational]], r, "internal: square roots survived"];
-    loCheckRegularAtCoincidence[r]]];
+    r = loCheckRegularAtCoincidence[r];
+    If[MemberQ[fams, {_, _, _, "Shifted"}], loCheckShiftToZero[r, n, fams], r]]];
+
+(* a shifted result at zero shift equals the unshifted one (design/NLOPIPELINE.md N7) *)
+loCheckShiftToZero[r_, n_, fams_] := (FRGAssert["FrequencyIntegration.shiftToZero",
+    ExactlyZeroQ[(r /. FrequencyIntegralShift[_] -> 0) - FrequencyIntegralFamilies[n, fams[[All, 1 ;; 3]]]], {n, fams},
+    "internal: the shifted two-family residue sum at zero shift differs from the unshifted one"]; r);
+
+(* NLO parts of a shifted result R(s) (s = FrequencyIntegralShift[2]): {E[R], O[R]/(I s)}, E/O the even/odd parts in s; exact,
+   memoised per exponent pattern (design/NLOPIPELINE.md N4) *)
+loShiftParts[n_, fams_] := loShiftParts[n, fams] = Module[{r = FrequencyIntegralFamilies[n, fams], s = FrequencyIntegralShift[2], rm},
+   rm = r /. s -> -s;
+   {Together[(r + rm)/2], Together[(r - rm)/(2 I s)]}];
 
 (* LO dispatch: monomials w^n X1^a1 Y1^b1 X2^a2 Y2^b2 with X_j = 1/Delta(w, s_j), Y_j = 1/Delta(-w, s_j); a single family goes to
-   FrequencyIntegral. cvals[j] are the rules FrequencyIntegralC[m] -> c_m of family j *)
-loIntegrate[e_, w_, {s1_, s2_}, deg_] := Module[{exy, res, cv},
-   exy = e /. {\[CapitalDelta][w, s1] -> 1/loX1, \[CapitalDelta][-w, s1] -> 1/loY1, \[CapitalDelta][w, s2] -> 1/loX2, \[CapitalDelta][-w, s2] -> 1/loY2};
+   FrequencyIntegral. cvals[j] are the rules FrequencyIntegralC[m] -> c_m of family j.
+   NLO (design/NLOPIPELINE.md N1, N4): with the external frequency nu, the Q family is X2 = 1/Delta(w + nu, s2), Y2 = 1/Delta(-w - nu, s2)
+   and part selects the result: "Full" F(nu), "Even" E[F], "Odd" O[F]/(I nu), E/O the even/odd parts in nu, built per term
+   t = c(nu) R(nu) (c the monomial's coefficient) as E[t] = E[c] E[R] + O[c] O[R], O[t] = E[c] O[R] + O[c] E[R], nu cancelled exactly. *)
+loIntegrate[e_, w_, {s1_, s2_}, deg_] := loIntegrate[e, w, {s1, s2}, deg, None, "Full"];
+loIntegrate[e_, w_, {s1_, s2_}, deg_, nu_, part_] := Module[{exy, res, cv, terms, sh = FrequencyIntegralShift[2], ev, od},
+   exy = e /. If[nu === None,
+      {\[CapitalDelta][w, s1] -> 1/loX1, \[CapitalDelta][-w, s1] -> 1/loY1, \[CapitalDelta][w, s2] -> 1/loX2, \[CapitalDelta][-w, s2] -> 1/loY2},
+      {\[CapitalDelta][w, s1] -> 1/loX1, \[CapitalDelta][-w, s1] -> 1/loY1, \[CapitalDelta][w + nu, s2] -> 1/loX2, \[CapitalDelta][-w - nu, s2] -> 1/loY2}];
    FRGAssert["FrequencyIntegration.ready", FreeQ[exy, \[CapitalDelta] | Derivative[__][\[CapitalDelta]]], Cases[exy, _\[CapitalDelta], Infinity],
-    "integrand not ready: Delta with a momentum other than q and Q"];
+    If[nu === None, "integrand not ready: Delta with a momentum other than q and Q",
+     "integrand not ready (NLO): Delta other than Delta(+-w, q^2) and Delta(+-(w + nu), Q^2)"]];
    cv[j_, s_] := Table[FrequencyIntegralC[j, m] -> DeltaCoefficient[m][s], {m, 0, 2}];
-   res = Total[Function[cr, Module[{n, a1, b1, a2, b2},
+   (* terms {c, {E[R], O[R]/(I sh)}, rules}: R abstract in FrequencyIntegralC and sh; c may hold nu *)
+   terms = Flatten[Function[cr, Module[{n, a1, b1, a2, b2},
         {n, a1, b1, a2, b2} = cr[[1]];
-        cr[[2]] Which[
-          a2 == 0 && b2 == 0, FrequencyIntegral[n, a1, b1, deg] /. FrequencyIntegralC[m_] :> DeltaCoefficient[m][s1],
-          a1 == 0 && b1 == 0, FrequencyIntegral[n, a2, b2, deg] /. FrequencyIntegralC[m_] :> DeltaCoefficient[m][s2],
-          True, FrequencyIntegralFamilies[n, {{a1, b1, deg}, {a2, b2, deg}}] /. Join[cv[1, s1], cv[2, s2]]]]] /@
-      CoefficientRules[exy, {w, loX1, loY1, loX2, loY2}]];
-   FRGAssert["FrequencyIntegration.complete", FreeQ[res, w | loX1 | loY1 | loX2 | loY2 | \[CapitalDelta] | Power[_, _Rational]], res, "leftover w, Delta or radicals"];
+        Which[
+         a2 == 0 && b2 == 0, {{cr[[2]], {FrequencyIntegral[n, a1, b1, deg], 0}, FrequencyIntegralC[m_] :> DeltaCoefficient[m][s1]}},
+         (* Q alone: the integral is shift invariant, w -> w - nu in w^n; LO: nu = 0 *)
+         a1 == 0 && b1 == 0, If[nu === None, {{cr[[2]], {FrequencyIntegral[n, a2, b2, deg], 0}, FrequencyIntegralC[m_] :> DeltaCoefficient[m][s2]}},
+          Table[{cr[[2]] Binomial[n, kk] (-nu)^(n - kk), {FrequencyIntegral[kk, a2, b2, deg], 0}, FrequencyIntegralC[m_] :> DeltaCoefficient[m][s2]}, {kk, 0, n}]],
+         True, {{cr[[2]], If[nu === None, {FrequencyIntegralFamilies[n, {{a1, b1, deg}, {a2, b2, deg}}], 0},
+            loShiftParts[n, {{a1, b1, deg}, {a2, b2, deg, "Shifted"}}]], Join[cv[1, s1], cv[2, s2]]}}]]] /@
+      CoefficientRules[exy, {w, loX1, loY1, loX2, loY2}], 1];
+   res = If[nu === None, Total[(#[[1]] #[[2, 1]] /. #[[3]]) & /@ terms],
+     Total[Function[t, Module[{c = t[[1]], cm, ec, oc, er, or},
+         cm = c /. nu -> -nu; ec = (c + cm)/2; oc = Together[(c - cm)/(2 I nu)];
+         {er, or} = t[[2]] /. sh -> nu /. t[[3]];
+         Switch[part,
+          "Full", c (er + I nu or),
+          "Even", ec er - nu^2 oc or,
+          "Odd", ec or + oc er]]] /@ terms]];
+   FRGAssert["FrequencyIntegration.complete", FreeQ[res, w | loX1 | loY1 | loX2 | loY2 | \[CapitalDelta] | _FrequencyIntegralShift | Power[_, _Rational]], res,
+    "leftover w, Delta, shift or radicals"];
    res];
 
 (* dispatch on monomials w^n X^a Y^b, X = 1/Delta(w), Y = 1/Delta(-w): no table, nothing skipped *)
