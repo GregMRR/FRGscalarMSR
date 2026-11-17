@@ -152,6 +152,28 @@ conditioning of the kernels) is done and checked here, so BMWflow's adapter has 
     - d = 2: KPZ + f_λ gives χ = 0.3872, within 0.1 % of 0.3869; with f_λ = 1, χ = 0.3288.
     - d = 3: both LO models give χ ≈ 0.17–0.18, against 0.3135.
     - d = 1: f_λ = 1 is exact.
+- **Large p: p_max = 1e5** (`runBMWflow.py --p-max 1e5 --n-p 175`; same density, 25 points per decade; other settings as above;
+  all runs at a fixed point, drift ≤ 2e-5). Outputs: `out/kpz_flambda_d<d>_pmax100000_np175.png` and `out/f_<module>_d<d>_…npz`
+  (p and f at s_fin; the `--p-max`/`--n-p` options and the .npz output were added to the driver for this run).
+  - Exponents vs p_max = 100: d = 1 unchanged (χ = 0.54997 with f_λ). d = 2: χ 0.38723 → 0.38794 with f_λ, 0.32884 → 0.32909
+    without. d = 3: χ 0.17941 → 0.18008 with f_λ, 0.17237 → 0.17282 without. p_max = 100 thus shifts χ by ≲ 1e-3 in d = 2, 3.
+  - f_λ(p) at s_fin:
+
+    | d | p = 0 | 1 | 3 | 10 | 10² | 10³ | 10⁴ | 10⁵ |
+    |---|---|---|---|---|---|---|---|---|
+    | 1 | 1 | 0.9066 | 0.6156 | 0.5445 | 0.5415 | 0.5414 | 0.5415 | 0.5424 |
+    | 2 | 1 | 0.9451 | 0.7019 | 0.6472 | 0.6495 | 0.6498 | 0.6498 | 0.6497 |
+    | 3 | 1 | 0.9791 | 0.7992 | 0.7761 | 0.7859 | 0.7862 | 0.7862 | 0.7862 |
+
+  - f_λ falls from 1 around p ~ 1–10 and then stays at a constant f_λ(∞) ≈ 0.541, 0.650, 0.786 (d = 1, 2, 3) through p = 1e5.
+    In d = 2, 3 it has a shallow minimum near p ≈ 5–10, slightly below the plateau.
+  - Fitted log-slopes over p = 1e4–1e5 (f_D, f_ν, f_λ): d = 1 (−0.648, −0.549, 0.001), d = 2 (−1.164, −0.388, 0.000),
+    d = 3 (−1.540, −0.180, 0.000). The f_D, f_ν slopes equal −η_D, −η_ν of the same runs: f_X ~ p^(−η_X), and f_λ, which has
+    no η, tends to a constant.
+  - d = 1 only: the last points before p_max rise slightly (0.5415 → 0.5424); not seen in d = 2, 3. Likely an effect of the spline
+    tail beyond p_max, not checked further.
+  - f_ν(0) = 0.99997 (d = 1), 0.99995 (d = 2), 0.99999 (d = 3): f_ν's row is divided by p², and the 'const' p = 0 fill moves f_ν(0)
+    slightly off 1 (not measured in the p_max = 100 runs, whose f was not saved).
 
   - z + χ = 2 in every row: β = 0 at the fixed point.
   - d = 1 with f_λ departs from 3/2, 1/2: the time-reversal symmetry is broken (design/LOFLAMBDA.md §4). Reported, not corrected.

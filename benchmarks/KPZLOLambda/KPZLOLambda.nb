@@ -10,45 +10,78 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       154,          7]
-NotebookDataLength[      7213,        151]
-NotebookOptionsPosition[      5286,        121]
-NotebookOutlinePosition[      5600,        135]
-CellTagsIndexPosition[      5557,        132]
+NotebookDataLength[     22776,        433]
+NotebookOptionsPosition[     17108,        363]
+NotebookOutlinePosition[     17422,        377]
+CellTagsIndexPosition[     17379,        374]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
-Cell["Benchmark: KPZ at LO with a flowing f_lambda", "Title",ExpressionUUID->"799448e8-3cf0-469d-b283-3e85be3eefe8"],
+Cell["Benchmark: KPZ at LO with a flowing f_lambda", "Title",ExpressionUUID->"7b933dc5-1255-44af-8183-45bd9c2bbb15"],
 
 Cell["\<\
-The Kloss-Canet-Wschebor LO ansatz with three functions of p^2: f_lambda \
-multiplies the Galilean-covariant combination dt h - lam/2 (grad h)^2, so it \
-sits at i w in Gamma(1,1) and in the cubic vertex, at the momentum of the \
-hbar leg. Its flow is the i nu coefficient of d_s Gamma(1,1)(nu, p): d/d(i \
-nu) before the frequency integral (design/LOFLAMBDA.md).\
-\>", "Text",ExpressionUUID->"b5df5acc-8bfc-46e7-8414-e0383f44570b"],
+Model: the Kloss-Canet-Wschebor LO ansatz (PRE 86, 051124 (2012)) with three \
+functions of p^2. BMWflow's hand-written KPZ model sets f_lambda = 1; here \
+f_lambda flows. This notebook derives the flow of f_D, f_nu and f_lambda with \
+FRGscalarMSR from the ansatz alone, checks it three independent ways, and \
+exports it to BMWflow (contract v3, docs/handoff/BMWflow_LO.md), where it is \
+integrated to the fixed point in d = 1, 2, 3.\
+\>", "Text",ExpressionUUID->"a8459a09-a3c2-43bd-bec6-d88d3a831208"],
+
+Cell["\<\
+Why this benchmark: it is the first LO model with a function times i w and \
+inside a vertex (design/LOFLAMBDA.md). That needs (i) the flow of an i w \
+coefficient, d/d(i nu) of d_s Gamma(1,1)(nu, p) taken before the frequency \
+integral, which gives double poles; (ii) a function evaluated at the external \
+momentum p as well as at q and Q = p + q; (iii) a function with reference 1, \
+whose f(0) = 1 is a Ward identity, so it has no eta.\
+\>", "Text",ExpressionUUID->"ebf1c7a7-ee61-4b7d-9b17-266e6fe1ab45"],
 
 Cell["\<\
 Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"];
 kpzlamDir = ExpandFileName[\"~/sources/FRGscalarMSR/benchmarks/KPZLOLambda\"];\
-\>", "Input",ExpressionUUID->"a6e22122-a8bc-44f7-877f-9c688f521653"],
+\>", "Input",ExpressionUUID->"acf7adbf-5a74-490a-8c66-7c1c3415a7eb"],
 
-Cell["1. Ansatz", "Section",ExpressionUUID->"a336d19e-052b-4183-958b-8158ad65311a"],
-
-Cell["\<\
-\"Functions\" -> {..., flam -> 1}: f_lambda has reference 1. Its f(0) = 1 is \
-the Galilean Ward identity (the Protected i w tag), so it has no eta; \
-BuildLOEquations checks that its flow vanishes exactly at p = 0.\
-\>", "Text",ExpressionUUID->"f5dacdad-55a8-486d-af50-eda38e9a36bb"],
+Cell["1. Model and ansatz", "Section",ExpressionUUID->"402db61c-03a9-4f79-b2a4-5e1e099605d6"],
 
 Cell["\<\
-kpzlamTheory = DefineTheory[\"Scalars\" -> {h}, \"Dimension\" -> Dim];
+Gamma_k = Int hbar f_lambda(-Laplacian) { dt h - lam/2 (grad h)^2 } - nu hbar \
+f_nu(-Laplacian) lap h - D hbar f_D(-Laplacian) hbar, so Gamma(1,1) = i w \
+f_lambda(p^2) + nu p^2 f_nu(p^2), Gamma(0,2) = -2 D f_D(p^2), and the cubic \
+vertex is lam f_lambda(k_hbar^2) (k1.k2), with f_lambda at the momentum of \
+its hbar leg. Galilean invariance ties the f_lambda of the vertex to the \
+f_lambda of dt h, which is why f_lambda multiplies the whole combination. \
+fn[f, X] is f(-Laplacian) acting on X.\
+\>", "Text",ExpressionUUID->"6064209f-1f47-49a5-aa8a-92ad5434bc1d"],
+
+Cell["\<\
+\"Functions\" -> {fD -> Dk, fnu -> nuk, flam -> 1}: f_D and f_nu are \
+normalised by their couplings (f(0) = 1 defines D and nu, and gives eta_D, \
+eta_nu); f_lambda has reference 1, i.e. no coupling and no eta.\
+\>", "Text",ExpressionUUID->"e1126843-9a1e-475d-88f3-06cd775c843d"],
+
+Cell["\<\
+kpzlamTheory = DefineTheory[\"Scalars\" -> {h}, \"Dimension\" -> Dim];\
+\>", "Input",ExpressionUUID->"f830aa28-9895-413c-879e-72d064f5d519"],
+
+Cell["\<\
 kpzlamAnsatz = DefineAnsatz[kpzlamTheory,
   \"Density\" -> fn[flam, hbar] (dt[h] - lamk/2 grad[h].grad[h]) - nuk hbar \
 fn[fnu, lap[h]] - Dk hbar fn[fD, hbar],
   \"Couplings\" -> {nuk, lamk, Dk}, \"Functions\" -> {fD -> Dk, fnu -> nuk, \
 flam -> 1}];\
-\>", "Input",ExpressionUUID->"8fb6c8ea-9f8e-48b3-88cf-882a7b998519"],
+\>", "Input",ExpressionUUID->"b068d797-4760-4cdf-acd2-9815de480816"],
+
+Cell["2. Symmetries, vertices, regulator, propagator, loops", "Section",ExpressionUUID->"eb8ef5bc-0b56-478f-b0e1-66c76876cde8"],
+
+Cell["\<\
+The Galilean Ward identity says the i w coefficient of Gamma(1,1) at p = 0 is \
+not renormalised: f_lambda(0) stays 1. It is declared as a Protected i w tag \
+and checked at p = 0 when the LO equations are built (ExternalMomentum.ward). \
+The shift symmetry removes the p^0 order of Gamma(1,1), so the f_nu row can \
+be divided by p^2. lam is not renormalised (Galilean invariance).\
+\>", "Text",ExpressionUUID->"496c87b3-d5fc-4fb5-83d8-de51407538a7"],
 
 Cell["\<\
 kpzlamSymmetries = DeclareSymmetries[kpzlamAnsatz,
@@ -57,71 +90,280 @@ kpzlamSymmetries = DeclareSymmetries[kpzlamAnsatz,
   Protected[{h, hbar}, \"Frequency\" -> 0, \"Momentum\" -> 0, \"Reason\" -> \
 \"h -> h + c (shift symmetry)\"],
   NonRenormalised[lamk, \"Reason\" -> \"Galilean invariance\"]];\
-\>", "Input",ExpressionUUID->"3e0bd3ed-a3b3-4c14-a92e-08ea9c94690a"],
+\>", "Input",ExpressionUUID->"ba4a3fde-03b0-499a-bf7d-0b192ae874a9"],
 
-Cell["2. Vertices, propagator, loops, LO equations", "Section",ExpressionUUID->"53ed2f03-aa00-4f94-a465-93f100fb422d"],
-
-Cell["\<\
-The propagator now has i w f_lambda(q^2): Delta(w) = c0 + c1 (i w) with c1 = \
-f_lambda (the causal-pole assumption is f_lambda > 0, on the ExternalMomentum \
-card). The f_lambda row has double poles at Q (d/d nu of 1/Delta(w + nu, Q)).\
-\
-\>", "Text",ExpressionUUID->"483dd331-041a-49ca-bab1-8963b20986b8"],
+Cell["kpzlamVertices = BuildVertices[kpzlamAnsatz];", "Input",ExpressionUUID->"169af334-c241-46d6-9b79-4b7caa7f18fe"],
 
 Cell["\<\
-kpzlamVertices = BuildVertices[kpzlamAnsatz];
+Regulators as in benchmarks/KPZLO: R_nu = nu q^2 rn(q^2/k^2) and R_D = -2 D \
+rd(q^2/k^2), two independent shapes. The propagator now carries i w \
+f_lambda(q^2): Delta(w) = c0 + c1 (i w) with c1 = f_lambda. The residues \
+assume f_lambda > 0 at every q and Q (causal poles; stated on the \
+ExternalMomentum card, not checked at run time).\
+\>", "Text",ExpressionUUID->"eaeb7e99-44db-4a90-ac95-dce02c5b28fa"],
+
+Cell["\<\
 kpzlamRegulator = DefineRegulator[kpzlamAnsatz, {hbar, h} -> nuk q^2 \
-rn[q^2/k^2], {hbar, hbar} -> -2 Dk rd[q^2/k^2], \"Shapes\" -> {rn, rd}];
+rn[q^2/k^2], {hbar, hbar} -> -2 Dk rd[q^2/k^2], \"Shapes\" -> {rn, rd}];\
+\>", "Input",ExpressionUUID->"91be2f71-88b3-4f97-b8d6-83caa18d00b5"],
+
+Cell["\<\
 kpzlamPropagator = BuildPropagator[kpzlamVertices, kpzlamRegulator];\
-\>", "Input",ExpressionUUID->"db2054e3-c324-4a33-9f3c-d1553782cb2f"],
+\>", "Input",ExpressionUUID->"df9e5a1b-fd53-47fe-9333-a6d0ea217a27"],
 
 Cell["\<\
 kpzlamLoops = BuildLoopIntegrands[kpzlamVertices, kpzlamPropagator, \
-kpzlamRegulator];
-kpzlamEquations = BuildLOEquations[kpzlamLoops, kpzlamSymmetries];\
-\>", "Input",ExpressionUUID->"8bac6a63-bcb8-4bf9-99db-d40eed3543e6"],
+kpzlamRegulator];\
+\>", "Input",ExpressionUUID->"3edb345c-d7bc-4f29-8a2d-219979363b5c"],
 
-Cell["RunOracle[kpzlamEquations];", "Input",ExpressionUUID->"5c7cb649-03e1-433c-a04c-e0835caa3870"],
+Cell["3. LO equations, oracle, dimensionless form", "Section",ExpressionUUID->"553c9386-b31c-4283-a837-8c435863d213"],
+
+Cell["\<\
+BuildLOEquations integrates each loop over the frequency by residues. The \
+rows of f_D and f_nu are the w^0 coefficients of Gamma(0,2) and Gamma(1,1), \
+as in KPZLO. The row of f_lambda is the i nu coefficient of d_s \
+Gamma(1,1)(nu, p) at nu = 0, with d/d nu taken before the w integral: nu \
+enters only G(Q), so the poles at Q become double poles. RunOracle compares \
+every row with a numerical w integral (with an exact d/d nu) at a random \
+point, in d = 2 and 3.\
+\>", "Text",ExpressionUUID->"1538058e-f924-4f62-b12d-18d37ffbaba1"],
+
+Cell["\<\
+kpzlamEquations = BuildLOEquations[kpzlamLoops, kpzlamSymmetries];\
+\>", "Input",ExpressionUUID->"61890c9e-bbb7-4535-b57a-cdae00aae8d7"],
+
+Cell["RunOracle[kpzlamEquations];", "Input",ExpressionUUID->"9f544b25-1ab3-44e6-aea3-ca789c2829a5"],
+
+Cell["\<\
+AdimensionalEquations writes F(p^2) = f(p^2/k^2) at fixed p/k. f_D and f_nu \
+get eta_X f_X + p f_X' as linear part; f_lambda, which has no eta, gets p \
+f_lambda' only. The eta system has one row per eta (2 x 2), not one per \
+function.\
+\>", "Text",ExpressionUUID->"1f2b5de0-3bfd-4337-84fc-e1b3cc29ea76"],
 
 Cell["\<\
 kpzlamDims = DeriveDimensions[kpzlamAnsatz, \"References\" -> {nuk -> \"nu\", \
 Dk -> \"D\"}];
-kpzlamAdim = AdimensionalEquations[kpzlamEquations, kpzlamDims];
-{kpzlamAdim[\"Functions\"], kpzlamAdim[\"HasEta\"], kpzlamAdim[\"Etas\"], \
-kpzlamAdim[\"Linear\"]}\
-\>", "Input",ExpressionUUID->"ed84a1bb-203a-47b8-ba80-626cf341c4a0"],
-
-Cell["3. References and checks", "Section",ExpressionUUID->"a12fcd31-aa7c-4b9e-ad9e-c6493118837b"],
+kpzlamAdim = AdimensionalEquations[kpzlamEquations, kpzlamDims];\
+\>", "Input",ExpressionUUID->"23ba1cef-409d-4ed6-85d5-11c309b34903"],
 
 Cell["\<\
-f_lambda = 1 against benchmarks/KPZLO; generic f_lambda against the Kloss et \
-al. kernels (Reference.wl); the derivative expansion at f_lambda = 1 + x p^2 \
-against the Taylor coefficients of the three rows (sign and normalisation of \
-the d/d(i nu) row).\
-\>", "Text",ExpressionUUID->"41f68327-103b-46d5-b519-58d23a82cbc5"],
+{kpzlamAdim[\"Functions\"], kpzlamAdim[\"HasEta\"], kpzlamAdim[\"Etas\"], \
+kpzlamAdim[\"P2Divided\"]}\
+\>", "Input",ExpressionUUID->"b302c53b-d485-4161-829f-5bbce334bdae"],
+
+Cell["\<\
+{kpzlamAdim[\"Linear\"], kpzlamAdim[\"BetaL\"], \
+Dimensions[kpzlamAdim[\"EtaMatrix\"]]}\
+\>", "Input",ExpressionUUID->"6bdce4e2-f6a7-4ac9-a370-8dda231c1d6c"],
+
+Cell["4. The f_lambda row", "Section",ExpressionUUID->"6144da0d-7aa2-48ba-b1a6-c7a19621a3b4"],
+
+Cell["\<\
+The new row, in the dimensionless variables (ap = p/k, aq = q/k, CosTheta = \
+cos of the angle between p and q). It contains f_lambda at the external \
+momentum (flam[ap^2]) as well as at q and Q. Its size compared with the two \
+KPZ rows:\
+\>", "Text",ExpressionUUID->"8f0d726e-9c29-4d19-89e1-a70668616961"],
+
+Cell["\<\
+LeafCount /@ AssociationThread[kpzlamAdim[\"Functions\"], \
+kpzlamAdim[\"Loop\"]]\
+\>", "Input",ExpressionUUID->"a4a96989-c54d-4c1a-9798-db98c830142e"],
+
+Cell["Short[kpzlamAdim[\"Loop\"][[3]], 6]", "Input",ExpressionUUID->"938ca493-33a8-404e-88b1-c7b943a5582b"],
+
+Cell["\<\
+The Ward identity, read off the row itself: at p = 0 the f_lambda integrand \
+vanishes identically (at every q, angle, d and every value of the functions), \
+so f_lambda(0) = 1 is kept by the flow. The library checks this when it \
+builds the equations; these are the checks it ran on this model:\
+\>", "Text",ExpressionUUID->"2fca4c35-a300-40ae-ae15-038db1e0d5ce"],
+
+Cell["ExactlyZeroQ[kpzlamAdim[\"Loop\"][[3]] /. ap -> 0]", "Input",ExpressionUUID->"b903bab9-03f2-4cfb-b287-4c58ccf608c4"],
+
+Cell["\<\
+Select[kpzlamEquations[\"Checks\"][[All, \"Check\"]], StringStartsQ[#, \
+\"ExternalMomentum.\"] &]\
+\>", "Input",ExpressionUUID->"2b0133e5-52a1-4c34-9bb2-e37d63e7fec7"],
+
+Cell["5. Reference 1: f_lambda = 1 gives KPZLO", "Section",ExpressionUUID->"679a694f-be59-4623-a385-8564bc25dd82"],
+
+Cell["\<\
+benchmarks/KPZLO derives the f_lambda = 1 model and checks it exactly against \
+BMWflow's LO notes. Setting f_lambda -> 1, f_lambda' -> 0 here must give \
+exactly the KPZLO rows of f_D and f_nu, their eta system and beta. \
+ExactlyZeroQ substitutes random rationals for every symbol and every function \
+atom, so the comparison is pointwise (before any integral) and holds at \
+symbolic d.\
+\>", "Text",ExpressionUUID->"da195534-99c5-4d6a-9056-88794a17a645"],
 
 Cell["\<\
 Block[{Print}, Get[FileNameJoin[{ParentDirectory[kpzlamDir], \"KPZLO\", \
-\"Pipeline.wl\"}]]; Get[FileNameJoin[{kpzlamDir, \"Pipeline.wl\"}]]];
-Get[FileNameJoin[{kpzlamDir, #}]] & /@ {\"Reference.wl\", \"Checks.wl\"};
+\"Pipeline.wl\"}]]];
+kpzlamOne = {flam[_] -> 1, Derivative[_][flam][_] -> 0};\
+\>", "Input",ExpressionUUID->"640b9607-43ad-4c03-bd4f-98f763d03e48"],
+
+Cell["\<\
+{ExactlyZeroQ[(kpzlamAdim[\"Loop\"][[1]] /. kpzlamOne) - \
+kpzloAdim[\"Loop\"][[1]]], ExactlyZeroQ[(kpzlamAdim[\"Loop\"][[2]] /. \
+kpzlamOne) - kpzloAdim[\"Loop\"][[2]]]}\
+\>", "Input",ExpressionUUID->"f7c54c4d-9624-4dd5-b946-ba1aa6c30e9c"],
+
+Cell["\<\
+{ExactlyZeroQ[(kpzlamAdim[\"EtaMatrix\"] /. kpzlamOne) - \
+kpzloAdim[\"EtaMatrix\"]], ExactlyZeroQ[(kpzlamAdim[\"EtaVector\"] /. \
+kpzlamOne) - kpzloAdim[\"EtaVector\"]], ExactlyZeroQ[kpzlamAdim[\"BetaL\"] - \
+kpzloAdim[\"BetaL\"]]}\
+\>", "Input",ExpressionUUID->"1a48b341-4b8b-4a17-95d2-488a2e7977c7"],
+
+Cell["6. Reference 2: the Kloss et al. kernels at generic f_lambda", "Section",ExpressionUUID->"bd37a8c6-8d2a-451f-847a-e75a3834c664"],
+
+Cell["\<\
+BMWflow's flow/models/model_kpz.py keeps the Kloss et al. LO kernels with \
+f_lambda slots at p, q and Q (set to 1 there). Reference.wl transcribes them \
+in the variables of the notes (ph, qh, ch, one shape r, g = lam^2 D/nu^3 \
+k^(d-2)). The library's f_D and f_nu rows must equal them at generic \
+f_lambda; this tests f_lambda at the external momentum away from p = 0.\
+\>", "Text",ExpressionUUID->"32249f8c-28ba-45c7-9927-700e7c9f5b9b"],
+
+Cell["\<\
+Get[FileNameJoin[{kpzlamDir, \"Reference.wl\"}]];
+kpzlamToRef = {ap -> ph, aq -> qh, CosTheta -> ch, rn -> r, rd -> r, alamk -> \
+Sqrt[g]};
+Column[{\"D\" -> Short[kpzlamRefLoop[\"D\"], 3], \"nu\" -> \
+Short[kpzlamRefLoop[\"nu\"], 3]}, Spacings -> 2]\
+\>", "Input",ExpressionUUID->"fa7b8c45-179b-486d-80ab-d5cfd73fd630"],
+
+Cell["\<\
+{ExactlyZeroQ[(kpzlamAdim[\"Loop\"][[1]] /. kpzlamToRef) - \
+kpzlamRefLoop[\"D\"]], ExactlyZeroQ[(kpzlamAdim[\"Loop\"][[2]] /. \
+kpzlamToRef) - kpzlamRefLoop[\"nu\"]]}\
+\>", "Input",ExpressionUUID->"384957a1-f762-49a9-a44b-ab852ba48fe2"],
+
+Cell["\<\
+7. Reference 3: the derivative expansion at f_lambda = 1 + x p^2\
+\>", "Section",ExpressionUUID->"e9666840-26a3-4e6b-9844-4fb947828a40"],
+
+Cell["\<\
+No source gives the f_lambda row. Its sign and normalisation are checked by a \
+different route: the derivative expansion of the same model with \
+f_lambda(p^2) = 1 + x p^2 and f_nu = f_D = 1, i.e. (hbar - x lap hbar)(dt h - \
+lam/2 (grad h)^2) - nu hbar lap h - D hbar^2, which uses the DE projection, \
+single-family residues and Assemble's normalisation. The flow of x must equal \
+the p^2 coefficient of the f_lambda row (averaged over the direction of p), \
+and the flows of nu and D the p^0 coefficients of the other two rows. \
+Pipeline.wl builds the DE stage (kpzlamDEEquations); Checks.wl holds the \
+Taylor-coefficient helpers.\
+\>", "Text",ExpressionUUID->"dcb350d3-344c-44cd-a926-4f72e00e695f"],
+
+Cell["\<\
+Block[{Print}, Get[FileNameJoin[{kpzlamDir, \"Pipeline.wl\"}]]];
+Get[FileNameJoin[{kpzlamDir, \"Checks.wl\"}]];
+kpzlamFlamRow = kpzlamRow[kpzlamEquations, flam][\"Integrand\"];\
+\>", "Input",ExpressionUUID->"20c7dd73-787c-4cad-bc51-e85553e899fa"],
+
+Cell["\<\
+{ExactlyZeroQ[kpzlamPCoef[kpzlamFlamRow, 1] - kpzlamDE[xk]], \
+ExactlyZeroQ[kpzlamPCoef[-kpzlamFlamRow, 1] - kpzlamDE[xk]]}\
+\>", "Input",ExpressionUUID->"2518bca5-9646-48dd-ae98-93ea28e74749"],
+
+Cell["\<\
+True, False: the p^2 coefficient matches the DE flow of x, and the same row \
+with its sign flipped does not.\
+\>", "Text",ExpressionUUID->"b05aa1c5-fef3-40a3-86b2-70402fb02933"],
+
+Cell["8. Summary and the Python export", "Section",ExpressionUUID->"2311081c-e6cf-43dd-bbd5-128e5e7ed3a8"],
+
+Cell["\<\
+The same checks as run.wl and the suite hook tests/acceptance/KPZLOLambda.wl. \
+The next cell rebuilds the stage from Pipeline.wl (cards hidden) and checks \
+that it gives the same loops, so that this notebook and the scripted \
+benchmark cannot drift apart. The last cell writes the BMWflow module \
+(contract v3) to a temporary directory; export.wl writes it to out/ for \
+runBMWflow.py.\
+\>", "Text",ExpressionUUID->"de5423b9-2eef-4e92-8c87-1ea20c0ea3d7"],
+
+Cell["\<\
 kpzlamResults = kpzlamChecks[];
 kpzlamSummary[kpzlamResults]\
-\>", "Input",ExpressionUUID->"bbe95de0-8d94-4634-abbe-2cf527bd0096"],
+\>", "Input",ExpressionUUID->"c89d0f9b-f6c0-4cd8-9b50-2e239a4cc5c9"],
 
 Cell["\<\
 If[AllTrue[kpzlamResults, #Pass &], \"all checks pass\", Abort[]]\
-\>", "Input",ExpressionUUID->"f5fbad67-bca7-4400-8a36-10b10a026957"],
+\>", "Input",ExpressionUUID->"e4cfd8ee-33fe-4ea9-b6fc-541799ac6176"],
 
-Cell["4. Export (contract v3)", "Section",ExpressionUUID->"c641ca1d-0132-4a3c-adc3-ea31f49b3077"],
+Cell["\<\
+nbLoops = kpzlamAdim[\"Loop\"];
+Block[{kpzlamAdim, Print}, Get[FileNameJoin[{kpzlamDir, \"Pipeline.wl\"}]]; \
+If[kpzlamAdim[\"Loop\"] === nbLoops, \"same stage as Pipeline.wl\", Abort[]]]\
+\
+\>", "Input",ExpressionUUID->"79de8940-52f7-4ca8-9a13-e1cbcaf6af53"],
 
 Cell["\<\
 ExportPython[kpzlamAdim, \"G\" -> alamk^2, \"Model\" -> \"KPZLambda\", \"File\
 \" -> FileNameJoin[{$TemporaryDirectory, \"KPZLambda_LO.py\"}]]\
-\>", "Input",ExpressionUUID->"01aaa9dc-6a3e-4cf8-967b-52181247198a"]
+\>", "Input",ExpressionUUID->"6a1839dd-a2a7-4678-8714-07c83c34e39c"],
+
+Cell["9. In BMWflow: exponents at the fixed point", "Section",ExpressionUUID->"30401e42-45cf-467e-9870-543b7501e923"],
+
+Cell["\<\
+runBMWflow.py integrates both modules (f_lambda = 1 and flowing f_lambda) \
+with BMWflow's ModelGenerated, Euler steps ds = 1e-3 down to s = -20, grids \
+and regulator of BMWflow's KPZ_1D_twogrids example; z = 2 - eta_nu, chi = (2 \
+- d + eta_D - eta_nu)/2. Literature: d = 1 exact; d = 2 Pagnani & Parisi, PRE \
+92, 010101(R) (2015); d = 3 Marinari, Pagnani & Parisi, J. Phys. A 33, 8181 \
+(2000) (chi measured, z = 2 - chi). Results of 2026-11-03 \
+(docs/handoff/BMWflow_LO.md, Status (v3)):\
+\>", "Text",ExpressionUUID->"d73b5897-d90e-44f2-ac28-11906ef60f4b"],
+
+Cell["\<\
+Grid[{{\"d\", \"model\", \"z\", \"chi\"},
+  {1, \"f_lambda = 1\", 1.50000, 0.50000}, {1, \"flowing f_lambda\", 1.45004, \
+0.54997}, {1, \"exact\", 3/2, 1/2},
+  {2, \"f_lambda = 1\", 1.67116, 0.32884}, {2, \"flowing f_lambda\", 1.61277, \
+0.38723}, {2, \"simulations\", \"1.6131(4)\", \"0.3869(4)\"},
+  {3, \"f_lambda = 1\", 1.82762, 0.17237}, {3, \"flowing f_lambda\", 1.82058, \
+0.17941}, {3, \"simulations\", \"1.6865(15)\", \"0.3135(15)\"}},
+ Frame -> All, Alignment -> Left]\
+\>", "Input",ExpressionUUID->"0c0f689a-fe87-4256-a4ab-e0802892374c"],
+
+Cell["\<\
+In d = 1 a flowing f_lambda breaks the time-reversal symmetry of KPZ (Int h'' \
+f_lambda(-d^2) (h')^2 != 0 for f_lambda != 1), so its exponents are not \
+protected there (design/LOFLAMBDA.md section 4). The plots below exist after \
+running ~/sources/BMWflow/.venv/bin/python \
+benchmarks/KPZLOLambda/runBMWflow.py: eta(s) and the functions f_X(p) at s = \
+-20.\
+\>", "Text",ExpressionUUID->"a94ac89d-556e-42df-85cc-544473c99fdb"],
+
+Cell["\<\
+With[{files = FileNames[\"kpz_flambda_d*.png\", FileNameJoin[{kpzlamDir, \
+\"out\"}]]},
+ If[files === {}, \"no plots yet: run runBMWflow.py\", Column[Import /@ \
+files]]]\
+\>", "Input",ExpressionUUID->"8f8dc757-f3c7-47e2-8242-866267a9d6e7"],
+
+Cell["\<\
+Large p (runBMWflow.py --p-max 1e5 --n-p 175, three more decades at the same \
+density; the *_pmax100000_np175 plots above). f_lambda falls from 1 around p \
+~ 1-10 and then stays constant through p = 1e5: f_lambda(infinity) ~ 0.541, \
+0.650, 0.786 in d = 1, 2, 3 (in d = 2, 3 after a shallow minimum near p ~ \
+5-10). f_D and f_nu fall as p^(-eta_D), p^(-eta_nu) of the same run; f_lambda \
+has no eta and tends to a constant. The exponents move by at most 1e-3 from \
+the p_max = 100 values (chi with f_lambda: d = 2 0.38794, d = 3 0.18008).\
+\>", "Text",ExpressionUUID->"d3645c5f-8b70-4f9c-9bf0-1fee1bab9a18"],
+
+Cell["\<\
+Grid[Prepend[{{1, 1, 0.9066, 0.6156, 0.5445, 0.5415, 0.5414, 0.5415, 0.5424}, \
+{2, 1, 0.9451, 0.7019, 0.6472, 0.6495, 0.6498, 0.6498, 0.6497},
+   {3, 1, 0.9791, 0.7992, 0.7761, 0.7859, 0.7862, 0.7862, 0.7862}},
+  {\"d \\\\ p\", 0, 1, 3, 10, 10^2, 10^3, 10^4, 10^5}], Frame -> All]\
+\>", "Input",ExpressionUUID->"60868acf-755b-4774-94e1-b3b04997bdcf"]
 },
 FrontEndVersion->"15.0 for Linux x86 (64-bit) (May 19, 2026)",
 StyleDefinitions->"Default.nb",
-ExpressionUUID->"04fbe0e4-f2c3-4959-8406-030f1df259e2"
+ExpressionUUID->"9f4a0371-6e14-400b-8ff0-e419dd3cd386"
 ]
 (* End of Notebook Content *)
 
@@ -134,25 +376,65 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[554, 20, 116, 0, 70, "Title",ExpressionUUID->"799448e8-3cf0-469d-b283-3e85be3eefe8"],
-Cell[673, 22, 442, 6, 70, "Text",ExpressionUUID->"b5df5acc-8bfc-46e7-8414-e0383f44570b"],
-Cell[1118, 30, 207, 3, 70, "Input",ExpressionUUID->"a6e22122-a8bc-44f7-877f-9c688f521653"],
-Cell[1328, 35, 83, 0, 70, "Section",ExpressionUUID->"a336d19e-052b-4183-958b-8158ad65311a"],
-Cell[1414, 37, 294, 4, 70, "Text",ExpressionUUID->"f5dacdad-55a8-486d-af50-eda38e9a36bb"],
-Cell[1711, 43, 401, 7, 70, "Input",ExpressionUUID->"8fb6c8ea-9f8e-48b3-88cf-882a7b998519"],
-Cell[2115, 52, 431, 7, 70, "Input",ExpressionUUID->"3e0bd3ed-a3b3-4c14-a92e-08ea9c94690a"],
-Cell[2549, 61, 118, 0, 70, "Section",ExpressionUUID->"53ed2f03-aa00-4f94-a465-93f100fb422d"],
-Cell[2670, 63, 317, 5, 70, "Text",ExpressionUUID->"483dd331-041a-49ca-bab1-8963b20986b8"],
-Cell[2990, 70, 338, 5, 70, "Input",ExpressionUUID->"db2054e3-c324-4a33-9f3c-d1553782cb2f"],
-Cell[3331, 77, 234, 4, 70, "Input",ExpressionUUID->"8bac6a63-bcb8-4bf9-99db-d40eed3543e6"],
-Cell[3568, 83, 99, 0, 70, "Input",ExpressionUUID->"5c7cb649-03e1-433c-a04c-e0835caa3870"],
-Cell[3670, 85, 339, 6, 70, "Input",ExpressionUUID->"ed84a1bb-203a-47b8-ba80-626cf341c4a0"],
-Cell[4012, 93, 98, 0, 70, "Section",ExpressionUUID->"a12fcd31-aa7c-4b9e-ad9e-c6493118837b"],
-Cell[4113, 95, 335, 5, 70, "Text",ExpressionUUID->"41f68327-103b-46d5-b519-58d23a82cbc5"],
-Cell[4451, 102, 358, 6, 70, "Input",ExpressionUUID->"bbe95de0-8d94-4634-abbe-2cf527bd0096"],
-Cell[4812, 110, 145, 2, 70, "Input",ExpressionUUID->"f5fbad67-bca7-4400-8a36-10b10a026957"],
-Cell[4960, 114, 97, 0, 70, "Section",ExpressionUUID->"c641ca1d-0132-4a3c-adc3-ea31f49b3077"],
-Cell[5060, 116, 222, 3, 70, "Input",ExpressionUUID->"01aaa9dc-6a3e-4cf8-967b-52181247198a"]
+Cell[554, 20, 116, 0, 70, "Title",ExpressionUUID->"7b933dc5-1255-44af-8183-45bd9c2bbb15"],
+Cell[673, 22, 515, 7, 70, "Text",ExpressionUUID->"a8459a09-a3c2-43bd-bec6-d88d3a831208"],
+Cell[1191, 31, 519, 7, 70, "Text",ExpressionUUID->"ebf1c7a7-ee61-4b7d-9b17-266e6fe1ab45"],
+Cell[1713, 40, 207, 3, 70, "Input",ExpressionUUID->"acf7adbf-5a74-490a-8c66-7c1c3415a7eb"],
+Cell[1923, 45, 93, 0, 70, "Section",ExpressionUUID->"402db61c-03a9-4f79-b2a4-5e1e099605d6"],
+Cell[2019, 47, 579, 8, 70, "Text",ExpressionUUID->"6064209f-1f47-49a5-aa8a-92ad5434bc1d"],
+Cell[2601, 57, 290, 4, 70, "Text",ExpressionUUID->"e1126843-9a1e-475d-88f3-06cd775c843d"],
+Cell[2894, 63, 150, 2, 70, "Input",ExpressionUUID->"f830aa28-9895-413c-879e-72d064f5d519"],
+Cell[3047, 67, 330, 6, 70, "Input",ExpressionUUID->"b068d797-4760-4cdf-acd2-9815de480816"],
+Cell[3380, 75, 127, 0, 70, "Section",ExpressionUUID->"eb8ef5bc-0b56-478f-b0e1-66c76876cde8"],
+Cell[3510, 77, 461, 6, 70, "Text",ExpressionUUID->"496c87b3-d5fc-4fb5-83d8-de51407538a7"],
+Cell[3974, 85, 431, 7, 70, "Input",ExpressionUUID->"ba4a3fde-03b0-499a-bf7d-0b192ae874a9"],
+Cell[4408, 94, 117, 0, 70, "Input",ExpressionUUID->"169af334-c241-46d6-9b79-4b7caa7f18fe"],
+Cell[4528, 96, 418, 6, 70, "Text",ExpressionUUID->"eaeb7e99-44db-4a90-ac95-dce02c5b28fa"],
+Cell[4949, 104, 223, 3, 70, "Input",ExpressionUUID->"91be2f71-88b3-4f97-b8d6-83caa18d00b5"],
+Cell[5175, 109, 148, 2, 70, "Input",ExpressionUUID->"df9e5a1b-fd53-47fe-9333-a6d0ea217a27"],
+Cell[5326, 113, 167, 3, 70, "Input",ExpressionUUID->"3edb345c-d7bc-4f29-8a2d-219979363b5c"],
+Cell[5496, 118, 117, 0, 70, "Section",ExpressionUUID->"553c9386-b31c-4283-a837-8c435863d213"],
+Cell[5616, 120, 549, 8, 70, "Text",ExpressionUUID->"1538058e-f924-4f62-b12d-18d37ffbaba1"],
+Cell[6168, 130, 146, 2, 70, "Input",ExpressionUUID->"61890c9e-bbb7-4535-b57a-cdae00aae8d7"],
+Cell[6317, 134, 99, 0, 70, "Input",ExpressionUUID->"9f544b25-1ab3-44e6-aea3-ca789c2829a5"],
+Cell[6419, 136, 316, 5, 70, "Text",ExpressionUUID->"1f2b5de0-3bfd-4337-84fc-e1b3cc29ea76"],
+Cell[6738, 143, 239, 4, 70, "Input",ExpressionUUID->"23ba1cef-409d-4ed6-85d5-11c309b34903"],
+Cell[6980, 149, 182, 3, 70, "Input",ExpressionUUID->"b302c53b-d485-4161-829f-5bbce334bdae"],
+Cell[7165, 154, 168, 3, 70, "Input",ExpressionUUID->"6bdce4e2-f6a7-4ac9-a370-8dda231c1d6c"],
+Cell[7336, 159, 93, 0, 70, "Section",ExpressionUUID->"6144da0d-7aa2-48ba-b1a6-c7a19621a3b4"],
+Cell[7432, 161, 318, 5, 70, "Text",ExpressionUUID->"8f0d726e-9c29-4d19-89e1-a70668616961"],
+Cell[7753, 168, 161, 3, 70, "Input",ExpressionUUID->"a4a96989-c54d-4c1a-9798-db98c830142e"],
+Cell[7917, 173, 107, 0, 70, "Input",ExpressionUUID->"938ca493-33a8-404e-88b1-c7b943a5582b"],
+Cell[8027, 175, 375, 5, 70, "Text",ExpressionUUID->"2fca4c35-a300-40ae-ae15-038db1e0d5ce"],
+Cell[8405, 182, 122, 0, 70, "Input",ExpressionUUID->"b903bab9-03f2-4cfb-b287-4c58ccf608c4"],
+Cell[8530, 184, 178, 3, 70, "Input",ExpressionUUID->"2b0133e5-52a1-4c34-9bb2-e37d63e7fec7"],
+Cell[8711, 189, 114, 0, 70, "Section",ExpressionUUID->"679a694f-be59-4623-a385-8564bc25dd82"],
+Cell[8828, 191, 468, 7, 70, "Text",ExpressionUUID->"da195534-99c5-4d6a-9056-88794a17a645"],
+Cell[9299, 200, 231, 4, 70, "Input",ExpressionUUID->"640b9607-43ad-4c03-bd4f-98f763d03e48"],
+Cell[9533, 206, 250, 4, 70, "Input",ExpressionUUID->"f7c54c4d-9624-4dd5-b946-ba1aa6c30e9c"],
+Cell[9786, 212, 312, 5, 70, "Input",ExpressionUUID->"1a48b341-4b8b-4a17-95d2-488a2e7977c7"],
+Cell[10101, 219, 134, 0, 70, "Section",ExpressionUUID->"bd37a8c6-8d2a-451f-847a-e75a3834c664"],
+Cell[10238, 221, 451, 6, 70, "Text",ExpressionUUID->"32249f8c-28ba-45c7-9927-700e7c9f5b9b"],
+Cell[10692, 229, 329, 6, 70, "Input",ExpressionUUID->"fa7b8c45-179b-486d-80ab-d5cfd73fd630"],
+Cell[11024, 237, 247, 4, 70, "Input",ExpressionUUID->"384957a1-f762-49a9-a44b-ab852ba48fe2"],
+Cell[11274, 243, 146, 2, 70, "Section",ExpressionUUID->"e9666840-26a3-4e6b-9844-4fb947828a40"],
+Cell[11423, 247, 716, 10, 70, "Text",ExpressionUUID->"dcb350d3-344c-44cd-a926-4f72e00e695f"],
+Cell[12142, 259, 256, 4, 70, "Input",ExpressionUUID->"20c7dd73-787c-4cad-bc51-e85553e899fa"],
+Cell[12401, 265, 203, 3, 70, "Input",ExpressionUUID->"2518bca5-9646-48dd-ae98-93ea28e74749"],
+Cell[12607, 270, 188, 3, 70, "Text",ExpressionUUID->"b05aa1c5-fef3-40a3-86b2-70402fb02933"],
+Cell[12798, 275, 106, 0, 70, "Section",ExpressionUUID->"2311081c-e6cf-43dd-bbd5-128e5e7ed3a8"],
+Cell[12907, 277, 468, 7, 70, "Text",ExpressionUUID->"de5423b9-2eef-4e92-8c87-1ea20c0ea3d7"],
+Cell[13378, 286, 140, 3, 70, "Input",ExpressionUUID->"c89d0f9b-f6c0-4cd8-9b50-2e239a4cc5c9"],
+Cell[13521, 291, 145, 2, 70, "Input",ExpressionUUID->"e4cfd8ee-33fe-4ea9-b6fc-541799ac6176"],
+Cell[13669, 295, 269, 5, 70, "Input",ExpressionUUID->"79de8940-52f7-4ca8-9a13-e1cbcaf6af53"],
+Cell[13941, 302, 222, 3, 70, "Input",ExpressionUUID->"6a1839dd-a2a7-4678-8714-07c83c34e39c"],
+Cell[14166, 307, 117, 0, 70, "Section",ExpressionUUID->"30401e42-45cf-467e-9870-543b7501e923"],
+Cell[14286, 309, 572, 8, 70, "Text",ExpressionUUID->"d73b5897-d90e-44f2-ac28-11906ef60f4b"],
+Cell[14861, 319, 558, 9, 70, "Input",ExpressionUUID->"0c0f689a-fe87-4256-a4ab-e0802892374c"],
+Cell[15422, 330, 440, 7, 70, "Text",ExpressionUUID->"a94ac89d-556e-42df-85cc-544473c99fdb"],
+Cell[15865, 339, 250, 5, 70, "Input",ExpressionUUID->"8f8dc757-f3c7-47e2-8242-866267a9d6e7"],
+Cell[16118, 346, 622, 8, 70, "Text",ExpressionUUID->"d3645c5f-8b70-4f9c-9bf0-1fee1bab9a18"],
+Cell[16743, 356, 361, 5, 70, "Input",ExpressionUUID->"60868acf-755b-4774-94e1-b3b04997bdcf"]
 }
 ]
 *)

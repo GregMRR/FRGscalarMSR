@@ -11,6 +11,7 @@ Grids and regulator: those of BMWflow's usage_examples/KPZ_1D_twogrids (tests/te
 f_lambda model breaks the KPZ time-reversal symmetry (design/LOFLAMBDA.md section 5): its exponents are not protected there.
 """
 import argparse
+import dataclasses
 import os
 import sys
 import tempfile
@@ -36,14 +37,14 @@ GRID_INT = flow_dataclasses.ParamsGridInternal(deg_q=16, q_max=4, deg_theta=10)
 MODULES = {"KPZ (f_lambda = 1)": OUT / "KPZ_LO.py", "KPZ + f_lambda": OUT / "KPZLambda_LO.py"}
 
 
-def run(path, dim, g0, s_fin, ds):
+def run(path, dim, g0, s_fin, ds, grid_ext=GRID_EXT):
     """Euler steps of BMWflow's Evolution; returns the history (s, eta, g) and the final model state.
     Evolution's own files go to a fresh temporary directory (it asks for input if its path exists)."""
     tmp = tempfile.TemporaryDirectory(prefix="kpzlolambda-")
     mod = load_generated(str(path))
     n_eta = sum(e is not None for e in mod.ETAS)
-    model = ModelGenerated(str(path), "LO", dim, GRID_EXT, GRID_INT, r, r_, "const")
-    ic = flow_dataclasses.IC_NLO(g_in=g0, etas_in=np.zeros(n_eta), fs_in=np.ones((len(mod.FUNCTIONS), GRID_EXT.N_p, 1)))
+    model = ModelGenerated(str(path), "LO", dim, grid_ext, GRID_INT, r, r_, "const")
+    ic = flow_dataclasses.IC_NLO(g_in=g0, etas_in=np.zeros(n_eta), fs_in=np.ones((len(mod.FUNCTIONS), grid_ext.N_p, 1)))
     evo = Evolution(model, ic, ds, str(Path(tmp.name) / "run"))
     hist, s, n = [], 0.0, 0
     while s > s_fin:
@@ -70,7 +71,11 @@ def main():
     ap.add_argument("--s-fin", type=float, default=-20.0)
     ap.add_argument("--ds", type=float, default=1e-3)
     ap.add_argument("--g0", default="1:1,2:50,3:300", help="initial g per dimension, d:g,...")
+    ap.add_argument("--p-max", type=float, default=GRID_EXT.p_max, help="upper end of the external p grid")
+    ap.add_argument("--n-p", type=int, default=GRID_EXT.N_p, help="points of the external p grid (incl. p = 0)")
     a = ap.parse_args()
+    grid_ext = dataclasses.replace(GRID_EXT, p_max=a.p_max, N_p=a.n_p)
+    tag = "" if (a.p_max, a.n_p) == (GRID_EXT.p_max, GRID_EXT.N_p) else f"_pmax{a.p_max:g}_np{a.n_p}"
     g0 = {int(k): float(v) for k, v in (x.split(":") for x in a.g0.split(","))}
     for p in MODULES.values():
         if not p.exists():
@@ -88,7 +93,8 @@ def main():
     for dim in a.dims:
         res = {}
         for label, path in MODULES.items():
-            hist, names, funcs, p, f = run(path, dim, g0[dim], a.s_fin, a.ds)
+            hist, names, funcs, p, f = run(path, dim, g0[dim], a.s_fin, a.ds, grid_ext)
+            np.savez(OUT / f"f_{path.stem}_d{dim}{tag}.npz", p=p, f=f, functions=funcs)
             eta = hist[-1, 1:1 + len(names)]
             drift = np.max(np.abs(hist[-1, 1:1 + len(names)] - hist[max(0, len(hist) - 11), 1:1 + len(names)]))
             z, chi = exponents(eta, names, dim)
@@ -104,12 +110,12 @@ def main():
             ax[0].set_xlabel("s"); ax[0].set_ylabel("eta"); ax[0].legend(fontsize=7)
             ax[1].set_xlabel("p"); ax[1].set_ylabel("f(p) at s_fin"); ax[1].legend(fontsize=7)
             fig.suptitle(f"KPZ LO, d = {dim}")
-            fig.tight_layout(); fig.savefig(OUT / f"kpz_flambda_d{dim}.png", dpi=130); plt.close(fig)
+            fig.tight_layout(); fig.savefig(OUT / f"kpz_flambda_d{dim}{tag}.png", dpi=130); plt.close(fig)
 
     print(f"\n{'d':>2}  {'model':<20} {'z':>10} {'chi':>10} {'g':>10}  {'|d eta| last unit of s':>22}")
     for dim, label, z, chi, g, drift in rows:
         print(f"{dim:>2}  {label:<20} {z:>10.5f} {chi:>10.5f} {g:>10.4f}  {drift:>22.2e}")
-    print(f"\nPlots: {OUT}/kpz_flambda_d<d>.png. A large |d eta| means the run has not reached its fixed point (raise --s-fin or change --g0).")
+    print(f"\nPlots: {OUT}/kpz_flambda_d<d>{tag}.png. A large |d eta| means the run has not reached its fixed point (raise --s-fin or change --g0).")
 
 
 if __name__ == "__main__":
