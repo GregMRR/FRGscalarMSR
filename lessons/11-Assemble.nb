@@ -77,7 +77,7 @@ Cell[TextData[{
 }], "Text",ExpressionUUID->"0aa7315e-1030-4d09-a7bd-25aa766fc6fc"],
 
 Cell["\<\
-Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"];
 Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
 closure = lessonUpTo[\"Closure\"];\
 \>", "Input",ExpressionUUID->"2063b422-5dc3-4125-bf65-483f24a23789"],

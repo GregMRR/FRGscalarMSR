@@ -5,7 +5,7 @@
 **Stage.** Input: two options. Output: the `"Theory"` stage. It is the root of the pipeline: its `"Upstream"` list is empty.
 
 ```wl
-Get["~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl"];
+Get["~/sources/FRGscalarMSR/FRGscalarMSR.wl"];
 Get[FileNameJoin[{$FRGRoot, "lessons", "LessonSetup.wl"}]]
 ```
 

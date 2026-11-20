@@ -107,7 +107,7 @@ given as an inline `math -noprompt -run` probe, E1-probe below, so that it can b
 
 ## E1-probe (rerun from the repo root, about 4 min)
 ```
-CODE='testRoot="/home/greg/Physics/Sources/FRGscalarMSR/tests/"; Get["/home/greg/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl"];
+CODE='testRoot="/home/greg/sources/FRGscalarMSR/tests/"; Get["/home/greg/sources/FRGscalarMSR/FRGscalarMSR.wl"];
 SetAttributes[quiet,HoldAll]; quiet[e_]:=Block[{Print},e];
 adimCond[eqs_,dims_]:=Module[{n=dims["Names"],v=dims["Vectors"],b=dims["Basis"],cps=AnsatzOf[eqs]["Couplings"],r=dims["References"],tu},
  tu=Join[(#->n[#] FRGscalarMSR`Private`basisForm[v[#],b])&/@Complement[cps,r],{eqs["LoopMomentum"]->dims["Scale"] aq}];

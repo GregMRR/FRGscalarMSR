@@ -5,7 +5,7 @@
 **Stage.** Input: the Ansatz stage, tags `Protected[...]`, `Neglected[...]`, `NonRenormalised[...]`, and `"TruncationOrders"`. Output: the `"Symmetries"` stage, with one record per monomial. It is used by the projection (lesson 08) and the closure check (lesson 10).
 
 ```wl
-Get["~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl"];
+Get["~/sources/FRGscalarMSR/FRGscalarMSR.wl"];
 Get[FileNameJoin[{$FRGRoot, "lessons", "LessonSetup.wl"}]];
 ansatz = lessonUpTo["Ansatz"];
 ```

@@ -118,7 +118,7 @@ Cell[TextData[{
 }], "Text",ExpressionUUID->"8d7f8296-34dc-4e5b-a35a-76cd9d9e436d"],
 
 Cell["\<\
-Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"];
 Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
 theory = lessonUpTo[\"Theory\"]\
 \>", "Input",ExpressionUUID->"a5ba8552-4bce-47e9-8511-ff301da4c5ee"],

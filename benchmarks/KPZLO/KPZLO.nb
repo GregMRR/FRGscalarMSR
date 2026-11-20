@@ -38,9 +38,9 @@ limit of the same loop, and the dimensionless flow at fixed p/k.\
 \>", "Text",ExpressionUUID->"3490fd0e-64b9-425d-92c3-52ed2f8df588"],
 
 Cell["\<\
-Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"];
 kpzloDir = \
-ExpandFileName[\"~/Physics/Sources/FRGscalarMSR/benchmarks/KPZLO\"];\
+ExpandFileName[\"~/sources/FRGscalarMSR/benchmarks/KPZLO\"];\
 \>", "Input",ExpressionUUID->"86204148-bdc1-41a8-8be0-361445ad94ee"],
 
 Cell["1. Model and ansatz", "Section",ExpressionUUID->"c05a513b-b7e9-44eb-9234-3491dfff23db"],

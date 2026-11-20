@@ -1,11 +1,11 @@
 # Handoff — two FlowRG interface extensions requested by FRGscalarMSR
 
-For a fresh agent working in `~/Physics/Sources/FlowRG.jl`. Read that repo's `CLAUDE.md` first (golden rules, traps) and
+For a fresh agent working in `~/sources/FlowRG.jl`. Read that repo's `CLAUDE.md` first (golden rules, traps) and
 `docs/equations-interface.md` (the contract). Nothing here changes behaviour for existing equations files.
 
 ## Why
 
-FRGscalarMSR (`~/Physics/Sources/FRGscalarMSR`, Mathematica) is getting a `JuliaExport` module that writes FlowRG
+FRGscalarMSR (`~/sources/FRGscalarMSR`, Mathematica) is getting a `JuliaExport` module that writes FlowRG
 equations files automatically from a derived set of flow equations. Two of its outputs do not fit the current interface:
 
 1. **Etas fixed by hand.** Some anomalous dimensions are not determined by an equation: the physicist fixes them at run

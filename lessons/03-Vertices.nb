@@ -82,7 +82,7 @@ Cell[TextData[{
 }], "Text",ExpressionUUID->"7fb8ffd5-e868-40cf-9336-ee0a1741e4b2"],
 
 Cell["\<\
-Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"];
 Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
 ansatz = lessonUpTo[\"Ansatz\"];\
 \>", "Input",ExpressionUUID->"49bd3620-39f8-4b74-be38-1764802bf411"],

@@ -3,7 +3,7 @@
 The library's checks run inside the pipeline, on your model, every time. The test suite checks the library itself: that each module gives known results on known models, and that each check fires when it should. This lesson reads the harness `tests/runTests.wl` and the way tests are written, and points to the benchmarks.
 
 ```wl
-Get["~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl"];
+Get["~/sources/FRGscalarMSR/FRGscalarMSR.wl"];
 Get[FileNameJoin[{$FRGRoot, "lessons", "LessonSetup.wl"}]]
 ```
 

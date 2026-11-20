@@ -5,7 +5,7 @@
 **Stage.** Input: the Projection stage. Output: the `"Integrated"` stage, whose `"Flows"` hold, for each monomial, either the symbolic flow (`"Value"`, class Declared) or exact values at random points (`"Samples"`, the other classes).
 
 ```wl
-Get["~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl"];
+Get["~/sources/FRGscalarMSR/FRGscalarMSR.wl"];
 Get[FileNameJoin[{$FRGRoot, "lessons", "LessonSetup.wl"}]];
 projected = lessonUpTo["Projection"];
 ```

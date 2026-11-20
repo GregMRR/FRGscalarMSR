@@ -26,7 +26,7 @@ Cell[TextData[{
  " None: the dimensionless flow is written, at one integer space dimension d, \
 as a Julia file that FlowRG loads and integrates. The file format is a \
 contract owned by the other repository, ",
- StyleBox["~/Physics/Sources/FlowRG.jl/docs/equations-interface.md",
+ StyleBox["~/sources/FlowRG.jl/docs/equations-interface.md",
   FontFamily->"Source Code Pro",
   FontColor->RGBColor[0.6, 0.12, 0.1],
   Background->GrayLevel[0.92]],
@@ -95,7 +95,7 @@ Cell[TextData[{
 }], "Text",ExpressionUUID->"dd8c0570-7313-4dbd-9533-27ca446000e4"],
 
 Cell["\<\
-Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"];
 Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
 equations = lessonUpTo[\"Equations\"];
 dims = Block[{Print}, DeriveDimensions[kpzAnsatz, \"References\" -> {nuk -> \

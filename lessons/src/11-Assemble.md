@@ -5,7 +5,7 @@
 **Stage.** Input: the Closure stage. Output: the `"Equations"` stage, the end of the dimensionful pipeline.
 
 ```wl
-Get["~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl"];
+Get["~/sources/FRGscalarMSR/FRGscalarMSR.wl"];
 Get[FileNameJoin[{$FRGRoot, "lessons", "LessonSetup.wl"}]];
 closure = lessonUpTo["Closure"];
 ```

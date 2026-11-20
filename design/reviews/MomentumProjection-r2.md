@@ -131,9 +131,9 @@ shallow-water pipelines. With the step-0 zero test patched in, all three build w
 ## Probes (inline)
 Common preamble (PRE) for P1–P5: load the package, then patch the step-0 rule into the private context:
 ```
-$HistoryLength=0; Get["/home/greg/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl"];
+$HistoryLength=0; Get["/home/greg/sources/FRGscalarMSR/FRGscalarMSR.wl"];
 FRGscalarMSR`$FRGExitOnFail=False; SetAttributes[quiet,HoldAll]; quiet[e_]:=Block[{Print},e];
-testRoot="/home/greg/Physics/Sources/FRGscalarMSR/tests";
+testRoot="/home/greg/sources/FRGscalarMSR/tests";
 Begin["FRGscalarMSR`Private`"];
 valueAt[e_, seed_Integer] := Module[{pt, memo, atomRule},
    pt = RandomRationalPoint[userSymbols[e], seed]; SeedRandom[seed + 7919];

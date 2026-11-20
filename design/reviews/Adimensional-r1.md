@@ -127,7 +127,7 @@ Paths: P = ~/.claude/plans/look-at-sync-cnrs-projects-shallow-water-twinkly-cand
 - Resolution: _(author)_
 
 ### E11 [minor] The D14 round trip can be skipped silently while the suite exits 0, and the FlowRG location is undeclared or stale
-- Where: P:30, P:125; design/FRGDESIGN.md:9 (`~/sources/FlowRG`, which does not exist; the real path is ~/Physics/Sources/FlowRG.jl);
+- Where: P:30, P:125; design/FRGDESIGN.md:9 (`~/sources/FlowRG`, which does not exist; the real path is ~/sources/FlowRG.jl);
   examples/makeNotebooks.wl:15, FRGscalarMSR.wl:5 and tests/runTests.wl:4 (`~/sources/FRGscalarMSR`, which does not exist).
 - Consequence: if FlowRG is looked up on the stale path, the round trip is never run and is still counted green.
 - Hint: declare the FlowRG path once, and count a skip as a visible non-pass in the summary.

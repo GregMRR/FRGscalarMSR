@@ -1,8 +1,8 @@
 (* ::Package:: *)
 
 (* makeLessons.wl -- writes lessons/NN-Name.nb and lessons/Glossary.nb from the sources lessons/src/NN-Name.md.
-   Run:  math -script ~/Physics/Sources/FRGscalarMSR/lessons/makeLessons.wl
-   Check one lesson headless:  math -script ~/Physics/Sources/FRGscalarMSR/examples/runNotebook.wl lessons/NN-Name.nb
+   Run:  math -script ~/sources/FRGscalarMSR/lessons/makeLessons.wl
+   Check one lesson headless:  math -script ~/sources/FRGscalarMSR/examples/runNotebook.wl lessons/NN-Name.nb
    Edit the sources, not the .nb files, then regenerate. The source format is described in lessons/README.md.
    The build stops (exit 1) when a quoted symbol is missing from the code, when a [[glossary reference]] comes before the
    concept is explained, or when a concept is explained twice. *)

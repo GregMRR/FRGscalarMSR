@@ -5,7 +5,7 @@
 **Stage.** Input: the Vertices and Regulator stages, built from the same Ansatz. Output: the `"Propagator"` stage.
 
 ```wl
-Get["~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl"];
+Get["~/sources/FRGscalarMSR/FRGscalarMSR.wl"];
 Get[FileNameJoin[{$FRGRoot, "lessons", "LessonSetup.wl"}]];
 regulator = lessonUpTo["Regulator"]; vertices = kpzVertices;
 ```

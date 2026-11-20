@@ -9,7 +9,7 @@ The module builds the integrand at a fixed loop point (ω, q), with the 1/(2π) 
 **Stage.** Input: the Vertices, Propagator and Regulator stages. Output: the `"Loops"` stage, which holds its ingredients; the integrand of each entry is computed on request.
 
 ```wl
-Get["~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl"];
+Get["~/sources/FRGscalarMSR/FRGscalarMSR.wl"];
 Get[FileNameJoin[{$FRGRoot, "lessons", "LessonSetup.wl"}]];
 propagator = lessonUpTo["Propagator"];
 ```

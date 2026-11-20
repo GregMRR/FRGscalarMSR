@@ -1,9 +1,9 @@
 (* ::Package:: *)
 
 (* makeNotebook.wl -- writes KuramotoSivashinsky.nb (this folder) from the cell list below.
-   Run:  math -script ~/Physics/Sources/FRGscalarMSR/benchmarks/KuramotoSivashinsky/makeNotebook.wl
+   Run:  math -script ~/sources/FRGscalarMSR/benchmarks/KuramotoSivashinsky/makeNotebook.wl
    Check that it runs headless:
-         math -script ~/Physics/Sources/FRGscalarMSR/examples/runNotebook.wl ~/Physics/Sources/FRGscalarMSR/benchmarks/KuramotoSivashinsky/KuramotoSivashinsky.nb
+         math -script ~/sources/FRGscalarMSR/examples/runNotebook.wl ~/sources/FRGscalarMSR/benchmarks/KuramotoSivashinsky/KuramotoSivashinsky.nb
    Edit the cells here, not in the .nb. The pipeline cells mirror Pipeline.wl; section 6 checks that they build the same equations. *)
 
 dir = DirectoryName[$InputFileName];
@@ -22,7 +22,7 @@ with FRGscalarMSR from the ansatz alone and compares them with the paper's, exac
 (n = 2), which no other literature check reaches. Two exact identities of the paper are checked too: the cancellation of r''' in the \
 tau flow, and the time-reversal symmetry of the one-dimensional flows. Limit: at d = 1 the p^4 normalisation 8d(d+2) equals \
 8(d^2+2), so a d-normalisation error would not show here (Projection.normalisation and Projection.explicitVectors cover it)."],
-   input["Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];\nksDir = ExpandFileName[\"~/Physics/Sources/FRGscalarMSR/benchmarks/KuramotoSivashinsky\"];"],
+   input["Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"];\nksDir = ExpandFileName[\"~/sources/FRGscalarMSR/benchmarks/KuramotoSivashinsky\"];"],
 
    section["1. Model and ansatz (paper Eqs. 16-17)"],
    text["Gamma_k = Int h̄ { dt h - (nu - tau dx^2) dx^2 h - lam/2 (dx h)^2 - (D - zeta dx^2) h̄ }, so Gamma(1,1) = i w + p^2 (nu + tau p^2) \

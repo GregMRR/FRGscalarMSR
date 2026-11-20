@@ -3,7 +3,7 @@
 
 Source: [`Kernel/JuliaExport.wl`](../../Kernel/JuliaExport.wl) · Design notes: [MODULES.md](../MODULES.md#juliaexport-kerneljuliaexportwl--exportjulia)
 
-ExportJulia: write the Adimensional stage, at one integer space dimension, as a FlowRG equations file (~/Physics/Sources/FlowRG.jl/docs/equations-interface.md): COUPLINGS, ETAS, SHAPES, MUST\_FIX, betal, betanl, etaMl, etaMnl, etabl, etabnl, with positional arguments; plus causal\_poles (design/CAUSALITY.md), an extra definition FlowRG does not call. Objective, assumptions and checks: docs/MODULES.md section "JuliaExport".
+ExportJulia: write the Adimensional stage, at one integer space dimension, as a FlowRG equations file (~/sources/FlowRG.jl/docs/equations-interface.md): COUPLINGS, ETAS, SHAPES, MUST\_FIX, betal, betanl, etaMl, etaMnl, etabl, etabnl, with positional arguments; plus causal\_poles (design/CAUSALITY.md), an extra definition FlowRG does not call. Objective, assumptions and checks: docs/MODULES.md section "JuliaExport".
 
 ## Symbols
 

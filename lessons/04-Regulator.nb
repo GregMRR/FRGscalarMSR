@@ -78,7 +78,7 @@ and meet in the Propagator (lesson 05)."
 }], "Text",ExpressionUUID->"aa896325-ef25-4fec-b357-462eb41c3db4"],
 
 Cell["\<\
-Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"];
 Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
 ansatz = lessonUpTo[\"Ansatz\"];\
 \>", "Input",ExpressionUUID->"ab214be8-e34b-44ba-9a90-6aa7a014e3fb"],

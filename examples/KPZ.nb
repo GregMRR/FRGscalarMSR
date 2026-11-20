@@ -28,7 +28,7 @@ identity) and the non-linearity lambda (not checkable in v1: that needs d_s \
 Gamma3, so it is declared NonRenormalised).\
 \>", "Text",ExpressionUUID->"69929feb-c3f7-4382-bbe4-b8909c6fd74c"],
 
-Cell["Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"]", "Input",ExpressionUUID->"e2a573df-3491-4f39-9b38-c7892a58a907"],
+Cell["Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"]", "Input",ExpressionUUID->"e2a573df-3491-4f39-9b38-c7892a58a907"],
 
 Cell["\<\
 theory = DefineTheory[\"Scalars\" -> {h}, \"Dimension\" -> Dim];

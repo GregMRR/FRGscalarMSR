@@ -59,7 +59,7 @@ with. Output: the ",
 }], "Text",ExpressionUUID->"f234d256-f2ef-49c6-b614-e541d4586ee7"],
 
 Cell["\<\
-Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"];
 Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
 integrated = lessonUpTo[\"FrequencyIntegration\"]; symmetries = kpzSymmetries;\
 \>", "Input",ExpressionUUID->"a2430a9f-d4a5-46e1-9e7a-b451cd20a0ca"],

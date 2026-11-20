@@ -32,7 +32,7 @@ with Propagator, Projection, FrequencyIntegration and Assemble. ",
 }], "Text",ExpressionUUID->"148aa777-9175-431f-8a22-a37ace927721"],
 
 Cell["\<\
-Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"];
 Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
 equations = lessonUpTo[\"Equations\"];\
 \>", "Input",ExpressionUUID->"9af07877-6399-4655-9da8-07287a2cfe7d"],

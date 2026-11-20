@@ -1,11 +1,11 @@
 # Lesson 15 - JuliaExport
 
-**Physics step.** None: the dimensionless flow is written, at one integer space dimension d, as a Julia file that FlowRG loads and integrates. The file format is a contract owned by the other repository, `~/Physics/Sources/FlowRG.jl/docs/equations-interface.md`: `COUPLINGS`, `ETAS`, `SHAPES`, `MUST_FIX`, and the functions `betal`, `betanl`, `etaMl`, `etaMnl`, `etabl`, `etabnl` with positional arguments, plus `causal_poles`.
+**Physics step.** None: the dimensionless flow is written, at one integer space dimension d, as a Julia file that FlowRG loads and integrates. The file format is a contract owned by the other repository, `~/sources/FlowRG.jl/docs/equations-interface.md`: `COUPLINGS`, `ETAS`, `SHAPES`, `MUST_FIX`, and the functions `betal`, `betanl`, `etaMl`, `etaMnl`, `etabl`, `etabnl` with positional arguments, plus `causal_poles`.
 
 **Stage.** Input: the Adimensional stage. Output: a file (no new stage).
 
 ```wl
-Get["~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl"];
+Get["~/sources/FRGscalarMSR/FRGscalarMSR.wl"];
 Get[FileNameJoin[{$FRGRoot, "lessons", "LessonSetup.wl"}]];
 equations = lessonUpTo["Equations"];
 dims = Block[{Print}, DeriveDimensions[kpzAnsatz, "References" -> {nuk -> "nu", Dk -> "D"}, "Scale" -> k]];

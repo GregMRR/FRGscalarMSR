@@ -1,9 +1,9 @@
 (* ::Package:: *)
 
 (* makeNotebook.wl -- writes KPZLO.nb (this folder) from the cell list below.
-   Run:  math -script ~/Physics/Sources/FRGscalarMSR/benchmarks/KPZLO/makeNotebook.wl
+   Run:  math -script ~/sources/FRGscalarMSR/benchmarks/KPZLO/makeNotebook.wl
    Check that it runs headless:
-         math -script ~/Physics/Sources/FRGscalarMSR/examples/runNotebook.wl ~/Physics/Sources/FRGscalarMSR/benchmarks/KPZLO/KPZLO.nb
+         math -script ~/sources/FRGscalarMSR/examples/runNotebook.wl ~/sources/FRGscalarMSR/benchmarks/KPZLO/KPZLO.nb
    Edit the cells here, not in the .nb. The pipeline cells mirror Pipeline.wl; section 6 checks that they build the same stage. *)
 
 dir = DirectoryName[$InputFileName];
@@ -21,7 +21,7 @@ external momentum p, loop momentum q, angle and dimension d."],
    text["Why this benchmark: it is the first test of the LO pipeline (design/LOPIPELINE.md): couplings that are functions of p^2, a loop \
 at generic external momentum whose frequency integral has two pole families (at q and at Q = p + q), the anomalous dimensions from \
 f(0) = 1 as the p -> 0 limit of the same loop, and the dimensionless flow at fixed p/k."],
-   input["Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];\nkpzloDir = ExpandFileName[\"~/Physics/Sources/FRGscalarMSR/benchmarks/KPZLO\"];"],
+   input["Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"];\nkpzloDir = ExpandFileName[\"~/sources/FRGscalarMSR/benchmarks/KPZLO\"];"],
 
    section["1. Model and ansatz"],
    text["Gamma_k = Int hbar { dt h - nu fnu(-Laplacian) lap h - lam/2 (grad h)^2 } - D hbar fD(-Laplacian) hbar, so \

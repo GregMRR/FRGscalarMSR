@@ -5,7 +5,7 @@
 **Stage.** Input: the Ansatz stage, rules `{a, b} -> R_ab`, `"Shapes" -> {...}`. Output: the `"Regulator"` stage. Regulator does not need the Vertices stage: the two are independent and meet in the Propagator (lesson 05).
 
 ```wl
-Get["~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl"];
+Get["~/sources/FRGscalarMSR/FRGscalarMSR.wl"];
 Get[FileNameJoin[{$FRGRoot, "lessons", "LessonSetup.wl"}]];
 ansatz = lessonUpTo["Ansatz"];
 ```

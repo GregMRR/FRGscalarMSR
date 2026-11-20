@@ -2,7 +2,7 @@
 
 (* FRGscalarMSR -- Wetterich flow equations for N MSR scalars: derivative-expansion and LO (functions of p^2) pipelines.
    Load from a notebook or a script with
-       Get["~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl"]
+       Get["~/sources/FRGscalarMSR/FRGscalarMSR.wl"]
    Modules are documented in docs/MODULES.md, conventions in docs/CONVENTIONS.md. *)
 
 (* reloading: drop the previous definitions (several symbols are Protected) *)

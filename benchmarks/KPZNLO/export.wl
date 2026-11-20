@@ -3,7 +3,7 @@
 (* export.wl -- writes the two NLO BMWflow modules (contract v4) into out/ (git-ignored): out/KPZ_NLO.py (f_lambda = 1: KCW LO =
    BMWflow ModelKPZ "NLO") and out/KPZLambda_NLO.py (flowing f_lambda: KCW NLO), and out/KPZLambda_NLO_points.json: the Mathematica
    values of both modules' loop rows (computed with 30 digits, written as doubles) at 5 random points, 2 of them at w = 0, for BMWflow's tests (tests/fixtures/).
-   Run:  math -script ~/Physics/Sources/FRGscalarMSR/benchmarks/KPZNLO/export.wl *)
+   Run:  math -script ~/sources/FRGscalarMSR/benchmarks/KPZNLO/export.wl *)
 
 kpznloDir = DirectoryName[$InputFileName];
 Get[FileNameJoin[{ParentDirectory[kpznloDir, 2], "FRGscalarMSR.wl"}]];

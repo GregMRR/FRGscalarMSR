@@ -6,7 +6,7 @@
   **binding** for this library.
 - `~/sync_cnrs/Projects/shallow_water/DE4plus_fast.wl` — the optimised reference script (25 s, 9 equations, exact checks). Most
   numerical/algebraic machinery is reused from it (§9 below).
-- `~/Physics/Sources/FlowRG.jl/docs/equations-interface.md` — the Julia contract JuliaExport targets.
+- `~/sources/FlowRG.jl/docs/equations-interface.md` — the Julia contract JuliaExport targets.
 - Adversarial review round 1 (the-enemy, 2026-10-16): findings E1–E14 are resolved in this plan; tags "E#" mark where.
   Probe scripts: `/tmp/claude-1002/-home-gtibone-sync-cnrs-Projects-shallow-water/ab3f0a62-a3fc-4e01-86ba-644acfd41efa/scratchpad/probe-*.wl`.
 - Never edit `.nb` files or `eqs/*.jl` in the user's projects; the user regenerates them. Never kill `WolframKernel` processes you did
@@ -46,7 +46,7 @@ structure), ∂sΓ⁽³⁾ projections, symbolic Ward identities, Adimensional m
 | E3/E4 | Loop prefactor (factor, sign, 2π) and Γ⁽⁴⁾ tadpole (−½) are **hand-derived** in MODULES.md, cross-read against textbook one-loop KPZ; no automated independent check (user choice). `flowsFAST` agreement does **not** verify the normalisation (same trace formula) — say so in docs. Cards print "tadpole term hand-derived, untested" whenever Γ⁽⁴⁾ ≠ 0. |
 | Q7 / E1 | Fourier convention e^{−i(q·x−ωt)} (∂t → +iω, ∇ → −iq), leg a at (ω,q): reproduces `DE4plus_fast.wl` exactly (§3). Plane-wave cross-check of every vertex + an independent pole-placement check. |
 | Q8 | One `.wl` per module, private contexts, immutable stage Associations passed explicitly, no global state. |
-| Q9/Q14 | Standalone git repo `~/Physics/Sources/FRGscalarMSR` (next to FlowRG). Acceptance: shallow-water DE4plus reproduces all 9 `flowsFAST` equations exactly + numerical oracle; one 1-scalar KPZ test. |
+| Q9/Q14 | Standalone git repo `~/sources/FRGscalarMSR` (next to FlowRG). Acceptance: shallow-water DE4plus reproduces all 9 `flowsFAST` equations exactly + numerical oracle; one 1-scalar KPZ test. |
 | Q10 | Output equation = ∂s(coefficient as written in the DSL, e.g. nk·Ak) = RHS. Interpretation (anomalous dimensions η, bookkeeping couplings = 1) deferred to the Adimensional module. |
 | Q12 | Each stage prints a summary card (PASS/FAIL lines, LeafCount, timing); full expressions only through `Show…`. |
 | Q13 | Optional `SaveStage`/`LoadStage`, fingerprinted on theory+ansatz+regulator+symmetries; mismatch aborts. |
@@ -78,7 +78,7 @@ The user prefers explanations that do not assume jargon (Vieta, Routh–Hurwitz,
 ## 4. Notebook workflow (user-facing API)
 
 ```
-Get["~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl"]
+Get["~/sources/FRGscalarMSR/FRGscalarMSR.wl"]
 theory     = DefineTheory["Scalars" -> {H, Psi}, "Dimension" -> Dim]       (* Hbar, Psibar auto *)
 ansatz     = DefineAnsatz[theory,
   "Density" ->
@@ -123,7 +123,7 @@ poles those of Δ(±ω); `CheckClosure` replaces the previewed `ProjectFlows`. F
 ## 5. Repo layout
 
 ```
-~/Physics/Sources/FRGscalarMSR/                      (git init; README.md; no CLAUDE.md unless the user asks)
+~/sources/FRGscalarMSR/                      (git init; README.md; no CLAUDE.md unless the user asks)
   FRGscalarMSR.wl            loader (Get of Kernel/*.wl in order), version, banner ("Ward identities assumed, not derived")
   Kernel/  Core.wl  Theory.wl  Ansatz.wl  Vertices.wl  Regulator.wl  Propagator.wl  Loops.wl  Projection.wl
            FrequencyIntegration.wl  Closure.wl  Assemble.wl  Oracle.wl  Stages.wl
@@ -222,7 +222,7 @@ instead of Simplify, exact random-rational verification.
 
 ## 10. Verification
 
-- `math -script ~/Physics/Sources/FRGscalarMSR/tests/runTests.wl` → unit + acceptance tests, exit 0.
+- `math -script ~/sources/FRGscalarMSR/tests/runTests.wl` → unit + acceptance tests, exit 0.
 - Shallow water: all 9 equations equal `tests/reference/flowsFAST/*.wdx` exactly at random rationals; `RunOracle` agrees to ~1e-10;
   HEQ ≡ 0; runtime of the same order as the script (~25 s).
 - KPZ (E6, restated so v1 can check it): dimensionful ν and D flows match a hand derivation (and the dimensionful content of the

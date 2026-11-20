@@ -163,7 +163,7 @@ computed on request."
 }], "Text",ExpressionUUID->"5bd4e05e-9a2c-4b4c-96de-6e0473862a7b"],
 
 Cell["\<\
-Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"];
 Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
 propagator = lessonUpTo[\"Propagator\"];\
 \>", "Input",ExpressionUUID->"8730bedb-9da4-4e6a-ba54-43512dad06d2"],

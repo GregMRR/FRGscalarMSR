@@ -1,9 +1,9 @@
 (* ::Package:: *)
 
 (* makeNotebook.wl -- writes KPZNLO.nb (this folder) from the cell list below.
-   Run:  math -script ~/Physics/Sources/FRGscalarMSR/benchmarks/KPZNLO/makeNotebook.wl
+   Run:  math -script ~/sources/FRGscalarMSR/benchmarks/KPZNLO/makeNotebook.wl
    Check that it runs headless:
-         math -script ~/Physics/Sources/FRGscalarMSR/examples/runNotebook.wl ~/Physics/Sources/FRGscalarMSR/benchmarks/KPZNLO/KPZNLO.nb
+         math -script ~/sources/FRGscalarMSR/examples/runNotebook.wl ~/sources/FRGscalarMSR/benchmarks/KPZNLO/KPZNLO.nb
    Edit the cells here, not in the .nb. The pipeline cells mirror Pipeline.wl. *)
 
 dir = DirectoryName[$InputFileName];
@@ -18,7 +18,7 @@ cells = {
 left-hand side; in the loop every function is at zero frequency, and w enters only through G(omega + w, Q). The f_D row is the even part \
 in w of d_s Gamma(0,2), f_nu the even part of d_s Gamma(1,1)/(nu p^2), f_lambda the odd part of d_s Gamma(1,1) divided by i w \
 (design/NLOPIPELINE.md). With f_lambda = 1 this is KCW's LO, which BMWflow calls \"NLO\"."],
-   input["Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];\nkpznloDir = ExpandFileName[\"~/Physics/Sources/FRGscalarMSR/benchmarks/KPZNLO\"];\n\
+   input["Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"];\nkpznloDir = ExpandFileName[\"~/sources/FRGscalarMSR/benchmarks/KPZNLO\"];\n\
 Block[{Print}, Get[FileNameJoin[{ParentDirectory[kpznloDir], #, \"Pipeline.wl\"}]] & /@ {\"KPZLO\", \"KPZLOLambda\"}];"],
 
    section["1. NLO equations"],

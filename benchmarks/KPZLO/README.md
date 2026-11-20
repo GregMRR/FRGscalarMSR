@@ -1,6 +1,6 @@
 # Benchmark: KPZ at LO (functions of p²)
 
-**Reference.** The KPZ LO flow of BMWflow (`~/Physics/Sources/BMWflow`, commit `55108ad`): `notes/LO_flow_equations.tex` and
+**Reference.** The KPZ LO flow of BMWflow (`~/sources/BMWflow`, commit `55108ad`): `notes/LO_flow_equations.tex` and
 `notes/kpz_notation.tex` (git-ignored, local checkout only), coded by hand in `flow/models/model_kpz.py` (`Integral_pfixed_dD_LO`,
 `eta_calc`, `g_rhs_calc`). Notation of Kloss, Canet, Wschebor, PRE 86, 051124 (2012), with f_λ = 1 and the functions at zero
 frequency.

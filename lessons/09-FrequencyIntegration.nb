@@ -106,7 +106,7 @@ Cell[TextData[{
 }], "Text",ExpressionUUID->"93404eb7-de51-48b5-9919-5fe672cf81a9"],
 
 Cell["\<\
-Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"];
 Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
 projected = lessonUpTo[\"Projection\"];\
 \>", "Input",ExpressionUUID->"a65279f7-7b2a-4d38-9532-f1d8a3fa09ac"],

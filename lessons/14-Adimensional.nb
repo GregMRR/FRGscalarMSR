@@ -90,7 +90,7 @@ Cell[TextData[{
 }], "Text",ExpressionUUID->"2b3da6fe-bae6-4f78-9079-3055cd09427f"],
 
 Cell["\<\
-Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"];
 Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
 equations = lessonUpTo[\"Equations\"];
 dims = Block[{Print}, DeriveDimensions[kpzAnsatz, \"References\" -> {nuk -> \

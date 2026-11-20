@@ -22,7 +22,7 @@ Generated from the doc comments in the source files. One page per file, in load 
 | [Stages](Stages.md) | SaveStage / LoadStage: any stage to a .wdx file and back, with its fingerprint checked on load and, optionally, the stages it must have been built from (theory… | 3 |
 | [Dimensions](Dimensions.md) | DeriveDimensions: the scaling dimension of every coupling, field and of time, derived from the ansatz under the assumption that Gamma\_k = Integral dt d^dx dens… | 7 |
 | [Adimensional](Adimensional.md) | AdimensionalEquations: from the dimensionful equations d\_s(comb) = Integral d^dq/(2 Pi)^d (integrand) and the derived dimensions, the dimensionless beta functi… | 6 |
-| [JuliaExport](JuliaExport.md) | ExportJulia: write the Adimensional stage, at one integer space dimension, as a FlowRG equations file (~/Physics/Sources/FlowRG.jl/docs/equations-interface.md)… | 2 |
+| [JuliaExport](JuliaExport.md) | ExportJulia: write the Adimensional stage, at one integer space dimension, as a FlowRG equations file (~/sources/FlowRG.jl/docs/equations-interface.md): COUPLI… | 2 |
 | [PythonExport](PythonExport.md) | ExportPython: write an LO Adimensional stage as a Python module for BMWflow's generic adapter (contract: docs/handoff/BMWflow\_LO.md = design/LOPIPELINE.md sect… | 4 |
 
 ## All public symbols

@@ -5,7 +5,7 @@
 **Stage.** Input: the Loops and Symmetries stages. Output: the `"Projection"` stage, with one ω-integrand per classified monomial (every class except Structure), as a function of ω and q² = `LoopMomentumSquared`.
 
 ```wl
-Get["~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl"];
+Get["~/sources/FRGscalarMSR/FRGscalarMSR.wl"];
 Get[FileNameJoin[{$FRGRoot, "lessons", "LessonSetup.wl"}]];
 loops = lessonUpTo["Loops"]; symmetries = kpzSymmetries;
 ```

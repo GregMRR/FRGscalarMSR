@@ -96,7 +96,7 @@ function of ",
 }], "Text",ExpressionUUID->"b85c4817-60de-407e-b2d7-5407db2fa99e"],
 
 Cell["\<\
-Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"];
 Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
 loops = lessonUpTo[\"Loops\"]; symmetries = kpzSymmetries;\
 \>", "Input",ExpressionUUID->"bca9ace5-96b5-4308-bd8a-dcd2116a9b94"],

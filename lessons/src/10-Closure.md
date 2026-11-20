@@ -5,7 +5,7 @@
 **Stage.** Input: the Integrated stage and the Symmetries stage it was projected with. Output: the `"Closure"` stage, with the `"Equations"` and a `"Report"` of every monomial.
 
 ```wl
-Get["~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl"];
+Get["~/sources/FRGscalarMSR/FRGscalarMSR.wl"];
 Get[FileNameJoin[{$FRGRoot, "lessons", "LessonSetup.wl"}]];
 integrated = lessonUpTo["FrequencyIntegration"]; symmetries = kpzSymmetries;
 ```

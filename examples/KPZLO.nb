@@ -36,7 +36,7 @@ this notebook shows the workflow and checks f = 1 against Canet's Eq. (20).\
 
 Cell[CellGroupData[{
 
-Cell["Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"]", "Input",
+Cell["Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"]", "Input",
  CellLabel->"In[1]:=",ExpressionUUID->"95877caa-75ea-49a7-8761-3f7331584fbe"],
 
 Cell[CellGroupData[{

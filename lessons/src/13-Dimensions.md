@@ -5,7 +5,7 @@
 **Stage.** Input: the Ansatz stage and `"References"`. Output: the `"Dimensions"` stage, used by Adimensional (lesson 14).
 
 ```wl
-Get["~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl"];
+Get["~/sources/FRGscalarMSR/FRGscalarMSR.wl"];
 Get[FileNameJoin[{$FRGRoot, "lessons", "LessonSetup.wl"}]];
 ansatz = lessonUpTo["Ansatz"];
 ```

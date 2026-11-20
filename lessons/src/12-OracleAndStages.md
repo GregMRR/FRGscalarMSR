@@ -3,7 +3,7 @@
 Two tools that sit beside the pipeline rather than in it. **Oracle** checks the assembled equations numerically, by a route that shares nothing with Propagator, Projection, FrequencyIntegration and Assemble. **Stages** saves any stage to disk and loads it back, refusing a file that is stale.
 
 ```wl
-Get["~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl"];
+Get["~/sources/FRGscalarMSR/FRGscalarMSR.wl"];
 Get[FileNameJoin[{$FRGRoot, "lessons", "LessonSetup.wl"}]];
 equations = lessonUpTo["Equations"];
 ```

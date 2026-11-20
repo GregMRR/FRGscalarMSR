@@ -9,7 +9,7 @@ Core does no physics. It is the machinery every stage relies on: failing checks,
 ## 1. Loading the library
 
 ```wl
-Get["~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl"]
+Get["~/sources/FRGscalarMSR/FRGscalarMSR.wl"]
 ```
 
 :::mma Get | `Get[file]` (or `<< file`) reads a file and evaluates every expression in it, in order.

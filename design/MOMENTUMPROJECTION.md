@@ -5,7 +5,7 @@
 `tests/unit/ProjectionTest.wl`, `tests/acceptance/ProjectionRegression.wl`, `tests/reference/OldProjection.wl`.
 
 ## For the implementing agent (read first)
-- Repo: `/home/greg/Physics/Sources/FRGscalarMSR` (Mathematica package; entry `FRGscalarMSR.wl`, modules in `Kernel/`,
+- Repo: `/home/greg/sources/FRGscalarMSR` (Mathematica package; entry `FRGscalarMSR.wl`, modules in `Kernel/`,
   suite `math -script tests/runTests.wl`). Read its `CLAUDE.md`, `docs/CONVENTIONS.md`, `docs/MODULES.md` (Projection,
   Oracle sections) and `design/LEVICIVITA.md` (format to copy, and its F2/F4 wedge facts) before editing.
 - Background reports with the evidence and rerunnable probes: `design/reviews/MomentumProjection-r1.md` and `-r2.md`

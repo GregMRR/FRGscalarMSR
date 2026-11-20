@@ -9,7 +9,7 @@ where BetaL is the local part (canonical scaling and Leibniz terms, not integrat
 **Stage.** Input: the Equations stage (lesson 11) and the Dimensions stage (lesson 13), from the same ansatz. Output: the `"Adimensional"` stage, the input of the Julia export.
 
 ```wl
-Get["~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl"];
+Get["~/sources/FRGscalarMSR/FRGscalarMSR.wl"];
 Get[FileNameJoin[{$FRGRoot, "lessons", "LessonSetup.wl"}]];
 equations = lessonUpTo["Equations"];
 dims = Block[{Print}, DeriveDimensions[kpzAnsatz, "References" -> {nuk -> "nu", Dk -> "D"}, "Scale" -> k]];

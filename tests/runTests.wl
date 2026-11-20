@@ -1,7 +1,7 @@
 (* ::Package:: *)
 
 (* runTests.wl -- unit and acceptance tests.
-   Run:  math -script ~/Physics/Sources/FRGscalarMSR/tests/runTests.wl [--verbose] [--require-julia] [--require-python] [--only Name]
+   Run:  math -script ~/sources/FRGscalarMSR/tests/runTests.wl [--verbose] [--require-julia] [--require-python] [--only Name]
    Exit code 0 iff every test passes. Without --verbose the cards and FAIL blocks printed by the library are hidden.
    Tests that need julia or FlowRG (python3 with numpy) are reported SKIP when those are missing; --require-julia (--require-python)
    turns those SKIPs into failures. *)

@@ -82,8 +82,8 @@ NLO, functions of (ϖ, p) with `BuildLOEquations[…, "ExternalFrequency" -> Tru
   `--compile=min -O0` (`$juliaFlags` in `tests/reference/JuliaRoundTrip.wl`).
 - Regulator prefactors may contain reference couplings only (`AdimensionalEquations` aborts otherwise); a model with independent
   diffusion constants in two sectors' regulators hits this (`design/ADIMENSIONAL.md` §4).
-- The checkouts are in `~/Physics/Sources/` (FRGscalarMSR, FlowRG.jl, BMWflow); `~/sources/` does not exist, but some notebook
-  and run headers still name it. FlowRG: set `FLOWRG_PATH`. BMWflow: found at `~/Physics/Sources/BMWflow`, or `BMWFLOW_PATH`; its
+- The checkouts are in `~/sources/` (FRGscalarMSR, FlowRG.jl, BMWflow); `~/sources/` does not exist, but some notebook
+  and run headers still name it. FlowRG: set `FLOWRG_PATH`. BMWflow: found at `~/sources/BMWflow`, or `BMWFLOW_PATH`; its
   tests need its `.venv` (scipy, numba, pytest; not installed for /usr/bin/python3).
 - Stage fingerprints are not reproducible between kernel sessions: compare stage contents (`===` on rows), not fingerprints,
   across runs (design/NLOPIPELINE.md §6).

@@ -5,7 +5,7 @@
 **Stage.** Input: the Theory stage, `"Density" -> 𝓛`, `"Couplings" -> {...}`. Output: the `"Ansatz"` stage, whose key `"Monomials"` is the parsed list.
 
 ```wl
-Get["~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl"];
+Get["~/sources/FRGscalarMSR/FRGscalarMSR.wl"];
 Get[FileNameJoin[{$FRGRoot, "lessons", "LessonSetup.wl"}]];
 theory = lessonUpTo["Theory"]
 ```

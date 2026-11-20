@@ -31,7 +31,7 @@ modules are described in docs/MODULES.md, the conventions in \
 docs/CONVENTIONS.md.\
 \>", "Text",ExpressionUUID->"53ce1d5e-d09c-4281-959d-0589dec790a4"],
 
-Cell["Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"]", "Input",ExpressionUUID->"185e31c4-ba6c-4914-af31-5e4949158bff"],
+Cell["Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"]", "Input",ExpressionUUID->"185e31c4-ba6c-4914-af31-5e4949158bff"],
 
 Cell["1. Fields and ansatz", "Section",ExpressionUUID->"9fbf5ea7-2891-4213-9012-807bfef7b734"],
 

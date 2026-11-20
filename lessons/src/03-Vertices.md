@@ -5,7 +5,7 @@
 **Stage.** Input: the Ansatz stage. Output: the `"Vertices"` stage, whose `"VertexTable"` maps each field multiset to its vertex.
 
 ```wl
-Get["~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl"];
+Get["~/sources/FRGscalarMSR/FRGscalarMSR.wl"];
 Get[FileNameJoin[{$FRGRoot, "lessons", "LessonSetup.wl"}]];
 ansatz = lessonUpTo["Ansatz"];
 ```

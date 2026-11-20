@@ -1,7 +1,7 @@
 (* ::Package:: *)
 
 (* run.wl -- the KPZ NLO benchmark, headless.
-   Run:  math -script ~/Physics/Sources/FRGscalarMSR/benchmarks/KPZNLO/run.wl
+   Run:  math -script ~/sources/FRGscalarMSR/benchmarks/KPZNLO/run.wl
    Exit code 0 iff every check passes (a failed library check inside the pipeline exits 2 by itself). About a minute. *)
 
 kpznloDir = DirectoryName[$InputFileName];

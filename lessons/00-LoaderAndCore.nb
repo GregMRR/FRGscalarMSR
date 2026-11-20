@@ -60,7 +60,7 @@ checks, and the scalar product ",
 
 Cell["1. Loading the library", "Section",ExpressionUUID->"9a6cd07f-c718-4446-ab7f-b24403e86e6c"],
 
-Cell["Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"]", "Input",ExpressionUUID->"26a7e118-74e0-40ea-a2c9-bf92ecef4c9b"],
+Cell["Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"]", "Input",ExpressionUUID->"26a7e118-74e0-40ea-a2c9-bf92ecef4c9b"],
 
 Cell[TextData[{
  StyleBox["Mathematica: Get",
@@ -140,7 +140,7 @@ Cell["\<\
 (* FRGscalarMSR -- Wetterich flow equations for N MSR scalars, \
 derivative-expansion pipeline.
    Load from a notebook or a script with
-       Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"]
+       Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"]
    Modules are documented in docs/MODULES.md, conventions in \
 docs/CONVENTIONS.md. *)
 

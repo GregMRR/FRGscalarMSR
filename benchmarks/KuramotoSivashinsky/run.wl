@@ -1,7 +1,7 @@
 (* ::Package:: *)
 
 (* run.wl -- the Kuramoto-Sivashinsky benchmark, headless.
-   Run:  math -script ~/Physics/Sources/FRGscalarMSR/benchmarks/KuramotoSivashinsky/run.wl
+   Run:  math -script ~/sources/FRGscalarMSR/benchmarks/KuramotoSivashinsky/run.wl
    Exit code 0 iff every check passes (a failed library check inside the pipeline exits 2 by itself). About 30 s. *)
 
 ksDir = DirectoryName[$InputFileName];

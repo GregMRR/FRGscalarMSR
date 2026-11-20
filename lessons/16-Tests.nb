@@ -33,7 +33,7 @@ lesson reads the harness ",
 }], "Text",ExpressionUUID->"980ab5f9-8873-4101-8854-8acf123df282"],
 
 Cell["\<\
-Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"];
 Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]]\
 \>", "Input",ExpressionUUID->"24237fe8-6b20-4204-b9b5-6ec1f60fc421"],
 

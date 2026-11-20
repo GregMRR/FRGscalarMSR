@@ -45,8 +45,8 @@ one-dimensional flows. Limit: at d = 1 the p^4 normalisation 8d(d+2) equals \
 Cell[CellGroupData[{
 
 Cell["\<\
-Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
-ksDir = ExpandFileName[\"~/Physics/Sources/FRGscalarMSR/benchmarks/\
+Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+ksDir = ExpandFileName[\"~/sources/FRGscalarMSR/benchmarks/\
 KuramotoSivashinsky\"];\
 \>", "Input",
  CellLabel->"In[1]:=",ExpressionUUID->"4f160eda-24e3-4313-9fab-fb74c3932d6d"],

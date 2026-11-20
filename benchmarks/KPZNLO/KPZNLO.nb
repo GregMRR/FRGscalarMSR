@@ -33,8 +33,8 @@ calls \"NLO\".\
 \>", "Text",ExpressionUUID->"771c7c88-d5cd-4577-98af-ccffba4035f0"],
 
 Cell["\<\
-Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
-kpznloDir = ExpandFileName[\"~/Physics/Sources/FRGscalarMSR/benchmarks/KPZNLO\
+Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+kpznloDir = ExpandFileName[\"~/sources/FRGscalarMSR/benchmarks/KPZNLO\
 \"];
 Block[{Print}, Get[FileNameJoin[{ParentDirectory[kpznloDir], #, \"Pipeline.wl\
 \"}]] & /@ {\"KPZLO\", \"KPZLOLambda\"}];\

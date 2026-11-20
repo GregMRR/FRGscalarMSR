@@ -1,8 +1,8 @@
 (* ::Package:: *)
 
 (* makeNotebooks.wl -- writes examples/ShallowWaterDE4plus.nb, examples/KPZ.nb and examples/KPZLO.nb from the cell lists below.
-   Run:  math -script ~/Physics/Sources/FRGscalarMSR/examples/makeNotebooks.wl
-   Check that they run headless:  math -script ~/Physics/Sources/FRGscalarMSR/examples/runNotebook.wl <notebook.nb>
+   Run:  math -script ~/sources/FRGscalarMSR/examples/makeNotebooks.wl
+   Check that they run headless:  math -script ~/sources/FRGscalarMSR/examples/runNotebook.wl <notebook.nb>
    Edit the cells here, not in the .nb files, then regenerate. *)
 
 dir = DirectoryName[$InputFileName];
@@ -12,7 +12,7 @@ text[s_] := Cell[s, "Text"];
 input[s_] := Cell[s, "Input"];
 nb[cells_] := Notebook[cells, StyleDefinitions -> "Default.nb"];
 
-load = input["Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"]"];
+load = input["Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"]"];
 
 shallowWater = {
    title["Shallow water, DE4plus ansatz"],

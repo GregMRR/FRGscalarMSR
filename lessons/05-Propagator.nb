@@ -96,7 +96,7 @@ Output: the ",
 }], "Text",ExpressionUUID->"67cd8431-9f9c-4f6c-a674-a55f585bc76e"],
 
 Cell["\<\
-Get[\"~/Physics/Sources/FRGscalarMSR/FRGscalarMSR.wl\"];
+Get[\"~/sources/FRGscalarMSR/FRGscalarMSR.wl\"];
 Get[FileNameJoin[{$FRGRoot, \"lessons\", \"LessonSetup.wl\"}]];
 regulator = lessonUpTo[\"Regulator\"]; vertices = kpzVertices;\
 \>", "Input",ExpressionUUID->"4bb478c9-0ed3-495a-ac42-38a4498b7643"],
